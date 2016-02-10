@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/closeWhite"
+    
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    
+    android:orientation="vertical"
+	android:stackFromBottom="true"
+    tools:context="com.bluebird.notifinda.MainActivity"
+    >
+    
+    <!-- This is a toolbar -->
+    	<include
+    	    android:id="@+id/toolbar"
+    	    layout="@layout/toolbar"
+    	    />
+    	
+    <!-- Scroll view for main content -->
+    <ScrollView 
+    	android:layout_width="match_parent"
+    	android:layout_height="match_parent" >
+    	<!-- Linear layout for main content -->
+    	<LinearLayout 
+    	    android:layout_width="match_parent"
+    		android:layout_height="wrap_content"
+    		
+    		android:orientation="vertical"
+    	 	>
+    	 	
+	    <LinearLayout
+		    android:padding="@dimen/main_layout_padding"
+		    android:background="@color/whiteColor"
+		    
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    
+		    android:orientation="vertical"
+			android:stackFromBottom="true"
+		    >
+	
+		    <TextView 
+			     android:textSize="@dimen/standard_text_size"
+			     
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			                
+			     android:text="What do you want to ask for?"
+			     android:textStyle="bold"
+			     />
+		    
+		    <EditText
+		        android:id="@+id/ask_help_text"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:ems="10"
+		        android:inputType="textMultiLine"
+		        >
+		
+		        <requestFocus />
+		    </EditText>
+		    
+		 </LinearLayout>
+		 
+	    <LinearLayout
+		    android:padding="@dimen/main_layout_padding"
+		    android:background="@color/whiteColor"
+		    
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    
+		    android:orientation="vertical"
+			android:stackFromBottom="true"
+		    >
+		    
+		  
+		    <ImageView
+		        android:id="@+id/uploadedImage"
+				        
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    
+				    android:layout_gravity="center"
+		            />
+		    <Button
+		        android:id="@+id/buttonLoadImage"
+		        android:layout_width="35dp"
+		        android:layout_height="30dp"
+		        android:layout_weight="0"
+		        android:background="@drawable/attach_icon"
+		        android:layout_gravity="left"></Button>
+	    
+	    </LinearLayout>
+	    
+	    <LinearLayout
+		    android:padding="@dimen/main_layout_padding"
+		    android:background="@color/whiteColor"
+		    
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    
+		    android:orientation="vertical"
+			android:stackFromBottom="true"
+		    >
+		    
+		    <TextView 
+			     android:textSize="@dimen/standard_text_size"
+			     
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			                
+			     android:text="Write some keywords:"
+			     android:textStyle="bold"
+			     />
+		    <TextView 
+			     android:textSize="@dimen/small_text_size"
+			     
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			                
+			     android:text="This will help your post to be seen by right people."
+			     android:textStyle="italic"
+			     android:layout_marginBottom="10dp"
+			     />
+	
+		    <EditText
+		        android:id="@+id/ask_help_keywords"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:ems="10"
+		        android:inputType="textMultiLine"
+		        >
+		    </EditText>
+		    
+		    <TextView 
+			     android:textSize="@dimen/small_text_size"
+			     
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			                
+			     android:text="Example: @technology @computer @hardware"
+			     
+			     android:layout_marginBottom="10dp"
+			     />
+		    
+		    <Button
+		        android:id="@+id/keywordsOkBtn"
+		        android:layout_width="wrap_content"
+		        android:layout_height="40dp"
+		        
+		        android:layout_gravity="right"
+		        android:text="Ok!"
+		        android:textSize="@dimen/standard_text_size"
+		        />
+		    
+		    <ListView 
+		        android:id="@+id/keywordsList"
+		        
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        
+		        android:divider="@null"
+		        android:dividerHeight="0dp"
+		        />
+	    
+	    </LinearLayout>
+	    
+	    <LinearLayout
+		    android:padding="@dimen/main_layout_padding"
+		    android:background="@color/whiteColor"
+		    
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    
+		    android:orientation="vertical"
+			android:stackFromBottom="true"
+		    >
+		    
+		    <ImageView
+		            android:src="@drawable/ask_send_button"
+				        
+				    android:layout_width="40dp"
+				    android:layout_height="40dp"
+				    
+				    android:layout_gravity="center"
+		            />
+	    
+	    </LinearLayout>
+    
+    </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/whiteColor"
+    
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    
+    android:orientation="vertical"
+	android:stackFromBottom="true"
+    tools:context="com.bluebird.notifinda.MainActivity"
+    >
+    
+    <!-- This is a toolbar -->
+    	<include
+    	    android:id="@+id/toolbar"
+    	    layout="@layout/toolbar"
+    	    />
+    	
+    
+    	<!-- Scroll view for main content -->
+    <ScrollView 
+    	android:layout_width="match_parent"
+    	android:layout_height="match_parent" >
+    	<!-- Linear layout for main content -->
+    	<LinearLayout 
+    	    android:layout_width="match_parent"
+    		android:layout_height="wrap_content"
+    		
+    		android:orientation="vertical"
+    	 	>
+    	 	
+	    <LinearLayout
+		    android:padding="@dimen/main_layout_padding"
+		    android:background="@color/whiteColor"
+		    
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    
+		    android:orientation="vertical"
+			android:stackFromBottom="true"
+		    >
+	
+		    <TextView 
+			     android:textSize="@dimen/standard_text_size"
+			     
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			                
+			     android:text="Your response?"
+			     android:textStyle="bold"
+			     />
+		    
+		    <EditText
+		        android:id="@+id/response_help_text"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:ems="10"
+		        android:inputType="textMultiLine"
+		        >
+		
+		        <requestFocus />
+		    </EditText>
+		    
+		 </LinearLayout>
+		 
+	    
+    
+    </LinearLayout>
+    </ScrollView>
+    
+
+</LinearLayout>

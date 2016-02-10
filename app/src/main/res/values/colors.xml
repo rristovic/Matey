@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <color name="primaryOne">#5458ae</color> <!-- Dark purple -->
+    <color name="primaryTwo">#6994e4</color> <!-- Light blue -->
+    <color name="primaryThree">#5a5b5a</color> <!-- Dark gray -->
+    <color name="primaryFour">#3d9671</color> <!-- Tirkiz -->
+    <color name="primaryFive">#5dae89</color> <!-- Svetla tirkiz -->
+    <color name="primarySic">#2ebbc4</color> <!-- Very light blue -->
+    
+    <color name="whiteColor">#fcfdfd</color>
+    <color name="closeWhite">#e8e9e9</color>
+    <color name="lightGray">#9c9b9b</color>
+    <color name="statusBar">#3d4085</color>
+    
+</resources>
