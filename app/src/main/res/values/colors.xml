@@ -11,6 +11,8 @@
     <color name="whiteColor">#fcfdfd</color>
     <color name="closeWhite">#e8e9e9</color>
     <color name="lightGray">#9c9b9b</color>
-    <color name="statusBar">#3d4085</color>
+
+    <!-- New life -->
+    <color name="statusBar">#142a41</color>
     
 </resources>

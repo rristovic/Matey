@@ -45,7 +45,7 @@ public class AskHelp extends MotherActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	
 		setContentView(R.layout.ask_help_page);
-		super.setStatusBarColor("default");
+		super.setStatusBarColor();
 		super.setCustomToolbar();
 		
 		// finding button for upload image action

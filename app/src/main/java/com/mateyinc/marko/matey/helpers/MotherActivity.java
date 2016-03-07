@@ -18,14 +18,13 @@ public class MotherActivity extends AppCompatActivity {
 	
 	protected Toolbar toolbar;
 	
-	public void setStatusBarColor (String colorMethod) {
+	public void setStatusBarColor () {
 		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			Window window = this.getWindow();
 			window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 			window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-			if(colorMethod.equals("loginPage")) window.setStatusBarColor(this.getResources().getColor(R.color.primaryFour));
-			else window.setStatusBarColor(this.getResources().getColor(R.color.statusBar));
+			window.setStatusBarColor(this.getResources().getColor(R.color.statusBar));
 		}
 		
 	}

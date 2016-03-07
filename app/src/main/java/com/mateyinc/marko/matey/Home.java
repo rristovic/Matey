@@ -23,7 +23,7 @@ public class Home extends MotherActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	
 		setContentView(R.layout.home_container_layout);
-		super.setStatusBarColor("default");
+		super.setStatusBarColor();
 		super.setCustomToolbar();
 		
 		// finding ViewPager in res folder by id

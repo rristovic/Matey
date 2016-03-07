@@ -9,7 +9,7 @@ public class ResponseHelp extends MotherActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	
 		setContentView(R.layout.response_help_page);
-		super.setStatusBarColor("default");
+		super.setStatusBarColor();
 		super.setCustomToolbar();
 	}
 	
