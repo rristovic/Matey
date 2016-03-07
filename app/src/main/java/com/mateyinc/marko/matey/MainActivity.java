@@ -16,6 +16,7 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.helpers.MotherActivity;
+import com.mateyinc.marko.matey.internet.login.FbLoginAs;
 
 import java.util.Arrays;
 
@@ -70,15 +71,43 @@ public class MainActivity extends MotherActivity {
 				new FacebookCallback<LoginResult>() {
 					@Override
 					public void onSuccess(LoginResult loginResult) {
+
 						AccessToken token = loginResult.getAccessToken();
 						Profile profile = Profile.getCurrentProfile();
-
-
 						// OVDE RADNJE NAKON LOGIN-A
-						//if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null)) {
-						//	FbLoginAs fbLogin = new FbLoginAs();
-						//	fbLogin.execute(token, profile.getId(), profile.getFirstName(), profile.getLastName());
-						//}
+						if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
+							FbLoginAs fbLogin = new FbLoginAs();
+							fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName());
+						}
+
+
+						/*GraphRequest request = GraphRequest.newMeRequest(
+								token,
+								new GraphRequest.GraphJSONObjectCallback() {
+									@Override
+									public void onCompleted(JSONObject object, GraphResponse response) {
+										// Application code
+										try {
+
+											String email = object.getString("email");
+											String birthday = object.getString("birthday"); // 01/31/1980 format
+											String gender = object.getString("gender");
+
+											// OVDE RADNJE NAKON LOGIN-A
+											if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
+												FbLoginAs fbLogin = new FbLoginAs();
+												fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName());
+											}
+
+										} catch (JSONException e) {}
+
+									}
+								});
+						Bundle parameters = new Bundle();
+						parameters.putString("fields", "email, gender, birthday");
+						request.setParameters(parameters);
+						request.executeAsync();*/
+
 					}
 
 					@Override
