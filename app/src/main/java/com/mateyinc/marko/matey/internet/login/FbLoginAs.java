@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.internet.login;
 
 import android.os.AsyncTask;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,14 +17,21 @@ import java.net.URLEncoder;
 
 public class FbLoginAs extends AsyncTask<String,Void,String> {
 
+    TextView por;
+
+    public FbLoginAs (TextView por) {
+        this.por = por;
+    }
+
     @Override
     protected String doInBackground(String... params) {
 
-        String logUrl = "http://localhost/NotifindaAPI/web/index.php/api/user/fblogin";
+        String logUrl = "http://10.0.2.2/NotifindaAPI/web/index.php/api/user/fblogin";
         String token = params[0];
         String fbid = params[1];
         String firstName = params[2];
         String lastName = params[3];
+        String email = params[4];
 
         try{
 
@@ -33,13 +41,13 @@ public class FbLoginAs extends AsyncTask<String,Void,String> {
             httpURLConnection.setDoOutput(true);
             httpURLConnection.setDoInput(true);
             httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            httpURLConnection.setRequestProperty("Accept", "application/json");
 
 
             OutputStream os = httpURLConnection.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
             String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
                     URLEncoder.encode("fbid", "UTF-8") + "=" + URLEncoder.encode(fbid, "UTF-8") + "&" +
+                    URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
                     URLEncoder.encode("firstName", "UTF-8") + "=" + URLEncoder.encode(firstName, "UTF-8") + "&" +
                     URLEncoder.encode("lastName", "UTF-8") + "=" + URLEncoder.encode(lastName, "UTF-8");
             bw.write(data);
@@ -61,20 +69,19 @@ public class FbLoginAs extends AsyncTask<String,Void,String> {
             return response;
 
         } catch (MalformedURLException e) {
-
+                return "Greska";
         } catch (IOException e) {
-
+                return "Greska IO";
         }
 
-        return null;
     }
 
     protected void onProgressUpdate(Integer... progress) {
 
     }
 
-    protected void onPostExecute(Long result) {
-
+    protected void onPostExecute(String result) {
+        por.setText(result);
     }
 
 

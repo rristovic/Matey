@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,12 +13,20 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.mateyinc.marko.matey.data.Device;
 import com.mateyinc.marko.matey.helpers.MotherActivity;
 import com.mateyinc.marko.matey.internet.login.FbLoginAs;
+import com.mateyinc.marko.matey.internet.login.firstRun.FirstRunAs;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 
 @SuppressLint("NewApi")
@@ -70,18 +79,18 @@ public class MainActivity extends MotherActivity {
 		LoginManager.getInstance().registerCallback(callbackManager,
 				new FacebookCallback<LoginResult>() {
 					@Override
-					public void onSuccess(LoginResult loginResult) {
+					public void onSuccess(final LoginResult loginResult) {
 
-						AccessToken token = loginResult.getAccessToken();
-						Profile profile = Profile.getCurrentProfile();
+						final AccessToken token = loginResult.getAccessToken();
+						final Profile profile = Profile.getCurrentProfile();
 						// OVDE RADNJE NAKON LOGIN-A
-						if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
-							FbLoginAs fbLogin = new FbLoginAs();
-							fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName());
-						}
+						//if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
+						//	FbLoginAs fbLogin = new FbLoginAs(por);
+						//	fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName());
+						//}
 
 
-						/*GraphRequest request = GraphRequest.newMeRequest(
+						GraphRequest request = GraphRequest.newMeRequest(
 								token,
 								new GraphRequest.GraphJSONObjectCallback() {
 									@Override
@@ -90,23 +99,23 @@ public class MainActivity extends MotherActivity {
 										try {
 
 											String email = object.getString("email");
-											String birthday = object.getString("birthday"); // 01/31/1980 format
-											String gender = object.getString("gender");
 
 											// OVDE RADNJE NAKON LOGIN-A
 											if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
-												FbLoginAs fbLogin = new FbLoginAs();
-												fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName());
+												FbLoginAs fbLogin = new FbLoginAs(por);
+												fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName(), email);
 											}
 
-										} catch (JSONException e) {}
+										} catch (JSONException e) {
+											por.setText("Greska jsonexception");
+										}
 
 									}
 								});
 						Bundle parameters = new Bundle();
-						parameters.putString("fields", "email, gender, birthday");
+						parameters.putString("fields", "email");
 						request.setParameters(parameters);
-						request.executeAsync();*/
+						request.executeAsync();
 
 					}
 
@@ -120,6 +129,17 @@ public class MainActivity extends MotherActivity {
 
 					}
 				});
+
+		// DO FIRST RUN STUFF
+		Device dev = new Device(this);
+		ArrayList<String> CR = dev.retreveInformation(dev);
+		if(CR == null) {
+			FirstRunAs firstRun = new FirstRunAs(this);
+			firstRun.execute();
+			Log.d("first", "jbg");
+		} else {
+			Log.d("first", "ok");
+		}
 
 
 	}
