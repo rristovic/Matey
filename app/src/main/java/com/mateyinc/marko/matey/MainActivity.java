@@ -3,10 +3,9 @@ package com.mateyinc.marko.matey;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.RelativeLayout;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -18,34 +17,47 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.mateyinc.marko.matey.data.Device;
+import com.mateyinc.marko.matey.animations.Animator;
+import com.mateyinc.marko.matey.data.StandardProcedures;
 import com.mateyinc.marko.matey.helpers.MotherActivity;
 import com.mateyinc.marko.matey.internet.login.FbLoginAs;
-import com.mateyinc.marko.matey.internet.login.firstRun.FirstRunAs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
 
+	RelativeLayout mainLayout;
+	ImageView icon;
 	ImageView login_btn;
 	ImageView register_btn;
 	ImageView facebook_btn;
 	CallbackManager callbackManager;
-	TextView por;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+
 		FacebookSdk.sdkInitialize(this.getApplicationContext());
 		callbackManager= CallbackManager.Factory.create();
 
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main_activity);
 		super.setStatusBarColor();
+
+		// Retreve device id from server or file if have
+		super.device_id = StandardProcedures.retreveInstallationId(this);
+		// if there is a file then set login screen
+		if(!super.device_id.equals("")) setLoginScreen();
+
+	}
+
+	public void setLoginScreen () {
+		setContentView(R.layout.main_activity);
+
+		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
+		icon = (ImageView) findViewById(R.id.title_image);
 
 		// LOG IN BUTTON and it's listener
 		login_btn = (ImageView) findViewById(R.id.login_btn);
@@ -62,8 +74,7 @@ public class MainActivity extends MotherActivity {
 		register_btn.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Add your code in here!
-				Intent goHome = new Intent(MainActivity.this, Home.class);
-				startActivity(goHome);
+
 			}
 		});
 
@@ -75,7 +86,28 @@ public class MainActivity extends MotherActivity {
 			}
 		});
 
-		por=(TextView) findViewById(R.id.por);
+		// Adding login manager
+		this.facebookLogin();
+
+		// animating the activity
+		Animator animator = new Animator();
+		animator.animateLogin(this, mainLayout, icon, login_btn, register_btn, facebook_btn);
+	}
+
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		callbackManager.onActivityResult(requestCode, resultCode, data);
+	}
+
+	protected void facebookLogin() {
+
 		LoginManager.getInstance().registerCallback(callbackManager,
 				new FacebookCallback<LoginResult>() {
 					@Override
@@ -102,12 +134,12 @@ public class MainActivity extends MotherActivity {
 
 											// OVDE RADNJE NAKON LOGIN-A
 											if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
-												FbLoginAs fbLogin = new FbLoginAs(por);
+												FbLoginAs fbLogin = new FbLoginAs();
 												fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName(), email);
 											}
 
 										} catch (JSONException e) {
-											por.setText("Greska jsonexception");
+
 										}
 
 									}
@@ -130,25 +162,9 @@ public class MainActivity extends MotherActivity {
 					}
 				});
 
-		// DO FIRST RUN STUFF
-		Device dev = new Device(this);
-		ArrayList<String> CR = dev.retreveInformation(dev);
-		if(CR == null) {
-			FirstRunAs firstRun = new FirstRunAs(this);
-			firstRun.execute();
-			Log.d("first", "jbg");
-		} else {
-			Log.d("first", "ok");
-		}
-
-
 	}
 
 
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		callbackManager.onActivityResult(requestCode, resultCode, data);
-	}
+
 }

@@ -1,7 +1,8 @@
 package com.mateyinc.marko.matey.internet.login;
 
 import android.os.AsyncTask;
-import android.widget.TextView;
+
+import com.mateyinc.marko.matey.data.UrlData;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,16 +18,9 @@ import java.net.URLEncoder;
 
 public class FbLoginAs extends AsyncTask<String,Void,String> {
 
-    TextView por;
-
-    public FbLoginAs (TextView por) {
-        this.por = por;
-    }
-
     @Override
     protected String doInBackground(String... params) {
 
-        String logUrl = "http://10.0.2.2/NotifindaAPI/web/index.php/api/user/fblogin";
         String token = params[0];
         String fbid = params[1];
         String firstName = params[2];
@@ -35,7 +29,7 @@ public class FbLoginAs extends AsyncTask<String,Void,String> {
 
         try{
 
-            URL url = new URL(logUrl);
+            URL url = new URL(UrlData.FB_LOG_URL);
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setRequestMethod("POST");
             httpURLConnection.setDoOutput(true);
@@ -72,6 +66,8 @@ public class FbLoginAs extends AsyncTask<String,Void,String> {
                 return "Greska";
         } catch (IOException e) {
                 return "Greska IO";
+        } catch (Exception e) {
+            return "Greska IO";
         }
 
     }
@@ -81,7 +77,7 @@ public class FbLoginAs extends AsyncTask<String,Void,String> {
     }
 
     protected void onPostExecute(String result) {
-        por.setText(result);
+
     }
 
 

@@ -15,7 +15,8 @@ import com.mateyinc.marko.matey.R;
 
 @SuppressLint("NewApi")
 public class MotherActivity extends AppCompatActivity {
-	
+
+	protected String device_id = "";
 	protected Toolbar toolbar;
 	
 	public void setStatusBarColor () {

@@ -6,6 +6,9 @@
     <string name="app_name">Matey</string>
     <string name="app_title">Matey</string>
 
+    <string name="settingUp">Setting you up&#8230;</string>
+    <string name="errorMsg">Sorry, there was an error&#8230;</string>
+
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="login_email_text">Your email:</string>

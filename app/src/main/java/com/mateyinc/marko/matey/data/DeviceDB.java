@@ -11,12 +11,12 @@ import java.util.ArrayList;
 /**
  * Created by M4rk0 on 3/7/2016.
  */
-public class Device extends SQLiteOpenHelper {
+public class DeviceDB extends SQLiteOpenHelper {
 
     public static final int database_version = 1;
     public String createQuery = "CREATE TABLE " + TableData.TableInfo.TABLE_NAME + "(" + TableData.TableInfo.DEVICE_ID + " BIGINT);";
 
-    public Device (Context context) {
+    public DeviceDB(Context context) {
         super(context, TableData.TableInfo.DATABASE_NAME, null, database_version);
     }
 
@@ -30,7 +30,7 @@ public class Device extends SQLiteOpenHelper {
 
     }
 
-    public void putInformation (Device dev, String device_id) {
+    public void putInformation (DeviceDB dev, String device_id) {
         SQLiteDatabase sql = dev.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(TableData.TableInfo.DEVICE_ID, device_id);
@@ -38,7 +38,7 @@ public class Device extends SQLiteOpenHelper {
         sql.close();
     }
 
-    public ArrayList<String> retreveInformation (Device dev) {
+    public ArrayList<String> retreveInformation (DeviceDB dev) {
         ArrayList<String> values = new ArrayList<String>();
         SQLiteDatabase sql = dev.getReadableDatabase();
 
@@ -54,7 +54,7 @@ public class Device extends SQLiteOpenHelper {
         else return null;
     }
 
-    public void deleteAll (Device dev) {
+    public void deleteAll (DeviceDB dev) {
         SQLiteDatabase sql = dev.getWritableDatabase();
         sql.execSQL("DELETE FROM " + TableData.TableInfo.TABLE_NAME + ";");
     }
