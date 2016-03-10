@@ -2,6 +2,7 @@ package com.mateyinc.marko.matey.helpers;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -18,6 +19,7 @@ public class MotherActivity extends AppCompatActivity {
 
 	protected String device_id = "";
 	protected Toolbar toolbar;
+	public Typeface standardFont;
 	
 	public void setStatusBarColor () {
 		

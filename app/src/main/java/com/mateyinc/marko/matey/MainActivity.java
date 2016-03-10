@@ -2,9 +2,12 @@ package com.mateyinc.marko.matey;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.facebook.AccessToken;
@@ -18,7 +21,6 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.animations.Animator;
-import com.mateyinc.marko.matey.data.StandardProcedures;
 import com.mateyinc.marko.matey.helpers.MotherActivity;
 import com.mateyinc.marko.matey.internet.login.FbLoginAs;
 
@@ -31,10 +33,11 @@ import java.util.Arrays;
 public class MainActivity extends MotherActivity {
 
 	RelativeLayout mainLayout;
+	LinearLayout inputLayout;
 	ImageView icon;
-	ImageView login_btn;
-	ImageView register_btn;
-	ImageView facebook_btn;
+	Button login_btn;
+	Button register_btn;
+	Button facebook_btn;
 	CallbackManager callbackManager;
 
 	@Override
@@ -47,9 +50,10 @@ public class MainActivity extends MotherActivity {
 		super.setStatusBarColor();
 
 		// Retreve device id from server or file if have
-		super.device_id = StandardProcedures.retreveInstallationId(this);
+		//super.device_id = StandardProcedures.retreveInstallationId(this);
 		// if there is a file then set login screen
-		if(!super.device_id.equals("")) setLoginScreen();
+		//if(!super.device_id.equals("")) setLoginScreen();
+		setLoginScreen();
 
 	}
 
@@ -57,20 +61,12 @@ public class MainActivity extends MotherActivity {
 		setContentView(R.layout.main_activity);
 
 		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
+		inputLayout = (LinearLayout) findViewById(R.id.inputLayout);
 		icon = (ImageView) findViewById(R.id.title_image);
 
-		// LOG IN BUTTON and it's listener
-		login_btn = (ImageView) findViewById(R.id.login_btn);
-		login_btn.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				// Add your code in here!
-				Intent goHome = new Intent(MainActivity.this, Home.class);
-				startActivity(goHome);
-			}
-		});
-
 		// REGISTER BUTTON and it's listener
-		register_btn = (ImageView) findViewById(R.id.register_btn);
+		register_btn = (Button) findViewById(R.id.register_btn);
+		register_btn.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
 		register_btn.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				// Add your code in here!
@@ -78,11 +74,27 @@ public class MainActivity extends MotherActivity {
 			}
 		});
 
-		facebook_btn = (ImageView) findViewById(R.id.facebook_btn);
+		facebook_btn = (Button) findViewById(R.id.facebook_btn);
+		facebook_btn.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
 		facebook_btn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile", "user_friends", "email"));
+			}
+		});
+
+		// LOG IN BUTTON and it's listener
+		login_btn = (Button) findViewById(R.id.login_btn);
+		login_btn.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
+		login_btn.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				// Add your code in here!
+				//Intent goHome = new Intent(MainActivity.this, Home.class);
+				//startActivity(goHome);
+				facebook_btn.setVisibility(View.GONE);
+				register_btn.setVisibility(View.GONE);
+				inputLayout.setVisibility(View.VISIBLE);
+
 			}
 		});
 

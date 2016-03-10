@@ -19,13 +19,18 @@
 		>
     	<!-- Linear layout for main content -->
 
+		<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
 			<LinearLayout
-				android:id="@+id/buttonLayout"
+				android:id="@+id/logoLayout"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 
 				android:orientation="vertical"
 				android:animateLayoutChanges="true"
+				android:layout_alignParentTop="true"
 				>
 
 				<!-- Logo image -->
@@ -36,63 +41,153 @@
 					android:layout_width="0dp"
 					android:layout_height="0dp"
 
-					android:scaleType="fitEnd"
+					android:scaleType="centerInside"
 					android:adjustViewBounds="true"
 
 					android:layout_gravity="center"
 
 					/>
+				<!--android:adjustViewBounds="true"-->
 
+			</LinearLayout>
 
-				<ImageView
-					android:id="@+id/login_btn"
-					android:src="@mipmap/loginbtn"
+			<LinearLayout
+			android:id="@+id/inputLayout"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
 
-					android:layout_width="260dp"
-					android:layout_height="80dp"
+			android:orientation="vertical"
+			android:animateLayoutChanges="true"
+			android:layout_below="@id/logoLayout"
+			android:paddingBottom="10dp"
+				android:visibility="gone"
+			>
+				<EditText
+					android:id="@+id/editText_username"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="5dp"
+					android:layout_marginRight="5dp"
+					android:ems="10"
+					android:inputType="textEmailAddress">
+				</EditText>
+				<EditText
+					android:id="@+id/editText_password"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="5dp"
+					android:layout_marginRight="5dp"
+					android:ems="10"
+					android:inputType="textPassword">
+				</EditText>
+			</LinearLayout>
 
-					android:scaleType="fitEnd"
-					android:adjustViewBounds="true"
+			<LinearLayout
+				android:id="@+id/buttonLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
 
+				android:orientation="vertical"
+				android:animateLayoutChanges="true"
+				android:layout_below="@id/inputLayout"
+				android:layout_alignParentBottom="true"
+				android:paddingBottom="10dp"
+				android:paddingLeft="50dp"
+				android:paddingRight="50dp"
+				>
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+
+					android:orientation="vertical"
+					android:animateLayoutChanges="true"
 					android:layout_gravity="center"
 					android:layout_marginTop="35dp"
+					>
 
-					android:visibility="invisible"
-					/>
+					<Button
+						android:id="@+id/login_btn"
+						android:background="@drawable/loginbtn_bg"
 
-				<ImageView
-					android:id="@+id/register_btn"
-					android:src="@mipmap/registerbtn"
+						android:layout_width="match_parent"
+						android:layout_height="60dp"
 
-					android:layout_width="260dp"
+						android:text="Log In"
+						android:textColor="@color/whiteColor"
+						android:textSize="20sp"
+
+						android:layout_gravity="center"
+						android:visibility="invisible"
+						style="?android:attr/borderlessButtonStyle"
+
+						/>
+
+				</LinearLayout>
+
+				<LinearLayout
+					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 
-					android:scaleType="fitEnd"
-					android:adjustViewBounds="true"
-
+					android:orientation="vertical"
+					android:animateLayoutChanges="true"
 					android:layout_gravity="center"
 					android:layout_marginTop="5dp"
-					android:visibility="invisible"
-					/>
+					>
 
-				<ImageView
-					android:id="@+id/facebook_btn"
-					android:src="@mipmap/facebookbtn"
+					<Button
+						android:id="@+id/register_btn"
+						android:background="@drawable/register_bg"
 
-					android:layout_width="260dp"
+						android:layout_width="match_parent"
+						android:layout_height="60dp"
+
+						android:text="Register"
+						android:textColor="@color/whiteColor"
+						android:textSize="20sp"
+
+						android:layout_gravity="center"
+						android:visibility="invisible"
+						style="?android:attr/borderlessButtonStyle"
+						/>
+
+				</LinearLayout>
+
+				<LinearLayout
+					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 
-					android:scaleType="fitEnd"
-					android:adjustViewBounds="true"
-
+					android:orientation="vertical"
+					android:animateLayoutChanges="true"
 					android:layout_gravity="center"
 					android:layout_marginTop="5dp"
-					android:visibility="invisible"
-					/>
+					>
+
+					<Button
+						android:id="@+id/facebook_btn"
+						android:background="@drawable/facebook_bg"
+
+						android:layout_width="match_parent"
+						android:layout_height="60dp"
+
+						android:text="Connect with facebook"
+						android:textColor="@color/whiteColor"
+						android:textSize="20sp"
+
+						android:layout_gravity="center"
+						android:visibility="invisible"
+						style="?android:attr/borderlessButtonStyle"
+						/>
+
+				</LinearLayout>
 
 
 
 			</LinearLayout>
+
+		</RelativeLayout>
+
+
 	<!-- END of main content layout -->
 
 	</ScrollView>
