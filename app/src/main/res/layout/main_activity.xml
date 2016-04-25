@@ -13,25 +13,17 @@
 	<ScrollView
 		android:id="@+id/mainScroll"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_centerVertical="true"
+		android:layout_height="match_parent"
 		android:animateLayoutChanges="true"
 		>
     	<!-- Linear layout for main content -->
 
-		<RelativeLayout
+		<LinearLayout
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content">
-
-			<LinearLayout
-				android:id="@+id/logoLayout"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-
-				android:orientation="vertical"
-				android:animateLayoutChanges="true"
-				android:layout_alignParentTop="true"
-				>
+			android:layout_height="match_parent"
+			android:orientation="vertical"
+			android:animateLayoutChanges="true"
+			>
 
 				<!-- Logo image -->
 				<ImageView
@@ -45,42 +37,10 @@
 					android:adjustViewBounds="true"
 
 					android:layout_gravity="center"
+					android:layout_weight="1"
 
 					/>
 				<!--android:adjustViewBounds="true"-->
-
-			</LinearLayout>
-
-			<LinearLayout
-			android:id="@+id/inputLayout"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-
-			android:orientation="vertical"
-			android:animateLayoutChanges="true"
-			android:layout_below="@id/logoLayout"
-			android:paddingBottom="10dp"
-				android:visibility="gone"
-			>
-				<EditText
-					android:id="@+id/editText_username"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:layout_marginLeft="5dp"
-					android:layout_marginRight="5dp"
-					android:ems="10"
-					android:inputType="textEmailAddress">
-				</EditText>
-				<EditText
-					android:id="@+id/editText_password"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:layout_marginLeft="5dp"
-					android:layout_marginRight="5dp"
-					android:ems="10"
-					android:inputType="textPassword">
-				</EditText>
-			</LinearLayout>
 
 			<LinearLayout
 				android:id="@+id/buttonLayout"
@@ -89,22 +49,10 @@
 
 				android:orientation="vertical"
 				android:animateLayoutChanges="true"
-				android:layout_below="@id/inputLayout"
-				android:layout_alignParentBottom="true"
 				android:paddingBottom="10dp"
 				android:paddingLeft="50dp"
 				android:paddingRight="50dp"
 				>
-
-				<LinearLayout
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-
-					android:orientation="vertical"
-					android:animateLayoutChanges="true"
-					android:layout_gravity="center"
-					android:layout_marginTop="35dp"
-					>
 
 					<Button
 						android:id="@+id/login_btn"
@@ -113,27 +61,21 @@
 						android:layout_width="match_parent"
 						android:layout_height="60dp"
 
-						android:text="Log In"
+						android:text="LOG IN"
 						android:textColor="@color/whiteColor"
-						android:textSize="20sp"
+						android:textSize="17sp"
 
 						android:layout_gravity="center"
+
+						android:layout_marginTop="35dp"
+
 						android:visibility="invisible"
 						style="?android:attr/borderlessButtonStyle"
 
 						/>
 
-				</LinearLayout>
 
-				<LinearLayout
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
 
-					android:orientation="vertical"
-					android:animateLayoutChanges="true"
-					android:layout_gravity="center"
-					android:layout_marginTop="5dp"
-					>
 
 					<Button
 						android:id="@+id/register_btn"
@@ -142,26 +84,19 @@
 						android:layout_width="match_parent"
 						android:layout_height="60dp"
 
-						android:text="Register"
+						android:text="REGISTER"
 						android:textColor="@color/whiteColor"
-						android:textSize="20sp"
+						android:textSize="17sp"
 
 						android:layout_gravity="center"
 						android:visibility="invisible"
+
+						android:layout_marginTop="5dp"
+
 						style="?android:attr/borderlessButtonStyle"
 						/>
 
-				</LinearLayout>
 
-				<LinearLayout
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-
-					android:orientation="vertical"
-					android:animateLayoutChanges="true"
-					android:layout_gravity="center"
-					android:layout_marginTop="5dp"
-					>
 
 					<Button
 						android:id="@+id/facebook_btn"
@@ -170,22 +105,27 @@
 						android:layout_width="match_parent"
 						android:layout_height="60dp"
 
-						android:text="Connect with facebook"
+						android:text="CONNECT WITH&#10;FACEBOOK"
 						android:textColor="@color/whiteColor"
-						android:textSize="20sp"
+						android:textSize="15sp"
+						android:gravity="center"
+
+						android:visibility="invisible"
 
 						android:layout_gravity="center"
-						android:visibility="invisible"
+						android:singleLine="false"
+
+						android:layout_marginTop="5dp"
+
 						style="?android:attr/borderlessButtonStyle"
 						/>
 
-				</LinearLayout>
 
 
 
 			</LinearLayout>
 
-		</RelativeLayout>
+		</LinearLayout>
 
 
 	<!-- END of main content layout -->

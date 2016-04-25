@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="289dp"
+        android:layout_gravity="center_horizontal">
+
+        <ImageView
+            android:layout_width="191dp"
+            android:layout_height="191dp"
+            android:id="@+id/imageView"
+            android:layout_gravity="center"
+            android:src="@mipmap/icon"/>
+
+        <ImageButton
+            android:layout_width="296dp"
+            android:layout_height="244dp"
+            android:id="@+id/imageButton"
+            android:layout_gravity="center"
+            android:src="@mipmap/argh_text_bubble"
+            />
+    </FrameLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="1">
+
+        <Button
+            android:layout_width="290dp"
+            android:layout_height="wrap_content"
+            android:text="New Button"
+            android:id="@+id/button"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.23"
+            android:background="@drawable/facebook_bg"/>
+
+        <Button
+            android:layout_width="290dp"
+            android:layout_height="wrap_content"
+            android:text="New Button"
+            android:id="@+id/button2"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.22"
+            android:background="@drawable/register_bg"/>
+
+        <Button
+            android:layout_width="290dp"
+            android:layout_height="wrap_content"
+            android:text="New Button"
+            android:id="@+id/button3"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.22"
+            android:background="@drawable/loginbtn_bg"/>
+
+
+    </LinearLayout>
+</LinearLayout>

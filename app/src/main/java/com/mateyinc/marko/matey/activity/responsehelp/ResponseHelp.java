@@ -1,8 +1,9 @@
-package com.mateyinc.marko.matey;
+package com.mateyinc.marko.matey.activity.responsehelp;
 
 import android.os.Bundle;
 
-import com.mateyinc.marko.matey.helpers.MotherActivity;
+import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
 public class ResponseHelp extends MotherActivity {
 

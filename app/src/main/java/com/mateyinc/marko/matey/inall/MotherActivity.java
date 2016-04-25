@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.helpers;
+package com.mateyinc.marko.matey.inall;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -11,15 +11,16 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.mateyinc.marko.matey.AskHelp;
+import com.mateyinc.marko.matey.activity.askhelp.AskHelp;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 @SuppressLint("NewApi")
 public class MotherActivity extends AppCompatActivity {
 
-	protected String device_id = "";
 	protected Toolbar toolbar;
 	public Typeface standardFont;
+	private SecurePreferences securePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
 	
 	public void setStatusBarColor () {
 		
@@ -62,6 +63,18 @@ public class MotherActivity extends AppCompatActivity {
 			return true;
 		}
 		return true;
+	}
+
+	public void putToPreferences(String key, String value) {
+
+		this.securePreferences.put(key, value);
+
+	}
+
+	public void clearPreferencess () {
+
+		this.securePreferences.clear();
+
 	}
 	
 }

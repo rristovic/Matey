@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey;
+package com.mateyinc.marko.matey.activity.main;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -20,9 +20,11 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.animations.Animator;
-import com.mateyinc.marko.matey.helpers.MotherActivity;
-import com.mateyinc.marko.matey.internet.login.FbLoginAs;
+import com.mateyinc.marko.matey.data.InstallationID;
+import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.login.FacebookLoginAs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,17 +45,22 @@ public class MainActivity extends MotherActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
+		// set facebook dependencies
 		FacebookSdk.sdkInitialize(this.getApplicationContext());
 		callbackManager= CallbackManager.Factory.create();
 
+		// status bar and onCreate
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
 
 		// Retreve device id from server or file if have
-		//super.device_id = StandardProcedures.retreveInstallationId(this);
-		// if there is a file then set login screen
-		//if(!super.device_id.equals("")) setLoginScreen();
-		setLoginScreen();
+		String device_id = InstallationID.retreveInstallationId(this);
+
+		// if there is a file then add id to SecurePreferences and set login screen
+		if(!device_id.equals("")) {
+			super.putToPreferences("device_id", device_id);
+			setLoginScreen();
+		}
 
 	}
 
@@ -61,7 +68,6 @@ public class MainActivity extends MotherActivity {
 		setContentView(R.layout.main_activity);
 
 		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
-		inputLayout = (LinearLayout) findViewById(R.id.inputLayout);
 		icon = (ImageView) findViewById(R.id.title_image);
 
 		// REGISTER BUTTON and it's listener
@@ -93,7 +99,6 @@ public class MainActivity extends MotherActivity {
 				//startActivity(goHome);
 				facebook_btn.setVisibility(View.GONE);
 				register_btn.setVisibility(View.GONE);
-				inputLayout.setVisibility(View.VISIBLE);
 
 			}
 		});
@@ -118,6 +123,8 @@ public class MainActivity extends MotherActivity {
 		callbackManager.onActivityResult(requestCode, resultCode, data);
 	}
 
+	// when facebook login is done
+	// this method will get on work
 	protected void facebookLogin() {
 
 		LoginManager.getInstance().registerCallback(callbackManager,
@@ -129,7 +136,7 @@ public class MainActivity extends MotherActivity {
 						final Profile profile = Profile.getCurrentProfile();
 						// OVDE RADNJE NAKON LOGIN-A
 						//if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
-						//	FbLoginAs fbLogin = new FbLoginAs(por);
+						//	FacebookLoginAs fbLogin = new FacebookLoginAs(por);
 						//	fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName());
 						//}
 
@@ -146,7 +153,7 @@ public class MainActivity extends MotherActivity {
 
 											// OVDE RADNJE NAKON LOGIN-A
 											if (profile.getId() != null && profile.getFirstName() != null && profile.getLastName() != null) {
-												FbLoginAs fbLogin = new FbLoginAs();
+												FacebookLoginAs fbLogin = new FacebookLoginAs();
 												fbLogin.execute(token.getToken(), profile.getId(), profile.getFirstName(), profile.getLastName(), email);
 											}
 

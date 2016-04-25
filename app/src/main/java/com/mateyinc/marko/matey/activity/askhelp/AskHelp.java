@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey;
+package com.mateyinc.marko.matey.activity.askhelp;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar.LayoutParams;
@@ -21,7 +21,8 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import com.mateyinc.marko.matey.helpers.MotherActivity;
+import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

@@ -1,10 +1,11 @@
-package com.mateyinc.marko.matey;
+package com.mateyinc.marko.matey.activity.home;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 
-import com.mateyinc.marko.matey.helpers.MotherActivity;
+import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.slidingtabs.PagerAdapter;
 import com.mateyinc.marko.matey.slidingtabs.SlidingTabLayout;
 

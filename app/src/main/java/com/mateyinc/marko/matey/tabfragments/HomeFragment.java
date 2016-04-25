@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.ResponseHelp;
+import com.mateyinc.marko.matey.activity.responsehelp.ResponseHelp;
 
 public class HomeFragment extends Fragment {
 

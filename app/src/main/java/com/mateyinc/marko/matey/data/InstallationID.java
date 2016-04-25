@@ -3,7 +3,7 @@ package com.mateyinc.marko.matey.data;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 
-import com.mateyinc.marko.matey.MainActivity;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.internet.login.FirstRunAs;
 
@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 /**
  * Created by M4rk0 on 3/10/2016.
  */
-public class StandardProcedures {
+public class InstallationID {
 
     public static String retreveInstallationId (Context context) {
         AppCompatActivity activity;
@@ -31,7 +31,7 @@ public class StandardProcedures {
         // try to read from file
         String device_id = readFromFile(context);
 
-        // if nothing was read it means that this is the first launch
+        // if nothing was red it means that this is the first launch
         // of the application
         // so request device id from the server
         if(device_id.equals("")) {
@@ -43,6 +43,8 @@ public class StandardProcedures {
             }
         }
 
+        // if returned empty string it means that installation ID
+        // request is started
         return device_id ;
     }
 
