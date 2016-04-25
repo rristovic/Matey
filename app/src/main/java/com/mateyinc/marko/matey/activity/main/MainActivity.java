@@ -22,9 +22,9 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.animations.Animator;
-import com.mateyinc.marko.matey.data.InstallationID;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.login.FacebookLoginAs;
+import com.mateyinc.marko.matey.inall.ScepticTommy;
+import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,13 +53,11 @@ public class MainActivity extends MotherActivity {
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
 
-		// Retreve device id from server or file if have
-		String device_id = InstallationID.retreveInstallationId(this);
+		ScepticTommy tommy = new ScepticTommy(this, R.layout.main_activity);
+		if(tommy.isDeviceIDSet()) {
+			if(tommy.isUserLogged()) {
 
-		// if there is a file then add id to SecurePreferences and set login screen
-		if(!device_id.equals("")) {
-			super.putToPreferences("device_id", device_id);
-			setLoginScreen();
+			} else setContentView(R.layout.main_activity);
 		}
 
 	}

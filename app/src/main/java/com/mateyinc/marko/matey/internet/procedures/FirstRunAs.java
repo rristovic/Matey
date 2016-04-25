@@ -1,11 +1,10 @@
-package com.mateyinc.marko.matey.internet.login;
+package com.mateyinc.marko.matey.internet.procedures;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.UrlData;
+import com.mateyinc.marko.matey.inall.MotherAs;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONException;
@@ -17,30 +16,20 @@ import java.io.OutputStreamWriter;
 /**
  * Created by M4rk0 on 3/10/2016.
  */
-public class FirstRunAs extends AsyncTask <String, Void, String> {
+public class FirstRunAs extends MotherAs {
 
-    private Context context;
-    MainActivity activity;
-
-    public FirstRunAs(Context context) {
-
-        if(context instanceof MainActivity) {
-            this.context = context;
-            activity = (MainActivity) context;
-        }
-
+    public FirstRunAs(Context context, int DESIRED_LAYOUT, int WAITING_LAYOUT, int ERROR_LAYOUT) {
+        super(context, DESIRED_LAYOUT, WAITING_LAYOUT, ERROR_LAYOUT);
     }
 
     @Override
     protected void onPreExecute() {
 
-        super.onPreExecute();
-        // on start of the execution, show waiting screen
-        if(context instanceof MainActivity) {
-            activity.setContentView(R.layout.waiting_screen);
-        } else {
-            cancel(true);
-        }
+        if(!isCancelled()) {
+
+            activity.setContentView(WAITING_LAYOUT);
+
+        } else activity.setContentView(ERROR_LAYOUT);
 
     }
 
@@ -68,10 +57,6 @@ public class FirstRunAs extends AsyncTask <String, Void, String> {
 
     }
 
-    protected void onProgressUpdate(Integer... progress) {
-
-    }
-
     protected void onPostExecute(String result) {
 
         if (!isCancelled()) {
@@ -79,9 +64,7 @@ public class FirstRunAs extends AsyncTask <String, Void, String> {
             try {
                 // if returned null, show error screen
                 if (result == null) {
-                    if (context instanceof MainActivity) {
-                        activity.setContentView(R.layout.error_screen);
-                    }
+                        activity.setContentView(ERROR_LAYOUT);
                 } else {
                     // if data is here, see if it was successful
                     // if not show error screen
@@ -99,26 +82,21 @@ public class FirstRunAs extends AsyncTask <String, Void, String> {
 
                             if (context instanceof MainActivity) {
                                 activity.putToPreferences("device_id", jsonObject.getString("device_id"));
-                                activity.setLoginScreen();
+                                activity.setContentView(DESIRED_LAYOUT);
+                            } else {
+                                activity.setContentView(ERROR_LAYOUT);
                             }
                         } catch (Exception e) {
-                            if (context instanceof MainActivity) {
-                                activity.setContentView(R.layout.error_screen);
-                            }
+                            activity.setContentView(ERROR_LAYOUT);
                         }
 
                     } else {
-                        if (context instanceof MainActivity) {
-                            activity.setContentView(R.layout.error_screen);
-                        }
+                        activity.setContentView(ERROR_LAYOUT);
                     }
                 }
 
             } catch (JSONException e) {
-                if (context instanceof MainActivity) {
-                    activity.setContentView(R.layout.error_screen);
-                }
-
+                    activity.setContentView(ERROR_LAYOUT);
             }
 
         }

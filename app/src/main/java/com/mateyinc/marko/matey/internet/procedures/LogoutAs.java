@@ -1,11 +1,9 @@
-package com.mateyinc.marko.matey.internet.login;
+package com.mateyinc.marko.matey.internet.procedures;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
-import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.UrlData;
-import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.inall.MotherAs;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
@@ -15,22 +13,21 @@ import java.net.URLEncoder;
 /**
  * Created by M4rk0 on 4/25/2016.
  */
-public class LogoutAs extends AsyncTask<String,Void,String> {
+public class LogoutAs extends MotherAs {
 
-    private Context context;
-    private MotherActivity activity;
-
-    public LogoutAs (Context context) {
-
-        if(context instanceof MotherActivity) {
-            this.context = context;
-            activity = (MotherActivity) context;
-        }
+    public LogoutAs (Context context, int DESIRED_LAYOUT, int WAITING_LAYOUT, int ERROR_LAYOUT) {
+        super(context, DESIRED_LAYOUT, WAITING_LAYOUT, ERROR_LAYOUT);
     }
 
     @Override
     protected void onPreExecute() {
-        super.onPreExecute();
+
+        if(!isCancelled()) {
+
+            activity.setContentView(WAITING_LAYOUT);
+
+        } else activity.setContentView(ERROR_LAYOUT);
+
     }
 
     @Override
@@ -67,24 +64,26 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
 
         activity.clearPreferencess();
 
-        if(result != null) {
+        if(!isCancelled()) {
 
-            try {
+            if (result != null) {
 
-                JSONObject jsonObject = new JSONObject(result);
+                try {
 
-                if (jsonObject.getBoolean("success")) {
+                    JSONObject jsonObject = new JSONObject(result);
+
+                    if (jsonObject.getBoolean("success")) {
 
 
-                } else activity.setContentView(R.layout.error_screen);
+                    } else activity.setContentView(ERROR_LAYOUT);
 
-            } catch (Exception e) {
+                } catch (Exception e) {
+                    activity.setContentView(ERROR_LAYOUT);
+                }
 
-                activity.setContentView(R.layout.error_screen);
+            } else activity.setContentView(ERROR_LAYOUT);
 
-            }
-
-        } else activity.setContentView(R.layout.error_screen);
+        }
 
     }
 

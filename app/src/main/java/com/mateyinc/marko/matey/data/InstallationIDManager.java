@@ -1,11 +1,12 @@
 package com.mateyinc.marko.matey.data;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 
-import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.internet.login.FirstRunAs;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.inall.ScepticTommy;
+import com.mateyinc.marko.matey.internet.procedures.FirstRunAs;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -14,16 +15,17 @@ import java.io.InputStreamReader;
 /**
  * Created by M4rk0 on 3/10/2016.
  */
-public class InstallationID {
+public class InstallationIDManager {
 
     public static String retreveInstallationId (Context context) {
-        AppCompatActivity activity;
+
+        MotherActivity activity;
         // Make shure that this method is called
         // only from MainActivity
         // if not, do nothing
         if(context instanceof MainActivity) {
-            activity = (AppCompatActivity) context;
-            activity.setContentView(R.layout.error_screen);
+            activity = (MotherActivity) context;
+            activity.setContentView(ScepticTommy.ERROR_LAYOUT);
         } else {
             return "";
         }
@@ -35,11 +37,11 @@ public class InstallationID {
         // of the application
         // so request device id from the server
         if(device_id.equals("")) {
-            FirstRunAs firstRun = new FirstRunAs(context);
+            FirstRunAs firstRun = new FirstRunAs(context, R.layout.main_activity, ScepticTommy.WAITING_LAYOUT, ScepticTommy.ERROR_LAYOUT);
             try {
                 firstRun.execute();
             } catch (Exception e){
-                activity.setContentView(R.layout.error_screen);
+                activity.setContentView(ScepticTommy.ERROR_LAYOUT);
             }
         }
 
