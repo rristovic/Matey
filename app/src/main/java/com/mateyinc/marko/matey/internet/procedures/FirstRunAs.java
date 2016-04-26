@@ -1,11 +1,8 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
-import android.util.Log;
-
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 /**
@@ -19,11 +16,7 @@ public class FirstRunAs extends MotherAs {
 
     @Override
     protected void onPreExecute() {
-
-        if(!isCancelled()) {
-            super.activity.setContentView(ScepticTommy.WAITING_LAYOUT);
-        }
-
+        super.onPreExecute();
     }
 
     @Override
@@ -52,7 +45,6 @@ public class FirstRunAs extends MotherAs {
 
     @Override
     protected void onPostExecute(String result) {
-        Log.d("ovde1", result);
         super.onPostExecute(result);
     }
 

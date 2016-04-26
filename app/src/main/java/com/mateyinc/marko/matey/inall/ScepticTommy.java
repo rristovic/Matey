@@ -24,15 +24,6 @@ public class ScepticTommy {
 
     }
 
-    // static function for showing error screen
-    public void showErrorLayout (MotherActivity activity) {
-        activity.setContentView(ERROR_LAYOUT);
-    }
-    // static function for showing waiting screen
-    public void showWaitingLayout (MotherActivity activity) {
-        activity.setContentView(ERROR_LAYOUT);
-    }
-
     // this function returns 0 if there is a problem with device_id
     // it returns 1 if user isn't logged in
     // returns 7 if everything is ok and the app can proceed
@@ -43,7 +34,8 @@ public class ScepticTommy {
 
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
-        //if(isUserLogged() == 0) return 1;
+
+        if(isUserLogged() == 0) return 1;
 
         return 7;
 
@@ -62,7 +54,6 @@ public class ScepticTommy {
             return new InstallationIDManager().retreveInstallationId(activity);
 
         }
-
         // 7-ok
         return 7;
 
@@ -79,15 +70,13 @@ public class ScepticTommy {
         String firstname = securePreferences.getString("firstname");
         String lastname = securePreferences.getString("lastname");
 
-        if(uid.equals("") || username.equals("") || firstname.equals("") || lastname.equals("")) {
-            securePreferences.removeValue("uid");
-            securePreferences.removeValue("username");
-            securePreferences.removeValue("firstname");
-            securePreferences.removeValue("lastname");
+        if(uid == null || username == null || firstname == null || lastname == null) {
+
+            activity.clearUserCredentials();
 
             // if there is still uid or username but not firstname and lastname logout user
             // just in case
-            if(!uid.equals("") && !username.equals("") && !securePreferences.getString("device_id").equals("")) {
+            if(uid!=null && username!=null) {
 
                 LogoutAs logoutAs = new LogoutAs(activity);
                 logoutAs.execute(securePreferences.getString("device_id"), uid, username);

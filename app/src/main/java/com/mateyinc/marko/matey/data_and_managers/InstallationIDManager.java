@@ -36,7 +36,7 @@ public class InstallationIDManager {
                 FirstRunAs firstRun = new FirstRunAs(activity);
 
                 firstRun.execute();
-                String result = firstRun.get(30000, TimeUnit.MILLISECONDS);
+                String result = firstRun.get(10000, TimeUnit.MILLISECONDS);
 
                     // if returned null
                     if (result == null) throw new Exception();

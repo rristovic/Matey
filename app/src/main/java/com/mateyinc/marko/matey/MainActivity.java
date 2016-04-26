@@ -1,15 +1,36 @@
 package com.mateyinc.marko.matey;
 
 import android.annotation.SuppressLint;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.Profile;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+import com.mateyinc.marko.matey.activity.fragments.error_waiting.ErrorScreen;
+import com.mateyinc.marko.matey.activity.fragments.error_waiting.WaitingScreen;
+import com.mateyinc.marko.matey.animations.Animator;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
+import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Arrays;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -34,15 +55,33 @@ public class MainActivity extends MotherActivity {
 		super.setStatusBarColor();
 		super.makeSecurePreferences(this);
 
-		ScepticTommy tommy = new ScepticTommy(this);
-		int checkResult = tommy.checkAll();
+		setContentView(R.layout.fragments_test);
 
-		if(checkResult == 0) setContentView(ScepticTommy.ERROR_LAYOUT);
-		else setContentView(R.layout.main_activity);
+		FragmentManager fragmentManager = getFragmentManager();
+		WaitingScreen waitingScreen = new WaitingScreen();
+		ErrorScreen errorScreen = new ErrorScreen();
+
+		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+		fragmentTransaction.add(R.id.fragment, waitingScreen);
+		fragmentTransaction.commit();
+
+				/*ScepticTommy tommy = new ScepticTommy(this);
+				int checkResult = tommy.checkAll();
+
+				if(checkResult == 0) {
+					fragmentTransaction = fragmentManager.beginTransaction();
+					fragmentTransaction.replace(R.id.fragment, errorScreen);
+					fragmentTransaction.commit();
+				}
+				else {
+					fragmentTransaction = fragmentManager.beginTransaction();
+					fragmentTransaction.replace(R.id.fragment, errorScreen);
+					fragmentTransaction.commit();
+				}*/
 
 	}
 
-	/*public void setLoginScreen () {
+	public void setLoginScreen () {
 		setContentView(R.layout.main_activity);
 
 		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
@@ -82,7 +121,7 @@ public class MainActivity extends MotherActivity {
 		});
 
 		// Adding login manager
-		this.facebookLogin();
+		//this.facebookLogin();
 
 		// animating the activity
 		Animator animator = new Animator();
@@ -90,14 +129,14 @@ public class MainActivity extends MotherActivity {
 	}
 
 	@Override
-	/*protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		callbackManager.onActivityResult(requestCode, resultCode, data);
-	}*/
+	}
 
 	// when facebook login is done
 	// this method will get on work
-	/*protected void facebookLogin() {
+	protected void facebookLogin() {
 
 		LoginManager.getInstance().registerCallback(callbackManager,
 				new FacebookCallback<LoginResult>() {
@@ -153,7 +192,7 @@ public class MainActivity extends MotherActivity {
 					}
 				});
 
-	}*/
+	}
 
 
 

@@ -57,7 +57,14 @@ public class CheckUserAs extends MotherAs {
 
                     JSONObject jsonObject = new JSONObject(result);
 
-                    if (!jsonObject.getBoolean("success")) activity.setContentView(ScepticTommy.ERROR_LAYOUT);
+                    if (jsonObject.getBoolean("success")) {
+
+                        if(!jsonObject.getBoolean("logged")) {
+                            activity.clearUserCredentials();
+                            activity.setContentView(ScepticTommy.ERROR_LAYOUT);
+                        }
+
+                    }
 
                 } catch (Exception e) {
 

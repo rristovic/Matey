@@ -16,4 +16,7 @@
     <string name="title_quote">Everything is easier\n when you have friends&#8230;</string>
     <string name="title_activity_ask_help">Ask for help</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

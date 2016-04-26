@@ -63,6 +63,10 @@ public class MotherActivity extends AppCompatActivity {
 		return true;
 	}
 
+	public void setContent(int view) {
+		setContentView(view);
+	}
+
 	public void makeSecurePreferences (AppCompatActivity activity) {
 
 		securePreferences = new SecurePreferences(activity, "credentials", "1checkMate1717", true);
@@ -81,9 +85,24 @@ public class MotherActivity extends AppCompatActivity {
 
 	}
 
+	public String getFromPreferences(String key) {
+
+		return this.securePreferences.getString(key);
+
+	}
+
 	public void clearPreferences() {
 
 		this.securePreferences.clear();
+
+	}
+
+	public void clearUserCredentials() {
+
+		securePreferences.removeValue("uid");
+		securePreferences.removeValue("username");
+		securePreferences.removeValue("firstname");
+		securePreferences.removeValue("lastname");
 
 	}
 	
