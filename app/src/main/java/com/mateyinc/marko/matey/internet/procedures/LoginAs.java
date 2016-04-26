@@ -2,8 +2,9 @@ package com.mateyinc.marko.matey.internet.procedures;
 
 import android.content.Context;
 
-import com.mateyinc.marko.matey.data.UrlData;
+import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherAs;
+import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
@@ -15,18 +16,14 @@ import java.net.URLEncoder;
  */
 public class LoginAs extends MotherAs {
 
-    public LoginAs (Context context, int DESIRED_LAYOUT, int WAITING_LAYOUT, int ERROR_LAYOUT) {
-        super(context, DESIRED_LAYOUT, WAITING_LAYOUT, ERROR_LAYOUT);
+    public LoginAs (Context context) {
+        super(context);
     }
 
     @Override
     protected void onPreExecute() {
 
-        if(!isCancelled()) {
-
-            activity.setContentView(WAITING_LAYOUT);
-
-        } else activity.setContentView(ERROR_LAYOUT);
+        if(!isCancelled()) activity.setContentView(ScepticTommy.WAITING_LAYOUT);
 
     }
 
@@ -78,13 +75,13 @@ public class LoginAs extends MotherAs {
                         activity.putToPreferences("username", data.getString("username"));
                         activity.putToPreferences("uid", data.getString("uid"));
 
-                    } else activity.setContentView(ERROR_LAYOUT);
+                    } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
 
                 } catch (Exception e) {
-                    activity.setContentView(ERROR_LAYOUT);
+                    activity.setContentView(ScepticTommy.ERROR_LAYOUT);
                 }
 
-            } else activity.setContentView(ERROR_LAYOUT);
+            } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
 
         }
 

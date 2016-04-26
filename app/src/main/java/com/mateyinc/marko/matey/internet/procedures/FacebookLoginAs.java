@@ -2,7 +2,7 @@ package com.mateyinc.marko.matey.internet.procedures;
 
 import android.os.AsyncTask;
 
-import com.mateyinc.marko.matey.data.UrlData;
+import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import java.net.URLEncoder;

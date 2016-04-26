@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data;
+package com.mateyinc.marko.matey.data_and_managers;
 
 /**
  * Created by M4rk0 on 3/10/2016.

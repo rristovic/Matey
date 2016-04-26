@@ -10,18 +10,14 @@ abstract public class MotherAs extends AsyncTask<String,Void,String> {
 
     protected Context context;
     protected MotherActivity activity;
-    protected int DESIRED_LAYOUT, WAITING_LAYOUT, ERROR_LAYOUT;
 
-    public MotherAs (Context context, int DESIRED_LAYOUT, int WAITING_LAYOUT, int ERROR_LAYOUT) {
+    public MotherAs (Context context) {
 
         this.context = context;
 
         if(context instanceof MotherActivity) {
 
             activity = (MotherActivity) context;
-            this.DESIRED_LAYOUT = DESIRED_LAYOUT;
-            this.WAITING_LAYOUT = WAITING_LAYOUT;
-            this.ERROR_LAYOUT = ERROR_LAYOUT;
 
         } else cancel(true);
 

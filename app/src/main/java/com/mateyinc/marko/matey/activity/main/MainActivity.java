@@ -23,7 +23,6 @@ import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.animations.Animator;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
 import org.json.JSONException;
@@ -52,13 +51,6 @@ public class MainActivity extends MotherActivity {
 		// status bar and onCreate
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
-
-		ScepticTommy tommy = new ScepticTommy(this, R.layout.main_activity);
-		if(tommy.isDeviceIDSet()) {
-			if(tommy.isUserLogged()) {
-
-			} else setContentView(R.layout.main_activity);
-		}
 
 	}
 
