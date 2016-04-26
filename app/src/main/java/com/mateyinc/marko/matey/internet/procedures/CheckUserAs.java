@@ -1,8 +1,7 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
-import android.content.Context;
-
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
 import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -16,8 +15,8 @@ import java.net.URLEncoder;
  */
 public class CheckUserAs extends MotherAs {
 
-    public CheckUserAs (Context context) {
-        super(context);
+    public CheckUserAs (MotherActivity activity) {
+        super(activity);
     }
 
     @Override

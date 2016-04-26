@@ -1,23 +1,20 @@
 package com.mateyinc.marko.matey.inall;
 
-import android.content.Context;
 import android.os.AsyncTask;
+import android.support.v7.app.AppCompatActivity;
 
 /**
  * Created by M4rk0 on 4/25/2016.
  */
 abstract public class MotherAs extends AsyncTask<String,Void,String> {
 
-    protected Context context;
     protected MotherActivity activity;
 
-    public MotherAs (Context context) {
+    public MotherAs (AppCompatActivity activity) {
 
-        this.context = context;
+        if(activity instanceof MotherActivity) {
 
-        if(context instanceof MotherActivity) {
-
-            activity = (MotherActivity) context;
+            this.activity = (MotherActivity) activity;
 
         } else cancel(true);
 

@@ -21,20 +21,10 @@ public class InstallationIDManager {
 
     // function returns 7 if installationID is put in the SecurePreferences
     // otherwise it returns 0
-    public int retreveInstallationId (Context context) {
-
-        MotherActivity activity;
-        // Make shure that this method is called
-        // only from MainActivity
-        // if not, do nothing
-        if(context instanceof MotherActivity) {
-            activity = (MotherActivity) context;
-        } else {
-            return 0;
-        }
+    public int retreveInstallationId (MotherActivity activity) {
 
         // try to read from file
-        String device_id = readFromFile(context);
+        String device_id = readFromFile(activity);
 
         // if nothing was red it means that this is the first launch
         // of the application
@@ -43,9 +33,10 @@ public class InstallationIDManager {
 
             try {
 
-                FirstRunAs firstRun = new FirstRunAs(context);
+                FirstRunAs firstRun = new FirstRunAs(activity);
 
-                String result = firstRun.execute().get(30000, TimeUnit.MILLISECONDS);
+                firstRun.execute();
+                String result = firstRun.get(30000, TimeUnit.MILLISECONDS);
 
                     // if returned null
                     if (result == null) throw new Exception();
@@ -58,7 +49,7 @@ public class InstallationIDManager {
 
                         if (jsonObject.getBoolean("success")) {
 
-                            FileOutputStream fOut = context.openFileOutput("did.dat", Context.MODE_PRIVATE);
+                            FileOutputStream fOut = activity.openFileOutput("did.dat", Context.MODE_PRIVATE);
                             OutputStreamWriter osw = new OutputStreamWriter(fOut);
                             osw.write(jsonObject.getString("device_id"));
                             osw.flush();

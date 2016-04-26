@@ -12,9 +12,10 @@ import com.mateyinc.marko.matey.storage.SecurePreferences;
 public class ScepticTommy {
 
     MotherActivity activity;
+    private SecurePreferences securePreferences;
+
     public final static int ERROR_LAYOUT = R.layout.error_screen;
     public final static int WAITING_LAYOUT = R.layout.waiting_screen;
-    private SecurePreferences securePreferences;
 
     public ScepticTommy(MotherActivity activity) {
 
@@ -42,7 +43,7 @@ public class ScepticTommy {
 
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
-        if(isUserLogged() == 0) return 1;
+        //if(isUserLogged() == 0) return 1;
 
         return 7;
 
@@ -53,7 +54,7 @@ public class ScepticTommy {
     public int deviceIDSet () {
 
         String device_id = securePreferences.getString("device_id");
-        if(device_id.equals("")) {
+        if(device_id == null) {
 
             // returns
             // 7-ok

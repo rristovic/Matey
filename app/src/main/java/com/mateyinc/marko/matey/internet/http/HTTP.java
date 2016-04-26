@@ -23,9 +23,12 @@ public class HTTP {
             this.httpURLConnection = (HttpURLConnection) url.openConnection();
 
             httpURLConnection.setRequestMethod(method);
-            httpURLConnection.setDoOutput(true);
             httpURLConnection.setDoInput(true);
-            httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            if(method.equals("POST")) {
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            }
 
         } catch (Exception e) {
 
@@ -62,7 +65,7 @@ public class HTTP {
         try {
 
             InputStream is = httpURLConnection.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(is, "iso-8859-1"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String line = "";
             while ((line = br.readLine()) != null) {
                 response += line;

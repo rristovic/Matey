@@ -1,8 +1,7 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
-import android.content.Context;
-
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
 import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -16,10 +15,9 @@ import java.net.URLEncoder;
  */
 public class LogoutAs extends MotherAs {
 
-    public LogoutAs (Context context) {
-        super(context);
+    public LogoutAs (MotherActivity activity) {
+        super(activity);
     }
-
     @Override
     protected void onPreExecute() {
 
@@ -59,7 +57,7 @@ public class LogoutAs extends MotherAs {
     @Override
     protected void onPostExecute(String result) {
 
-        activity.clearPreferencess();
+        activity.clearPreferences();
 
         if(!isCancelled()) {
 

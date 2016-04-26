@@ -1,34 +1,15 @@
-package com.mateyinc.marko.matey.activity.main;
+package com.mateyinc.marko.matey;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.Profile;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.animations.Animator;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Arrays;
+import com.mateyinc.marko.matey.inall.ScepticTommy;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -45,16 +26,23 @@ public class MainActivity extends MotherActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 
 		// set facebook dependencies
-		FacebookSdk.sdkInitialize(this.getApplicationContext());
-		callbackManager= CallbackManager.Factory.create();
+		//FacebookSdk.sdkInitialize(this.getApplicationContext());
+		//callbackManager= CallbackManager.Factory.create();
 
 		// status bar and onCreate
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
+		super.makeSecurePreferences(this);
+
+		ScepticTommy tommy = new ScepticTommy(this);
+		int checkResult = tommy.checkAll();
+
+		if(checkResult == 0) setContentView(ScepticTommy.ERROR_LAYOUT);
+		else setContentView(R.layout.main_activity);
 
 	}
 
-	public void setLoginScreen () {
+	/*public void setLoginScreen () {
 		setContentView(R.layout.main_activity);
 
 		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
@@ -101,21 +89,15 @@ public class MainActivity extends MotherActivity {
 		animator.animateLogin(this, mainLayout, icon, login_btn, register_btn, facebook_btn);
 	}
 
-
 	@Override
-	protected void onStart() {
-		super.onStart();
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	/*protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		callbackManager.onActivityResult(requestCode, resultCode, data);
-	}
+	}*/
 
 	// when facebook login is done
 	// this method will get on work
-	protected void facebookLogin() {
+	/*protected void facebookLogin() {
 
 		LoginManager.getInstance().registerCallback(callbackManager,
 				new FacebookCallback<LoginResult>() {
@@ -171,7 +153,7 @@ public class MainActivity extends MotherActivity {
 					}
 				});
 
-	}
+	}*/
 
 
 

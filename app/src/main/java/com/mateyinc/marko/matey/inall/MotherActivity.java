@@ -18,7 +18,7 @@ import com.mateyinc.marko.matey.storage.SecurePreferences;
 public class MotherActivity extends AppCompatActivity {
 
 	protected Toolbar toolbar;
-	private SecurePreferences securePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
+	protected SecurePreferences securePreferences;
 	
 	public void setStatusBarColor () {
 		
@@ -63,6 +63,12 @@ public class MotherActivity extends AppCompatActivity {
 		return true;
 	}
 
+	public void makeSecurePreferences (AppCompatActivity activity) {
+
+		securePreferences = new SecurePreferences(activity, "credentials", "1checkMate1717", true);
+
+	}
+
 	public SecurePreferences getSecurePreferences() {
 
 		return securePreferences;
@@ -75,7 +81,7 @@ public class MotherActivity extends AppCompatActivity {
 
 	}
 
-	public void clearPreferencess () {
+	public void clearPreferences() {
 
 		this.securePreferences.clear();
 
