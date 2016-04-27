@@ -3,10 +3,7 @@ package com.mateyinc.marko.matey.internet.procedures;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
-
-import org.json.JSONObject;
 
 import java.net.URLEncoder;
 
@@ -18,12 +15,7 @@ public class LogoutAs extends MotherAs {
     public LogoutAs (MotherActivity activity) {
         super(activity);
     }
-    @Override
-    protected void onPreExecute() {
 
-        if(!isCancelled()) activity.setContentView(ScepticTommy.WAITING_LAYOUT);
-
-    }
 
     @Override
     protected String doInBackground(String... params) {
@@ -52,31 +44,6 @@ public class LogoutAs extends MotherAs {
         }
 
         return null;
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-
-        activity.clearPreferences();
-
-        if(!isCancelled()) {
-
-            if (result != null) {
-
-                try {
-
-                    JSONObject jsonObject = new JSONObject(result);
-
-                    if (jsonObject.getBoolean("success")) activity.setContentView(ScepticTommy.ERROR_LAYOUT);
-
-                } catch (Exception e) {
-                    activity.setContentView(ScepticTommy.ERROR_LAYOUT);
-                }
-
-            } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
-
-        }
-
     }
 
 }

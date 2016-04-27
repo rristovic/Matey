@@ -21,7 +21,6 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
 import org.json.JSONException;
@@ -50,16 +49,14 @@ public class MainActivity extends MotherActivity {
 
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
-		super.makeSecurePreferences(this);
-
+		super.setSecurePreferences(this);
 		setContentView(R.layout.fragments_test);
-		fragmentManager = getFragmentManager();
 
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 		fragmentTransaction.add(R.id.fragment, waitingScreen);
 		fragmentTransaction.commit();
 
-		new Thread(new ScepticTommy(this)).start();
+		super.startTommy();
 
 	}
 
@@ -175,7 +172,9 @@ public class MainActivity extends MotherActivity {
 
 	}
 
-
-
-
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		tommy.interrupt();
+	}
 }

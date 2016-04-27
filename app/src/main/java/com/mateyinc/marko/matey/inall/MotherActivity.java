@@ -22,14 +22,21 @@ import com.mateyinc.marko.matey.storage.SecurePreferences;
 @SuppressLint("NewApi")
 public class MotherActivity extends AppCompatActivity {
 
+	protected Thread tommy;
+
 	protected Toolbar toolbar;
 	protected SecurePreferences securePreferences;
 
 	public WaitingScreen waitingScreen = new WaitingScreen();
 	public ErrorScreen errorScreen = new ErrorScreen();
-	public Fragment desired_screen = new MainLayout();
+	public Fragment desiredScreen = new MainLayout();
 
-	public FragmentManager fragmentManager;
+	public FragmentManager fragmentManager = getFragmentManager();
+
+	public void startTommy () {
+		tommy = new Thread(new ScepticTommy(this));
+		tommy.start();
+	}
 
 	public void setStatusBarColor () {
 		
@@ -74,11 +81,7 @@ public class MotherActivity extends AppCompatActivity {
 		return true;
 	}
 
-	public void setContent(int view) {
-		setContentView(view);
-	}
-
-	public void makeSecurePreferences (AppCompatActivity activity) {
+	public void setSecurePreferences (AppCompatActivity activity) {
 
 		securePreferences = new SecurePreferences(activity, "credentials", "1checkMate1717", true);
 

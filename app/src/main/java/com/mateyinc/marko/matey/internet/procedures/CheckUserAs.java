@@ -3,10 +3,7 @@ package com.mateyinc.marko.matey.internet.procedures;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
-
-import org.json.JSONObject;
 
 import java.net.URLEncoder;
 
@@ -48,34 +45,7 @@ public class CheckUserAs extends MotherAs {
 
     @Override
     protected void onPostExecute(String result) {
-
-        if(!isCancelled()) {
-
-            if (result != null) {
-
-                try {
-
-                    JSONObject jsonObject = new JSONObject(result);
-
-                    if (jsonObject.getBoolean("success")) {
-
-                        if(!jsonObject.getBoolean("logged")) {
-                            activity.clearUserCredentials();
-                            activity.setContentView(ScepticTommy.ERROR_LAYOUT);
-                        }
-
-                    }
-
-                } catch (Exception e) {
-
-                    activity.setContentView(ScepticTommy.ERROR_LAYOUT);
-
-                }
-
-            } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
-
-        }
-
+        super.onPostExecute(result);
     }
 
 }
