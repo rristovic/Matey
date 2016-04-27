@@ -117,34 +117,8 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         if (uid == null || username == null || firstname == null || lastname == null) {
 
             activity.clearUserCredentials();
-
-            // if there is still uid or username but not firstname and lastname logout user
-            // just in case
-            /*if (uid != null && username != null) {
-
-                String result;
-                int exceptionTime = 0;
-
-                while (exceptionTime < 5) {
-                    try {
-
-                        String data = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(username, "UTF-8") + "&" +
-                                URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
-                                URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(securePreferences.getString("device_id"), "UTF-8");
-                        HTTP http = new HTTP(UrlData.LOG_URL, "POST");
-
-                        if (http.sendPost(data)) result = http.getData();
-
-                        break;
-
-                    } catch (Exception e) {
-                        exceptionTime++;
-                    }
-                }
-
-            }*/
-
             return 0;
+
         }
 
         return 7;
@@ -159,6 +133,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
         while (exceptionTime < 5) {
             try {
+
                 CheckUserAs checkUserAs = new CheckUserAs(activity);
                 checkUserAs.execute(securePreferences.getString("uid"), securePreferences.getString("username"));
 
