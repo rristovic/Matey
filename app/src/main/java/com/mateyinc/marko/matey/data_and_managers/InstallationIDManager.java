@@ -35,24 +35,15 @@ public class InstallationIDManager {
 
             try {
 
-                String result;
-
-                try {
-
-                    HTTP http = new HTTP (UrlData.FIRST_RUN_URL, "GET");
-
-                    result = http.getData();
-
-                } catch (Exception e) {
-
-                    result = null;
-
-                }
-
                 //FirstRunAs firstRun = new FirstRunAs(activity);
 
                 //firstRun.execute();
                 //String result = firstRun.get(30000, TimeUnit.MILLISECONDS);
+
+                // http things, get device_id
+                String result;
+                HTTP http = new HTTP (UrlData.FIRST_RUN_URL, "GET");
+                result = http.getData();
 
                     // if returned null
                     if (result == null) throw new Exception();

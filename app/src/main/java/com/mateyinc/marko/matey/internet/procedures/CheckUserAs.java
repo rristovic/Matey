@@ -1,9 +1,14 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
+import android.app.FragmentTransaction;
+
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
 import com.mateyinc.marko.matey.internet.http.HTTP;
+
+import org.json.JSONObject;
 
 import java.net.URLEncoder;
 
@@ -46,6 +51,38 @@ public class CheckUserAs extends MotherAs {
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
+
+        int ok = 0;
+
+        if (result != null) {
+
+            try {
+
+                JSONObject jsonObject = new JSONObject(result);
+
+                if (jsonObject.getBoolean("success")) {
+
+                    if(!jsonObject.getBoolean("logged")) {
+
+                        activity.clearUserCredentials();
+
+                    } else ok=1;
+
+                }
+
+            } catch (Exception e) {}
+
+        }
+
+        if(ok==0) {
+
+            FragmentTransaction fragmentTransaction = activity.fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
+            fragmentTransaction.commit();
+
+        }
+
     }
+
 
 }

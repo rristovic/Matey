@@ -20,6 +20,7 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.mateyinc.marko.matey.fragments.main.MainLayout;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
@@ -51,6 +52,7 @@ public class MainActivity extends MotherActivity {
 		super.setStatusBarColor();
 		super.setSecurePreferences(this);
 		setContentView(R.layout.fragments_test);
+		desiredScreen = new MainLayout();
 
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 		fragmentTransaction.add(R.id.fragment, waitingScreen);

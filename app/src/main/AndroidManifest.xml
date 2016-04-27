@@ -32,6 +32,13 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:label="@string/app_name" />
 
+        <activity
+            android:name=".activity.home.Home"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
+
+
 
     </application>
 
