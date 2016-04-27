@@ -1,6 +1,10 @@
 package com.mateyinc.marko.matey.inall;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.fragments.error_waiting.ErrorScreen;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
@@ -9,7 +13,7 @@ import com.mateyinc.marko.matey.storage.SecurePreferences;
 /**
  * Created by M4rk0 on 4/25/2016.
  */
-public class ScepticTommy {
+public class ScepticTommy implements Runnable {
 
     MotherActivity activity;
     private SecurePreferences securePreferences;
@@ -24,6 +28,26 @@ public class ScepticTommy {
 
     }
 
+    @Override
+    public void run() {
+
+        ErrorScreen errorScreen = new ErrorScreen();
+        FragmentManager fragmentManager = activity.getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        int checkResult = checkAll();
+
+        if(checkResult == 0) {
+            fragmentTransaction.replace(R.id.fragment, errorScreen);
+            fragmentTransaction.commit();
+        }
+        else {
+            fragmentTransaction.replace(R.id.fragment, errorScreen);
+            fragmentTransaction.commit();
+        }
+
+    }
+
     // this function returns 0 if there is a problem with device_id
     // it returns 1 if user isn't logged in
     // returns 7 if everything is ok and the app can proceed
@@ -34,7 +58,6 @@ public class ScepticTommy {
 
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
-
         if(isUserLogged() == 0) return 1;
 
         return 7;

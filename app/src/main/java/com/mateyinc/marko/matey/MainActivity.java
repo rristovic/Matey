@@ -21,10 +21,10 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.mateyinc.marko.matey.activity.fragments.error_waiting.ErrorScreen;
 import com.mateyinc.marko.matey.activity.fragments.error_waiting.WaitingScreen;
 import com.mateyinc.marko.matey.animations.Animator;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
 import org.json.JSONException;
@@ -55,29 +55,14 @@ public class MainActivity extends MotherActivity {
 		super.setStatusBarColor();
 		super.makeSecurePreferences(this);
 
-		setContentView(R.layout.fragments_test);
-
-		FragmentManager fragmentManager = getFragmentManager();
 		WaitingScreen waitingScreen = new WaitingScreen();
-		ErrorScreen errorScreen = new ErrorScreen();
-
+		setContentView(R.layout.fragments_test);
+		FragmentManager fragmentManager = getFragmentManager();
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 		fragmentTransaction.add(R.id.fragment, waitingScreen);
 		fragmentTransaction.commit();
 
-				/*ScepticTommy tommy = new ScepticTommy(this);
-				int checkResult = tommy.checkAll();
-
-				if(checkResult == 0) {
-					fragmentTransaction = fragmentManager.beginTransaction();
-					fragmentTransaction.replace(R.id.fragment, errorScreen);
-					fragmentTransaction.commit();
-				}
-				else {
-					fragmentTransaction = fragmentManager.beginTransaction();
-					fragmentTransaction.replace(R.id.fragment, errorScreen);
-					fragmentTransaction.commit();
-				}*/
+		new Thread(new ScepticTommy(this)).start();
 
 	}
 
