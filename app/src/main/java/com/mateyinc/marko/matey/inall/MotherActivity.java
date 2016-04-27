@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.inall;
 
 import android.annotation.SuppressLint;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,9 @@ import android.view.WindowManager;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.askhelp.AskHelp;
+import com.mateyinc.marko.matey.fragments.main.MainLayout;
+import com.mateyinc.marko.matey.fragments.standard.ErrorScreen;
+import com.mateyinc.marko.matey.fragments.standard.WaitingScreen;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 @SuppressLint("NewApi")
@@ -19,7 +23,13 @@ public class MotherActivity extends AppCompatActivity {
 
 	protected Toolbar toolbar;
 	protected SecurePreferences securePreferences;
-	
+
+	public WaitingScreen waitingScreen = new WaitingScreen();
+	public ErrorScreen errorScreen = new ErrorScreen();
+	public MainLayout desired_screen = new MainLayout();
+
+	public FragmentManager fragmentManager;
+
 	public void setStatusBarColor () {
 		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

@@ -1,10 +1,8 @@
 package com.mateyinc.marko.matey.inall;
 
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.fragments.error_waiting.ErrorScreen;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
@@ -31,18 +29,16 @@ public class ScepticTommy implements Runnable {
     @Override
     public void run() {
 
-        ErrorScreen errorScreen = new ErrorScreen();
-        FragmentManager fragmentManager = activity.getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        FragmentTransaction fragmentTransaction = activity.fragmentManager.beginTransaction();
 
         int checkResult = checkAll();
 
         if(checkResult == 0) {
-            fragmentTransaction.replace(R.id.fragment, errorScreen);
+            fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
             fragmentTransaction.commit();
         }
         else {
-            fragmentTransaction.replace(R.id.fragment, errorScreen);
+            fragmentTransaction.replace(R.id.fragment, activity.desired_screen);
             fragmentTransaction.commit();
         }
 

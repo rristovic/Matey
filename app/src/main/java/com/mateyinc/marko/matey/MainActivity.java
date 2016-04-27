@@ -1,7 +1,6 @@
 package com.mateyinc.marko.matey;
 
 import android.annotation.SuppressLint;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -21,8 +20,6 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.mateyinc.marko.matey.activity.fragments.error_waiting.WaitingScreen;
-import com.mateyinc.marko.matey.animations.Animator;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
@@ -45,19 +42,19 @@ public class MainActivity extends MotherActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-
 		// set facebook dependencies
 		//FacebookSdk.sdkInitialize(this.getApplicationContext());
 		//callbackManager= CallbackManager.Factory.create();
 
 		// status bar and onCreate
+
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
 		super.makeSecurePreferences(this);
 
-		WaitingScreen waitingScreen = new WaitingScreen();
 		setContentView(R.layout.fragments_test);
-		FragmentManager fragmentManager = getFragmentManager();
+		fragmentManager = getFragmentManager();
+
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 		fragmentTransaction.add(R.id.fragment, waitingScreen);
 		fragmentTransaction.commit();
@@ -67,7 +64,6 @@ public class MainActivity extends MotherActivity {
 	}
 
 	public void setLoginScreen () {
-		setContentView(R.layout.main_activity);
 
 		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
 		icon = (ImageView) findViewById(R.id.title_image);
@@ -109,8 +105,8 @@ public class MainActivity extends MotherActivity {
 		//this.facebookLogin();
 
 		// animating the activity
-		Animator animator = new Animator();
-		animator.animateLogin(this, mainLayout, icon, login_btn, register_btn, facebook_btn);
+		//Animator animator = new Animator();
+		//animator.animateLogin(this, mainLayout, icon, login_btn, register_btn, facebook_btn);
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.fragments.error_waiting;
+package com.mateyinc.marko.matey.fragments.standard;
 
 import android.app.Fragment;
 import android.os.Bundle;

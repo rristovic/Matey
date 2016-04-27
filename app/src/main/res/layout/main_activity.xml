@@ -30,7 +30,7 @@
 					android:id="@+id/title_image"
 					android:src="@mipmap/logostuff"
 
-					android:layout_width="0dp"
+					android:layout_width="match_parent"
 					android:layout_height="0dp"
 
 					android:scaleType="centerInside"
@@ -69,7 +69,6 @@
 
 						android:layout_marginTop="35dp"
 
-						android:visibility="invisible"
 						style="?android:attr/borderlessButtonStyle"
 
 						/>
@@ -89,7 +88,6 @@
 						android:textSize="17sp"
 
 						android:layout_gravity="center"
-						android:visibility="invisible"
 
 						android:layout_marginTop="5dp"
 
@@ -109,8 +107,6 @@
 						android:textColor="@color/whiteColor"
 						android:textSize="15sp"
 						android:gravity="center"
-
-						android:visibility="invisible"
 
 						android:layout_gravity="center"
 						android:singleLine="false"
