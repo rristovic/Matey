@@ -8,12 +8,8 @@ import com.mateyinc.marko.matey.MainActivity;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.Home;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
-import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
-
-import java.net.URLEncoder;
 
 /**
  * Created by M4rk0 on 4/25/2016.
@@ -47,21 +43,28 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         FragmentTransaction fragmentTransaction = activity.fragmentManager.beginTransaction();
 
         if (checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
+
             fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
             fragmentTransaction.commit();
+
         } else {
 
-            if (checkResult == 7) {
+            if (checkResult == 7 && (activity instanceof MainActivity)) {
 
-                if(activity instanceof MainActivity) {
-                    Intent goHome = new Intent(activity, Home.class);
-                    activity.startActivity(goHome);
-                } else checkUserServerResponse();
+                Intent goHome = new Intent(activity, Home.class);
+                activity.startActivity(goHome);
+
+            } else if(checkResult == 1 && !(activity instanceof MainActivity)) {
+
+                Intent goMain = new Intent(activity, MainActivity.class);
+                activity.startActivity(goMain);
+
+            } else {
+
+                fragmentTransaction.replace(R.id.fragment, activity.desiredScreen);
+                fragmentTransaction.commit();
 
             }
-
-            fragmentTransaction.replace(R.id.fragment, activity.desiredScreen);
-            fragmentTransaction.commit();
         }
 
     }
@@ -117,7 +120,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
             // if there is still uid or username but not firstname and lastname logout user
             // just in case
-            if (uid != null && username != null) {
+            /*if (uid != null && username != null) {
 
                 String result;
                 int exceptionTime = 0;
@@ -139,7 +142,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
                     }
                 }
 
-            }
+            }*/
 
             return 0;
         }
