@@ -3,7 +3,7 @@ package com.mateyinc.marko.matey.data_and_managers;
 import android.content.Context;
 
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.procedures.FirstRunAs;
+import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
 
@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by M4rk0 on 3/10/2016.
@@ -21,6 +20,9 @@ public class InstallationIDManager {
 
     // function returns 7 if installationID is put in the SecurePreferences
     // otherwise it returns 0
+
+    // THIS METHOD CAN ONLY BE CALLED FROM THE ASYNCTASK DOINBACKGROUND METHOD!!!
+
     public int retreveInstallationId (MotherActivity activity) {
 
         // try to read from file
@@ -33,10 +35,24 @@ public class InstallationIDManager {
 
             try {
 
-                FirstRunAs firstRun = new FirstRunAs(activity);
+                String result;
 
-                firstRun.execute();
-                String result = firstRun.get(30000, TimeUnit.MILLISECONDS);
+                try {
+
+                    HTTP http = new HTTP (UrlData.FIRST_RUN_URL, "GET");
+
+                    result = http.getData();
+
+                } catch (Exception e) {
+
+                    result = null;
+
+                }
+
+                //FirstRunAs firstRun = new FirstRunAs(activity);
+
+                //firstRun.execute();
+                //String result = firstRun.get(30000, TimeUnit.MILLISECONDS);
 
                     // if returned null
                     if (result == null) throw new Exception();

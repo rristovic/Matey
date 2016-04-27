@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.inall;
 
 import android.app.FragmentTransaction;
+import android.os.AsyncTask;
 
 import com.mateyinc.marko.matey.MainActivity;
 import com.mateyinc.marko.matey.R;
@@ -14,7 +15,7 @@ import org.json.JSONObject;
 /**
  * Created by M4rk0 on 4/25/2016.
  */
-public class ScepticTommy implements Runnable {
+public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
     MotherActivity activity;
     private SecurePreferences securePreferences;
@@ -30,11 +31,12 @@ public class ScepticTommy implements Runnable {
     }
 
     @Override
-    public void run() {
+    protected Integer doInBackground(String... params) {return checkAll();}
+
+    @Override
+    protected void onPostExecute(Integer checkResult) {
 
         FragmentTransaction fragmentTransaction = activity.fragmentManager.beginTransaction();
-
-        int checkResult = checkAll();
 
         if(checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
             fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
@@ -44,9 +46,13 @@ public class ScepticTommy implements Runnable {
             fragmentTransaction.replace(R.id.fragment, activity.desiredScreen);
             fragmentTransaction.commit();
 
-            if(checkResult == 7) {
-                checkUserServerResponse();
-            }
+            /*if(checkResult == 7) {
+                if(!checkUserServerResponse()) {
+                    fragmentTransaction = activity.fragmentManager.beginTransaction();
+                    fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
+                    fragmentTransaction.commit();
+                }
+            }*/
         }
 
     }

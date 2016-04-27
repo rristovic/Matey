@@ -175,6 +175,6 @@ public class MainActivity extends MotherActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		tommy.interrupt();
+		tommy.cancel(true);
 	}
 }

@@ -22,7 +22,7 @@ import com.mateyinc.marko.matey.storage.SecurePreferences;
 @SuppressLint("NewApi")
 public class MotherActivity extends AppCompatActivity {
 
-	protected Thread tommy;
+	protected ScepticTommy tommy;
 
 	protected Toolbar toolbar;
 	protected SecurePreferences securePreferences;
@@ -34,8 +34,10 @@ public class MotherActivity extends AppCompatActivity {
 	public FragmentManager fragmentManager = getFragmentManager();
 
 	public void startTommy () {
-		tommy = new Thread(new ScepticTommy(this));
-		tommy.start();
+
+		tommy = new ScepticTommy(this);
+		tommy.execute();
+
 	}
 
 	public void setStatusBarColor () {
