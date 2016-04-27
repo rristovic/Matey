@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.tabfragments;
+package com.mateyinc.marko.matey.fragments.home;
 
 import android.database.Cursor;
 import android.os.Bundle;

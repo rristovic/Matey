@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.tabfragments;
+package com.mateyinc.marko.matey.fragments.home;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

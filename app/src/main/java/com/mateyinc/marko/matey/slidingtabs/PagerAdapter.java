@@ -4,9 +4,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import com.mateyinc.marko.matey.tabfragments.AllFriendsFragment;
-import com.mateyinc.marko.matey.tabfragments.GroupsFragment;
-import com.mateyinc.marko.matey.tabfragments.HomeFragment;
+import com.mateyinc.marko.matey.fragments.home.AllFriendsFragment;
+import com.mateyinc.marko.matey.fragments.home.GroupsFragment;
+import com.mateyinc.marko.matey.fragments.home.HomeFragment;
 
 public class PagerAdapter extends FragmentPagerAdapter {
 

@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.inall;
 
 import android.annotation.SuppressLint;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Build;
@@ -26,7 +27,7 @@ public class MotherActivity extends AppCompatActivity {
 
 	public WaitingScreen waitingScreen = new WaitingScreen();
 	public ErrorScreen errorScreen = new ErrorScreen();
-	public MainLayout desired_screen = new MainLayout();
+	public Fragment desired_screen = new MainLayout();
 
 	public FragmentManager fragmentManager;
 
