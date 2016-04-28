@@ -1,11 +1,9 @@
 package com.mateyinc.marko.matey;
 
 import android.annotation.SuppressLint;
-import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
-import com.mateyinc.marko.matey.fragments.main.MainLayout;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 @SuppressLint("NewApi")
@@ -20,11 +18,8 @@ public class MainActivity extends MotherActivity {
 		super.setStatusBarColor();
 		super.setSecurePreferences(this);
 		setContentView(R.layout.fragments_test);
-		desiredScreen = new MainLayout();
 
-		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-		fragmentTransaction.add(R.id.fragment, waitingScreen);
-		fragmentTransaction.commit();
+		setFragment(R.id.fragment, waitingScreen);
 
 		super.startTommy();
 

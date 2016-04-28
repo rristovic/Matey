@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.inall;
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +15,6 @@ import android.view.WindowManager;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.askhelp.AskHelp;
-import com.mateyinc.marko.matey.fragments.main.MainLayout;
 import com.mateyinc.marko.matey.fragments.standard.ErrorScreen;
 import com.mateyinc.marko.matey.fragments.standard.WaitingScreen;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -29,14 +29,20 @@ public class MotherActivity extends AppCompatActivity {
 
 	public WaitingScreen waitingScreen = new WaitingScreen();
 	public ErrorScreen errorScreen = new ErrorScreen();
-	public Fragment desiredScreen = new MainLayout();
-
-	public FragmentManager fragmentManager = getFragmentManager();
 
 	public void startTommy () {
 
 		tommy = new ScepticTommy(this);
 		tommy.execute();
+
+	}
+
+	public void setFragment (int fragmentPlaceId, Fragment fragment) {
+
+		FragmentManager fragmentManager = getFragmentManager();
+		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+		fragmentTransaction.add(fragmentPlaceId, fragment);
+		fragmentTransaction.commit();
 
 	}
 

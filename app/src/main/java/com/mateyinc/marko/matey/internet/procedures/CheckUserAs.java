@@ -1,7 +1,5 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
-import android.app.FragmentTransaction;
-
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -76,9 +74,7 @@ public class CheckUserAs extends MotherAs {
 
         if(ok==0) {
 
-            FragmentTransaction fragmentTransaction = activity.fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
-            fragmentTransaction.commit();
+            activity.setFragment(R.id.fragment, activity.errorScreen);
 
         }
 

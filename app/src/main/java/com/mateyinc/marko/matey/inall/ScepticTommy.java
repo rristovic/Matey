@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.inall;
 
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.AsyncTask;
 
@@ -8,6 +7,7 @@ import com.mateyinc.marko.matey.MainActivity;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.Home;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
+import com.mateyinc.marko.matey.fragments.main.MainLayout;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -40,12 +40,9 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     @Override
     protected void onPostExecute(Integer checkResult) {
 
-        FragmentTransaction fragmentTransaction = activity.fragmentManager.beginTransaction();
-
         if (checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
 
-            fragmentTransaction.replace(R.id.fragment, activity.errorScreen);
-            fragmentTransaction.commit();
+            activity.setFragment(R.id.fragment, activity.errorScreen);
 
         } else {
 
@@ -61,8 +58,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
             } else {
 
-                fragmentTransaction.replace(R.id.fragment, activity.desiredScreen);
-                fragmentTransaction.commit();
+                activity.setFragment(R.id.fragment, new MainLayout());
 
             }
         }
