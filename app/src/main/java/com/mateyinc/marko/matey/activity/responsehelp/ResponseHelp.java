@@ -7,6 +7,8 @@ import com.mateyinc.marko.matey.inall.MotherActivity;
 
 public class ResponseHelp extends MotherActivity {
 
+	public void setLife(){}
+
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	
 		setContentView(R.layout.response_help_page);

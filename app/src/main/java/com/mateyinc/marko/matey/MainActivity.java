@@ -3,9 +3,8 @@ package com.mateyinc.marko.matey;
 import android.annotation.SuppressLint;
 import android.app.FragmentTransaction;
 import android.content.Intent;
-import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -15,6 +14,7 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.Profile;
@@ -26,8 +26,6 @@ import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Arrays;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -43,8 +41,8 @@ public class MainActivity extends MotherActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// set facebook dependencies
-		//FacebookSdk.sdkInitialize(this.getApplicationContext());
-		//callbackManager= CallbackManager.Factory.create();
+		FacebookSdk.sdkInitialize(this.getApplicationContext());
+		callbackManager= CallbackManager.Factory.create();
 
 		// status bar and onCreate
 
@@ -60,52 +58,9 @@ public class MainActivity extends MotherActivity {
 
 		super.startTommy();
 
-	}
-
-	public void setLoginScreen () {
-
-		mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
-		icon = (ImageView) findViewById(R.id.title_image);
-
-		// REGISTER BUTTON and it's listener
-		register_btn = (Button) findViewById(R.id.register_btn);
-		register_btn.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
-		register_btn.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				// Add your code in here!
-
-			}
-		});
-
-		facebook_btn = (Button) findViewById(R.id.facebook_btn);
-		facebook_btn.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
-		facebook_btn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile", "user_friends", "email"));
-			}
-		});
-
-		// LOG IN BUTTON and it's listener
-		login_btn = (Button) findViewById(R.id.login_btn);
-		login_btn.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
-		login_btn.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				// Add your code in here!
-				//Intent goHome = new Intent(MainActivity.this, Home.class);
-				//startActivity(goHome);
-				facebook_btn.setVisibility(View.GONE);
-				register_btn.setVisibility(View.GONE);
-
-			}
-		});
-
 		// Adding login manager
-		//this.facebookLogin();
+		this.facebookLogin();
 
-		// animating the activity
-		//Animator animator = new Animator();
-		//animator.animateLogin(this, mainLayout, icon, login_btn, register_btn, facebook_btn);
 	}
 
 	@Override
@@ -177,6 +132,10 @@ public class MainActivity extends MotherActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		tommy.cancel(true);
+
+		if(tommy.getStatus() != AsyncTask.Status.FINISHED) {
+			tommy.cancel(true);
+		}
+
 	}
 }

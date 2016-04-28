@@ -19,7 +19,9 @@ public class Home extends MotherActivity {
 	PagerAdapter adapter;
 	CharSequence Titles[] = {"Home","All friends","Groups"};
     int Numboftabs = 3;
-    
+
+	public void setLife(){}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	

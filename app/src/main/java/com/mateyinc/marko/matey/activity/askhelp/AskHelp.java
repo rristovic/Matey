@@ -41,7 +41,7 @@ public class AskHelp extends MotherActivity {
 	// All variables that will serve uploading image
 	Button uploadedImageBtn;
 	private static int RESULT_LOAD_IMAGE = 1;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	
