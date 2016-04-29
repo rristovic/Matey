@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.data_and_managers;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -63,6 +64,7 @@ public class InstallationIDManager {
                             osw.close();
 
                             activity.putToPreferences("device_id", jsonObject.getString("device_id"));
+                            Log.d("evee", jsonObject.getString("device_id"));
                             return 7;
 
                         } else throw new Exception();

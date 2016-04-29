@@ -1,9 +1,10 @@
-package com.mateyinc.marko.matey;
+package com.mateyinc.marko.matey.activity.main;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 @SuppressLint("NewApi")

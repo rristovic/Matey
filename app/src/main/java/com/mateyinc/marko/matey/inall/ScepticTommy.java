@@ -3,7 +3,7 @@ package com.mateyinc.marko.matey.inall;
 import android.content.Intent;
 import android.os.AsyncTask;
 
-import com.mateyinc.marko.matey.MainActivity;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.Home;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;

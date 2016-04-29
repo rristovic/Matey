@@ -50,6 +50,7 @@ public class MainLayout extends Fragment {
         // set facebook dependencies
         FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
         callbackManager= CallbackManager.Factory.create();
+        facebookLogin();
     }
 
     @Nullable
