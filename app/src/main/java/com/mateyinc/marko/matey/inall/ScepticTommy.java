@@ -44,6 +44,10 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
             activity.setFragment(R.id.fragment, activity.errorScreen);
 
+        } else if(checkResult == 18) { // if there is no internet connection
+
+            activity.setFragment(R.id.fragment, activity.errorScreen);
+
         } else {
 
             if (checkResult == 7 && (activity instanceof MainActivity)) {
@@ -68,10 +72,12 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     // this function returns 0 if there is a problem with device_id
     // it returns 1 if user isn't logged in
     // returns 7 if everything is ok and the app can proceed
+    // returns 18 if there is no internet connection
     public int checkAll() {
 
         // if it returns 0 it means there is some error occurred
         if (deviceIDSet() == 0) return 0;
+        if(deviceIDSet() == 18) return 18;
 
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
