@@ -18,7 +18,7 @@ public class MainActivity extends MotherActivity {
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
 		super.setSecurePreferences(this);
-		setContentView(R.layout.fragments_test);
+		setContentView(R.layout.fragment_test);
 
 		setFragment(R.id.fragment, waitingScreen);
 

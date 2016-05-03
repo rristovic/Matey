@@ -2,16 +2,12 @@ package com.mateyinc.marko.matey.fragments.main;
 
 import android.app.Fragment;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -24,6 +20,7 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.customviews.LoginTextViewBtn;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 
 import org.json.JSONException;
@@ -36,12 +33,10 @@ import java.util.Arrays;
  */
 public class MainLayout extends Fragment {
 
-    RelativeLayout mainLayout;
-    LinearLayout inputLayout;
     ImageView icon;
-    Button login_btn;
-    Button register_btn;
-    Button facebook_btn;
+    LoginTextViewBtn login_btn;
+    LoginTextViewBtn register_btn;
+    LoginTextViewBtn facebook_btn;
     CallbackManager callbackManager;
 
     @Override
@@ -59,12 +54,10 @@ public class MainLayout extends Fragment {
 
         View view = inflater.inflate(R.layout.main_activity, container, false);
 
-        mainLayout = (RelativeLayout) view.findViewById(R.id.mainLayout);
         icon = (ImageView) view.findViewById(R.id.title_image);
 
         // REGISTER BUTTON and it's listener
-        register_btn = (Button) view.findViewById(R.id.register_btn);
-        register_btn.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "Roboto-Light.ttf"));
+        register_btn = (LoginTextViewBtn) view.findViewById(R.id.register_btn);
         register_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Add your code in here!
@@ -72,8 +65,7 @@ public class MainLayout extends Fragment {
             }
         });
 
-        facebook_btn = (Button) view.findViewById(R.id.facebook_btn);
-        facebook_btn.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "Roboto-Light.ttf"));
+        facebook_btn = (LoginTextViewBtn) view.findViewById(R.id.facebook_btn);
         facebook_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,8 +74,7 @@ public class MainLayout extends Fragment {
         });
 
         // LOG IN BUTTON and it's listener
-        login_btn = (Button) view.findViewById(R.id.login_btn);
-        login_btn.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "Roboto-Light.ttf"));
+        login_btn = (LoginTextViewBtn) view.findViewById(R.id.login_btn);
         login_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 

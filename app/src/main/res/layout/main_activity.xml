@@ -1,29 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+	tools:context="com.bluebird.notifinda.MainActivity"
 	android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-	android:stackFromBottom="true"
-    tools:context="com.bluebird.notifinda.MainActivity"
+	android:orientation="vertical"
     android:background="@mipmap/bg"
 	android:animateLayoutChanges="true">
 
-	<!-- Scroll view for main content -->
-	<ScrollView
-		android:id="@+id/mainScroll"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:animateLayoutChanges="true"
-		>
     	<!-- Linear layout for main content -->
-
-		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:orientation="vertical"
-			android:animateLayoutChanges="true"
-			>
 
 				<!-- Logo image -->
 				<ImageView
@@ -31,13 +17,13 @@
 					android:src="@mipmap/logostuff"
 
 					android:layout_width="match_parent"
-					android:layout_height="0dp"
+					android:layout_height="wrap_content"
 
 					android:scaleType="centerInside"
 					android:adjustViewBounds="true"
 
 					android:layout_gravity="center"
-					android:layout_weight="1"
+					android:layout_weight="2"
 
 					/>
 				<!--android:adjustViewBounds="true"-->
@@ -49,43 +35,41 @@
 
 				android:orientation="vertical"
 				android:animateLayoutChanges="true"
-				android:paddingBottom="10dp"
+				android:paddingTop="20dp"
+				android:paddingBottom="20dp"
 				android:paddingLeft="50dp"
 				android:paddingRight="50dp"
+				android:layout_weight="1"
 				>
 
-					<Button
+					<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
 						android:id="@+id/login_btn"
-						android:background="@drawable/loginbtn_bg"
+						android:background="@drawable/rounded_login"
 
 						android:layout_width="match_parent"
-						android:layout_height="60dp"
+						android:layout_height="55dp"
 
-						android:text="LOG IN"
+						android:text="LOGIN"
 						android:textColor="@color/whiteColor"
-						android:textSize="17sp"
+						android:textSize="22sp"
 
 						android:layout_gravity="center"
-
-						android:layout_marginTop="35dp"
 
 						style="?android:attr/borderlessButtonStyle"
 
 						/>
 
 
-
-
-					<Button
+					<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
 						android:id="@+id/register_btn"
-						android:background="@drawable/register_bg"
+						android:background="@drawable/rounded_register"
 
 						android:layout_width="match_parent"
-						android:layout_height="60dp"
+						android:layout_height="55dp"
 
 						android:text="REGISTER"
 						android:textColor="@color/whiteColor"
-						android:textSize="17sp"
+						android:textSize="22sp"
 
 						android:layout_gravity="center"
 
@@ -94,18 +78,16 @@
 						style="?android:attr/borderlessButtonStyle"
 						/>
 
-
-
-					<Button
+					<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
 						android:id="@+id/facebook_btn"
-						android:background="@drawable/facebook_bg"
+						android:background="@drawable/rounded_facebook"
 
 						android:layout_width="match_parent"
-						android:layout_height="60dp"
+						android:layout_height="55dp"
 
 						android:text="CONNECT WITH&#10;FACEBOOK"
 						android:textColor="@color/whiteColor"
-						android:textSize="15sp"
+						android:textSize="17sp"
 						android:gravity="center"
 
 						android:layout_gravity="center"
@@ -121,15 +103,11 @@
 
 			</LinearLayout>
 
-		</LinearLayout>
-
 
 	<!-- END of main content layout -->
 
-	</ScrollView>
-	<!-- END of main content scroll view -->
 	
 	
-</RelativeLayout>
+</LinearLayout>
 
 
