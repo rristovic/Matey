@@ -11,100 +11,76 @@
 
     	<!-- Linear layout for main content -->
 
-				<!-- Logo image -->
-				<ImageView
-					android:id="@+id/title_image"
-					android:src="@mipmap/logostuff"
+	<!-- Logo image -->
+	<ImageView
+		android:id="@+id/title_image"
+		android:src="@mipmap/logostuff"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:scaleType="centerInside"
+		android:adjustViewBounds="true"
+		android:layout_gravity="center"
+		android:layout_weight="2"
+		/>
+	<!--android:adjustViewBounds="true"-->
 
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
+	<LinearLayout
+		android:id="@+id/buttonLayout"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:animateLayoutChanges="true"
+		android:paddingTop="20dp"
+		android:paddingBottom="20dp"
+		android:paddingLeft="50dp"
+		android:paddingRight="50dp"
+		android:layout_weight="1"
+		>
 
-					android:scaleType="centerInside"
-					android:adjustViewBounds="true"
-
-					android:layout_gravity="center"
-					android:layout_weight="2"
-
-					/>
-				<!--android:adjustViewBounds="true"-->
-
-			<LinearLayout
-				android:id="@+id/buttonLayout"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-
-				android:orientation="vertical"
-				android:animateLayoutChanges="true"
-				android:paddingTop="20dp"
-				android:paddingBottom="20dp"
-				android:paddingLeft="50dp"
-				android:paddingRight="50dp"
-				android:layout_weight="1"
-				>
-
-					<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
-						android:id="@+id/login_btn"
-						android:background="@drawable/rounded_login"
-
-						android:layout_width="match_parent"
-						android:layout_height="55dp"
-
-						android:text="LOGIN"
-						android:textColor="@color/whiteColor"
-						android:textSize="22sp"
-
-						android:layout_gravity="center"
-
-						style="?android:attr/borderlessButtonStyle"
-
-						/>
+		<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
+			android:id="@+id/login_btn"
+			android:background="@drawable/rounded_login"
+			android:layout_width="match_parent"
+			android:layout_height="55dp"
+			android:text="LOGIN"
+			android:textColor="@color/whiteColor"
+			android:textSize="22sp"
+			android:layout_gravity="center"
+			style="?android:attr/borderlessButtonStyle"
+			/>
 
 
-					<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
-						android:id="@+id/register_btn"
-						android:background="@drawable/rounded_register"
+		<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
+			android:id="@+id/register_btn"
+			android:background="@drawable/rounded_register"
+			android:layout_width="match_parent"
+			android:layout_height="55dp"
+			android:text="REGISTER"
+			android:textColor="@color/whiteColor"
+			android:textSize="22sp"
+			android:layout_gravity="center"
+			android:layout_marginTop="5dp"
+			style="?android:attr/borderlessButtonStyle"
+			/>
 
-						android:layout_width="match_parent"
-						android:layout_height="55dp"
-
-						android:text="REGISTER"
-						android:textColor="@color/whiteColor"
-						android:textSize="22sp"
-
-						android:layout_gravity="center"
-
-						android:layout_marginTop="5dp"
-
-						style="?android:attr/borderlessButtonStyle"
-						/>
-
-					<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
-						android:id="@+id/facebook_btn"
-						android:background="@drawable/rounded_facebook"
-
-						android:layout_width="match_parent"
-						android:layout_height="55dp"
-
-						android:text="CONNECT WITH&#10;FACEBOOK"
-						android:textColor="@color/whiteColor"
-						android:textSize="17sp"
-						android:gravity="center"
-
-						android:layout_gravity="center"
-						android:singleLine="false"
-
-						android:layout_marginTop="5dp"
-
-						style="?android:attr/borderlessButtonStyle"
-						/>
+		<com.mateyinc.marko.matey.customviews.LoginTextViewBtn
+			android:id="@+id/facebook_btn"
+			android:background="@drawable/rounded_facebook"
+			android:layout_width="match_parent"
+			android:layout_height="55dp"
+			android:text="CONNECT WITH&#10;FACEBOOK"
+			android:textColor="@color/whiteColor"
+			android:textSize="17sp"
+			android:gravity="center"
+			android:layout_gravity="center"
+			android:singleLine="false"
+			android:layout_marginTop="5dp"
+			style="?android:attr/borderlessButtonStyle"
+			/>
 
 
-
-
-			</LinearLayout>
-
-
-	<!-- END of main content layout -->
+	</LinearLayout>
+	<!-- END of buttons layout -->
 
 	
 	
