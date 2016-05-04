@@ -3,9 +3,9 @@ package com.mateyinc.marko.matey.inall;
 import android.content.Intent;
 import android.os.AsyncTask;
 
-import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.Home;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
 import com.mateyinc.marko.matey.fragments.main.MainLayout;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
@@ -39,6 +39,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     // after checking everything giving response to UI thread
     @Override
     protected void onPostExecute(Integer checkResult) {
+        activity.setFragment(R.id.fragment, new MainLayout());
 
         if (checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
 
@@ -111,12 +112,13 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     // it will mean that the user is ok until it proves otherwise
     public int isUserLoggedOnPhone() {
 
+        String user_id = securePreferences.getString("user_id");
         String uid = securePreferences.getString("uid");
-        String username = securePreferences.getString("username");
+        String username = securePreferences.getString("email");
         String firstname = securePreferences.getString("firstname");
         String lastname = securePreferences.getString("lastname");
 
-        if (uid == null || username == null || firstname == null || lastname == null) {
+        if (uid == null || username == null || firstname == null || lastname == null || user_id == null) {
 
             activity.clearUserCredentials();
             return 0;

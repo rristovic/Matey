@@ -37,7 +37,7 @@ public class LoginAs extends MotherAs {
 
             try {
 
-                String data = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(username, "UTF-8") + "&" +
+                String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(username, "UTF-8") + "&" +
                         URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8") + "&" +
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
                 HTTP http = new HTTP(UrlData.LOG_URL, "POST");
@@ -71,8 +71,9 @@ public class LoginAs extends MotherAs {
 
                         activity.putToPreferences("firstname", data.getString("firstname"));
                         activity.putToPreferences("lastname", data.getString("lastname"));
-                        activity.putToPreferences("username", data.getString("username"));
+                        activity.putToPreferences("email", data.getString("email"));
                         activity.putToPreferences("uid", data.getString("uid"));
+                        activity.putToPreferences("user_id", data.getString("user_id"));
 
                     } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
 
