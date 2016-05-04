@@ -39,7 +39,6 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     // after checking everything giving response to UI thread
     @Override
     protected void onPostExecute(Integer checkResult) {
-        activity.setFragment(R.id.fragment, new MainLayout());
 
         if (checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
 
