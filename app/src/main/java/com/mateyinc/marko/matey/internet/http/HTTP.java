@@ -1,5 +1,9 @@
 package com.mateyinc.marko.matey.internet.http;
 
+import android.net.ConnectivityManager;
+
+import com.mateyinc.marko.matey.inall.MotherActivity;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;

@@ -14,7 +14,6 @@ public class MainActivity extends MotherActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 
 		// status bar and onCreate
-
 		super.onCreate(savedInstanceState);
 		super.setStatusBarColor();
 		super.setSecurePreferences(this);
