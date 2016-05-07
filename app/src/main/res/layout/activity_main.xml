@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.percent.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rlMain"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/login_background"
+    tools:context="com.mateyinc.marko.matey.activity.main.MainActivity">
+
+    <RelativeLayout
+        android:id="@+id/rlLoadingHead"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/login_loading_head_bot_margin"
+        app:layout_heightPercent="55%">
+
+        <ImageView
+            android:id="@+id/ivLoadingHead"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/matey_logo_head"
+            android:visibility="invisible" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rlLogo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        app:layout_heightPercent="55%">
+
+        <ImageView
+            android:id="@+id/ivLoginLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:scaleType="centerInside"
+            android:src="@drawable/matey_logo" />
+
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/ivLoginLogoText"
+        android:layout_width="200dp"
+        android:layout_height="@dimen/login_logotext_height"
+        android:layout_alignBottom="@id/rlLogo"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/matey_logo_text"
+        android:visibility="invisible" />
+
+
+    <RelativeLayout
+        android:id="@+id/rlLoginButtons"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/rlLogo"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"
+        app:layout_heightPercent="45%">
+
+        <LinearLayout
+            android:id="@+id/llEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/login_et_side_margins"
+            android:layout_marginRight="@dimen/login_et_side_margins"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:padding="5dp"
+                android:src="@drawable/ic_people" />
+
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="@color/bg_transparent"
+                android:gravity="center"
+                android:hint="Email"
+                android:paddingBottom="3dp"
+                android:textColor="@color/login_btn_white"
+                android:textColorHint="@color/text_hint_color"
+                android:theme="@style/EditTextStyle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llLine1"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_below="@id/llEmail"
+            android:layout_marginLeft="@dimen/login_et_side_margins"
+            android:layout_marginRight="@dimen/login_et_side_margins"
+            android:background="@color/login_btn_white"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/llPass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/llEmail"
+            android:layout_marginLeft="@dimen/login_et_side_margins"
+            android:layout_marginRight="@dimen/login_et_side_margins"
+            android:layout_marginTop="@dimen/login_et_side_margins"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:cropToPadding="false"
+                android:padding="5dp"
+                android:src="@drawable/ic_secure" />
+
+            <EditText
+                android:id="@+id/etPass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="@color/bg_transparent"
+                android:gravity="center"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:paddingBottom="3dp"
+                android:textColor="@color/login_btn_white"
+                android:textColorHint="@color/text_hint_color"
+                android:theme="@style/EditTextStyle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llLine2"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_below="@id/llPass"
+            android:layout_marginLeft="@dimen/login_et_side_margins"
+            android:layout_marginRight="@dimen/login_et_side_margins"
+            android:background="@color/login_btn_white"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
+        <com.mateyinc.marko.matey.activity.main.ButtonLoginPage
+            android:id="@+id/btnLogin"
+            style="@style/ButtonLogin"
+            android:layout_width="@dimen/login_btn_size_w"
+            android:layout_height="@dimen/login_btn_size_h"
+            android:layout_above="@+id/btnReg"
+            android:layout_alignLeft="@+id/btnReg"
+            android:layout_alignParentBottom="false"
+            android:layout_alignStart="@+id/btnReg"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/login_btn_top_margin"
+            android:background="@drawable/login_b_def"
+            android:text="LOGIN"
+            android:textColor="@color/login_btn_white"
+            android:visibility="visible" />
+
+        <com.mateyinc.marko.matey.activity.main.ButtonLoginPage
+            android:id="@+id/btnReg"
+            style="@style/ButtonLogin"
+            android:layout_width="@dimen/login_btn_size_w"
+            android:layout_height="@dimen/login_btn_size_h"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/login_b_def"
+            android:text="REGISTER"
+            android:textColor="@color/login_btn_white"
+            android:visibility="visible" />
+
+        <Button
+            android:id="@+id/btnFacebook"
+            style="@style/ButtonLogin"
+            android:layout_width="@dimen/login_btn_size_w"
+            android:layout_height="@dimen/login_btn_size_h"
+            android:layout_below="@+id/btnReg"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/login_btn_top_margin"
+            android:background="@drawable/login_b_facebook"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+        </Button>
+
+    </RelativeLayout>
+
+</android.support.percent.PercentRelativeLayout>

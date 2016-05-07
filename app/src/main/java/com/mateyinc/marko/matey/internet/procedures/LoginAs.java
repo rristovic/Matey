@@ -3,7 +3,6 @@ package com.mateyinc.marko.matey.internet.procedures;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
@@ -22,7 +21,7 @@ public class LoginAs extends MotherAs {
     @Override
     protected void onPreExecute() {
 
-        if(!isCancelled()) activity.setContentView(ScepticTommy.WAITING_LAYOUT);
+        //if(!isCancelled()) activity.setContentView(ScepticTommy.WAITING_LAYOUT);
 
     }
 
@@ -75,13 +74,13 @@ public class LoginAs extends MotherAs {
                         activity.putToPreferences("uid", data.getString("uid"));
                         activity.putToPreferences("user_id", data.getString("user_id"));
 
-                    } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
+                    } //else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
 
                 } catch (Exception e) {
-                    activity.setContentView(ScepticTommy.ERROR_LAYOUT);
+                    //activity.setContentView(ScepticTommy.ERROR_LAYOUT);
                 }
 
-            } else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
+            } //else activity.setContentView(ScepticTommy.ERROR_LAYOUT);
 
         }
 

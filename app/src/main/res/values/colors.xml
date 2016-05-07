@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
-    <color name="primaryOne">#5458ae</color> <!-- Dark purple -->
-    <color name="primaryTwo">#6994e4</color> <!-- Light blue -->
-    <color name="primaryThree">#5a5b5a</color> <!-- Dark gray -->
-    <color name="primaryFour">#3d9671</color> <!-- Tirkiz -->
-    <color name="primaryFive">#5dae89</color> <!-- Svetla tirkiz -->
-    <color name="primarySic">#2ebbc4</color> <!-- Very light blue -->
-    
-    <color name="whiteColor">#fcfdfd</color>
-    <color name="closeWhite">#e8e9e9</color>
-    <color name="lightGray">#9c9b9b</color>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <!-- ////////////////////////////////////////////////////////////////// -->
 
-    <!-- New life -->
-    <color name="statusBar">#142a41</color>
-    
+    <color name="bg_transparent">#00141515</color>f0ebd8
+    <color name="login_btn_white">#f0ebd8</color>
+    <color name="login_btn_darkBlue">#142a41</color>
+
+    <!-- Text color-->
+    <color name="text_hint_color">#80ffffff</color>
+    <color name="text_color_white">#ffffff</color>
+
+    <!-- BG -->
+    <color name="login_bg_startColor">#006d8c</color>
+    <color name="login_bg_endColor">#42a3b2</color>
 </resources>

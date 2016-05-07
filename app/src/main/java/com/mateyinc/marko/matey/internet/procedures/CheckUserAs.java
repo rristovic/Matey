@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
-import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MotherAs;
@@ -74,7 +73,7 @@ public class CheckUserAs extends MotherAs {
 
         if(ok==0) {
 
-            activity.setFragment(R.id.fragment, activity.errorScreen);
+            //activity.setFragment(R.id.fragment, activity.errorScreen);
 
         }
 

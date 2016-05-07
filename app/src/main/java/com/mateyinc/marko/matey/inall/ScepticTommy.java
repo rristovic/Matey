@@ -1,13 +1,9 @@
 package com.mateyinc.marko.matey.inall;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 
-import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.Home;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
-import com.mateyinc.marko.matey.fragments.main.MainLayout;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -18,9 +14,6 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
     MotherActivity activity;
     private SecurePreferences securePreferences;
-
-    public final static int ERROR_LAYOUT = R.layout.error_screen;
-    public final static int WAITING_LAYOUT = R.layout.waiting_screen;
 
     // constructor for referencing activity and secure preferences
     public ScepticTommy(MotherActivity activity) {
@@ -42,27 +35,23 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
         if (checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
 
-            activity.setFragment(R.id.fragment, activity.errorScreen);
+
 
         } else if(checkResult == 18) { // if there is no internet connection
 
-            activity.setFragment(R.id.fragment, activity.errorScreen);
+
 
         } else {
 
             if (checkResult == 7 && (activity instanceof MainActivity)) {
 
-                Intent goHome = new Intent(activity, Home.class);
-                activity.startActivity(goHome);
 
             } else if(checkResult == 1 && !(activity instanceof MainActivity)) {
 
-                Intent goMain = new Intent(activity, MainActivity.class);
-                activity.startActivity(goMain);
 
             } else {
 
-                activity.setFragment(R.id.fragment, new MainLayout());
+
 
             }
         }
