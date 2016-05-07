@@ -20,12 +20,14 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -40,6 +42,7 @@ public class MainActivity extends MotherActivity {
 	private Button btnLogin, btnReg, btnFb;
 	private RelativeLayout rlLogo, rlLoginButtons, rlLoadingHead;
 	private LinearLayout llEmail, llPass, line1, line2;
+	private EditText etPass, etEmail;
 
 	private float mLoginBtnMoveY;
 	private float mRegBtnMoveY;
@@ -88,6 +91,8 @@ public class MainActivity extends MotherActivity {
 		ivLoadingHead = (ImageView) findViewById(R.id.ivLoadingHead);
 		rlLoadingHead = (RelativeLayout) findViewById(R.id.rlLoadingHead);
 		rlLogo = (RelativeLayout) findViewById(R.id.rlLogo);
+		etEmail = (EditText) findViewById(R.id.etEmail);
+		etPass = (EditText) findViewById(R.id.etPass);
 
 		startIntro();
 		setOnClickListeners();
@@ -108,6 +113,13 @@ public class MainActivity extends MotherActivity {
 			public void onClick(View v) {
 				if (!mRegFormVisible)
 					showRegForm();
+
+				String email = etEmail.getText().toString();
+				String pass = etPass.getText().toString();
+
+				RegisterAs registerAs = new RegisterAs();
+				registerAs.execute(email, pass);
+
 			}
 		});
 	}
