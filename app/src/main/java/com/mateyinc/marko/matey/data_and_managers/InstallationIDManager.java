@@ -37,7 +37,6 @@ public class InstallationIDManager {
             try {
 
                 // http things, get device_id
-                if(!activity.isInternetConnected()) return 18;
                 String result;
                 HTTP http = new HTTP (UrlData.FIRST_RUN_URL, "GET");
                 result = http.getData();

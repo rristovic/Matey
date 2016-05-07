@@ -3,7 +3,6 @@ package com.mateyinc.marko.matey.inall;
 import android.os.AsyncTask;
 
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
-import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 /**
@@ -50,11 +49,13 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
         // if it returns 0 it means there is some error occurred
         // if 18 there is no internet connection
+        // if 7 all ok
         if (devIdSet == 0) return 0;
         if (devIdSet == 18) return 18;
 
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
+        // 0 if not, 7 if is
         if (isUserLoggedOnPhone() == 0) return 1;
 
         return 7;
@@ -67,6 +68,8 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
 
         String device_id = securePreferences.getString("device_id");
         if (device_id == null) {
+
+            if(!activity.isInternetConnected()) return 18;
 
             // returns
             // 7-ok
@@ -101,24 +104,5 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         return 7;
 
     }
-
-    // checking json string from server about user - is logged
-    // returns true if is, else false
-    private void checkUserServerResponse() {
-
-        int exceptionTime = 0;
-
-        while (exceptionTime < 5) {
-            try {
-
-                CheckUserAs checkUserAs = new CheckUserAs(activity);
-                checkUserAs.execute(securePreferences.getString("uid"), securePreferences.getString("username"));
-
-            } catch (Exception e) {
-                exceptionTime++;
-            }
-
-        }
-
-    }
+    
 }

@@ -56,10 +56,10 @@ public class MainActivity extends MotherActivity {
 		if (getSupportActionBar() != null)
 			getSupportActionBar().hide();
 		setContentView(R.layout.activity_main);
-
 		super.setSecurePreferences(this);
-		init();
 
+		init();
+		// sceptic tommy starts checking everything
 		super.startTommy();
 
 	}
