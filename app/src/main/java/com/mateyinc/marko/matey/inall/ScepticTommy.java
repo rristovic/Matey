@@ -104,5 +104,5 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         return 7;
 
     }
-    
+
 }
