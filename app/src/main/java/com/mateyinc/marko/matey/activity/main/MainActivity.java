@@ -45,7 +45,6 @@ public class MainActivity extends MotherActivity {
 	private float mRegBtnMoveY;
 	private int mLoginBtnBotMargin;
 	private boolean mLoginFormVisible;
-	private boolean mServerReady = false;
 	private boolean mRegFormVisible;
 	private int mRegBtnBotMargin;
 
@@ -58,9 +57,10 @@ public class MainActivity extends MotherActivity {
 			getSupportActionBar().hide();
 		setContentView(R.layout.activity_main);
 
+		super.setSecurePreferences(this);
 		init();
 
-		//super.startTommy();
+		super.startTommy();
 
 	}
 
@@ -296,7 +296,7 @@ public class MainActivity extends MotherActivity {
 
 		// TODO - add receiver to stop loading anim
 		// Simulate server 10s
-		CountDownTimer timer1 = new CountDownTimer(SERVER_TIMER, SERVER_TIMER) {
+		/*CountDownTimer timer1 = new CountDownTimer(SERVER_TIMER, SERVER_TIMER) {
 			@Override
 			public void onTick(long millisUntilFinished) {
 			}
@@ -306,7 +306,7 @@ public class MainActivity extends MotherActivity {
 				mServerReady = true;
 			}
 		};
-		timer1.start();
+		timer1.start();*/
 
 	}
 

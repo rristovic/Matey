@@ -2,7 +2,6 @@ package com.mateyinc.marko.matey.inall;
 
 import android.os.AsyncTask;
 
-import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
 import com.mateyinc.marko.matey.internet.procedures.CheckUserAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -33,27 +32,10 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     @Override
     protected void onPostExecute(Integer checkResult) {
 
-        if (checkResult == 0 || (checkResult == 1 && !(activity instanceof MainActivity))) {
-
-
-
+        if (checkResult == 0) { // if some error occured
         } else if(checkResult == 18) { // if there is no internet connection
-
-
-
-        } else {
-
-            if (checkResult == 7 && (activity instanceof MainActivity)) {
-
-
-            } else if(checkResult == 1 && !(activity instanceof MainActivity)) {
-
-
-            } else {
-
-
-
-            }
+        } else if(checkResult == 1) activity.mServerReady = true;
+        else if(checkResult == 7) { // if user is logged in
         }
 
     }
@@ -64,9 +46,12 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     // returns 18 if there is no internet connection
     public int checkAll() {
 
+        int devIdSet = deviceIDSet();
+
         // if it returns 0 it means there is some error occurred
-        if (deviceIDSet() == 0) return 0;
-        if(deviceIDSet() == 18) return 18;
+        // if 18 there is no internet connection
+        if (devIdSet == 0) return 0;
+        if (devIdSet == 18) return 18;
 
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
@@ -106,7 +91,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         String firstname = securePreferences.getString("firstname");
         String lastname = securePreferences.getString("lastname");
 
-        if (uid == null || username == null || firstname == null || lastname == null || user_id == null) {
+        if (user_id == null || uid == null || username == null || firstname == null || lastname == null) {
 
             activity.clearUserCredentials();
             return 0;

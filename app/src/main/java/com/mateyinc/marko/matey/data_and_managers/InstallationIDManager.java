@@ -36,11 +36,6 @@ public class InstallationIDManager {
 
             try {
 
-                //FirstRunAs firstRun = new FirstRunAs(activity);
-
-                //firstRun.execute();
-                //String result = firstRun.get(30000, TimeUnit.MILLISECONDS);
-
                 // http things, get device_id
                 if(!activity.isInternetConnected()) return 18;
                 String result;
