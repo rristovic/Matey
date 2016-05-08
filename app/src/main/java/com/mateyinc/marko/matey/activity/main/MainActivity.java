@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -26,6 +27,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
@@ -33,6 +40,8 @@ import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.Arrays;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -56,10 +65,17 @@ public class MainActivity extends MotherActivity {
 	private boolean mRegFormVisible;
 	private int mRegBtnBotMargin;
 
+	CallbackManager fbCallbackManager;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+
+		FacebookSdk.sdkInitialize(getApplicationContext());
+		fbCallbackManager= CallbackManager.Factory.create();
+		facebookLogin();
+
 		getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
 		if (getSupportActionBar() != null)
 			getSupportActionBar().hide();
@@ -202,6 +218,47 @@ public class MainActivity extends MotherActivity {
 
 			}
 		});
+
+		btnFb.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+
+				LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile", "user_friends", "email"));
+
+			}
+		});
+
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		fbCallbackManager.onActivityResult(requestCode, resultCode, data);
+	}
+
+
+	// when facebook login is done
+	// this method will get on work
+	protected void facebookLogin() {
+
+		LoginManager.getInstance().registerCallback(fbCallbackManager,
+				new FacebookCallback<LoginResult>() {
+					@Override
+					public void onSuccess(final LoginResult loginResult) {
+
+					}
+
+					@Override
+					public void onCancel() {
+
+					}
+
+					@Override
+					public void onError(FacebookException exception) {
+
+					}
+				});
+
 	}
 
 	private void showLoginForm() {

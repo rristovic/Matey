@@ -1,9 +1,10 @@
 package com.mateyinc.marko.matey;
 
-import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 
@@ -13,10 +14,10 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by M4rk0 on 3/6/2016.
  */
-public class MyApplication extends Application {
+public class MyApplication extends AppCompatActivity {
 
-    public void onCreate () {
-        super.onCreate();
+    public void onCreate (Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         printHash();
     }
 
