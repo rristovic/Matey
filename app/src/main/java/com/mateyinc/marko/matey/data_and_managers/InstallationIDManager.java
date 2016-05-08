@@ -58,7 +58,7 @@ public class InstallationIDManager {
                             osw.flush();
                             osw.close();
 
-                            activity.putToPreferences("device_id", jsonObject.getString("device_id"));
+                            activity.securePreferences.put("device_id", jsonObject.getString("device_id"));
                             Log.d("evee", jsonObject.getString("device_id"));
                             return 7;
 
@@ -70,7 +70,7 @@ public class InstallationIDManager {
                 return 0;
             }
 
-        } else activity.putToPreferences("device_id", device_id);
+        } else activity.securePreferences.put("device_id", device_id);
 
         return 7;
 

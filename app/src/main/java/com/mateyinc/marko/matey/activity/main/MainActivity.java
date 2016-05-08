@@ -115,30 +115,40 @@ public class MainActivity extends MotherActivity {
 					String email = etEmail.getText().toString();
 					String pass = etPass.getText().toString();
 
+					// starting login process
 					LoginAs loginAs = new LoginAs();
 					try{
 
+						// casting context to MotherActivity
 						MotherActivity activity = (MotherActivity) v.getContext();
 						String result = loginAs.execute(email, pass, activity.securePreferences.getString("device_id")).get();
 
+						// if there is some result check if successful
 						if (result != null) {
 
-								JSONObject jsonObject = new JSONObject(result);
+							JSONObject jsonObject = new JSONObject(result);
 
-								if (jsonObject.getBoolean("success")) {
+							// if successful, set everything to SecurePreferences
+							if (jsonObject.getBoolean("success")) {
 
-									JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
-									JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+								// converting data
+								JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
+								JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
-									activity.putToPreferences("user_id", dataObj.getString("user_id"));
-									activity.putToPreferences("email", dataObj.getString("email"));
-									activity.putToPreferences("uid", dataObj.getString("uid"));
-									activity.putToPreferences("firstname", dataObj.getString("first_name"));
-									activity.putToPreferences("lastname", dataObj.getString("last_name"));
+								// put to preferences
+								activity.securePreferences.put("user_id", dataObj.getString("user_id"));
+								activity.securePreferences.put("email", dataObj.getString("email"));
+								activity.securePreferences.put("uid", dataObj.getString("uid"));
+								activity.securePreferences.put("firstname", dataObj.getString("first_name"));
+								activity.securePreferences.put("lastname", dataObj.getString("last_name"));
 
-									Toast.makeText(v.getContext(), "You have successfully login!", Toast.LENGTH_SHORT).show();
+								// notify user about successful login
+								// here will go intent to home page
+								Toast.makeText(v.getContext(), "You have successfully login!", Toast.LENGTH_SHORT).show();
+								etEmail.setText("");
+								etPass.setText("");
 
-								} else throw new Exception();
+							} else throw new Exception();
 
 						} else throw new Exception();
 
@@ -176,6 +186,8 @@ public class MainActivity extends MotherActivity {
 
 								Toast.makeText(v.getContext(), "You have successfully registered!", Toast.LENGTH_SHORT).show();
 								startRegReverseAnim();
+								etEmail.setText("");
+								etPass.setText("");
 
 							} else throw new Exception();
 

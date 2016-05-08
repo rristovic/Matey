@@ -113,24 +113,6 @@ public class MotherActivity extends AppCompatActivity {
 
 	}
 
-	public void putToPreferences(String key, String value) {
-
-		this.securePreferences.put(key, value);
-
-	}
-
-	public String getFromPreferences(String key) {
-
-		return this.securePreferences.getString(key);
-
-	}
-
-	public void clearPreferences() {
-
-		this.securePreferences.clear();
-
-	}
-
 	public void clearUserCredentials() {
 
 		securePreferences.removeValue("user_id");
@@ -142,6 +124,7 @@ public class MotherActivity extends AppCompatActivity {
 	}
 
 	public boolean isInternetConnected () {
+
 		ConnectivityManager connMgr = (ConnectivityManager)
 				getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
