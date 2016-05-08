@@ -38,8 +38,7 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         // if user isn't logged in but everything is ok
         else if(checkResult == 1) activity.mServerReady = true;
         // if user is logged in
-        else if(checkResult == 7) {
-        }
+        else if(checkResult == 7) activity.showDialog(2);
 
     }
 

@@ -17,7 +17,7 @@ import com.mateyinc.marko.matey.storage.SecurePreferences;
 public class MotherActivity extends AppCompatActivity {
 
 	protected ScepticTommy tommy;
-	protected SecurePreferences securePreferences;
+	public SecurePreferences securePreferences;
 	protected boolean mServerReady = false;
 
 	public void startTommy () {
@@ -61,6 +61,25 @@ public class MotherActivity extends AppCompatActivity {
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("Problem")
 					.setMessage("There is no internet connection. Please connect and try again.")
+					.setPositiveButton("Try Again",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									startTommy();
+								}
+							})
+					.setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+
+								}
+							})
+					.create();
+			case 2: return new AlertDialog.Builder(this)
+					.setIcon(R.mipmap.ic_launcher)
+					.setTitle("WOOHOO")
+					.setMessage("You are logged in!")
 					.setPositiveButton("Try Again",
 							new DialogInterface.OnClickListener() {
 								@Override

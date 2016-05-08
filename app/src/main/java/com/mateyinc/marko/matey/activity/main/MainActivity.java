@@ -28,8 +28,10 @@ import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.procedures.LoginAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 @SuppressLint("NewApi")
@@ -108,6 +110,44 @@ public class MainActivity extends MotherActivity {
 			public void onClick(View v) {
 				if (!mLoginFormVisible)
 					showLoginForm();
+				else {
+
+					String email = etEmail.getText().toString();
+					String pass = etPass.getText().toString();
+
+					LoginAs loginAs = new LoginAs();
+					try{
+
+						MotherActivity activity = (MotherActivity) v.getContext();
+						String result = loginAs.execute(email, pass, activity.securePreferences.getString("device_id")).get();
+
+						if (result != null) {
+
+								JSONObject jsonObject = new JSONObject(result);
+
+								if (jsonObject.getBoolean("success")) {
+
+									JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
+									JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+
+									activity.putToPreferences("user_id", dataObj.getString("user_id"));
+									activity.putToPreferences("email", dataObj.getString("email"));
+									activity.putToPreferences("uid", dataObj.getString("uid"));
+									activity.putToPreferences("firstname", dataObj.getString("first_name"));
+									activity.putToPreferences("lastname", dataObj.getString("last_name"));
+
+									Toast.makeText(v.getContext(), "You have successfully login!", Toast.LENGTH_SHORT).show();
+
+								} else throw new Exception();
+
+						} else throw new Exception();
+
+					} catch (Exception e) {
+						// if there was an error, show corresponding alert dialog
+						showDialog(0);
+					}
+
+				}
 			}
 		});
 
