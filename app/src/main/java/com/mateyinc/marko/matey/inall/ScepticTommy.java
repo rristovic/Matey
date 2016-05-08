@@ -32,7 +32,9 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     protected void onPostExecute(Integer checkResult) {
 
         if (checkResult == 0) { // if some error occured
+            activity.showDialog(0);
         } else if(checkResult == 18) { // if there is no internet connection
+            activity.showDialog(1);
         } else if(checkResult == 1) activity.mServerReady = true;
         else if(checkResult == 7) { // if user is logged in
         }

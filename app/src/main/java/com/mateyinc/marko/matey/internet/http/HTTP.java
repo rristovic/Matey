@@ -1,9 +1,5 @@
 package com.mateyinc.marko.matey.internet.http;
 
-import android.net.ConnectivityManager;
-
-import com.mateyinc.marko.matey.inall.MotherActivity;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -26,7 +22,7 @@ public class HTTP {
             URL url = new URL(urlStr);
             this.httpURLConnection = (HttpURLConnection) url.openConnection();
 
-            httpURLConnection.setConnectTimeout(60000);
+            httpURLConnection.setConnectTimeout(30000);
             httpURLConnection.setRequestMethod(method);
             httpURLConnection.setDoInput(true);
 

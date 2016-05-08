@@ -1,7 +1,10 @@
 package com.mateyinc.marko.matey.inall;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +32,53 @@ public class MotherActivity extends AppCompatActivity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) {
+
+		switch(id) {
+			case 0: return new AlertDialog.Builder(this)
+					.setIcon(R.mipmap.ic_launcher)
+					.setTitle("Problem")
+					.setMessage("We are sorry, some error occurred.")
+					.setPositiveButton("Try Again",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									startTommy();
+								}
+							})
+					.setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+
+								}
+							})
+					.create();
+			case 1: return new AlertDialog.Builder(this)
+					.setIcon(R.mipmap.ic_launcher)
+					.setTitle("Problem")
+					.setMessage("There is no internet connection. Please connect and try again.")
+					.setPositiveButton("Try Again",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									startTommy();
+								}
+							})
+					.setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+
+								}
+							})
+					.create();
+			default: return super.onCreateDialog(id);
+		}
+
 	}
 
 	public void setSecurePreferences (AppCompatActivity activity) {
