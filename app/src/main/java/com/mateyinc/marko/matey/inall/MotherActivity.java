@@ -11,7 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
+
+import org.json.JSONObject;
 
 @SuppressLint("NewApi")
 public class MotherActivity extends AppCompatActivity {
@@ -80,11 +83,37 @@ public class MotherActivity extends AppCompatActivity {
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("WOOHOO")
 					.setMessage("You are logged in!")
-					.setPositiveButton("Try Again",
+					.setPositiveButton("Log Out",
 							new DialogInterface.OnClickListener() {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
-									startTommy();
+
+									LogoutAs logoutAs = new LogoutAs();
+									try{
+
+										String result = logoutAs.execute(securePreferences.getString("email"),
+												securePreferences.getString("uid"),
+												securePreferences.getString("device_id")).get();
+
+										// if there is some result check if successful
+										if (result != null) {
+
+											JSONObject jsonObject = new JSONObject(result);
+
+											// if successful, set everything to SecurePreferences
+											if (jsonObject.getBoolean("success")) {
+
+												clearUserCredentials();
+												startTommy();
+
+											} else throw new Exception();
+
+										} else throw new Exception();
+
+									} catch (Exception e) {
+										// if there was an error, show corresponding alert dialog
+										showDialog(0);
+									}
 								}
 							})
 					.setNegativeButton("Cancel",

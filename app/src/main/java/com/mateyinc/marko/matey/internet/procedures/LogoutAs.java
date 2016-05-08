@@ -1,8 +1,8 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
+import android.os.AsyncTask;
+
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
-import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.inall.MotherAs;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import java.net.URLEncoder;
@@ -10,11 +10,7 @@ import java.net.URLEncoder;
 /**
  * Created by M4rk0 on 4/25/2016.
  */
-public class LogoutAs extends MotherAs {
-
-    public LogoutAs (MotherActivity activity) {
-        super(activity);
-    }
+public class LogoutAs extends AsyncTask<String,Void,String> {
 
 
     @Override
@@ -22,16 +18,16 @@ public class LogoutAs extends MotherAs {
 
         if(!isCancelled()) {
 
-            String device_id = params[0];
+            String email = params[0];
             String uid = params[1];
-            String username = params[2];
+            String device_id = params[2];
 
             try {
 
-                String data = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(username, "UTF-8") + "&" +
-                        URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
+                String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
+                        URLEncoder.encode("uid", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
-                HTTP http = new HTTP(UrlData.LOG_URL, "POST");
+                HTTP http = new HTTP(UrlData.LOG_OUT_URL, "POST");
 
                 if(http.sendPost(data)) return http.getData();
 
@@ -44,6 +40,11 @@ public class LogoutAs extends MotherAs {
         }
 
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(String result) {
+        super.onPostExecute(result);
     }
 
 }
