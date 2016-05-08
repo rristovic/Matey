@@ -31,12 +31,14 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     @Override
     protected void onPostExecute(Integer checkResult) {
 
-        if (checkResult == 0) { // if some error occured
-            activity.showDialog(0);
-        } else if(checkResult == 18) { // if there is no internet connection
-            activity.showDialog(1);
-        } else if(checkResult == 1) activity.mServerReady = true;
-        else if(checkResult == 7) { // if user is logged in
+        // if some error occured
+        if (checkResult == 0) activity.showDialog(0);
+        // if there is no internet connection
+        else if(checkResult == 18) activity.showDialog(1);
+        // if user isn't logged in but everything is ok
+        else if(checkResult == 1) activity.mServerReady = true;
+        // if user is logged in
+        else if(checkResult == 7) {
         }
 
     }

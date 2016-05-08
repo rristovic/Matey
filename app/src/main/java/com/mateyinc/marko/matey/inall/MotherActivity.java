@@ -76,8 +76,9 @@ public class MotherActivity extends AppCompatActivity {
 								}
 							})
 					.create();
-			default: return super.onCreateDialog(id);
 		}
+
+		return super.onCreateDialog(id);
 
 	}
 

@@ -24,10 +24,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
+
+import org.json.JSONObject;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -113,12 +116,37 @@ public class MainActivity extends MotherActivity {
 			public void onClick(View v) {
 				if (!mRegFormVisible)
 					showRegForm();
+				else {
 
-				String email = etEmail.getText().toString();
-				String pass = etPass.getText().toString();
+					String email = etEmail.getText().toString();
+					String pass = etPass.getText().toString();
 
-				RegisterAs registerAs = new RegisterAs();
-				registerAs.execute(email, pass);
+					// start asynchronous task to handle user registration
+					RegisterAs registerAs = new RegisterAs();
+					try {
+						String result = registerAs.execute(email, pass).get();
+
+						// if there is a result, check if it was successful
+						if (result != null) {
+
+							JSONObject jsonObject = new JSONObject(result);
+
+							// if it was successful, take user to login page
+							if (jsonObject.getBoolean("success")) {
+
+								Toast.makeText(v.getContext(), "You have successfully registered!", Toast.LENGTH_SHORT).show();
+								startRegReverseAnim();
+
+							} else throw new Exception();
+
+						} else throw new Exception();
+
+					} catch (Exception e) {
+						// if there was an error, show corresponding alert dialog
+						showDialog(0);
+					}
+
+				}
 
 			}
 		});

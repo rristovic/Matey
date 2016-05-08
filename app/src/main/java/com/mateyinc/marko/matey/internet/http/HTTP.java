@@ -22,7 +22,7 @@ public class HTTP {
             URL url = new URL(urlStr);
             this.httpURLConnection = (HttpURLConnection) url.openConnection();
 
-            httpURLConnection.setConnectTimeout(30000);
+            httpURLConnection.setConnectTimeout(60000);
             httpURLConnection.setRequestMethod(method);
             httpURLConnection.setDoInput(true);
 
