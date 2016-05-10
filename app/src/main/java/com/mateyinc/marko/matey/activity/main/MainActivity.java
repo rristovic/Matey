@@ -27,18 +27,23 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
@@ -245,6 +250,77 @@ public class MainActivity extends MotherActivity {
 				new FacebookCallback<LoginResult>() {
 					@Override
 					public void onSuccess(final LoginResult loginResult) {
+
+						final AccessToken accessToken = loginResult.getAccessToken();
+						// TASK AFTER LOGIN SUCCESSFUL
+
+							GraphRequest request = GraphRequest.newMeRequest(
+									accessToken,
+									new GraphRequest.GraphJSONObjectCallback() {
+										@Override
+										public void onCompleted(JSONObject object, GraphResponse response) {
+											// Application code
+											try {
+
+												String facebook_id = object.getString("id");
+												String email = object.getString("email");
+												String first_name = object.getString("first_name");
+												String last_name = object.getString("last_name");
+
+
+												// OVDE RADNJE NAKON LOGIN-A
+
+													FacebookLoginAs facebookLogin = new FacebookLoginAs();
+
+													try {
+
+														String result = facebookLogin.execute(accessToken.getToken(), facebook_id,
+																first_name, last_name, email, securePreferences.getString("device_id"))
+																.get();
+
+														// if there is some result check if successful
+														if (result != null) {
+
+															JSONObject jsonObject = new JSONObject(result);
+
+															// if successful, set everything to SecurePreferences
+															if (jsonObject.getBoolean("success")) {
+
+																// converting data
+																JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
+																JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+
+																// put to preferences
+																securePreferences.put("user_id", dataObj.getString("user_id"));
+																securePreferences.put("email", dataObj.getString("email"));
+																securePreferences.put("uid", dataObj.getString("uid"));
+																securePreferences.put("firstname", dataObj.getString("first_name"));
+																securePreferences.put("lastname", dataObj.getString("last_name"));
+
+																// notify user about successful login
+																// here will go intent to home page
+																Toast.makeText(MainActivity.this, "You have successfully login!", Toast.LENGTH_SHORT).show();
+
+															} else throw new Exception();
+
+														} else throw new Exception();
+
+													} catch (Exception e) {
+														showDialog(0);
+													}
+
+
+											} catch (JSONException e) {
+												showDialog(0);
+											}
+
+										}
+									});
+
+							Bundle parameters = new Bundle();
+							parameters.putString("fields", "id,email,first_name,last_name");
+							request.setParameters(parameters);
+							request.executeAsync();
 
 					}
 

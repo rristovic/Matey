@@ -10,29 +10,26 @@ import java.net.URLEncoder;
 public class FacebookLoginAs extends AsyncTask<String,Void,String> {
 
     @Override
-    protected void onPreExecute() {
-
-    }
-
-    @Override
     protected String doInBackground(String... params) {
 
         if(!isCancelled()) {
 
-            String token = params[0];
-            String fbid = params[1];
-            String firstName = params[2];
-            String lastName = params[3];
+            String accessToken = params[0];
+            String facebook_id = params[1];
+            String firstname = params[2];
+            String lastname = params[3];
             String email = params[4];
+            String device_id = params[5];
 
             try {
 
-                String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
-                        URLEncoder.encode("fbid", "UTF-8") + "=" + URLEncoder.encode(fbid, "UTF-8") + "&" +
+                String data = URLEncoder.encode("accessToken", "UTF-8") + "=" + URLEncoder.encode(accessToken, "UTF-8") + "&" +
+                        URLEncoder.encode("facebook_id", "UTF-8") + "=" + URLEncoder.encode(facebook_id, "UTF-8") + "&" +
                         URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
-                        URLEncoder.encode("firstName", "UTF-8") + "=" + URLEncoder.encode(firstName, "UTF-8") + "&" +
-                        URLEncoder.encode("lastName", "UTF-8") + "=" + URLEncoder.encode(lastName, "UTF-8");
-                HTTP http = new HTTP(UrlData.LOG_URL, "POST");
+                        URLEncoder.encode("firstname", "UTF-8") + "=" + URLEncoder.encode(firstname, "UTF-8") + "&" +
+                        URLEncoder.encode("lastname", "UTF-8") + "=" + URLEncoder.encode(lastname, "UTF-8") + "&" +
+                        URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
+                HTTP http = new HTTP(UrlData.FACEBOOK_LOG_URL, "POST");
 
                 if (http.sendPost(data)) return http.getData();
 
@@ -51,7 +48,7 @@ public class FacebookLoginAs extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onPostExecute(String result) {
-
+        super.onPostExecute(result);
     }
 
 

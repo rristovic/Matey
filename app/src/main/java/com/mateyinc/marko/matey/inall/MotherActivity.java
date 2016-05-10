@@ -43,8 +43,8 @@ public class MotherActivity extends AppCompatActivity {
 		switch(id) {
 			case 0: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
-					.setTitle("Problem")
-					.setMessage("We are sorry, some error occurred.")
+					.setTitle("Hey mate, there's a problem!")
+					.setMessage("Some error occurred.")
 					.setPositiveButton("Try Again",
 							new DialogInterface.OnClickListener() {
 								@Override
@@ -62,8 +62,8 @@ public class MotherActivity extends AppCompatActivity {
 					.create();
 			case 1: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
-					.setTitle("Problem")
-					.setMessage("There is no internet connection. Please connect and try again.")
+					.setTitle("Hey mate, there's a problem!")
+					.setMessage("There is no internet connection! Please connect and try again.")
 					.setPositiveButton("Try Again",
 							new DialogInterface.OnClickListener() {
 								@Override
