@@ -8,46 +8,44 @@
     android:background="@drawable/login_background"
     tools:context="com.mateyinc.marko.matey.activity.main.MainActivity">
 
-    <RelativeLayout
-        android:id="@+id/rlLoadingHead"
+
+    <ImageView
+        android:id="@+id/ivLoginLogoClouds"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/matey_logo_clouds"
+        android:visibility="invisible"
+        app:layout_heightPercent="55%" />
+
+    <ImageView
+        android:id="@+id/ivLoadingHead"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/login_loading_head_bot_margin"
-        app:layout_heightPercent="55%">
+        android:src="@drawable/matey_logo_head"
+        android:visibility="visible"
+        app:layout_heightPercent="55%" />
 
-        <ImageView
-            android:id="@+id/ivLoadingHead"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/matey_logo_head"
-            android:visibility="invisible" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/rlLogo"
+    <ImageView
+        android:id="@+id/ivLoginLogoBubble"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:scaleType="centerInside"
         android:visibility="invisible"
-        app:layout_heightPercent="55%">
+        app:layout_heightPercent="55%"
+        android:src="@drawable/matey_logo_bubble" />
 
-        <ImageView
-            android:id="@+id/ivLoginLogo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:scaleType="centerInside"
-            android:src="@drawable/matey_logo" />
-
-
-    </RelativeLayout>
 
     <ImageView
         android:id="@+id/ivLoginLogoText"
         android:layout_width="200dp"
         android:layout_height="@dimen/login_logotext_height"
-        android:layout_alignBottom="@id/rlLogo"
+        android:layout_alignBottom="@id/ivLoginLogoClouds"
         android:layout_centerHorizontal="true"
         android:scaleType="centerInside"
         android:src="@drawable/matey_logo_text"
@@ -58,7 +56,7 @@
         android:id="@+id/rlLoginButtons"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/rlLogo"
+        android:layout_below="@id/ivLoginLogoClouds"
         android:layout_centerHorizontal="true"
         android:visibility="invisible"
         app:layout_heightPercent="45%">

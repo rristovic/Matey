@@ -15,9 +15,14 @@
     <dimen name="login_et_side_margins">10dp</dimen>
     <dimen name="login_logotext_top_margin">220dp</dimen>
     <dimen name="login_logotext_height">70dp</dimen>
+    <dimen name="login_regForm_margin">15dp</dimen>
+    <dimen name="login_regForm_marginBig">40dp</dimen>
+
 
     <!-- Loading dimens -->
     <dimen name="login_loading_head_bot_margin">40dp</dimen>
+    <!-- Animation params -->
+    <dimen name="anim_logo_transl_xy">100dp</dimen>
 
 
 </resources>
