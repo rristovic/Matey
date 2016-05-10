@@ -216,6 +216,7 @@ public class MainActivity extends MotherActivity {
 
                                 Toast.makeText(v.getContext(), "You have successfully registered!", Toast.LENGTH_SHORT).show();
                                 startRegReverseAnim();
+                                mRegFormVisible  = false;
                                 etEmail.setText("");
                                 etPass.setText("");
 
