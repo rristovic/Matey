@@ -40,12 +40,16 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
+import com.google.android.gms.common.ConnectionResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,6 +65,8 @@ public class MainActivity extends MotherActivity {
     private static final int INTERMED_ANIM_TIME = 700;
     private static final int LONG_ANIM_TIME = 1000;
     private static final long SERVER_TIMER = 500;
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST  = 1000;
+    private static final String TAG = "com.matey.android";
 
     private ImageView ivLogoText, ivLoadingHead, ivLogoBubbleText, ivLogoClouds;
     private Button btnLogin, btnReg, btnFb;
@@ -99,6 +105,40 @@ public class MainActivity extends MotherActivity {
         init();
         // sceptic tommy starts checking everything
 		super.startTommy();
+
+        if (checkPlayServices()) {
+            // Start IntentService to register this application with GCM.
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            startService(intent);
+        }
+
+    }
+
+    /**
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
+     */
+    private boolean checkPlayServices() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                Log.i(TAG, "This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
 
     }
 
