@@ -917,4 +917,33 @@ public class MainActivity extends MotherActivity {
 
     }
 
+    @Override
+    protected Dialog onCreateDialog(int id, Bundle bundle) {
+
+        switch(id) {
+            case 0: return new AlertDialog.Builder(this)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setTitle("Hey mate, there's a problem!")
+                    .setMessage(bundle.getString("message"))
+                    .setPositiveButton("Try Again",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    startTommy();
+                                }
+                            })
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .create();
+        }
+
+        return super.onCreateDialog(id);
+
+    }
+
 }

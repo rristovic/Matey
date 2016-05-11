@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
@@ -82,6 +83,12 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
                 } else if (!jsonObject.getBoolean("success") && jsonObject.getString("message").equals("facebook_acc")) {
 
                     activity.showDialog(3);
+
+                } else if (!jsonObject.getBoolean("success")){
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString("message", jsonObject.getString("message"));
+                    activity.showDialog(0, bundle);
 
                 } else throw new Exception();
 
