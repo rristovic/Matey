@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.inall;
 
 import android.os.AsyncTask;
+import android.os.Bundle;
 
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -34,7 +35,11 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         // if some error occured
         if (checkResult == 0) activity.showDialog(0);
         // if there is no internet connection
-        else if(checkResult == 18) activity.showDialog(1);
+        else if(checkResult == 18) {
+            Bundle bundle = new Bundle();
+            bundle.putString("message", "There is no internet connection! Please connect and try again.");
+            activity.showDialog(4, bundle);
+        }
         // if user isn't logged in but everything is ok
         else if(checkResult == 1) activity.mServerReady = true;
         // if user is logged in

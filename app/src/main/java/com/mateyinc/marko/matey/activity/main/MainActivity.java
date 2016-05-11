@@ -5,10 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
@@ -51,7 +48,6 @@ import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
-import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
 import org.json.JSONArray;
@@ -88,7 +84,6 @@ public class MainActivity extends MotherActivity {
 
     private Resources resources;
     CallbackManager fbCallbackManager;
-    public int fbAnswerType = 0;
 
     // GCM
     private boolean isReceiverRegistered;
@@ -800,145 +795,6 @@ public class MainActivity extends MotherActivity {
 
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    protected Dialog onCreateDialog(int id, Bundle bundle) {
-
-        switch(id) {
-
-            case 0: return new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.ic_launcher)
-                    .setTitle("Hey mate, there's a problem!")
-                    .setMessage("Some error occurred.")
-                    .setPositiveButton("Try Again",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    startTommy();
-                                }
-                            })
-                    .setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
-                    .create();
-
-            case 1: return new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.ic_launcher)
-                    .setTitle("Hey mate, there's a problem!")
-                    .setMessage("There is no internet connection! Please connect and try again.")
-                    .setPositiveButton("Try Again",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    startTommy();
-                                }
-                            })
-                    .setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
-                    .create();
-
-            case 2: return new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.ic_launcher)
-                    .setTitle("WOOHOO")
-                    .setMessage("You are logged in with email: "+securePreferences.getString("email")+"!")
-                    .setPositiveButton("Log Out",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                    LogoutAs logoutAs = new LogoutAs();
-                                    try{
-
-                                        String result = logoutAs.execute(securePreferences.getString("email"),
-                                                securePreferences.getString("uid"),
-                                                securePreferences.getString("device_id")).get();
-
-                                        // if there is some result check if successful
-                                        if (result != null) {
-
-                                            JSONObject jsonObject = new JSONObject(result);
-
-                                            // if successful, set everything to SecurePreferences
-                                            if (jsonObject.getBoolean("success")) {
-
-                                                clearUserCredentials();
-                                                startTommy();
-
-                                            } else throw new Exception();
-
-                                        } else throw new Exception();
-
-                                    } catch (Exception e) {
-                                        // if there was an error, show corresponding alert dialog
-                                        showDialog(0);
-                                    }
-                                }
-                            })
-                    .setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
-                    .create();
-
-            case 3: return new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.ic_launcher)
-                    .setTitle("Hey mate, you are already here!")
-                    .setMessage("You have connected earlier with your facebook account. We recommend you to merge these two accounts!")
-                    .setPositiveButton("Merge Accounts",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                    fbAnswerType = 1;
-                                    LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile"));
-
-                                }
-                            })
-                    .setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
-                    .create();
-
-            case 4: return new AlertDialog.Builder(this)
-                    .setIcon(R.mipmap.ic_launcher)
-                    .setTitle("Hey mate, there's a problem!")
-                    .setMessage(bundle.getString("message"))
-                    .setPositiveButton("Try Again",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    startTommy();
-                                }
-                            })
-                    .setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
-                    .create();
-        }
-
-        return super.onCreateDialog(id);
-
     }
 
 }
