@@ -1,9 +1,13 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
 import android.os.AsyncTask;
+import android.widget.Toast;
 
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
+
+import org.json.JSONObject;
 
 import java.net.URLEncoder;
 
@@ -11,6 +15,12 @@ import java.net.URLEncoder;
  * Created by M4rk0 on 5/7/2016.
  */
 public class RegisterAs extends AsyncTask<String,Void,String>{
+
+    MainActivity activity;
+
+    public RegisterAs (MainActivity activity) {
+        this.activity = activity;
+    }
 
     @Override
     protected void onPreExecute() {
@@ -24,13 +34,17 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
             String email = params[0];
             String password = params[1];
+            String merge = params[2];
+            String accessToken = params[3];
 
             try {
 
                 String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
                         URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8") + "&" +
                         URLEncoder.encode("firstname", "UTF-8") + "=" + URLEncoder.encode("Marko", "UTF-8") + "&" +
-                        URLEncoder.encode("lastname", "UTF-8") + "=" + URLEncoder.encode("Ognjenovic", "UTF-8");
+                        URLEncoder.encode("lastname", "UTF-8") + "=" + URLEncoder.encode("Ognjenovic", "UTF-8") + "&" +
+                        URLEncoder.encode("merge", "UTF-8") + "=" + URLEncoder.encode(merge, "UTF-8") + "&" +
+                        URLEncoder.encode("accessToken", "UTF-8") + "=" + URLEncoder.encode(accessToken, "UTF-8");
                 HTTP http = new HTTP(UrlData.REGISTER_URL, "POST");
 
                 if(http.sendPost(data)) return http.getData();
@@ -49,6 +63,34 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
+
+        // if there is a result, check if it was successful
+        try {
+            if (result != null) {
+
+                JSONObject jsonObject = new JSONObject(result);
+
+                // if it was successful, take user to login page
+                if (jsonObject.getBoolean("success")) {
+
+                    Toast.makeText(activity, "You have successfully registered!", Toast.LENGTH_SHORT).show();
+                    activity.startRegReverseAnim();
+                    activity.mRegFormVisible = false;
+                    activity.etEmail.setText("");
+                    activity.etPass.setText("");
+
+                } else if (!jsonObject.getBoolean("success") && jsonObject.getString("message").equals("facebook_acc")) {
+
+                    activity.showDialog(3);
+
+                } else throw new Exception();
+
+            } else throw new Exception();
+        } catch (Exception e) {
+                // if there was an error, show corresponding alert dialog
+                activity.showDialog(0);
+        }
+
     }
 
 }
