@@ -6,6 +6,9 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
@@ -48,6 +51,7 @@ import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
+import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 import com.google.android.gms.common.ConnectionResult;
 
@@ -72,19 +76,20 @@ public class MainActivity extends MotherActivity {
     private Button btnLogin, btnReg, btnFb;
     private RelativeLayout rlLoginButtons, rlMain;
     private LinearLayout llEmail, llPass, line1, line2;
-    private EditText etPass, etEmail;
+    public EditText etPass, etEmail;
 
     private float mLoginBtnMoveY;
     private float mRegBtnMoveY;
     private int mLoginBtnBotMargin;
     private boolean mLoginFormVisible;
-    private boolean mRegFormVisible;
+    public boolean mRegFormVisible;
     private int mRegBtnBotMargin;
     private float mLogoMoveOnRegBtn;
     private float mLoadingHeadIntroTransl;
 
     private Resources resources;
     CallbackManager fbCallbackManager;
+    public int fbAnswerType = 0;
 
     // GCM
     private boolean isReceiverRegistered;
@@ -108,7 +113,7 @@ public class MainActivity extends MotherActivity {
 
         init();
         // sceptic tommy starts checking everything
-//		super.startTommy();
+		super.startTommy();
 
         // Registering BroadcastReceiver
         registerReceiver();
@@ -263,32 +268,8 @@ public class MainActivity extends MotherActivity {
                     String pass = etPass.getText().toString();
 
                     // start asynchronous task to handle user registration
-                    RegisterAs registerAs = new RegisterAs();
-                    try {
-                        String result = registerAs.execute(email, pass).get();
-
-                        // if there is a result, check if it was successful
-                        if (result != null) {
-
-                            JSONObject jsonObject = new JSONObject(result);
-
-                            // if it was successful, take user to login page
-                            if (jsonObject.getBoolean("success")) {
-
-                                Toast.makeText(v.getContext(), "You have successfully registered!", Toast.LENGTH_SHORT).show();
-                                startRegReverseAnim();
-                                mRegFormVisible  = false;
-                                etEmail.setText("");
-                                etPass.setText("");
-
-                            } else throw new Exception();
-
-                        } else throw new Exception();
-
-                    } catch (Exception e) {
-                        // if there was an error, show corresponding alert dialog
-                        showDialog(0);
-                    }
+                    RegisterAs registerAs = new RegisterAs( (MainActivity) v.getContext() );
+                    registerAs.execute(email, pass, "no", "");
 
                 }
 
@@ -299,6 +280,7 @@ public class MainActivity extends MotherActivity {
             @Override
             public void onClick(View v) {
 
+                fbAnswerType = 0;
                 LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile", "user_friends", "email"));
 
             }
@@ -325,74 +307,87 @@ public class MainActivity extends MotherActivity {
 
                         final AccessToken accessToken = loginResult.getAccessToken();
                         // TASK AFTER LOGIN SUCCESSFUL
-
-                        GraphRequest request = GraphRequest.newMeRequest(
-                                accessToken,
-                                new GraphRequest.GraphJSONObjectCallback() {
-                                    @Override
-                                    public void onCompleted(JSONObject object, GraphResponse response) {
-                                        // Application code
-                                        try {
-
-                                            String facebook_id = object.getString("id");
-                                            String email = object.getString("email");
-                                            String first_name = object.getString("first_name");
-                                            String last_name = object.getString("last_name");
-
-
-                                            // OVDE RADNJE NAKON LOGIN-A
-
-                                            FacebookLoginAs facebookLogin = new FacebookLoginAs();
-
+                        if(fbAnswerType == 0) {
+                            GraphRequest request = GraphRequest.newMeRequest(
+                                    accessToken,
+                                    new GraphRequest.GraphJSONObjectCallback() {
+                                        @Override
+                                        public void onCompleted(JSONObject object, GraphResponse response) {
+                                            // Application code
                                             try {
 
-                                                String result = facebookLogin.execute(accessToken.getToken(), facebook_id,
-                                                        first_name, last_name, email, securePreferences.getString("device_id"))
-                                                        .get();
+                                                String facebook_id = object.getString("id");
+                                                String email = object.getString("email");
+                                                String first_name = object.getString("first_name");
+                                                String last_name = object.getString("last_name");
+                                                JSONArray user_friends_arr = object.getJSONObject("friends").getJSONArray("data");
+                                                Log.d("prij", user_friends_arr.toString());
 
-                                                // if there is some result check if successful
-                                                if (result != null) {
 
-                                                    JSONObject jsonObject = new JSONObject(result);
+                                                // OVDE RADNJE NAKON LOGIN-A
 
-                                                    // if successful, set everything to SecurePreferences
-                                                    if (jsonObject.getBoolean("success")) {
+                                                FacebookLoginAs facebookLogin = new FacebookLoginAs();
 
-                                                        // converting data
-                                                        JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
-                                                        JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+                                                try {
 
-                                                        // put to preferences
-                                                        securePreferences.put("user_id", dataObj.getString("user_id"));
-                                                        securePreferences.put("email", dataObj.getString("email"));
-                                                        securePreferences.put("uid", dataObj.getString("uid"));
-                                                        securePreferences.put("firstname", dataObj.getString("first_name"));
-                                                        securePreferences.put("lastname", dataObj.getString("last_name"));
+                                                    String result = facebookLogin.execute(accessToken.getToken(), facebook_id,
+                                                            first_name, last_name, email, securePreferences.getString("device_id"))
+                                                            .get();
 
-                                                        // notify user about successful login
-                                                        // here will go intent to home page
-                                                        Toast.makeText(MainActivity.this, "You have successfully login!", Toast.LENGTH_SHORT).show();
+                                                    // if there is some result check if successful
+                                                    if (result != null) {
+
+                                                        JSONObject jsonObject = new JSONObject(result);
+
+                                                        // if successful, set everything to SecurePreferences
+                                                        if (jsonObject.getBoolean("success")) {
+
+                                                            // converting data
+                                                            JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
+                                                            JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+
+                                                            // put to preferences
+                                                            securePreferences.put("user_id", dataObj.getString("user_id"));
+                                                            securePreferences.put("email", dataObj.getString("email"));
+                                                            securePreferences.put("uid", dataObj.getString("uid"));
+                                                            securePreferences.put("firstname", dataObj.getString("first_name"));
+                                                            securePreferences.put("lastname", dataObj.getString("last_name"));
+
+                                                            // notify user about successful login
+                                                            // here will go intent to home page
+                                                            Toast.makeText(MainActivity.this, "You have successfully login!", Toast.LENGTH_SHORT).show();
+
+                                                        } else throw new Exception();
 
                                                     } else throw new Exception();
 
-                                                } else throw new Exception();
+                                                } catch (Exception e) {
+                                                    showDialog(0);
+                                                }
 
-                                            } catch (Exception e) {
+
+                                            } catch (JSONException e) {
                                                 showDialog(0);
                                             }
 
-
-                                        } catch (JSONException e) {
-                                            showDialog(0);
                                         }
+                                    });
 
-                                    }
-                                });
+                            Bundle parameters = new Bundle();
+                            parameters.putString("fields", "id,email,first_name,last_name,friends");
+                            request.setParameters(parameters);
+                            request.executeAsync();
 
-                        Bundle parameters = new Bundle();
-                        parameters.putString("fields", "id,email,first_name,last_name");
-                        request.setParameters(parameters);
-                        request.executeAsync();
+                        } else {
+
+                            String email = etEmail.getText().toString();
+                            String pass = etPass.getText().toString();
+
+                            // start asynchronous task to handle user registration
+                            RegisterAs registerAs = new RegisterAs( MainActivity.this );
+                            registerAs.execute(email, pass, "yes", accessToken.getToken());
+
+                        }
 
                     }
 
@@ -497,7 +492,7 @@ public class MainActivity extends MotherActivity {
     }
 
 
-    private void startRegReverseAnim() {
+    public void startRegReverseAnim() {
         startFadeAnimation(llPass, 1, 0, SHORT_ANIM_TIME);
         startFadeAnimation(llEmail, 1, 0, SHORT_ANIM_TIME);
         startFadeAnimation(line2, 1, 0, SHORT_ANIM_TIME);
@@ -621,7 +616,7 @@ public class MainActivity extends MotherActivity {
 
         // TODO - add receiver to stop loading anim
         // Simulate server 10s
-        CountDownTimer timer1 = new CountDownTimer(SERVER_TIMER, SERVER_TIMER) {
+        /*CountDownTimer timer1 = new CountDownTimer(SERVER_TIMER, SERVER_TIMER) {
             @Override
             public void onTick(long millisUntilFinished) {
             }
@@ -631,7 +626,7 @@ public class MainActivity extends MotherActivity {
                 mServerReady = true;
             }
         };
-        timer1.start();
+        timer1.start();*/
 
     }
 
@@ -793,6 +788,121 @@ public class MainActivity extends MotherActivity {
 
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected Dialog onCreateDialog(int id) {
+
+        switch(id) {
+            case 0: return new AlertDialog.Builder(this)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setTitle("Hey mate, there's a problem!")
+                    .setMessage("Some error occurred.")
+                    .setPositiveButton("Try Again",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    startTommy();
+                                }
+                            })
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .create();
+            case 1: return new AlertDialog.Builder(this)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setTitle("Hey mate, there's a problem!")
+                    .setMessage("There is no internet connection! Please connect and try again.")
+                    .setPositiveButton("Try Again",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    startTommy();
+                                }
+                            })
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .create();
+            case 2: return new AlertDialog.Builder(this)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setTitle("WOOHOO")
+                    .setMessage("You are logged in!")
+                    .setPositiveButton("Log Out",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    LogoutAs logoutAs = new LogoutAs();
+                                    try{
+
+                                        String result = logoutAs.execute(securePreferences.getString("email"),
+                                                securePreferences.getString("uid"),
+                                                securePreferences.getString("device_id")).get();
+
+                                        // if there is some result check if successful
+                                        if (result != null) {
+
+                                            JSONObject jsonObject = new JSONObject(result);
+
+                                            // if successful, set everything to SecurePreferences
+                                            if (jsonObject.getBoolean("success")) {
+
+                                                clearUserCredentials();
+                                                startTommy();
+
+                                            } else throw new Exception();
+
+                                        } else throw new Exception();
+
+                                    } catch (Exception e) {
+                                        // if there was an error, show corresponding alert dialog
+                                        showDialog(0);
+                                    }
+                                }
+                            })
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .create();
+            case 3: return new AlertDialog.Builder(this)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setTitle("Hey mate, you are already here!")
+                    .setMessage("You have connected earlier with your facebook account. We recommend you to merge these two accounts!")
+                    .setPositiveButton("Merge Accounts",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    fbAnswerType = 1;
+                                    LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile"));
+
+                                }
+                            })
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                    .create();
+        }
+
+        return super.onCreateDialog(id);
+
     }
 
 }
