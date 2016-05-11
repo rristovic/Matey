@@ -88,7 +88,7 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
-                    activity.showDialog(0, bundle);
+                    activity.showDialog(4, bundle);
 
                 } else throw new Exception();
 

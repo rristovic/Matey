@@ -803,9 +803,10 @@ public class MainActivity extends MotherActivity {
     }
 
     @Override
-    protected Dialog onCreateDialog(int id) {
+    protected Dialog onCreateDialog(int id, Bundle bundle) {
 
         switch(id) {
+
             case 0: return new AlertDialog.Builder(this)
                     .setIcon(R.mipmap.ic_launcher)
                     .setTitle("Hey mate, there's a problem!")
@@ -825,6 +826,7 @@ public class MainActivity extends MotherActivity {
                                 }
                             })
                     .create();
+
             case 1: return new AlertDialog.Builder(this)
                     .setIcon(R.mipmap.ic_launcher)
                     .setTitle("Hey mate, there's a problem!")
@@ -844,6 +846,7 @@ public class MainActivity extends MotherActivity {
                                 }
                             })
                     .create();
+
             case 2: return new AlertDialog.Builder(this)
                     .setIcon(R.mipmap.ic_launcher)
                     .setTitle("WOOHOO")
@@ -889,6 +892,7 @@ public class MainActivity extends MotherActivity {
                                 }
                             })
                     .create();
+
             case 3: return new AlertDialog.Builder(this)
                     .setIcon(R.mipmap.ic_launcher)
                     .setTitle("Hey mate, you are already here!")
@@ -911,17 +915,8 @@ public class MainActivity extends MotherActivity {
                                 }
                             })
                     .create();
-        }
 
-        return super.onCreateDialog(id);
-
-    }
-
-    @Override
-    protected Dialog onCreateDialog(int id, Bundle bundle) {
-
-        switch(id) {
-            case 0: return new AlertDialog.Builder(this)
+            case 4: return new AlertDialog.Builder(this)
                     .setIcon(R.mipmap.ic_launcher)
                     .setTitle("Hey mate, there's a problem!")
                     .setMessage(bundle.getString("message"))
