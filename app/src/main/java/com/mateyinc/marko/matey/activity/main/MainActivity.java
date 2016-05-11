@@ -8,12 +8,15 @@ import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -31,6 +34,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -116,7 +120,7 @@ public class MainActivity extends MotherActivity {
 		super.startTommy();
 
         // Registering BroadcastReceiver
-        registerReceiver();
+//        registerReceiver();
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
@@ -160,15 +164,15 @@ public class MainActivity extends MotherActivity {
         super.onResume();
 
         // Registering BroadcastReceiver
-        registerReceiver();
+//        registerReceiver();
     }
 
 
 
     @Override
     protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        isReceiverRegistered = false;
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+//        isReceiverRegistered = false;
         super.onDestroy();
 
 //        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
@@ -194,6 +198,19 @@ public class MainActivity extends MotherActivity {
         rlMain = (RelativeLayout) findViewById(R.id.rlMain);
         ivLogoClouds = (ImageView) findViewById(R.id.ivLoginLogoClouds);
         resources = getResources();
+
+//        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                SharedPreferences sharedPreferences =
+//                        PreferenceManager.getDefaultSharedPreferences(context);
+//                boolean sentToken = sharedPreferences
+//                        .getBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, false);
+//                if (sentToken) {
+//                } else {
+//                }
+//            }
+//        };
 
         startIntro();
         setOnClickListeners();
