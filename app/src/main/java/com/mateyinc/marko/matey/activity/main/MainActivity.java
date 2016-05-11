@@ -5,10 +5,13 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -40,6 +43,7 @@ import com.facebook.login.LoginResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
@@ -82,6 +86,11 @@ public class MainActivity extends MotherActivity {
     private Resources resources;
     CallbackManager fbCallbackManager;
 
+    // GCM
+    private boolean isReceiverRegistered;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -100,6 +109,9 @@ public class MainActivity extends MotherActivity {
         init();
         // sceptic tommy starts checking everything
 //		super.startTommy();
+
+        // Registering BroadcastReceiver
+        registerReceiver();
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
@@ -130,15 +142,28 @@ public class MainActivity extends MotherActivity {
         return true;
     }
 
+    private void registerReceiver(){
+        if(!isReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                    new IntentFilter(MateyGCMPreferences.REGISTRATION_COMPLETE));
+            isReceiverRegistered = true;
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
 
-
+        // Registering BroadcastReceiver
+        registerReceiver();
     }
+
+
 
     @Override
     protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        isReceiverRegistered = false;
         super.onDestroy();
 
 //        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
