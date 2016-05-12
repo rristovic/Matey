@@ -1,9 +1,13 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -16,18 +20,27 @@ import java.net.URLEncoder;
 /**
  * Created by M4rk0 on 4/25/2016.
  */
-public class LoginAs extends AsyncTask<String,Void,String> {
+public class LoginAs extends AsyncTask<String, Void, String> {
 
     MainActivity activity;
+    private ProgressDialog mProgDialog;
 
-    public LoginAs (MainActivity activity) {
+    public LoginAs(MainActivity activity) {
         this.activity = activity;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        mProgDialog = new ProgressDialog(activity);
+        mProgDialog.setMessage(activity.getResources().getString(R.string.login_dialog_message));
+        mProgDialog.show();
     }
 
     @Override
     protected String doInBackground(String... params) {
 
-        if(!isCancelled()) {
+        if (!isCancelled()) {
 
             String username = params[0];
             String password = params[1];
@@ -40,7 +53,7 @@ public class LoginAs extends AsyncTask<String,Void,String> {
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
                 HTTP http = new HTTP(UrlData.LOG_URL, "POST");
 
-                if(http.sendPost(data)) return http.getData();
+                if (http.sendPost(data)) return http.getData();
 
             } catch (Exception e) {
 
@@ -78,12 +91,19 @@ public class LoginAs extends AsyncTask<String,Void,String> {
 
                     // notify user about successful login
                     // here will go intent to home page
-                    Toast.makeText(activity, "You have successfully login!", Toast.LENGTH_SHORT).show();
+//                   Toast.makeText(activity, "You have successfully login!", Toast.LENGTH_SHORT).show();
+                    if (mProgDialog.isShowing())
+                        mProgDialog.dismiss();
 
-                } else if(!jsonObject.getBoolean("success")){
+                    Intent intent = new Intent(activity, HomeActivity.class);
+                    activity.startActivity(intent);
+                    activity.finish();
 
+                } else if (!jsonObject.getBoolean("success")) {
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
+                    if (mProgDialog.isShowing())
+                        mProgDialog.dismiss();
                     activity.showDialog(4, bundle);
 
                 } else throw new Exception();
@@ -92,8 +112,11 @@ public class LoginAs extends AsyncTask<String,Void,String> {
 
         } catch (Exception e) {
             // if there was an error, show corresponding alert dialog
+            if (mProgDialog.isShowing())
+                mProgDialog.dismiss();
             activity.showDialog(0);
         }
+
 
     }
 

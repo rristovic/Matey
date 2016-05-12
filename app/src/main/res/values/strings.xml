@@ -2,4 +2,11 @@
     <string name="facebook_app_id">1702025086719722</string>
     <string name="app_name">Matey</string>
     <string name="app_title">Matey</string>
+    <string name="title_activity_home">HomeActivity</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_logout">Logout</string>
+
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="login_dialog_message">Getting you in..</string>
 </resources>

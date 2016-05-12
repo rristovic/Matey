@@ -1,8 +1,10 @@
 package com.mateyinc.marko.matey.inall;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -43,7 +45,12 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         // if user isn't logged in but everything is ok
         else if(checkResult == 1) activity.mServerReady = true;
         // if user is logged in
-        else if(checkResult == 7) activity.showDialog(2);
+        else if(checkResult == 7) {
+//            activity.showDialog(2);
+            Intent i = new Intent(activity, HomeActivity.class);
+            activity.startActivity(i);
+            activity.finish();
+        }
 
     }
 

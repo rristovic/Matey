@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
@@ -16,9 +17,9 @@ import java.net.URLEncoder;
  */
 public class LogoutAs extends AsyncTask<String,Void,String> {
 
-    MainActivity activity;
+    MotherActivity activity;
 
-    public LogoutAs (MainActivity activity) {
+    public LogoutAs (MotherActivity activity) {
         this.activity = activity;
     }
 

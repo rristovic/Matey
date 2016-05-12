@@ -9,10 +9,10 @@
     <permission
         android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
+
     <uses-permission android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-
 
     <application
         android:allowBackup="true"
@@ -68,6 +68,10 @@
             </intent-filter>
         </service>
 
+        <activity
+            android:name=".activity.home.HomeActivity"
+            android:label="@string/title_activity_home"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

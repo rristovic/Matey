@@ -23,7 +23,7 @@ import java.util.Arrays;
 public class MotherActivity extends AppCompatActivity {
 
 	protected ScepticTommy tommy;
-	public SecurePreferences securePreferences;
+	public static SecurePreferences securePreferences;
 	protected boolean mServerReady = false;
 
 	public int fbAnswerType = 0;
