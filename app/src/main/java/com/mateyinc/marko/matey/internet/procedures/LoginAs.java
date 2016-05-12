@@ -4,7 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
@@ -104,7 +103,7 @@ public class LoginAs extends AsyncTask<String, Void, String> {
                     bundle.putString("message", jsonObject.getString("message"));
                     if (mProgDialog.isShowing())
                         mProgDialog.dismiss();
-                    activity.showDialog(4, bundle);
+                    activity.showDialog(1004, bundle);
 
                 } else throw new Exception();
 
@@ -114,7 +113,7 @@ public class LoginAs extends AsyncTask<String, Void, String> {
             // if there was an error, show corresponding alert dialog
             if (mProgDialog.isShowing())
                 mProgDialog.dismiss();
-            activity.showDialog(0);
+            activity.showDialog(1000);
         }
 
 

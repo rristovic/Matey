@@ -108,14 +108,14 @@ public class FacebookLoginAs extends AsyncTask<String,Void,String> {
 
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
-                    activity.showDialog(4, bundle);
+                    activity.showDialog(1004, bundle);
 
                 } else throw new Exception();
 
             } else throw new Exception();
 
         } catch (Exception e) {
-            activity.showDialog(0);
+            activity.showDialog(1000);
         }
 
     }

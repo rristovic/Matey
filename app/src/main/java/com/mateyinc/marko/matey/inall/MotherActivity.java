@@ -79,7 +79,7 @@ abstract public class MotherActivity extends AppCompatActivity {
 
 		switch(id) {
 
-			case 0: return new AlertDialog.Builder(this)
+			case 1000: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("Hey mate, there's a problem!")
 					.setMessage("Some error occurred.")
@@ -99,7 +99,7 @@ abstract public class MotherActivity extends AppCompatActivity {
 							})
 					.create();
 
-			case 2: return new AlertDialog.Builder(this)
+			case 1002: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("WOOHOO")
 					.setMessage("You are logged in with email: "+securePreferences.getString("email")+"!")
@@ -123,7 +123,7 @@ abstract public class MotherActivity extends AppCompatActivity {
 							})
 					.create();
 
-			case 3: return new AlertDialog.Builder(this)
+			case 1003: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("Hey " + bundle.getString("name") + ", you are already here!")
 					.setMessage("You have connected earlier with your facebook account. We recommend you to merge these two accounts!")
@@ -146,7 +146,7 @@ abstract public class MotherActivity extends AppCompatActivity {
 							})
 					.create();
 
-			case 4: return new AlertDialog.Builder(this)
+			case 1004: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("Hey mate, there's a problem!")
 					.setMessage(bundle.getString("message"))

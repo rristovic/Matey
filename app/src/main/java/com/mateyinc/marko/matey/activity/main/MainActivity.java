@@ -309,7 +309,7 @@ public class MainActivity extends MotherActivity {
 
 
                                             } catch (JSONException e) {
-                                                showDialog(0);
+                                                showDialog(1000);
                                             }
 
                                         }

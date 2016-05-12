@@ -67,7 +67,7 @@ public class InstallationIDManager {
 
                             Bundle bundle = new Bundle();
                             bundle.putString("message", jsonObject.getString("message"));
-                            activity.showDialog(4, bundle);
+                            activity.showDialog(1004, bundle);
 
                         } else throw new Exception();
 

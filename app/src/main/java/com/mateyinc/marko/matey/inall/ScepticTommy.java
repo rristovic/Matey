@@ -35,12 +35,12 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
     protected void onPostExecute(Integer checkResult) {
 
         // if some error occured
-        if (checkResult == 0) activity.showDialog(0);
+        if (checkResult == 0) activity.showDialog(1000);
         // if there is no internet connection
         else if(checkResult == 18) {
             Bundle bundle = new Bundle();
             bundle.putString("message", "There is no internet connection! Please connect and try again.");
-            activity.showDialog(4, bundle);
+            activity.showDialog(1004, bundle);
         }
         // if user isn't logged in but everything is ok
         else if(checkResult == 1) activity.mServerReady = true;

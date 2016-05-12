@@ -84,13 +84,13 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
                     Bundle bundle = new Bundle();
                     bundle.putString("name", jsonObject.getString("name"));
-                    activity.showDialog(3, bundle);
+                    activity.showDialog(1003, bundle);
 
                 } else if (!jsonObject.getBoolean("success")){
 
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
-                    activity.showDialog(4, bundle);
+                    activity.showDialog(1004, bundle);
 
                 } else throw new Exception();
 
@@ -98,7 +98,7 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
         } catch (Exception e) {
                 // if there was an error, show corresponding alert dialog
-                activity.showDialog(0);
+                activity.showDialog(1000);
         }
 
     }

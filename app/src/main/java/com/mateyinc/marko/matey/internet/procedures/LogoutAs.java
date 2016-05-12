@@ -76,7 +76,7 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
 
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
-                    activity.showDialog(4, bundle);
+                    activity.showDialog(1004, bundle);
 
                 } else throw new Exception();
 
@@ -84,7 +84,7 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
 
         } catch (Exception e) {
             // if there was an error, show corresponding alert dialog
-            activity.showDialog(0);
+            activity.showDialog(1000);
         }
 
     }
