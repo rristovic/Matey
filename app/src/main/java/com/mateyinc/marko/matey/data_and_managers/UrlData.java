@@ -13,6 +13,7 @@ public class UrlData {
     public final static String LOG_URL = "http://notifinda-api-m4rk07.c9users.io/web/index.php/api/user/login";
     public final static String LOG_OUT_URL = "http://notifinda-api-m4rk07.c9users.io/web/index.php/api/user/logout";
     public final static String FACEBOOK_LOG_URL = "http://notifinda-api-m4rk07.c9users.io/web/index.php/api/user/fblogin";
+    public final static String FETCH_ALL_POSTS = "http://notifinda-api-m4rk07.c9users.io/web/index.php/api/user/requestAllPosts";
 
     public final static String CHECK_USER_URL = "http://notifinda-api-m4rk07.c9users.io/web/index.php/api/user/firstRun";
 

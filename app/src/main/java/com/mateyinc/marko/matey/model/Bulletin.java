@@ -1,5 +1,6 @@
 package com.mateyinc.marko.matey.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 
@@ -11,6 +12,25 @@ public class Bulletin {
     private String mLastName;
     private Date mDate;
     private String mMessage;
+
+    public String getPostID() {
+        return mPostID;
+    }
+
+    public void setPostID(String mPostID) {
+        this.mPostID = mPostID;
+    }
+
+    public String getUserID() {
+        return mUserID;
+    }
+
+    public void setUserID(String mUserID) {
+        this.mUserID = mUserID;
+    }
+
+    private String mPostID;
+    private String mUserID;
 
     public String getMessage() {
         return mMessage;
@@ -42,8 +62,13 @@ public class Bulletin {
         return mDate;
     }
 
-    public void setDate(Date mDate) {
-        this.mDate = mDate;
+    public void setDate(String mDateString) {
+
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            this.mDate = dateFormat.parse(mDateString);
+        } catch (Exception e) {}
+
     }
 
     public LinkedList<BulletinAttachment> getAttachments() {

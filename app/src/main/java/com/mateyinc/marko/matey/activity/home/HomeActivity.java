@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.InsideActivity;
+import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
 public class HomeActivity extends InsideActivity {
 
@@ -64,6 +65,11 @@ public class HomeActivity extends InsideActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        BulletinAs bulletinsAs = new BulletinAs(this);
+        bulletinsAs.execute(securePreferences.getString("user_id"),
+                securePreferences.getString("uid"),
+                securePreferences.getString("device_id"));
 
     }
 
