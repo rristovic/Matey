@@ -13,17 +13,16 @@ import android.view.Menu;
 
 import com.facebook.login.LoginManager;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.util.Arrays;
 
 @SuppressLint("NewApi")
-public class MotherActivity extends AppCompatActivity {
+abstract public class MotherActivity extends AppCompatActivity {
 
 	protected ScepticTommy tommy;
-	public static SecurePreferences securePreferences;
+	public SecurePreferences securePreferences;
 	protected boolean mServerReady = false;
 
 	public int fbAnswerType = 0;
@@ -109,7 +108,7 @@ public class MotherActivity extends AppCompatActivity {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
 
-									LogoutAs logoutAs = new LogoutAs((MainActivity) MotherActivity.this);
+									LogoutAs logoutAs = new LogoutAs(MotherActivity.this);
 									logoutAs.execute(securePreferences.getString("email"),
 											securePreferences.getString("uid"),
 											securePreferences.getString("device_id"));

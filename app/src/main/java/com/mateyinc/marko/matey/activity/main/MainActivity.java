@@ -243,6 +243,15 @@ public class MainActivity extends MotherActivity {
                 }
 
             }
+
+            /*public boolean checkEmail (String email) {
+
+            }
+
+            public boolean checkPassword (String password) {
+
+            }*/
+
         });
 
         btnFb.setOnClickListener(new View.OnClickListener() {

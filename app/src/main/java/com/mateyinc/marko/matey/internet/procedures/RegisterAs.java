@@ -43,7 +43,7 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
                 String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
                         URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8") + "&" +
                         URLEncoder.encode("firstname", "UTF-8") + "=" + URLEncoder.encode("Marko", "UTF-8") + "&" +
-                        URLEncoder.encode("lastname", "UTF-8") + "=" + URLEncoder.encode("Ognjenovic", "UTF-8") + "&" +
+                        URLEncoder.encode("lastname", "UTF-8") + "=" + URLEncoder.encode("Ognjenović", "UTF-8") + "&" +
                         URLEncoder.encode("merge", "UTF-8") + "=" + URLEncoder.encode(merge, "UTF-8") + "&" +
                         URLEncoder.encode("accessToken", "UTF-8") + "=" + URLEncoder.encode(accessToken, "UTF-8");
                 HTTP http = new HTTP(UrlData.REGISTER_URL, "POST");

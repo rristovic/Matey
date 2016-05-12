@@ -1,5 +1,6 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -66,7 +67,10 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
                 if (jsonObject.getBoolean("success")) {
 
                     activity.clearUserCredentials();
-                    activity.startTommy();
+
+                    Intent intent = new Intent(activity, MainActivity.class);
+                    activity.startActivity(intent);
+                    activity.finish();
 
                 } else if(!jsonObject.getBoolean("success")){
 
