@@ -29,7 +29,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -219,46 +218,9 @@ public class MainActivity extends MotherActivity {
                     String pass = etPass.getText().toString();
 
                     // starting login process
-                    LoginAs loginAs = new LoginAs();
-                    try {
-
-                        // casting context to MotherActivity
-                        MotherActivity activity = (MotherActivity) v.getContext();
-                        String result = loginAs.execute(email, pass, activity.securePreferences.getString("device_id")).get();
-
-                        // if there is some result check if successful
-                        if (result != null) {
-
-                            JSONObject jsonObject = new JSONObject(result);
-
-                            // if successful, set everything to SecurePreferences
-                            if (jsonObject.getBoolean("success")) {
-
-                                // converting data
-                                JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
-                                JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
-
-                                // put to preferences
-                                activity.securePreferences.put("user_id", dataObj.getString("user_id"));
-                                activity.securePreferences.put("email", dataObj.getString("email"));
-                                activity.securePreferences.put("uid", dataObj.getString("uid"));
-                                activity.securePreferences.put("firstname", dataObj.getString("first_name"));
-                                activity.securePreferences.put("lastname", dataObj.getString("last_name"));
-
-                                // notify user about successful login
-                                // here will go intent to home page
-                                Toast.makeText(v.getContext(), "You have successfully login!", Toast.LENGTH_SHORT).show();
-                                etEmail.setText("");
-                                etPass.setText("");
-
-                            } else throw new Exception();
-
-                        } else throw new Exception();
-
-                    } catch (Exception e) {
-                        // if there was an error, show corresponding alert dialog
-                        showDialog(0);
-                    }
+                    MainActivity activity = (MainActivity) v.getContext();
+                    LoginAs loginAs = new LoginAs(activity);
+                    loginAs.execute(email, pass, activity.securePreferences.getString("device_id"));
 
                 }
             }
@@ -332,45 +294,9 @@ public class MainActivity extends MotherActivity {
 
 
                                                 // OVDE RADNJE NAKON LOGIN-A
-
-                                                FacebookLoginAs facebookLogin = new FacebookLoginAs();
-
-                                                try {
-
-                                                    String result = facebookLogin.execute(accessToken.getToken(), facebook_id,
-                                                            first_name, last_name, email, securePreferences.getString("device_id"))
-                                                            .get();
-
-                                                    // if there is some result check if successful
-                                                    if (result != null) {
-
-                                                        JSONObject jsonObject = new JSONObject(result);
-
-                                                        // if successful, set everything to SecurePreferences
-                                                        if (jsonObject.getBoolean("success")) {
-
-                                                            // converting data
-                                                            JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
-                                                            JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
-
-                                                            // put to preferences
-                                                            securePreferences.put("user_id", dataObj.getString("user_id"));
-                                                            securePreferences.put("email", dataObj.getString("email"));
-                                                            securePreferences.put("uid", dataObj.getString("uid"));
-                                                            securePreferences.put("firstname", dataObj.getString("first_name"));
-                                                            securePreferences.put("lastname", dataObj.getString("last_name"));
-
-                                                            // notify user about successful login
-                                                            // here will go intent to home page
-                                                            Toast.makeText(MainActivity.this, "You have successfully login!", Toast.LENGTH_SHORT).show();
-
-                                                        } else throw new Exception();
-
-                                                    } else throw new Exception();
-
-                                                } catch (Exception e) {
-                                                    showDialog(0);
-                                                }
+                                                FacebookLoginAs facebookLogin = new FacebookLoginAs(MainActivity.this);
+                                                facebookLogin.execute(accessToken.getToken(), facebook_id,
+                                                            first_name, last_name, email, securePreferences.getString("device_id"));
 
 
                                             } catch (JSONException e) {

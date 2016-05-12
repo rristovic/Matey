@@ -13,10 +13,9 @@ import android.view.Menu;
 
 import com.facebook.login.LoginManager;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
-
-import org.json.JSONObject;
 
 import java.util.Arrays;
 
@@ -110,32 +109,10 @@ public class MotherActivity extends AppCompatActivity {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
 
-									LogoutAs logoutAs = new LogoutAs();
-									try{
-
-										String result = logoutAs.execute(securePreferences.getString("email"),
-												securePreferences.getString("uid"),
-												securePreferences.getString("device_id")).get();
-
-										// if there is some result check if successful
-										if (result != null) {
-
-											JSONObject jsonObject = new JSONObject(result);
-
-											// if successful, set everything to SecurePreferences
-											if (jsonObject.getBoolean("success")) {
-
-												clearUserCredentials();
-												startTommy();
-
-											} else throw new Exception();
-
-										} else throw new Exception();
-
-									} catch (Exception e) {
-										// if there was an error, show corresponding alert dialog
-										showDialog(0);
-									}
+									LogoutAs logoutAs = new LogoutAs((MainActivity) MotherActivity.this);
+									logoutAs.execute(securePreferences.getString("email"),
+											securePreferences.getString("uid"),
+											securePreferences.getString("device_id"));
 								}
 							})
 					.setNegativeButton("Cancel",
@@ -149,7 +126,7 @@ public class MotherActivity extends AppCompatActivity {
 
 			case 3: return new AlertDialog.Builder(this)
 					.setIcon(R.mipmap.ic_launcher)
-					.setTitle("Hey mate, you are already here!")
+					.setTitle("Hey " + bundle.getString("name") + ", you are already here!")
 					.setMessage("You have connected earlier with your facebook account. We recommend you to merge these two accounts!")
 					.setPositiveButton("Merge Accounts",
 							new DialogInterface.OnClickListener() {
@@ -174,14 +151,7 @@ public class MotherActivity extends AppCompatActivity {
 					.setIcon(R.mipmap.ic_launcher)
 					.setTitle("Hey mate, there's a problem!")
 					.setMessage(bundle.getString("message"))
-					.setPositiveButton("Try Again",
-							new DialogInterface.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									startTommy();
-								}
-							})
-					.setNegativeButton("Cancel",
+					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {

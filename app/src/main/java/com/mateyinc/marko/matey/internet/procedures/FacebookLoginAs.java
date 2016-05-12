@@ -1,13 +1,25 @@
 package com.mateyinc.marko.matey.internet.procedures;
 
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.widget.Toast;
 
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.net.URLEncoder;
 
 public class FacebookLoginAs extends AsyncTask<String,Void,String> {
+
+    MainActivity activity;
+
+    public FacebookLoginAs (MainActivity activity) {
+        this.activity = activity;
+    }
 
     @Override
     protected String doInBackground(String... params) {
@@ -48,7 +60,46 @@ public class FacebookLoginAs extends AsyncTask<String,Void,String> {
 
     @Override
     protected void onPostExecute(String result) {
-        super.onPostExecute(result);
+
+        try {
+
+            // if there is some result check if successful
+            if (result != null) {
+
+                JSONObject jsonObject = new JSONObject(result);
+
+                // if successful, set everything to SecurePreferences
+                if (jsonObject.getBoolean("success")) {
+
+                    // converting data
+                    JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
+                    JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+
+                    // put to preferences
+                    activity.securePreferences.put("user_id", dataObj.getString("user_id"));
+                    activity.securePreferences.put("email", dataObj.getString("email"));
+                    activity.securePreferences.put("uid", dataObj.getString("uid"));
+                    activity.securePreferences.put("firstname", dataObj.getString("first_name"));
+                    activity.securePreferences.put("lastname", dataObj.getString("last_name"));
+
+                    // notify user about successful login
+                    // here will go intent to home page
+                    Toast.makeText(activity, "You have successfully login!", Toast.LENGTH_SHORT).show();
+
+                } else if(!jsonObject.getBoolean("success")){
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString("message", jsonObject.getString("message"));
+                    activity.showDialog(4, bundle);
+
+                } else throw new Exception();
+
+            } else throw new Exception();
+
+        } catch (Exception e) {
+            activity.showDialog(0);
+        }
+
     }
 
 

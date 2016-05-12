@@ -63,10 +63,10 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
     @Override
     protected void onPostExecute(String result) {
-        super.onPostExecute(result);
 
         // if there is a result, check if it was successful
         try {
+
             if (result != null) {
 
                 JSONObject jsonObject = new JSONObject(result);
@@ -82,7 +82,9 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
                 } else if (!jsonObject.getBoolean("success") && jsonObject.getString("message").equals("facebook_acc")) {
 
-                    activity.showDialog(3);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("name", jsonObject.getString("name"));
+                    activity.showDialog(3, bundle);
 
                 } else if (!jsonObject.getBoolean("success")){
 
@@ -93,6 +95,7 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
                 } else throw new Exception();
 
             } else throw new Exception();
+
         } catch (Exception e) {
                 // if there was an error, show corresponding alert dialog
                 activity.showDialog(0);
