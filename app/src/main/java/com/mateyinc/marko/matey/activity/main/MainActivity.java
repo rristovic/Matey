@@ -1,5 +1,7 @@
 package com.mateyinc.marko.matey.activity.main;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -13,6 +15,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -24,6 +27,8 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -53,7 +58,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -70,7 +79,8 @@ public class MainActivity extends MotherActivity {
     private Button btnLogin, btnReg, btnFb;
     private RelativeLayout rlLoginButtons, rlMain;
     private LinearLayout llEmail, llPass, line1, line2;
-    public EditText etPass, etEmail;
+    public EditText etPass;
+    public AutoCompleteTextView etEmail;
 
     private float mLoginBtnMoveY;
     private float mRegBtnMoveY;
@@ -181,7 +191,7 @@ public class MainActivity extends MotherActivity {
         line2 = (LinearLayout) findViewById(R.id.llLine2);
         rlLoginButtons = (RelativeLayout) findViewById(R.id.rlLoginButtons);
         ivLoadingHead = (ImageView) findViewById(R.id.ivLoadingHead);
-        etEmail = (EditText) findViewById(R.id.etEmail);
+        etEmail = (AutoCompleteTextView) findViewById(R.id.etEmail);
         etPass = (EditText) findViewById(R.id.etPass);
         ivLogoBubbleText = (ImageView) findViewById(R.id.ivLoginLogoBubble);
         rlMain = (RelativeLayout) findViewById(R.id.rlMain);
@@ -203,6 +213,7 @@ public class MainActivity extends MotherActivity {
 
         startIntro();
         setOnClickListeners();
+        setAutocompleteEmailValues();
 
     }
 
@@ -263,6 +274,23 @@ public class MainActivity extends MotherActivity {
 
             }
         });
+
+    }
+
+    private void setAutocompleteEmailValues() {
+
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS;
+        Account[] accounts = AccountManager.get(this).getAccounts();
+
+        Set<String> suggestedEmails = new HashSet<String>();
+
+        for (Account account : accounts) {
+            if (emailPattern.matcher(account.name).matches()) {
+                suggestedEmails.add(account.name);
+            }
+        }
+
+        etEmail.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, new ArrayList<String>(suggestedEmails)));
 
     }
 
