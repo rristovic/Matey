@@ -1,9 +1,10 @@
 package com.mateyinc.marko.matey.internet.home;
 
+import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Bundle;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -86,11 +87,13 @@ public class BulletinAs extends AsyncTask<String,Void,String> {
 
                     }
 
-                } else if(!jsonObject.getBoolean("success")){
+                } else if(!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized")) ) {
 
-                    Bundle bundle = new Bundle();
-                    bundle.putString("message", jsonObject.getString("message"));
-                    activity.showDialog(1004, bundle);
+                    activity.clearUserCredentials();
+
+                    Intent intent = new Intent(activity, MainActivity.class);
+                    activity.startActivity(intent);
+                    activity.finish();
 
                 } else throw new Exception();
 
