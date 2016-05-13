@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -20,9 +21,12 @@ import java.net.URLEncoder;
 public class BulletinAs extends AsyncTask<String,Void,String> {
 
     HomeActivity activity;
+    BulletinManager bulletinManager;
 
-    public BulletinAs(HomeActivity activity) {
+    public BulletinAs(HomeActivity activity)
+    {
         this.activity = activity;
+        bulletinManager = BulletinManager.getInstance(activity);
     }
 
     @Override
@@ -85,6 +89,7 @@ public class BulletinAs extends AsyncTask<String,Void,String> {
                         bulletin.setDate(dataObj.getString("date_created"));
                         bulletin.setMessage(dataObj.getString("text"));
 
+                        bulletinManager.addBulletin(bulletin);
                     }
 
                 } else if(!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized")) ) {

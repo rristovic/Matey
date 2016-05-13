@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,7 +43,11 @@ public class HomeActivity extends InsideActivity {
         setContentView(R.layout.activity_home);
         super.setSecurePreferences(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        init();
+    }
+
+    private void init() {
+        Toolbar toolbar =(Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Create the adapter that will return a fragment for each of the three
@@ -56,21 +61,10 @@ public class HomeActivity extends InsideActivity {
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mTabLayout.setupWithViewPager(mViewPager);
 
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         BulletinAs bulletinsAs = new BulletinAs(this);
         bulletinsAs.execute(securePreferences.getString("user_id"),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id"));
-
     }
 
     /**
@@ -114,6 +108,8 @@ public class HomeActivity extends InsideActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        SparseArray<Fragment> registeredFragments = new SparseArray<Fragment>();
+
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -126,9 +122,26 @@ public class HomeActivity extends InsideActivity {
         }
 
         @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            registeredFragments.put(position, fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            registeredFragments.remove(position);
+            super.destroyItem(container, position, object);
+        }
+
+        @Override
         public int getCount() {
             // Show 3 total pages.
             return 3;
+        }
+
+        public Fragment getRegisteredFragment(int position) {
+            return registeredFragments.get(position);
         }
 
         @Override

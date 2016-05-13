@@ -4,14 +4,15 @@ import android.content.Context;
 
 import com.mateyinc.marko.matey.model.Bulletin;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 /**
  * Created by Sarma on 5/12/2016.
  */
 public class BulletinManager {
-    private final LinkedList<Bulletin> mData;
+    private final ArrayList<Bulletin> mData;
     private final Context mAppContext;
+    private boolean mBulletinsLoaded;
 
     private static final Object mLock = new Object();
     private static BulletinManager mInstance;
@@ -25,16 +26,36 @@ public class BulletinManager {
         }
     }
 
+
     private BulletinManager(Context context) {
         mAppContext = context;
-        mData = new LinkedList<>();
+        mData = new ArrayList<>();
     }
 
-    public LinkedList<Bulletin> getBulletinList() {
-        return mData;
+    public void addBulletin(Bulletin b) {
+        synchronized (mLock) {
+            mData.add(b);
+        }
     }
 
-   public Bulletin getBulletin(int index){
-       return mData.get(index);
-   }
+    public ArrayList<Bulletin> getBulletinList() {
+        synchronized (mLock) {
+            return mData;
+        }
+    }
+
+
+    public Bulletin getBulletin(int index) {
+        synchronized (mLock) {
+            return mData.get(index);
+        }
+    }
+
+    public void setBulletinsLoaded(boolean isLoaded){
+        mBulletinsLoaded = isLoaded;
+    }
+
+    public boolean isBulletinsLoaded(){
+        return mBulletinsLoaded;
+    }
 }
