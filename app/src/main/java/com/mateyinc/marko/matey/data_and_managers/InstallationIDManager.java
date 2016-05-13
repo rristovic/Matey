@@ -61,6 +61,7 @@ public class InstallationIDManager {
 
                             activity.securePreferences.put("device_id", jsonObject.getString("device_id"));
                             Log.d("evee", jsonObject.getString("device_id"));
+
                             return 7;
 
                         } else if(!jsonObject.getBoolean("success")){

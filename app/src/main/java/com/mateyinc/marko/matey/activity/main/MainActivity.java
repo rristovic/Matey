@@ -48,7 +48,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
-import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
@@ -117,12 +116,6 @@ public class MainActivity extends MotherActivity {
         // Registering BroadcastReceiver
 //        registerReceiver();
 
-        if (checkPlayServices()) {
-            // Start IntentService to register this application with GCM.
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
-        }
-
     }
 
     /**
@@ -130,7 +123,7 @@ public class MainActivity extends MotherActivity {
      * it doesn't, display a dialog that allows users to download the APK from
      * the Google Play Store or enable it in the device's system settings.
      */
-    private boolean checkPlayServices() {
+    public boolean checkPlayServices() {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
         int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
         if (resultCode != ConnectionResult.SUCCESS) {
