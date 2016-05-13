@@ -40,8 +40,7 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
+import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
@@ -53,10 +52,6 @@ import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.LoginAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -312,41 +307,17 @@ public class MainActivity extends MotherActivity {
                     public void onSuccess(final LoginResult loginResult) {
 
                         final AccessToken accessToken = loginResult.getAccessToken();
-                        // TASK AFTER LOGIN SUCCESSFUL
-                        if(fbAnswerType == 0) {
-                            GraphRequest request = GraphRequest.newMeRequest(
-                                    accessToken,
-                                    new GraphRequest.GraphJSONObjectCallback() {
-                                        @Override
-                                        public void onCompleted(JSONObject object, GraphResponse response) {
-                                            // Application code
-                                            try {
+                        final Profile profile = Profile.getCurrentProfile();
 
-                                                String facebook_id = object.getString("id");
-                                                String email = object.getString("email");
-                                                String first_name = object.getString("first_name");
-                                                String last_name = object.getString("last_name");
-                                                JSONArray user_friends_arr = object.getJSONObject("friends").getJSONArray("data");
-                                                Log.d("prij", user_friends_arr.toString());
+                        // OVDE RADNJE NAKON LOGIN-A
+                        if (fbAnswerType == 0) {
 
+                            if (profile.getId() != null) {
 
-                                                // OVDE RADNJE NAKON LOGIN-A
-                                                FacebookLoginAs facebookLogin = new FacebookLoginAs(MainActivity.this);
-                                                facebookLogin.execute(accessToken.getToken(), facebook_id,
-                                                            first_name, last_name, email, securePreferences.getString("device_id"));
+                                FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
+                                fbLogin.execute(accessToken.getToken(), profile.getId(), securePreferences.getString("device_id"));
 
-
-                                            } catch (JSONException e) {
-                                                showDialog(1000);
-                                            }
-
-                                        }
-                                    });
-
-                            Bundle parameters = new Bundle();
-                            parameters.putString("fields", "id,email,first_name,last_name,friends");
-                            request.setParameters(parameters);
-                            request.executeAsync();
+                            }
 
                         } else {
 
@@ -354,7 +325,7 @@ public class MainActivity extends MotherActivity {
                             String pass = etPass.getText().toString();
 
                             // start asynchronous task to handle user registration
-                            RegisterAs registerAs = new RegisterAs( MainActivity.this );
+                            RegisterAs registerAs = new RegisterAs(MainActivity.this);
                             registerAs.execute(email, pass, "yes", accessToken.getToken());
 
                         }
