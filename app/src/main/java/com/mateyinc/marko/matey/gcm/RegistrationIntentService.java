@@ -9,28 +9,35 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 
 public class RegistrationIntentService extends IntentService {
 
     private static final String TAG = "RegIntentService";
     private static final String[] TOPICS = {"global"};
+    private String device_id;
 
     public RegistrationIntentService() {
+
         super(TAG);
+
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        this.device_id = intent.getStringExtra("device_id");
 
         try {
             // [START register_for_gcm]
@@ -43,6 +50,7 @@ public class RegistrationIntentService extends IntentService {
             String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
                     GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             // [END get_token]
+            Log.d("etoken", token);
             Log.i(TAG, "GCM Registration Token: " + token);
 
             // TODO: Implement this method to send any registration to your app's servers.
@@ -77,6 +85,18 @@ public class RegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
+
+        try {
+
+            String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
+                    URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(this.device_id, "UTF-8");
+            HTTP http = new HTTP(UrlData.GCM_REGISTRATION, "POST");
+
+            String result = null;
+            if (http.sendPost(data)) result = http.getData();
+
+        } catch (Exception e) {}
+
     }
 
     /**

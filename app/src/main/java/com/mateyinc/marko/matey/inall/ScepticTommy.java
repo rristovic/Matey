@@ -5,7 +5,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
+import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 /**
@@ -68,6 +70,9 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         if (devIdSet == 0) return 0;
         if (devIdSet == 18) return 18;
 
+        // when device_id is set, do gcm registration if needed
+        doGcmRegistration();
+
         // when device_id is in SecurePreferences, we go further
         // checking if the user credentials is in place
         // 0 if not, 7 if is
@@ -94,6 +99,21 @@ public class ScepticTommy extends AsyncTask<String,Void,Integer> {
         }
         // 7-ok
         return 7;
+
+    }
+
+    public void doGcmRegistration () {
+
+        if(activity instanceof MainActivity) {
+
+            if (((MainActivity) activity).checkPlayServices()) {
+                // Start IntentService to register this application with GCM.
+                Intent intent = new Intent(activity, RegistrationIntentService.class);
+                intent.putExtra("device_id", securePreferences.getString("device_id"));
+                activity.startService(intent);
+            }
+
+        }
 
     }
 
