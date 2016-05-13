@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.content.LocalBroadcastManager;
@@ -169,9 +170,9 @@ public class MainActivity extends MotherActivity {
 //        isReceiverRegistered = false;
         super.onDestroy();
 
-//        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
-//            tommy.cancel(true);
-//        }
+        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
+            tommy.cancel(true);
+        }
 
     }
 
@@ -223,10 +224,20 @@ public class MainActivity extends MotherActivity {
                     String email = etEmail.getText().toString();
                     String pass = etPass.getText().toString();
 
-                    // starting login process
-                    MainActivity activity = (MainActivity) v.getContext();
-                    LoginAs loginAs = new LoginAs(activity);
-                    loginAs.execute(email, pass, activity.securePreferences.getString("device_id"));
+                    Bundle bundle = new Bundle();
+
+                    if(!isValidEmailAddress(email)) {
+                        bundle.putString("message", "Wrong email format. fon");
+                        showDialog(1004, bundle);
+                    } else if(!isValidPassword(pass)) {
+                        bundle.putString("message", "Password needs to be at least 5 characters long.");
+                        showDialog(1004, bundle);
+                    } else {
+                        // starting login process
+                        MainActivity activity = (MainActivity) v.getContext();
+                        LoginAs loginAs = new LoginAs(activity);
+                        loginAs.execute(email, pass, activity.securePreferences.getString("device_id"));
+                    }
 
                 }
             }
@@ -242,21 +253,23 @@ public class MainActivity extends MotherActivity {
                     String email = etEmail.getText().toString();
                     String pass = etPass.getText().toString();
 
-                    // start asynchronous task to handle user registration
-                    RegisterAs registerAs = new RegisterAs( (MainActivity) v.getContext() );
-                    registerAs.execute(email, pass, "no", "");
+                    Bundle bundle = new Bundle();
+
+                    if(!isValidEmailAddress(email)) {
+                        bundle.putString("message", "Wrong email format. fon");
+                        showDialog(1004, bundle);
+                    } else if(!isValidPassword(pass)) {
+                        bundle.putString("message", "Password needs to be at least 5 characters long.");
+                        showDialog(1004, bundle);
+                    } else {
+                        // start asynchronous task to handle user registration
+                        RegisterAs registerAs = new RegisterAs((MainActivity) v.getContext());
+                        registerAs.execute(email, pass, "no", "");
+                    }
 
                 }
 
             }
-
-            /*public boolean checkEmail (String email) {
-
-            }
-
-            public boolean checkPassword (String password) {
-
-            }*/
 
         });
 
@@ -273,7 +286,6 @@ public class MainActivity extends MotherActivity {
     }
 
     private void setAutocompleteEmailValues() {
-
         Pattern emailPattern = Patterns.EMAIL_ADDRESS;
         Account[] accounts = AccountManager.get(this).getAccounts();
 
@@ -286,7 +298,18 @@ public class MainActivity extends MotherActivity {
         }
 
         etEmail.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, new ArrayList<String>(suggestedEmails)));
+    }
 
+    public boolean isValidEmailAddress(String email) {
+        String ePattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(ePattern);
+        java.util.regex.Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
+    public boolean isValidPassword(String password) {
+        if(password.length() < 5) return false;
+        return true;
     }
 
     @Override
