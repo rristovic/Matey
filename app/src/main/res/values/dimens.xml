@@ -25,6 +25,8 @@
     <dimen name="anim_logo_transl_xy">100dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="appbar_padding_top">8dp</dimen>
+    <dimen name="appbar_height">48dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
 
 
 </resources>

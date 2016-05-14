@@ -2,6 +2,8 @@ package com.mateyinc.marko.matey.internet.home;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
@@ -14,17 +16,17 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.util.Date;
 
 /**
  * Created by M4rk0 on 5/12/2016.
  */
-public class BulletinAs extends AsyncTask<String,Void,String> {
+public class BulletinAs extends AsyncTask<String, Void, String> {
 
     HomeActivity activity;
     BulletinManager bulletinManager;
 
-    public BulletinAs(HomeActivity activity)
-    {
+    public BulletinAs(HomeActivity activity) {
         this.activity = activity;
         bulletinManager = BulletinManager.getInstance(activity);
     }
@@ -32,7 +34,7 @@ public class BulletinAs extends AsyncTask<String,Void,String> {
     @Override
     protected String doInBackground(String... params) {
 
-        if(!isCancelled()) {
+        if (!isCancelled()) {
 
             String user_id = params[0];
             String uid = params[1];
@@ -77,9 +79,9 @@ public class BulletinAs extends AsyncTask<String,Void,String> {
                     JSONArray dataArr = new JSONArray(jsonObject.getString("posts"));
 
                     // punjenje Bulletin objekata podacima
-                    for(int i=0; i<dataArr.length(); i++) {
+                    for (int i = 0; i < dataArr.length(); i++) {
 
-                        JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+                        JSONObject dataObj = new JSONObject(dataArr.get(i).toString());
 
                         Bulletin bulletin = new Bulletin();
                         bulletin.setPostID(dataObj.getString("post_id"));
@@ -89,10 +91,24 @@ public class BulletinAs extends AsyncTask<String,Void,String> {
                         bulletin.setDate(dataObj.getString("date_created"));
                         bulletin.setMessage(dataObj.getString("text"));
 
+                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
                         bulletinManager.addBulletin(bulletin);
+
                     }
 
-                } else if(!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized")) ) {
+
+                    // Simulate server
+                    try {
+                        Thread.sleep(2500);
+                    }catch (InterruptedException e){
+
+                    }
+
+                    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
+                    broadcastManager.sendBroadcast(new Intent(BulletinManager.BULLETIN_LIST_LOADED));
+                    Log.d("BulletinAs", "Bulletin list is downloaded.");
+
+                } else if (!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized"))) {
 
                     activity.clearUserCredentials();
 

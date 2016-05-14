@@ -12,6 +12,9 @@ public class Bulletin {
     private String mLastName;
     private Date mDate;
     private String mMessage;
+    private String mPostID;
+    private String mUserID;
+    private LinkedList<BulletinAttachment> mAttachments;
 
     public String getPostID() {
         return mPostID;
@@ -29,8 +32,6 @@ public class Bulletin {
         this.mUserID = mUserID;
     }
 
-    private String mPostID;
-    private String mUserID;
 
     public String getMessage() {
         return mMessage;
@@ -39,8 +40,6 @@ public class Bulletin {
     public void setMessage(String mMessage) {
         this.mMessage = mMessage;
     }
-
-    private LinkedList<BulletinAttachment> mAttachments;
 
     public String getFirstName() {
         return mFirstName;
@@ -67,8 +66,13 @@ public class Bulletin {
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             this.mDate = dateFormat.parse(mDateString);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
+    }
+
+    public void setDate(Date date){
+        this.mDate = date;
     }
 
     public LinkedList<BulletinAttachment> getAttachments() {
@@ -77,5 +81,12 @@ public class Bulletin {
 
     public void setAttachments(LinkedList<BulletinAttachment> mAttachments) {
         this.mAttachments = mAttachments;
+    }
+
+    @Override
+    public String toString() {
+        return "Message: " + mMessage
+                + "; From: " + mFirstName + " " + mLastName
+                + "; Date: " + mDate;
     }
 }

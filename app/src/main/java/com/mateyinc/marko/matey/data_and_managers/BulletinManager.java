@@ -10,6 +10,7 @@ import java.util.ArrayList;
  * Created by Sarma on 5/12/2016.
  */
 public class BulletinManager {
+    public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.internet.home.bulletins_loaded";
     private final ArrayList<Bulletin> mData;
     private final Context mAppContext;
     private boolean mBulletinsLoaded;

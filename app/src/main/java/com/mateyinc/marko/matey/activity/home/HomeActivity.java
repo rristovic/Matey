@@ -16,10 +16,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.home.dummy.DummyContent;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
+import com.mateyinc.marko.matey.model.Bulletin;
 
-public class HomeActivity extends InsideActivity {
+public class HomeActivity extends InsideActivity implements BulletinFragment.OnListFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -47,7 +49,7 @@ public class HomeActivity extends InsideActivity {
     }
 
     private void init() {
-        Toolbar toolbar =(Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Create the adapter that will return a fragment for each of the three
@@ -65,6 +67,12 @@ public class HomeActivity extends InsideActivity {
         bulletinsAs.execute(securePreferences.getString("user_id"),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id"));
+    }
+
+
+    @Override
+    public void onListFragmentInteraction(Bulletin item) {
+
     }
 
     /**
@@ -118,7 +126,13 @@ public class HomeActivity extends InsideActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            switch (position) {
+                case 0:
+                    return BulletinFragment.newInstance(1);
+                default:
+                    return PlaceholderFragment.newInstance(position+1);
+
+            }
         }
 
         @Override
