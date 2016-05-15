@@ -16,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
-import java.util.Date;
 
 /**
  * Created by M4rk0 on 5/12/2016.
@@ -93,14 +92,6 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                         Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
                         bulletinManager.addBulletin(bulletin);
-
-                    }
-
-
-                    // Simulate server
-                    try {
-                        Thread.sleep(2500);
-                    }catch (InterruptedException e){
 
                     }
 
