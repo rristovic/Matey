@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
+import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -74,6 +75,18 @@ public class ProfileAs extends AsyncTask<String, Void, String> {
 
                     // punjenje objekata podacima
                     for (int i = 0; i < dataArr.length(); i++) {
+
+                        JSONObject dataObj = new JSONObject(dataArr.get(i).toString());
+
+                        UserProfile userProfile = new UserProfile();
+                        userProfile.setFirstName(dataObj.getString("first_name"));
+                        userProfile.setLastName(dataObj.getString("last_name"));
+                        userProfile.setBirthday(dataObj.getString("birthday"));
+                        userProfile.setGender(dataObj.getString("gender"));
+                        userProfile.setHometown(dataObj.getString("hometown"));
+                        userProfile.setLocation(dataObj.getString("location"));
+                        userProfile.setProfilePictureLink(dataObj.getString("profile_picture_link"));
+                        userProfile.setQuoteStatus(dataObj.getString("quote_status"));
 
                     }
 
