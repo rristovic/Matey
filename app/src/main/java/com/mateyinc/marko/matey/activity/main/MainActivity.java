@@ -103,6 +103,9 @@ public class MainActivity extends MotherActivity {
         fbCallbackManager = CallbackManager.Factory.create();
         facebookLogin();
 
+        //TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+        //Log.d("pnum", tMgr.getLine1Number());
+
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         if (getSupportActionBar() != null)
             getSupportActionBar().hide();
