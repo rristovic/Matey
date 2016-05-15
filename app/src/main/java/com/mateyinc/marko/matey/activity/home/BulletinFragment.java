@@ -15,8 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.dummy.DummyContent;
-import com.mateyinc.marko.matey.activity.home.dummy.DummyContent.DummyItem;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 

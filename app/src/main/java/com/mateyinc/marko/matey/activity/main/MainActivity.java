@@ -383,12 +383,12 @@ public class MainActivity extends MotherActivity {
     private void startIntro() {
 
         // Get view's h and w after its layout process then start anim
-        ViewTreeObserver viewTreeObserver = ivLoadingHead.getViewTreeObserver();
+        final ViewTreeObserver viewTreeObserver = ivLoadingHead.getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
-                    ivLoadingHead.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                    ivLoadingHead.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     startIntroAnim(ivLoadingHead, 2, 1, 2, 1, 500);
                 }
             });

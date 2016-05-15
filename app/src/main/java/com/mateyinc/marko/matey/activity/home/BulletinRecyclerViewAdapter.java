@@ -9,16 +9,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.dummy.DummyContent.DummyItem;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
+ * {@link RecyclerView.Adapter} that can display a {@link Bulletin} and makes a call to the
  * specified {@link BulletinFragment.OnListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */

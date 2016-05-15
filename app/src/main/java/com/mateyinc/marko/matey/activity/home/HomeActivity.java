@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.dummy.DummyContent;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.Bulletin;
