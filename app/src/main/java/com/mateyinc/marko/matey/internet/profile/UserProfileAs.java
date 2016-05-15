@@ -16,11 +16,11 @@ import java.net.URLEncoder;
 /**
  * Created by M4rk0 on 5/15/2016.
  */
-public class ProfileAs extends AsyncTask<String, Void, String> {
+public class UserProfileAs extends AsyncTask<String, Void, String> {
 
     MotherActivity activity;
 
-    public ProfileAs(MotherActivity activity) {
+    public UserProfileAs(MotherActivity activity) {
         this.activity = activity;
     }
 
