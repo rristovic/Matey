@@ -12,6 +12,8 @@ public class UserProfile {
     private String hometown;
     private String location;
     private String quoteStatus;
+    private int numOfPosts;
+    private int numOfFriends;
 
     public String getFirstName() {
         return firstName;
@@ -75,5 +77,21 @@ public class UserProfile {
 
     public void setQuoteStatus(String quoteStatus) {
         this.quoteStatus = quoteStatus;
+    }
+
+    public int getNumOfPosts() {
+        return numOfPosts;
+    }
+
+    public void setNumOfPosts(int numOfPosts) {
+        this.numOfPosts = numOfPosts;
+    }
+
+    public int getNumOfFriends() {
+        return numOfFriends;
+    }
+
+    public void setNumOfFriends(int numOfFriends) {
+        this.numOfFriends = numOfFriends;
     }
 }

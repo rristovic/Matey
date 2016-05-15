@@ -1,8 +1,10 @@
 package com.mateyinc.marko.matey.internet.profile;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -73,10 +75,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                     // converting data
                     JSONArray dataArr = new JSONArray(jsonObject.getString("profile_data"));
 
-                    // punjenje objekata podacima
-                    for (int i = 0; i < dataArr.length(); i++) {
-
-                        JSONObject dataObj = new JSONObject(dataArr.get(i).toString());
+                        JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
                         UserProfile userProfile = new UserProfile();
                         userProfile.setFirstName(dataObj.getString("first_name"));
@@ -87,8 +86,16 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         userProfile.setLocation(dataObj.getString("location"));
                         userProfile.setProfilePictureLink(dataObj.getString("profile_picture_link"));
                         userProfile.setQuoteStatus(dataObj.getString("quote_status"));
+                        userProfile.setNumOfFriends(dataObj.getInt("num_of_friends"));
+                        userProfile.setNumOfPosts(dataObj.getInt("num_of_posts"));
 
-                    }
+                } else if (!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized"))) {
+
+                    activity.clearUserCredentials();
+
+                    Intent intent = new Intent(activity, MainActivity.class);
+                    activity.startActivity(intent);
+                    activity.finish();
 
                 } else if (!jsonObject.getBoolean("success")) {
 
