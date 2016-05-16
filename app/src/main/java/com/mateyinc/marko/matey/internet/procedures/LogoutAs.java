@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.internet.procedures;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
@@ -44,6 +45,7 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
 
             } catch (Exception e) {
 
+                Log.e("LogoutAs",e.getMessage());
                 return null;
 
             }

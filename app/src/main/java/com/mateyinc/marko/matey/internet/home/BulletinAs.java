@@ -51,6 +51,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
             } catch (Exception e) {
 
+                Log.e("BulletinAs",e.getMessage());
                 return null;
 
             }
@@ -90,7 +91,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                         bulletin.setDate(dataObj.getString("date_created"));
                         bulletin.setMessage(dataObj.getString("text"));
 
-                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
+//                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
                         bulletinManager.addBulletin(bulletin);
 
                     }

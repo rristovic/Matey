@@ -9,4 +9,5 @@
 
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="login_dialog_message">Getting you in..</string>
+    <string name="title_activity_profile">Profile</string>
 </resources>

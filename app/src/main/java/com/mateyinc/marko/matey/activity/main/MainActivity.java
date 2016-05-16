@@ -386,12 +386,12 @@ public class MainActivity extends MotherActivity {
     private void startIntro() {
 
         // Get view's h and w after its layout process then start anim
-        ViewTreeObserver viewTreeObserver = ivLoadingHead.getViewTreeObserver();
+        final ViewTreeObserver viewTreeObserver = ivLoadingHead.getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
-                    ivLoadingHead.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                    ivLoadingHead.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     startIntroAnim(ivLoadingHead, 2, 1, 2, 1, 500);
                 }
             });
@@ -552,77 +552,69 @@ public class MainActivity extends MotherActivity {
     // Loading anim
     private void startIntroAnim(final View view, int fromX, int toX, int fromY, int toY, int time) {
         view.setVisibility(View.VISIBLE);
-        AnimatorSet set = new AnimatorSet();
-        set
-                .play(ObjectAnimator.ofFloat(view, View.ALPHA, 0, 1f))
-                .with(ObjectAnimator.ofFloat(view, View.SCALE_X, 2f, 1f))
-                .with(ObjectAnimator.ofFloat(view, View.SCALE_Y, 2f, 1f));
-        set.setInterpolator(new AccelerateInterpolator(2.5f));
-        set.setDuration(time);
-        set.start();
+        view.setAlpha(0);
+        view.setScaleX(2f);
+        view.setScaleY(2f);
+//        AnimatorSet set = new AnimatorSet();
+//        set
+//                .play(ObjectAnimator.ofFloat(view, View.ALPHA, 0, 1f))
+//                .with(ObjectAnimator.ofFloat(view, View.SCALE_X, 2f, 1f))
+//                .with(ObjectAnimator.ofFloat(view, View.SCALE_Y, 2f, 1f));
+//        set.setInterpolator(new AccelerateInterpolator(2.5f));
+//        set.setDuration(time);
+//        set.start();
 
-        CountDownTimer timer = new CountDownTimer(time * 2, time) {
+        view.animate().setDuration(time).setInterpolator(new AccelerateInterpolator(2.5f)).setListener(null)
+                .alpha(1f).scaleX(1f).scaleY(1f)
+                .withEndAction(new Runnable() {
             @Override
-            public void onTick(long millisUntilFinished) {
-            }
-
-            @Override
-            public void onFinish() {
+            public void run() {
                 mLoadingHeadIntroTransl = ivLoadingHead.getTop();
                 goUpAnim(500);
             }
-        };
-        timer.start();
+        });
 
-        // TODO - add receiver to stop loading anim
-        // Simulate server 10s
-        /*CountDownTimer timer1 = new CountDownTimer(SERVER_TIMER, SERVER_TIMER) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-            }
-
-            @Override
-            public void onFinish() {
-                mServerReady = true;
-            }
-        };
-        timer1.start();*/
+//        CountDownTimer timer = new CountDownTimer(time * 2, time) {
+//            @Override
+//            public void onTick(long millisUntilFinished) {
+//            }
+//
+//            @Override
+//            public void onFinish() {
+//                mLoadingHeadIntroTransl = ivLoadingHead.getTop();
+//                goUpAnim(500);
+//            }
+//        };
+//        timer.start();
 
     }
 
     private void goUpAnim(final int time) {
-        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(ivLoadingHead, View.Y, mLoadingHeadIntroTransl - 30);
-        objectAnimator.setDuration(time);
-        objectAnimator.setStartDelay(100);
-        objectAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                ivLoadingHead.clearAnimation();
-                if (!mServerReady) {
-                    goDownAnim(700);
-                } else
-                    endLoadingAnim();
-            }
-        });
-        objectAnimator.start();
+        ivLoadingHead.animate().setDuration(time).setInterpolator(new LinearInterpolator()).setStartDelay(100)
+                .y(mLoadingHeadIntroTransl - 30)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        ivLoadingHead.clearAnimation();
+                        if (!mServerReady) {
+                            goDownAnim(700);
+                        } else
+                            endLoadingAnim();                    }
+                });
     }
 
     private void goDownAnim(final int time) {
-        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(ivLoadingHead, View.Y, mLoadingHeadIntroTransl + 60);
-        objectAnimator.setInterpolator(new BounceInterpolator());
-        objectAnimator.setDuration(time);
-        objectAnimator.setStartDelay(200);
-        objectAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                ivLoadingHead.clearAnimation();
-                if (!mServerReady) {
-                    goUpAnim(time);
-                } else
-                    endLoadingAnim();
-            }
-        });
-        objectAnimator.start();
+        ivLoadingHead.animate().setDuration(time).setInterpolator(new BounceInterpolator()).setStartDelay(200)
+                .y(mLoadingHeadIntroTransl +60)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        ivLoadingHead.clearAnimation();
+                        if (!mServerReady) {
+                            goUpAnim(700);
+                        } else
+                            endLoadingAnim();                    }
+                });
     }
 
     private void endLoadingAnim() {

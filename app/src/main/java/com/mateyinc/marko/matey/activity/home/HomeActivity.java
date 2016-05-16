@@ -1,8 +1,7 @@
 package com.mateyinc.marko.matey.activity.home;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,7 +15,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.dummy.DummyContent;
+import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -72,7 +71,9 @@ public class HomeActivity extends InsideActivity implements BulletinFragment.OnL
 
     @Override
     public void onListFragmentInteraction(Bulletin item) {
-
+        Intent i = new Intent(HomeActivity.this, ProfileActivity.class);
+        i.putExtra("user_id",item.getUserID());
+        startActivity(i);
     }
 
     /**
