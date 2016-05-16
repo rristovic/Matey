@@ -9,7 +9,4 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-
-    tools:context="com.mateyinc.marko.matey.activity.home.BulletinFragment"
-    tools:listitem="@layout/fragment_bulletin"
-    />
+    tools:context="com.mateyinc.marko.matey.activity.home.BulletinFragment" />

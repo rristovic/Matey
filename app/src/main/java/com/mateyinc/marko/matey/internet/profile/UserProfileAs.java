@@ -3,8 +3,11 @@ package com.mateyinc.marko.matey.internet.profile;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -13,6 +16,7 @@ import com.mateyinc.marko.matey.model.UserProfile;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.net.URLEncoder;
 
 /**
@@ -21,9 +25,15 @@ import java.net.URLEncoder;
 public class UserProfileAs extends AsyncTask<String, Void, String> {
 
     MotherActivity activity;
+    private UserProfile userProfile;
 
     public UserProfileAs(MotherActivity activity) {
         this.activity = activity;
+    }
+
+    public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile) {
+        this.activity = activity;
+        this.userProfile = userProfile.get();
     }
 
     @Override
@@ -73,11 +83,12 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                 if (jsonObject.getBoolean("success")) {
 
                     // converting data
-                    JSONArray dataArr = new JSONArray(jsonObject.getString("profile_data"));
+                    JSONArray dataArr = new JSONArray(jsonObject.getString("user_profile"));
 
-                        JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
+                    JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
-                        UserProfile userProfile = new UserProfile();
+                    if (userProfile != null) {
+
                         userProfile.setFirstName(dataObj.getString("first_name"));
                         userProfile.setLastName(dataObj.getString("last_name"));
                         userProfile.setBirthday(dataObj.getString("birthday"));
@@ -88,6 +99,11 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         userProfile.setQuoteStatus(dataObj.getString("quote_status"));
                         userProfile.setNumOfFriends(dataObj.getInt("num_of_friends"));
                         userProfile.setNumOfPosts(dataObj.getInt("num_of_posts"));
+
+                        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
+                        broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
+                        Log.d("UserProfileAs", "Profile data is downloaded.");
+                    }
 
                 } else if (!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized"))) {
 

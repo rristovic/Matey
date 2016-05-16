@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
@@ -56,6 +57,7 @@ public class LoginAs extends AsyncTask<String, Void, String> {
 
             } catch (Exception e) {
 
+                Log.e("LoginAs",e.getMessage());
                 return null;
 
             }

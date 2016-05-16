@@ -2,6 +2,7 @@ package com.mateyinc.marko.matey.internet.procedures;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
@@ -52,6 +53,7 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
 
             } catch (Exception e) {
 
+                Log.e("RegisterAs",e.getMessage());
                 return null;
 
             }

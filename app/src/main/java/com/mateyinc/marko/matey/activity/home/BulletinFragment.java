@@ -67,15 +67,6 @@ public class BulletinFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_bulletin_list, container, false);
@@ -100,7 +91,7 @@ public class BulletinFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
+        Log.d("BulletinFragment", "onResume is called.");
         mContext.registerReceiver(mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
