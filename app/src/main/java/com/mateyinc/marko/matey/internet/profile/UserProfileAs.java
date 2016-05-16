@@ -73,7 +73,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                 if (jsonObject.getBoolean("success")) {
 
                     // converting data
-                    JSONArray dataArr = new JSONArray(jsonObject.getString("profile_data"));
+                    JSONArray dataArr = new JSONArray(jsonObject.getString("user_profile"));
 
                         JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
