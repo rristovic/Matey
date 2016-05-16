@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -92,7 +93,7 @@ public class BulletinFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d("BulletinFragment", "onResume is called.");
-        mContext.registerReceiver(mReceiver = new BroadcastReceiver() {
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mAdapter.notifyDataSetChanged();
@@ -105,7 +106,7 @@ public class BulletinFragment extends Fragment {
 
     @Override
     public void onPause() {
-        mContext.unregisterReceiver(mReceiver);
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         super.onPause();
     }
 
