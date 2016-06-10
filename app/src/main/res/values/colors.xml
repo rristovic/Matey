@@ -16,4 +16,5 @@
     <!-- BG -->
     <color name="login_bg_startColor">#006d8c</color>
     <color name="login_bg_endColor">#42a3b2</color>
+    <color name="profile_bg_color">#0b7189</color>
 </resources>

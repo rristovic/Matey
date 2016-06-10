@@ -17,6 +17,16 @@
         <item name="colorControlHighlight">@color/login_btn_white</item>
     </style>
 
+    <style name="EditTextStyleProfile" parent="Widget.AppCompat.EditText">
+        <item name="colorControlNormal">@color/bg_transparent</item>
+        <item name="colorControlActivated">#000000</item>
+        <item name="colorControlHighlight">@color/login_btn_white</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+    </style>
+
+
+
     <style name="ButtonLogin">
         <item name="android:paddingLeft">@dimen/login_btn_side_padding</item>
         <item name="android:paddingRight">@dimen/login_btn_side_padding</item>

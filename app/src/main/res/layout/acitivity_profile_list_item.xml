@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/profile_bg_color">
+
+    <ImageView
+        android:layout_width="140dp"
+        android:layout_height="90dp"
+        android:id="@+id/imageView"
+        android:src="@drawable/empty_photo"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="&quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor in.."
+        android:id="@+id/textView5"
+        android:textColor="@color/text_color_white"
+        android:padding="5dp" />
+</LinearLayout>

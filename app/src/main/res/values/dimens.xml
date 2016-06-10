@@ -27,6 +27,24 @@
     <dimen name="appbar_padding_top">8dp</dimen>
     <dimen name="appbar_height">48dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+    <dimen name="profile_pic_dimen">100dp</dimen>
+
+    <!-- Profile dimens -->
+    <dimen name="profile_info_mates_margin">40dp</dimen>
+    <dimen name="profile_info_mates_margin_top">10dp</dimen>
+    <dimen name="profile_info_mates_title_text_size">10dp</dimen>
+    <dimen name="profile_info_mates_text_size">20dp</dimen>
+    <dimen name="profile_info_name_text_size">26dp</dimen>
+    <dimen name="profile_info_status_text_size">12dp</dimen>
+
+    <dimen name="profile_list_item_height">70dp</dimen>
+    <dimen name="profile_list_height">216dp</dimen>
+
+
+
+    <dimen name="profile_rating_height">30dp</dimen>
+    <dimen name="profile_buttons_margin">10dp</dimen>
+    <dimen name="profile_btn_distance">2dp</dimen>
 
 
 </resources>

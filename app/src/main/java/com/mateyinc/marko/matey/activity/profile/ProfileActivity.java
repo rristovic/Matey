@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -37,16 +38,18 @@ public class ProfileActivity extends MotherActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         super.setSecurePreferences(this);
+
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().hide();
         setContentView(R.layout.activity_profile);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         init();
     }
 
     private void init() {
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
-        tvName = (TextView) findViewById(R.id.ivName);
+        tvName = (TextView) findViewById(R.id.tvName);
         mUserProfile = new UserProfile();
         initUIL();
 
@@ -101,7 +104,7 @@ public class ProfileActivity extends MotherActivity {
 
     private void setData() {
         Log.d("ProfileActivity","Data is set.");
-        mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
+        //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
         tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
     }
 
