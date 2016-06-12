@@ -22,6 +22,7 @@ android {
 
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
@@ -35,5 +36,5 @@ dependencies {
     compile 'com.android.support:design:23.3.0'
     compile 'com.android.support:recyclerview-v7:23.3.0'
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
-
+    compile 'com.github.techery:ProperRatingBar:0.0.4'
 }

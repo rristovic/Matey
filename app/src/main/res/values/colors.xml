@@ -6,12 +6,12 @@
     <!-- ////////////////////////////////////////////////////////////////// -->
 
     <color name="bg_transparent">#00141515</color>
-    <color name="login_btn_white">#f0ebd8</color>
-    <color name="login_btn_darkBlue">#142a41</color>
 
     <!-- Text color-->
     <color name="text_hint_color">#80ffffff</color>
     <color name="text_color_white">#ffffff</color>
+    <color name="login_btn_white">#f0ebd8</color>
+    <color name="login_btn_darkBlue">#142a41</color>
 
     <!-- BG -->
     <color name="login_bg_startColor">#006d8c</color>
