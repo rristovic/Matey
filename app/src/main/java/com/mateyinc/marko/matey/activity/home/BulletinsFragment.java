@@ -5,9 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,20 +19,14 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
-import java.util.List;
-
 /**
  * A fragment representing a list of Items.
  * <p/>
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class BulletinFragment extends Fragment {
+public class BulletinsFragment extends Fragment {
 
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
-    private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
     private Context mContext;
     private BulletinRecyclerViewAdapter mAdapter;
@@ -42,17 +36,7 @@ public class BulletinFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public BulletinFragment() {
-    }
-
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
-    public static BulletinFragment newInstance(int columnCount) {
-        BulletinFragment fragment = new BulletinFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
+    public BulletinsFragment() {
     }
 
     @Override
@@ -68,23 +52,21 @@ public class BulletinFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mAdapter = new BulletinRecyclerViewAdapter(mContext, mListener);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_bulletin_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_bulletins, container, false);
 
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-            recyclerView.setAdapter(mAdapter = new BulletinRecyclerViewAdapter(mContext, mListener));
-
-
-        }
+        Context context = view.getContext();
+        RecyclerView recyclerView = (RecyclerView) view;
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setAdapter(mAdapter);
 
         return view;
     }
@@ -92,12 +74,12 @@ public class BulletinFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.d("BulletinFragment", "onResume is called.");
+        Log.d("BulletinsFragment", "onResume is called.");
         LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mAdapter.notifyDataSetChanged();
-                Log.d("BulletinFragment", "Bulletin downloaded broadcast received.");
+                Log.d("BulletinsFragment", "Bulletin downloaded broadcast received.");
             }
         }, new IntentFilter(BulletinManager.BULLETIN_LIST_LOADED));
 
@@ -127,7 +109,6 @@ public class BulletinFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onListFragmentInteraction(Bulletin item);
     }
 }

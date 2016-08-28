@@ -79,11 +79,16 @@
         <activity
             android:name=".activity.home.HomeActivity"
             android:label="@string/title_activity_home"
-            android:theme="@style/AppTheme.NoActionBar" />
+             />
         <activity
             android:name=".activity.profile.ProfileActivity"
             android:label="@string/title_activity_profile"
             />
+
+        <provider
+            android:name=".data_and_managers.DataProvider"
+            android:authorities="@string/content_authority"
+            android:exported="false"/>
     </application>
 
 </manifest>

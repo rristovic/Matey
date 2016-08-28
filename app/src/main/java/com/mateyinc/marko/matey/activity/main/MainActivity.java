@@ -4,14 +4,11 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.content.LocalBroadcastManager;
@@ -47,10 +44,10 @@ import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
-import com.mateyinc.marko.matey.internet.procedures.LoginAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
 import java.util.ArrayList;
@@ -114,7 +111,7 @@ public class MainActivity extends MotherActivity {
 
         init();
         // sceptic tommy starts checking everything
-		super.startTommy();
+//		super.startTommy();
 
         // Registering BroadcastReceiver
 //        registerReceiver();
@@ -166,9 +163,9 @@ public class MainActivity extends MotherActivity {
 //        isReceiverRegistered = false;
         super.onDestroy();
 
-        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
-            tommy.cancel(true);
-        }
+//        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
+//            tommy.cancel(true);
+//        }
 
     }
 
@@ -213,29 +210,32 @@ public class MainActivity extends MotherActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mLoginFormVisible)
-                    showLoginForm();
-                else {
-
-                    String email = etEmail.getText().toString();
-                    String pass = etPass.getText().toString();
-
-                    Bundle bundle = new Bundle();
-
-                    if(!isValidEmailAddress(email)) {
-                        bundle.putString("message", "Wrong email format. fon");
-                        showDialog(1004, bundle);
-                    } else if(!isValidPassword(pass)) {
-                        bundle.putString("message", "Password needs to be at least 5 characters long.");
-                        showDialog(1004, bundle);
-                    } else {
-                        // starting login process
-                        MainActivity activity = (MainActivity) v.getContext();
-                        LoginAs loginAs = new LoginAs(activity);
-                        loginAs.execute(email, pass, activity.securePreferences.getString("device_id"));
-                    }
-
-                }
+                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                MainActivity.this.startActivity(intent);
+                MainActivity.this.finish();
+//                if (!mLoginFormVisible)
+//                    showLoginForm();
+//                else {
+//
+//                    String email = etEmail.getText().toString();
+//                    String pass = etPass.getText().toString();
+//
+//                    Bundle bundle = new Bundle();
+//
+//                    if(!isValidEmailAddress(email)) {
+//                        bundle.putString("message", "Wrong email format. fon");
+//                        showDialog(1004, bundle);
+//                    } else if(!isValidPassword(pass)) {
+//                        bundle.putString("message", "Password needs to be at least 5 characters long.");
+//                        showDialog(1004, bundle);
+//                    } else {
+//                        // starting login process
+//                        MainActivity activity = (MainActivity) v.getContext();
+//                        LoginAs loginAs = new LoginAs(activity);
+//                        loginAs.execute(email, pass, activity.securePreferences.getString("device_id"));
+//                    }
+//
+//                }
             }
         });
 

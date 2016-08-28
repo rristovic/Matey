@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#221f4a</color>
+    <color name="colorPrimaryDark">#050505</color>
     <color name="colorAccent">#FF4081</color>
     <!-- ////////////////////////////////////////////////////////////////// -->
 
@@ -17,4 +17,12 @@
     <color name="login_bg_startColor">#006d8c</color>
     <color name="login_bg_endColor">#42a3b2</color>
     <color name="profile_bg_color">#0b7189</color>
+    <color name="white">#fcfdfe</color>
+    <color name="gray_background_color">#dedddd</color>
+
+    <!-- App bar color  -->
+    <color name="app_bar_background">#221f4a</color>
+
+    <!-- Profile pic boredr color -->
+    <color name="profile_pic_border">#242424</color>
 </resources>

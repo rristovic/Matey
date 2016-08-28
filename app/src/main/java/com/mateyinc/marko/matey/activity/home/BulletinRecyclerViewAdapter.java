@@ -1,8 +1,8 @@
 package com.mateyinc.marko.matey.activity.home;
 
 import android.content.Context;
-import android.os.CountDownTimer;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,20 +13,20 @@ import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link Bulletin} and makes a call to the
- * specified {@link BulletinFragment.OnListFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
+ * specified {@link BulletinsFragment.OnListFragmentInteractionListener}.
  */
 public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<BulletinRecyclerViewAdapter.ViewHolder> {
 
     private final ArrayList<Bulletin> mData;
-    private final BulletinFragment.OnListFragmentInteractionListener mListener;
+    private final BulletinsFragment.OnListFragmentInteractionListener mListener;
     private final Context mContext;
     private final BulletinManager mManager;
 
-    public BulletinRecyclerViewAdapter(Context context, BulletinFragment.OnListFragmentInteractionListener listener) {
+    public BulletinRecyclerViewAdapter(Context context, BulletinsFragment.OnListFragmentInteractionListener listener) {
         mContext = context;
         mManager = BulletinManager.getInstance(context);
         mData = mManager.getBulletinList();
@@ -36,15 +36,32 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<BulletinRe
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext)
-                .inflate(R.layout.fragment_bulletin_list_item, parent, false);
+                .inflate(R.layout.bulletin_list_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        holder.mMessage.setText(mManager.getBulletin(position).getMessage());
-        holder.mName.setText(mManager.getBulletin(position).getFirstName() + " " + mManager.getBulletin(position).getLastName());
-        holder.mDate.setText(mManager.getBulletin(position).getDate().toString());
+
+        // Parsing data to views if available
+        try {
+            holder.mMessage.setText(mManager.getBulletin(position).getMessage());
+        } catch (Exception e) {
+            Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+            holder.mMessage.setText(mContext.getString(R.string.bulletin_post_error));
+        }
+        try {
+            holder.mName.setText(mManager.getBulletin(position).getFirstName() + " " + mManager.getBulletin(position).getLastName());
+        } catch (Exception e) {
+            Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+            holder.mName.setText(mContext.getString(R.string.bulletin_post_error));
+        }
+        try {
+            holder.mDate.setText(mManager.getBulletin(position).getDate().toString());
+        } catch (Exception e) {
+            Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+            holder.mDate.setText(new Date().toString());
+        }
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,8 +92,6 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<BulletinRe
             mMessage = (TextView) view.findViewById(R.id.tvMessage);
             mName = (TextView) view.findViewById(R.id.tvName);
             mDate = (TextView) view.findViewById(R.id.tvDate);
-
         }
-
     }
 }

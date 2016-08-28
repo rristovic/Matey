@@ -52,6 +52,16 @@ public class BulletinManager {
         }
     }
 
+    public int getBulletinID(int index) {
+        synchronized (mLock) {
+            return mData.indexOf(getBulletin(index));
+        }
+    }
+
+    public int getSize(){
+        return mData.size();
+    }
+
     public void setBulletinsLoaded(boolean isLoaded){
         mBulletinsLoaded = isLoaded;
     }

@@ -2,17 +2,12 @@ package com.mateyinc.marko.matey.activity.home;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
-import android.util.SparseArray;
-import android.view.LayoutInflater;
+import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageButton;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
@@ -20,23 +15,27 @@ import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.Bulletin;
 
-public class HomeActivity extends InsideActivity implements BulletinFragment.OnListFragmentInteractionListener {
+public class HomeActivity extends InsideActivity implements BulletinsFragment.OnListFragmentInteractionListener {
+
+
+    private FragmentManager mFragmentManager;
+    private BulletinsFragment mBulletinsFragment;
+    private NotificationsFragment mNotificationsFragment;
+    private MessagesFragment mMessagesFragment;
+    private FriendsFragment mFriendsFragment;
+    private MenuFragment mMenuFragment;
+    private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu;
 
     /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+     * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
      */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private int mCurrentPage = 0;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
-    private TabLayout mTabLayout;
+    private final static String BULLETIN_FRAG_TAG = "BULLETINS";
+    private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
+    private final static String MESSAGES_FRAG_TAG = "MESSAGES";
+    private final static String FRIENDS_FRAG_TAG = "FRIENDS";
+    private final static String MENU_FRAG_TAG = "MENU";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,131 +44,171 @@ public class HomeActivity extends InsideActivity implements BulletinFragment.OnL
         super.setSecurePreferences(this);
 
         init();
+        getBulletins();
     }
 
-    private void init() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        mTabLayout = (TabLayout) findViewById(R.id.tabs);
-        mTabLayout.setupWithViewPager(mViewPager);
-
+    private void getBulletins() {
+        // Getting posts for the user
         BulletinAs bulletinsAs = new BulletinAs(this);
         bulletinsAs.execute(securePreferences.getString("user_id"),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id"));
     }
 
+    private void init() {
+        // Settings the app bar via custom toolbar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ibHome = (ImageButton) findViewById(R.id.ibHome);
+        // Change icon color for navigation
+        ibHome.setColorFilter(getResources().getColor(R.color.app_bar_background));
+
+        ibFriends = (ImageButton) findViewById(R.id.ibFriends);
+        ibMenu = (ImageButton) findViewById(R.id.ibMenu);
+        ibMessages = (ImageButton) findViewById(R.id.ibMessages);
+        ibNotifications = (ImageButton) findViewById(R.id.ibNotifications);
+        setClickListeners();
+
+        // Adding Bulletins fragment to home layout on start
+        mFragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        mBulletinsFragment = new BulletinsFragment();
+        fragmentTransaction.replace(R.id.homeContainer, mBulletinsFragment, BULLETIN_FRAG_TAG);
+        fragmentTransaction.commit();
+
+
+    }
+
+    private void setClickListeners() {
+        ibHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentPage = 0;
+                changeNavIconColor();
+
+                if (mBulletinsFragment == null) {
+                    mBulletinsFragment = new BulletinsFragment();
+                }
+                mFragmentManager.beginTransaction().replace(
+                        R.id.homeContainer, mBulletinsFragment, BULLETIN_FRAG_TAG
+                ).commit();
+            }
+        });
+
+        ibNotifications.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentPage = 1;
+                changeNavIconColor();
+
+                if (mNotificationsFragment == null) {
+                    mNotificationsFragment = new NotificationsFragment();
+                }
+                mFragmentManager.beginTransaction().replace(
+                        R.id.homeContainer, mNotificationsFragment, NOTIF_FRAG_TAG
+                ).commit();
+            }
+        });
+
+        ibMessages.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentPage = 2;
+                changeNavIconColor();
+
+                if (mMessagesFragment == null) {
+                    mMessagesFragment = new MessagesFragment();
+                }
+                mFragmentManager.beginTransaction().replace(
+                        R.id.homeContainer, mMessagesFragment, MESSAGES_FRAG_TAG
+                ).commit();
+            }
+        });
+
+        ibFriends.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentPage = 3;
+                changeNavIconColor();
+
+                if (mFriendsFragment == null) {
+                    mFriendsFragment = new FriendsFragment();
+                }
+                mFragmentManager.beginTransaction().replace(
+                        R.id.homeContainer, mFriendsFragment, FRIENDS_FRAG_TAG
+                ).commit();
+            }
+        });
+
+        ibMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentPage = 4;
+                changeNavIconColor();
+
+                if (mMenuFragment == null) {
+                    mMenuFragment = new MenuFragment();
+                }
+                mFragmentManager.beginTransaction().replace(
+                        R.id.homeContainer, mMenuFragment, MENU_FRAG_TAG
+                ).commit();
+            }
+        });
+
+
+    }
+
+    private void changeNavIconColor() {
+        ibHome.setColorFilter(null);
+        ibFriends.setColorFilter(null);
+        ibMenu.setColorFilter(null);
+        ibMessages.setColorFilter(null);
+        ibNotifications.setColorFilter(null);
+
+        switch (mCurrentPage) {
+            case 0:
+                ibHome.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                break;
+            case 1:
+                ibNotifications.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                break;
+            case 2:
+                ibMessages.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                break;
+            case 3:
+                ibFriends.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                break;
+            case 4:
+                ibMenu.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                break;
+        }
+    }
+
+
+    // Controlling back button; Before v2.0
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Back to first tab if it's not selected, otherwise quit the app
+        if (keyCode == KeyEvent.KEYCODE_BACK && mCurrentPage != 0) {
+            mCurrentPage = 0;
+            changeNavIconColor();
+
+            if (mBulletinsFragment == null) {
+                mBulletinsFragment = new BulletinsFragment();
+            }
+            mFragmentManager.beginTransaction().replace(
+                    R.id.homeContainer, mBulletinsFragment, BULLETIN_FRAG_TAG
+            ).commit();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 
     @Override
     public void onListFragmentInteraction(Bulletin item) {
-        Intent i = new Intent(HomeActivity.this, ProfileActivity.class);
-        i.putExtra("user_id",item.getUserID());
+        Intent i = new Intent(this, ProfileActivity.class);
         startActivity(i);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_home, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        SparseArray<Fragment> registeredFragments = new SparseArray<Fragment>();
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            switch (position) {
-                case 0:
-                    return BulletinFragment.newInstance(1);
-                default:
-                    return PlaceholderFragment.newInstance(position+1);
-
-            }
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            Fragment fragment = (Fragment) super.instantiateItem(container, position);
-            registeredFragments.put(position, fragment);
-            return fragment;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            registeredFragments.remove(position);
-            super.destroyItem(container, position, object);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        public Fragment getRegisteredFragment(int position) {
-            return registeredFragments.get(position);
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "SECTION 1";
-                case 1:
-                    return "SECTION 2";
-                case 2:
-                    return "SECTION 3";
-            }
-            return null;
-        }
     }
 }

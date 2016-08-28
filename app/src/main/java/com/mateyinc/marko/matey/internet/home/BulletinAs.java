@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.util.Date;
 
 /**
  * Created by M4rk0 on 5/12/2016.
@@ -116,6 +117,31 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             activity.showDialog(1000);
         }
 
+        createDummyData();
+
+    }
+
+    private void createDummyData() {
+        // punjenje Bulletin objekata podacima
+        for (int i = 0; i < 100; i++) {
+
+
+            Bulletin bulletin = new Bulletin();
+            bulletin.setPostID(Integer.toString(i));
+            bulletin.setUserID(Integer.toString(i));
+            bulletin.setFirstName("Radovan");
+            bulletin.setLastName("Ristovic");
+            bulletin.setDate(new Date(2016,11,22));
+            bulletin.setMessage("Proba "+i);
+
+//                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
+            bulletinManager.addBulletin(bulletin);
+
+        }
+
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
+        broadcastManager.sendBroadcast(new Intent(BulletinManager.BULLETIN_LIST_LOADED));
+        Log.d("BulletinAs", "Bulletin list is downloaded.");
     }
 
 }

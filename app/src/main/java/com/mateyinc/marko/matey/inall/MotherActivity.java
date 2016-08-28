@@ -23,7 +23,7 @@ abstract public class MotherActivity extends AppCompatActivity {
 
 	protected ScepticTommy tommy;
 	public SecurePreferences securePreferences;
-	protected boolean mServerReady = false;
+	protected boolean mServerReady = true;
 
 	public int fbAnswerType = 0;
 

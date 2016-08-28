@@ -1,49 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.mateyinc.marko.matey.activity.home.HomeActivity">
+    tools:context="com.mateyinc.marko.matey.activity.home.HomeActivity"
+    android:orientation="vertical"
+    android:background="@color/gray_background_color">
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/appbar"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="@dimen/action_bar_size"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="@color/colorPrimary"
+        android:elevation="2dp">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/appbar_height"
-            android:background="?attr/colorPrimary"
-            app:layout_scrollFlags="snap"
-            app:popupTheme="@style/AppTheme.PopupOverlay">
+    </android.support.v7.widget.Toolbar>
 
-        </android.support.v7.widget.Toolbar>
-
-        <android.support.design.widget.TabLayout
-            android:id="@+id/tabs"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/appbar_height"
-            android:background="#646464" />
-
-    </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.view.ViewPager
-        android:id="@+id/container"
+    <FrameLayout
+        android:id="@+id/homeContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:layout_weight="1"></FrameLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_dialog_email" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/action_bar_size"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/white"
+        android:elevation="1dp">
 
-</android.support.design.widget.CoordinatorLayout>
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibHome"
+            android:src="@drawable/ic_people"
+            android:background="@color/bg_transparent"
+            android:layout_weight="1"
+            style="@style/NavBarButtons" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibNotifications"
+            android:src="@drawable/ic_people"
+            android:background="@color/bg_transparent"
+            android:layout_weight="1"
+            style="@style/NavBarButtons" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibMessages"
+            android:src="@drawable/ic_people"
+            android:background="@color/bg_transparent"
+            android:layout_weight="1"
+            style="@style/NavBarButtons" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibFriends"
+            android:src="@drawable/ic_people"
+            android:background="@color/bg_transparent"
+            android:layout_weight="1"
+            style="@style/NavBarButtons" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibMenu"
+            android:src="@drawable/ic_people"
+            android:background="@color/bg_transparent"
+            android:layout_weight="1"
+            style="@style/NavBarButtons"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+</LinearLayout>
