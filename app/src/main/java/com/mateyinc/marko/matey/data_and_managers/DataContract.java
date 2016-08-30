@@ -33,7 +33,7 @@ public class DataContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
     // Possible paths (appended to base content URI for possible URI's)
-    // For instance, content://com.example.android.sunshine.app/messages/ is a valid path for
+    // For instance, content://com.mateyinc.marko.matey/messages/ is a valid path for
     // looking at messages data.
     public static final String PATH_MESSAGES = "messages";
     public static final String PATH_NOTIFICATIONS = "notification";
@@ -53,13 +53,15 @@ public class DataContract {
         public static final String TABLE_NAME = "messages";
 
         // Columns
-
         public static final String COLUMN_MSG_BODY = "message_body";
+        public static final String COLUMN_MSG_TIME = "message_time";
         // TODO - add required columns
 
-        public static Uri buildLocationUri(long id) {
+        public static Uri buildMessageUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+
     }
 
     /* Inner class that defines the table contents of the notifications table */
@@ -75,11 +77,12 @@ public class DataContract {
 
         public static final String TABLE_NAME = "notifications";
 
-        public static final String COLUMN_NOT_TEXT = "notif_text";
+        public static final String COLUMN_NOTIF_TEXT = "notif_text";
+        public static final String COLUMN_NOTIF_TIME = "notif_time";
         // TODO - add columns
 
 
-        public static Uri buildWeatherUri(long id) {
+        public static Uri buildNotifUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
