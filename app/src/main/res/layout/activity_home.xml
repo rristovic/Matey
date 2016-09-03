@@ -10,6 +10,8 @@
     tools:context="com.mateyinc.marko.matey.activity.home.HomeActivity">
 
 
+
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -27,28 +29,28 @@
             android:background="@color/bg_transparent"
             android:paddingTop="6dp"
             android:scaleType="center"
-            android:src="@drawable/matey_logo" />
+            android:src="@drawable/matey_logo"
+            android:id="@+id/ivHomeLogo" />
 
         <ImageButton
             android:id="@+id/ibProfile"
-            android:layout_width="?android:attr/actionBarSize"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_gravity="end"
-            android:background="@drawable/actionbar_icon_bg"
-            android:padding="15dp"
+            android:padding="14dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_profile_icon" />
+            android:src="@drawable/ic_profile_icon"
+            android:background="@drawable/actionbar_icon_bg" />
 
         <ImageButton
             android:id="@+id/ibSearch"
-            android:layout_width="?android:attr/actionBarSize"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_gravity="end"
             android:background="@drawable/actionbar_icon_bg"
             android:padding="@dimen/actionBar_icon_padding"
             android:scaleType="centerCrop"
             android:src="@drawable/abc_ic_search_api_mtrl_alpha" />
-
 
     </android.support.v7.widget.Toolbar>
 

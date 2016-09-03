@@ -1,13 +1,20 @@
 package com.mateyinc.marko.matey.activity.home;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
@@ -15,7 +22,7 @@ import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.Bulletin;
 
-public class HomeActivity extends InsideActivity implements BulletinsFragment.OnListFragmentInteractionListener {
+public class HomeActivity extends InsideActivity implements BulletinsFragment.OnListFragmentInteractionListener, View.OnTouchListener {
 
 
     private FragmentManager mFragmentManager;
@@ -25,6 +32,10 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
     private FriendsFragment mFriendsFragment;
     private MenuFragment mMenuFragment;
     private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu, ibSearch, ibProfile;
+    private Toolbar toolbar;
+    private SearchView searchView;
+    private ImageView logo;
+    public boolean mSearchActive;
 
     /**
      * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
@@ -49,7 +60,7 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
 
     private void init() {
         // Settings the app bar via custom toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
@@ -84,8 +95,49 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
 
     private void setClickListeners() {
         ibSearch.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
+                mSearchActive = true;
+
+                // Removing other views
+                logo = (ImageView) toolbar.findViewById(R.id.ivHomeLogo);
+                logo.setVisibility(View.GONE);
+                ibSearch.setVisibility(View.GONE);
+                ibProfile.setVisibility(View.GONE);
+
+                // Adding search view
+                searchView = new SearchView(HomeActivity.this);
+                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                searchView.setIconified(false);
+
+                // Setting search view style
+                try {
+                    SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+                    searchAutoComplete.setHintTextColor(Color.BLACK);
+                    searchAutoComplete.setBackgroundColor(Color.WHITE);
+                    searchAutoComplete.setTextColor(Color.BLACK);
+                    View searchplate = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate);
+                    searchplate.setBackgroundColor(Color.TRANSPARENT);
+                    ImageView searchCloseIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+                    searchCloseIcon.setColorFilter(Color.WHITE);
+                    ImageView voiceIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_voice_btn);
+                    voiceIcon.setColorFilter(Color.WHITE);
+                    ImageView searchIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
+                    searchIcon.setColorFilter(Color.WHITE);
+                } catch (Exception e) {
+                    searchView.setBackgroundColor(Color.WHITE);
+                }
+
+                toolbar.addView(searchView);
+
+                searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+                    @Override
+                    public boolean onClose() {
+                        closeSearchView();
+                        return true;
+                    }
+                });
 
             }
         });
@@ -112,6 +164,7 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                 ).commit();
             }
         });
+        ibHome.setOnTouchListener(this);
 
         ibNotifications.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,6 +180,7 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                 ).commit();
             }
         });
+        ibNotifications.setOnTouchListener(this);
 
         ibMessages.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -142,6 +196,7 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                 ).commit();
             }
         });
+        ibMessages.setOnTouchListener(this);
 
         ibFriends.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,6 +212,7 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                 ).commit();
             }
         });
+        ibFriends.setOnTouchListener(this);
 
         ibMenu.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -172,8 +228,23 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                 ).commit();
             }
         });
+        ibMenu.setOnTouchListener(this);
 
+    }
 
+    private void closeSearchView() {
+        mSearchActive = false;
+        toolbar.removeView(searchView);
+        logo.setVisibility(View.VISIBLE);
+        ibSearch.setVisibility(View.VISIBLE);
+        ibProfile.setVisibility(View.VISIBLE);
+
+        // Closing keyboard. Check if no view has focus:
+        View v = this.getCurrentFocus();
+        if (v != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
     }
 
     private void changeNavIconColor() {
@@ -200,6 +271,10 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                 ibMenu.setColorFilter(getResources().getColor(R.color.app_bar_background));
                 break;
         }
+
+        // Also close search view if active
+        if (mSearchActive)
+            closeSearchView();
     }
 
 
@@ -218,6 +293,9 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
                     R.id.homeContainer, mBulletinsFragment, BULLETIN_FRAG_TAG
             ).commit();
             return true;
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && mSearchActive) {
+            closeSearchView();
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -227,5 +305,27 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
     public void onListFragmentInteraction(Bulletin item) {
         Intent i = new Intent(this, ProfileActivity.class);
         startActivity(i);
+    }
+
+    // Coloring buttons programmatically instead of in XML
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        ImageButton button;
+        try {
+            button = (ImageButton) v;
+        } catch (ClassCastException e) {
+            return false;
+        }
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                button.setColorFilter(getApplicationContext().getResources().getColor(R.color.colorAccent)); // White Tint
+                return false;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                button.setColorFilter(getApplicationContext().getResources().getColor(R.color.light_gray)); // White Tint
+                return false;
+
+        }
+        return false;
     }
 }

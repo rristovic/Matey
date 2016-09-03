@@ -18,7 +18,6 @@
     <dimen name="login_regForm_margin">15dp</dimen>
     <dimen name="login_regForm_marginBig">40dp</dimen>
 
-
     <!-- Loading dimens -->
     <dimen name="login_loading_head_bot_margin">40dp</dimen>
     <!-- Animation params -->
@@ -36,10 +35,8 @@
     <dimen name="profile_info_mates_text_size">20dp</dimen>
     <dimen name="profile_info_name_text_size">26dp</dimen>
     <dimen name="profile_info_status_text_size">12dp</dimen>
-
     <dimen name="profile_list_item_height">70dp</dimen>
     <dimen name="profile_list_height">216dp</dimen>
-
     <dimen name="profile_buttons_margin">10dp</dimen>
     <dimen name="profile_btn_distance">2dp</dimen>
 
@@ -49,13 +46,11 @@
     <dimen name="body">14sp</dimen>
     <dimen name="info">12sp</dimen>
 
-
     <!-- Action bar size -->
     <dimen name="navBar_size">48dp</dimen>
     <dimen name="actionBar_icon_size">28dp</dimen>
     <dimen name="actionBar_icon_margin">12dp</dimen>
     <dimen name="actionBar_icon_padding">12dp</dimen>
-
 
     <!-- Bulletins dimens -->
     <dimen name="bulletins_listView_margin">12dp</dimen>

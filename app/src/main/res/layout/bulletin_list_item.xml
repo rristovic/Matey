@@ -49,6 +49,7 @@
             android:layout_alignParentBottom="false"
             android:layout_marginBottom="@dimen/bulletins_name_topMargin"
             android:layout_toRightOf="@+id/ivBulletinProfilePic"
+            android:layout_toEndOf="@+id/ivBulletinProfilePic"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -57,6 +58,7 @@
                 android:layout_width="12dp"
                 android:layout_height="12dp"
                 android:layout_marginRight="4dp"
+                android:layout_marginEnd="4dp"
                 android:src="@drawable/ic_clock"
                 android:tint="@color/light_gray" />
 

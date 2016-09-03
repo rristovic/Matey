@@ -105,6 +105,8 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                         mContext.startActivity(i);
                     }
                 });
+                holder.ibAttachment.setOnTouchListener((HomeActivity)mContext);
+                holder.ibLocation.setOnTouchListener((HomeActivity)mContext);
                 break;
             }
         }
