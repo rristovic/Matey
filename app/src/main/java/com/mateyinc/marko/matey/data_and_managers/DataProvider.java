@@ -34,6 +34,9 @@ public class DataProvider extends ContentProvider {
     static final int MESSAGE_WITH_ID = 101;
     static final int NOTIFICATIONS = 200;
     static final int NOTIFICATION_WITH_ID = 201;
+    static final int PROFILE = 300;
+    static final int PROFILE_WITH_ID = 301;
+
 
     private String sNotificationIdSelection = DataContract.NotificationEntry.TABLE_NAME +
             '.' + DataContract.NotificationEntry._ID + " = ? ";
@@ -45,6 +48,31 @@ public class DataProvider extends ContentProvider {
     public boolean onCreate() {
         mOpenHelper = new DbHelper(getContext());
         return true;
+    }
+
+    @Nullable
+    @Override
+    public String getType(Uri uri) {
+        // Using the Uri Matcher to determine what kind of URI this is.
+        final int match = sUriMatcher.match(uri);
+
+        switch (match) {
+            // Student: Uncomment and fill out these two cases
+            case MESSAGES:
+                return DataContract.MessageEntry.CONTENT_TYPE;
+            case MESSAGE_WITH_ID:
+                return DataContract.MessageEntry.CONTENT_ITEM_TYPE;
+            case NOTIFICATIONS:
+                return DataContract.NotificationEntry.CONTENT_TYPE;
+            case NOTIFICATION_WITH_ID:
+                return DataContract.NotificationEntry.CONTENT_ITEM_TYPE;
+            case PROFILE:
+                return DataContract.NotificationEntry.CONTENT_TYPE;
+            case PROFILE_WITH_ID:
+                return DataContract.NotificationEntry.CONTENT_ITEM_TYPE;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
     }
 
     @Nullable
@@ -90,12 +118,35 @@ public class DataProvider extends ContentProvider {
                 retCursor = getNotificationByID(uri, projection, sortOrder);
                 break;
             }
+            // "profile"
+            case PROFILE: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        DataContract.ProfileEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            // "profile/*"
+            case PROFILE_WITH_ID: {
+                retCursor = getProfileByID(uri, projection, sortOrder);
+                break;
+            }
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         retCursor.setNotificationUri(getContext().getContentResolver(), uri);
         return retCursor;
+    }
+
+    private Cursor getProfileByID(Uri uri, String[] projection, String sortOrder) {
+        // TODO - finish function by ID
+        return null;
     }
 
     private Cursor getNotificationByID(Uri uri, String[] projection, String sortOrder) {
@@ -106,27 +157,6 @@ public class DataProvider extends ContentProvider {
     private Cursor getMessageByID(Uri uri, String[] projection, String sortOrder) {
         // TODO - finish function by ID
         return null;
-    }
-
-    @Nullable
-    @Override
-    public String getType(Uri uri) {
-        // Using the Uri Matcher to determine what kind of URI this is.
-        final int match = sUriMatcher.match(uri);
-
-        switch (match) {
-            // Student: Uncomment and fill out these two cases
-            case MESSAGES:
-                return DataContract.MessageEntry.CONTENT_TYPE;
-            case MESSAGE_WITH_ID:
-                return DataContract.MessageEntry.CONTENT_ITEM_TYPE;
-            case NOTIFICATIONS:
-                return DataContract.NotificationEntry.CONTENT_TYPE;
-            case NOTIFICATION_WITH_ID:
-                return DataContract.NotificationEntry.CONTENT_ITEM_TYPE;
-            default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
-        }
     }
 
     @Nullable
@@ -153,8 +183,17 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case PROFILE: {
+                long _id = db.insert(DataContract.ProfileEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = DataContract.ProfileEntry.buildPorfileUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
             case MESSAGE_WITH_ID: // TODO - finish insert with id
             case NOTIFICATION_WITH_ID:
+            case PROFILE_WITH_ID:
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -177,6 +216,10 @@ public class DataProvider extends ContentProvider {
             case NOTIFICATIONS:
                 rowsDeleted = db.delete(
                         DataContract.NotificationEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case PROFILE:
+                rowsDeleted = db.delete(
+                        DataContract.ProfileEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -201,6 +244,10 @@ public class DataProvider extends ContentProvider {
                 break;
             case NOTIFICATIONS:
                 rowsUpdated = db.update(DataContract.NotificationEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case PROFILE:
+                rowsUpdated = db.update(DataContract.ProfileEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             default:
@@ -234,12 +281,29 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case NOTIFICATIONS:
+            case NOTIFICATIONS: {
                 db.beginTransaction();
                 int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
                         long _id = db.insert(DataContract.NotificationEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
+            case PROFILE:
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(DataContract.ProfileEntry.TABLE_NAME, null, value);
                         if (_id != -1) {
                             returnCount++;
                         }
@@ -264,6 +328,8 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_MESSAGES + "/*", MESSAGE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS, NOTIFICATIONS);
         matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS + "/*", NOTIFICATION_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_PROFILE, PROFILE);
+        matcher.addURI(authority, DataContract.PATH_PROFILE + "/*", PROFILE_WITH_ID);
 
         return matcher;
     }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="menu_items">
+        <item>@string/menu_item_profile</item>
+        <item>@string/menu_item_interests</item>
+        <item>@string/menu_item_groups</item>
+        <item>@string/menu_item_feedback</item>
+        <item>@string/menu_item_logout</item>
+    </array>
+</resources>

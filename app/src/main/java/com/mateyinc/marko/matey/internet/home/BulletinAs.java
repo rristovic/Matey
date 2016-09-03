@@ -8,6 +8,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * Created by M4rk0 on 5/12/2016.
@@ -52,7 +54,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
             } catch (Exception e) {
 
-                Log.e("BulletinAs",e.getMessage());
+                Log.e("BulletinAs", e.getMessage());
                 return null;
 
             }
@@ -122,17 +124,17 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
     }
 
     private void createDummyData() {
-        // punjenje Bulletin objekata podacima
+        Random r = new Random();
+        Date d = new Date();
         for (int i = 0; i < 100; i++) {
-
 
             Bulletin bulletin = new Bulletin();
             bulletin.setPostID(Integer.toString(i));
             bulletin.setUserID(Integer.toString(i));
             bulletin.setFirstName("Radovan");
             bulletin.setLastName("Ristovic");
-            bulletin.setDate(new Date(2016,11,22));
-            bulletin.setMessage("Proba "+i);
+            bulletin.setDate(new Date(d.getTime() - r.nextInt(DataManager.ONE_DAY)));
+            bulletin.setMessage("Proba " + i);
 
 //                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
             bulletinManager.addBulletin(bulletin);

@@ -24,7 +24,7 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
     private MessagesFragment mMessagesFragment;
     private FriendsFragment mFriendsFragment;
     private MenuFragment mMenuFragment;
-    private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu;
+    private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu, ibSearch, ibProfile;
 
     /**
      * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
@@ -47,23 +47,18 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
         getBulletins();
     }
 
-    private void getBulletins() {
-        // Getting posts for the user
-        BulletinAs bulletinsAs = new BulletinAs(this);
-        bulletinsAs.execute(securePreferences.getString("user_id"),
-                securePreferences.getString("uid"),
-                securePreferences.getString("device_id"));
-    }
-
     private void init() {
         // Settings the app bar via custom toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         ibHome = (ImageButton) findViewById(R.id.ibHome);
         // Change icon color for navigation
         ibHome.setColorFilter(getResources().getColor(R.color.app_bar_background));
 
+        ibSearch = (ImageButton) findViewById(R.id.ibSearch);
+        ibProfile = (ImageButton) findViewById(R.id.ibProfile);
         ibFriends = (ImageButton) findViewById(R.id.ibFriends);
         ibMenu = (ImageButton) findViewById(R.id.ibMenu);
         ibMessages = (ImageButton) findViewById(R.id.ibMessages);
@@ -77,10 +72,32 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
         fragmentTransaction.replace(R.id.homeContainer, mBulletinsFragment, BULLETIN_FRAG_TAG);
         fragmentTransaction.commit();
 
+    }
 
+    private void getBulletins() {
+        // Getting posts for the user
+        BulletinAs bulletinsAs = new BulletinAs(this);
+        bulletinsAs.execute(securePreferences.getString("user_id"),
+                securePreferences.getString("uid"),
+                securePreferences.getString("device_id"));
     }
 
     private void setClickListeners() {
+        ibSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        ibProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(HomeActivity.this, ProfileActivity.class);
+                startActivity(i);
+            }
+        });
+
         ibHome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

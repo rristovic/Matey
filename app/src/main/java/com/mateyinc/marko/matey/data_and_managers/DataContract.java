@@ -37,6 +37,8 @@ public class DataContract {
     // looking at messages data.
     public static final String PATH_MESSAGES = "messages";
     public static final String PATH_NOTIFICATIONS = "notification";
+    public static final String PATH_PROFILE = "profile";
+
 
     /* Inner class that defines the table contents of the messages table */
     public static final class MessageEntry implements BaseColumns {
@@ -53,8 +55,11 @@ public class DataContract {
         public static final String TABLE_NAME = "messages";
 
         // Columns
-        public static final String COLUMN_MSG_BODY = "message_body";
-        public static final String COLUMN_MSG_TIME = "message_time";
+        public static final String COLUMN_SENDER_ID = "msg_sender_id";
+        public static final String COLUMN_SENDER_NAME = "msg_sender_name";
+        public static final String COLUMN_MSG_BODY = "msg_body";
+        public static final String COLUMN_MSG_TIME = "msg_time";
+        public static final String COLUMN_IS_READ = "msg_isread";
         // TODO - add required columns
 
         public static Uri buildMessageUri(long id) {
@@ -77,12 +82,41 @@ public class DataContract {
 
         public static final String TABLE_NAME = "notifications";
 
+        // Adding columns DbHelper create table command  must be changed also
+        public static final String COLUMN_SENDER_ID = "notif_sender_id";
+        public static final String COLUMN_SENDER_NAME = "notif_sender_name";
         public static final String COLUMN_NOTIF_TEXT = "notif_text";
         public static final String COLUMN_NOTIF_TIME = "notif_time";
-        // TODO - add columns
+        public static final String COLUMN_NOTIF_LINK_ID = "notif_link_id";
+
 
 
         public static Uri buildNotifUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+    }
+
+    public static final class ProfileEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_PROFILE).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_PROFILE;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_PROFILE;
+
+        public static final String TABLE_NAME = "profiles";
+
+        // Adding columns DbHelper create table command  must be changed also
+        public static final String COLUMN_NAME = "profile_name";
+        public static final String COLUMN_LAST_MSG_ID = "profile_last_msg_id";
+//        public static final String _ID = "id"
+
+
+
+        public static Uri buildPorfileUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 

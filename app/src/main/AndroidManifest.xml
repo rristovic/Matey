@@ -74,21 +74,33 @@
         </service>
         <service
             android:name=".gcm.RegistrationIntentService"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".activity.home.HomeActivity"
-            android:label="@string/title_activity_home"
-             />
+            android:label="@string/title_activity_home" />
         <activity
             android:name=".activity.profile.ProfileActivity"
-            android:label="@string/title_activity_profile"
-            />
+            android:label="@string/title_activity_profile" />
+        <activity
+            android:name=".activity.home.GroupsActivity"
+            android:label="@string/title_activity_profile" />
+
+        <activity
+            android:name=".activity.home.FeedbackActivity"
+            android:label="@string/title_activity_profile" />
+
+        <activity
+            android:name=".activity.home.InterestsActivity"
+            android:label="@string/title_activity_profile" />
+
 
         <provider
             android:name=".data_and_managers.DataProvider"
             android:authorities="@string/content_authority"
-            android:exported="false"/>
+            android:exported="false" />
+
+
     </application>
 
 </manifest>

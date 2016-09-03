@@ -1,81 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/gray_background_color"
     android:fitsSystemWindows="true"
-    tools:context="com.mateyinc.marko.matey.activity.home.HomeActivity"
     android:orientation="vertical"
-    android:background="@color/gray_background_color">
+    tools:context="com.mateyinc.marko.matey.activity.home.HomeActivity">
+
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/action_bar_size"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:layout_height="?android:attr/actionBarSize"
         android:background="@color/colorPrimary"
-        android:elevation="2dp">
+        android:elevation="2dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:layout_marginEnd="@dimen/actionBar_icon_margin"
+            android:layout_marginRight="@dimen/actionBar_icon_margin"
+            android:background="@color/bg_transparent"
+            android:paddingTop="6dp"
+            android:scaleType="center"
+            android:src="@drawable/matey_logo" />
+
+        <ImageButton
+            android:id="@+id/ibProfile"
+            android:layout_width="?android:attr/actionBarSize"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="@drawable/actionbar_icon_bg"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_profile_icon" />
+
+        <ImageButton
+            android:id="@+id/ibSearch"
+            android:layout_width="?android:attr/actionBarSize"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="@drawable/actionbar_icon_bg"
+            android:padding="@dimen/actionBar_icon_padding"
+            android:scaleType="centerCrop"
+            android:src="@drawable/abc_ic_search_api_mtrl_alpha" />
+
 
     </android.support.v7.widget.Toolbar>
 
     <FrameLayout
         android:id="@+id/homeContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"></FrameLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/action_bar_size"
+        android:layout_height="@dimen/navBar_size"
         android:layout_gravity="center_horizontal"
-        android:background="@color/white"
-        android:elevation="1dp">
+        android:background="@color/navBar"
+        android:elevation="10dp"
+        android:orientation="horizontal">
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibHome"
-            android:src="@drawable/ic_people"
-            android:background="@color/bg_transparent"
-            android:layout_weight="1"
-            style="@style/NavBarButtons" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/ibNotifications"
-            android:src="@drawable/ic_people"
-            android:background="@color/bg_transparent"
-            android:layout_weight="1"
-            style="@style/NavBarButtons" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/ibMessages"
-            android:src="@drawable/ic_people"
-            android:background="@color/bg_transparent"
-            android:layout_weight="1"
-            style="@style/NavBarButtons" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/ibFriends"
-            android:src="@drawable/ic_people"
-            android:background="@color/bg_transparent"
-            android:layout_weight="1"
-            style="@style/NavBarButtons" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/ibMenu"
-            android:src="@drawable/ic_people"
-            android:background="@color/bg_transparent"
-            android:layout_weight="1"
             style="@style/NavBarButtons"
-            android:scaleType="fitCenter" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/bg_transparent"
+            android:src="@android:drawable/ic_menu_compass"
+            android:tint="@color/light_gray" />
+
+        <ImageButton
+            android:id="@+id/ibNotifications"
+            style="@style/NavBarButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/bg_transparent"
+            android:src="@android:drawable/stat_notify_error"
+            android:tint="@color/light_gray" />
+
+        <ImageButton
+            android:id="@+id/ibMessages"
+            style="@style/NavBarButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/bg_transparent"
+            android:src="@android:drawable/stat_notify_chat"
+            android:tint="@color/light_gray" />
+
+        <ImageButton
+            android:id="@+id/ibFriends"
+            style="@style/NavBarButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/bg_transparent"
+            android:src="@drawable/ic_people"
+            android:tint="@color/light_gray" />
+
+        <ImageButton
+            android:id="@+id/ibMenu"
+            style="@style/NavBarButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/bg_transparent"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:tint="@color/light_gray" />
     </LinearLayout>
 </LinearLayout>

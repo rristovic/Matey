@@ -1,5 +1,5 @@
 <resources>
-    <string name="facebook_app_id">1702025086719722</string>
+    <string name="facebook_app_id" translatable="false">1702025086719722</string>
     <string name="app_name">Matey</string>
     <string name="app_title">Matey</string>
     <string name="title_activity_home">HomeActivity</string>
@@ -10,7 +10,42 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="login_dialog_message">Getting you in..</string>
     <string name="title_activity_profile">Profile</string>
-    <string name="bulletin_post_error">Something went wrong :(</string>
+    <string name="error_message">Something went wrong :(</string>
 
-    <string name="content_authority">com.mateyinc.marko.matey</string>
+    <!-- Database and content provider authority string -->
+    <string name="content_authority" translatable="false">com.mateyinc.marko.matey</string>
+
+    <!-- Friends strings -->
+    <string name="friends_section_name">Friends</string>
+    <string name="suggested_section_name">Suggested</string>
+    <string name="frrequests_section_name">Requests</string>
+
+    <!-- Menu items strings -->
+    <string name="menu_item_logout">Logout</string>
+    <string name="menu_item_feedback">Feedback</string>
+    <string name="menu_item_groups">Groups</string>
+    <string name="menu_item_interests">Interests</string>
+    <string name="menu_item_profile">Profile</string>
+
+    <!-- Groups strings -->
+    <string name="groups_joined_section_name">Joined</string>
+    <string name="groups_discover_section_name">Discover</string>
+    <string name="groups_invites_section_name">Invites</string>
+    <string name="action_dropdb">Delete db</string>
+
+    <!-- Fonts -->
+    <string name="roboto_thin">sans-serif-thin</string> <!-- Android 4.2 -->
+    <string name="roboto_light">sans-serif-light</string>
+    <string name="roboto_regular">sans-serif</string>
+    <string name="roboto_condensed">sans-serif-condensed</string>
+    <string name="roboto_medium">sans-serif-medium</string> <!-- Android 5.0 -->
+    <string name="roboto_black">sans-serif-black</string>
+
+    <!-- Menu strings -->
+    <string name="action_search">Search</string>
+    <string name="action_profile">Profile</string>
+
+    <!-- Bulletin related -->
+    <string name="bulletin_sendtosea_tittle">Send to the sea..</string>
+
 </resources>

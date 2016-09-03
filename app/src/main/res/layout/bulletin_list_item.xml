@@ -1,55 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#2677c2"
-    android:layout_margin="14dp"
-    android:padding="2dp">
+    android:layout_marginBottom="@dimen/bulletins_listView_bottomMargin"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/bulletins_padding_top"
+    android:paddingLeft="@dimen/bulletins_padding_side"
+    android:paddingRight="@dimen/bulletins_padding_side"
+    android:paddingTop="@dimen/bulletins_padding_top">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tvName" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tvMessage" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/tvDate"
-        android:layout_gravity="right" />
-
-    <LinearLayout
-        android:orientation="horizontal"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="?android:attr/actionBarSize"
+        android:layout_marginBottom="6dp">
 
-        <Button
+        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+            android:id="@+id/ivBulletinProfilePic"
+            android:layout_width="@dimen/bulletin_pic_height"
+            android:layout_height="@dimen/bulletin_pic_height"
+            android:layout_marginRight="5dp"
+            android:layout_marginEnd="5dp"
+            android:padding="@dimen/bulletin_pic_padding"
+            android:scaleType="centerCrop"
+            android:src="@drawable/profile_bg"
+            app:riv_border_color="@color/profile_pic_border"
+            app:riv_border_width="0dp"
+            app:riv_oval="true" />
+
+        <TextView
+            android:id="@+id/tvName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Button"
-            android:id="@+id/button"
-            android:layout_weight="1" />
+            android:layout_marginTop="@dimen/bulletins_name_topMargin"
+            android:layout_toEndOf="@+id/ivBulletinProfilePic"
+            android:layout_toRightOf="@+id/ivBulletinProfilePic"
+            android:fontFamily="@string/roboto_medium"
+            android:text="Sender name"
+            android:textColor="@color/blue"
+            android:textIsSelectable="false"
+            android:textSize="@dimen/subHeading" />
 
-        <Button
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Button"
-            android:id="@+id/button2"
-            android:layout_weight="1" />
+            android:layout_alignBottom="@+id/ivBulletinProfilePic"
+            android:layout_alignParentBottom="false"
+            android:layout_marginBottom="@dimen/bulletins_name_topMargin"
+            android:layout_toRightOf="@+id/ivBulletinProfilePic"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-        <Button
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="4dp"
+                android:src="@drawable/ic_clock"
+                android:tint="@color/light_gray" />
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@string/roboto_light"
+                android:text="12:00 "
+                android:textColor="@color/light_gray"
+                android:textSize="@dimen/info"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/tvBulletinCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@string/roboto_light"
+                android:text="in General"
+                android:textColor="@color/light_gray"
+                android:textIsSelectable="false"
+                android:textSize="@dimen/info"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="@dimen/bulletins_msg_margin"
+        android:layout_marginLeft="@dimen/bulletins_msg_margin"
+        android:layout_marginRight="@dimen/bulletins_msg_margin"
+        android:layout_marginStart="@dimen/bulletins_msg_margin">
+
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&apos;s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged."
+            android:textSize="@dimen/body" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvMessage"
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#informatic"
+                android:textColor="@color/blue"
+                android:textSize="@dimen/info" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0.1dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:background="@color/light_gray"></FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/rlCommentReplies"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp">
+
+        <LinearLayout
+            android:id="@+id/btnReply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Button"
-            android:id="@+id/button3"
-            android:layout_weight="1" />
-    </LinearLayout>
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_reply_black_24dp"
+                android:tint="@color/gray" />
+
+            <TextView
+                android:id="@+id/textView10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:text="Reply"
+                android:textColor="@color/gray"
+                android:textSize="@dimen/subHeading" />
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </LinearLayout>

@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.activity.home;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,6 +12,7 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +21,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data_and_managers.DataContract;
+import com.mateyinc.marko.matey.data_and_managers.DataContract.MessageEntry;
+import com.mateyinc.marko.matey.data_and_managers.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 
 /**
  * Created by Sarma on 8/27/2016.
  */
-public class MessagesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MessagesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private MessageAdapter mAdapter;
     private Context mContext;
@@ -36,14 +41,31 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
     // For the data view we're showing only a small subset of the stored data.
     // Specify the columns we need.
     private static final String[] MESSAGE_COLUMNS = {
-            DataContract.MessageEntry.TABLE_NAME + "." + DataContract.MessageEntry._ID,
-            DataContract.MessageEntry.COLUMN_MSG_BODY
+            MessageEntry.TABLE_NAME + "." + DataContract.MessageEntry._ID,
+            MessageEntry.COLUMN_SENDER_NAME,
+            MessageEntry.COLUMN_MSG_BODY,
+            MessageEntry.COLUMN_MSG_TIME,
+            MessageEntry.COLUMN_IS_READ
     };
 
     // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
     // must change.
     static final int COL_MSG_ID = 0;
-    static final int COL_MSG_BODY = 1;
+    static final int COL_MSG_SENDER_NAME = 1;
+    static final int COL_MSG_BODY = 2;
+    static final int COL_MSG_TIME = 3;
+    static final int COL_MSG_IS_READ = 4;
+
+    private static final String[] PROFILE_COLUMNS = {
+            ProfileEntry.TABLE_NAME + "." + ProfileEntry._ID,
+            ProfileEntry.COLUMN_NAME,
+            ProfileEntry.COLUMN_LAST_MSG_ID
+    };
+
+    static final int COL_PROF_ID = 0;
+    static final int COL_PROF_NAME = 1;
+    static final int COL_PROF_LAST_MSG_ID = 2;
+
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -73,7 +95,7 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAdapter = new MessageAdapter(mContext, null,0);
+        mAdapter = new MessageAdapter(mContext, null, 0);
         mManager = DataManager.getInstance(mContext);
     }
 
@@ -83,8 +105,12 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
         View view = inflater.inflate(R.layout.fragment_notif_msg, container, false);
 
         // Set the adapter
-        Context context = view.getContext();
         ListView listView = (ListView) view;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) listView.getLayoutParams();
+        params.leftMargin = getPx(0);
+        params.rightMargin = getPx(0);
+        listView.setLayoutParams(params);
+
         listView.setAdapter(mAdapter);
 
         return view;
@@ -101,15 +127,12 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
         // This is called when a new Loader needs to be created.  This
         // fragment only uses one loader, so we don't care about checking the id.
 
-        // To only show current and future dates, filter the query to return weather only for
-        // dates after or including today.
-
-        // Sort order:  Ascending, by date.
-//        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+        // Sort order:  Ascending, by time.
+//        String sortOrder = DataContract.MessageEntry.COLUMN_TIME + " ASC";
 
         return new CursorLoader(getActivity(),
-                DataContract.MessageEntry.CONTENT_URI,
-                MESSAGE_COLUMNS,
+                ProfileEntry.CONTENT_URI,
+                PROFILE_COLUMNS,
                 null,
                 null,
                 null);
@@ -125,6 +148,11 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
         mAdapter.swapCursor(null);
     }
 
+    private int getPx(int dp) {
+        Resources r = mContext.getResources();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                dp, r.getDisplayMetrics());
+    }
 
     private class MessageAdapter extends CursorAdapter {
 
@@ -149,43 +177,90 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             ViewHolder holder = (ViewHolder) view.getTag();
-            int msgId = cursor.getInt(MessagesFragment.COL_MSG_ID);
 
 //            Glide.with(mContext)
 //                    .load(Utility.getArtUrlForWeatherCondition(mContext, weatherId))
 //                    .error(fallbackIconId)
 //                    .crossFade()
 //                    .into(viewHolder.iconView);
+            Cursor msgCursor = mContext.getContentResolver().query(MessageEntry.CONTENT_URI,
+                    MESSAGE_COLUMNS, MessageEntry._ID + " = ?",
+                    new String[]{Integer.toString(cursor.getInt(COL_PROF_LAST_MSG_ID))}, null);
 
+
+            if (msgCursor != null)
+                msgCursor.moveToFirst();
+
+            // Last message text view
             try {
-                holder.mNotifText.setText(cursor.getString(MessagesFragment.COL_MSG_BODY));
+                holder.tvLastMsg.setText(msgCursor.getString(COL_MSG_BODY));
             } catch (Exception e) {
                 Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-                holder.mNotifText.setText(mContext.getString(R.string.bulletin_post_error));
+                holder.tvLastMsg.setText(mContext.getString(R.string.error_message));
             }
-//            try {
-//                holder.mNotifTime.setText(getReadableDateText(mManager.mNotificationList.get(position).getDate()));
-//            } catch (Exception e) {
-//                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-//                holder.mNotifTime.setText(new Date().toString());
-//            }
+
+            // Sender name text view
+            try {
+                holder.tvSenderName.setText(msgCursor.getString(COL_MSG_SENDER_NAME));
+            } catch (Exception e) {
+                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                holder.tvSenderName.setText(mContext.getString(R.string.error_message));
+            }
+
+            // Last message time
+            try {
+                holder.tvTime.setText(Util.getReadableDateText(msgCursor.getString(MessagesFragment.COL_MSG_TIME)));
+            } catch (Exception e) {
+                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                holder.tvTime.setText(mContext.getString(R.string.error_message));
+            }
+
+            // Unread messages count
+            try {
+                int unreadCount = msgCursor.getInt(COL_MSG_IS_READ);
+                if (unreadCount == 0) {// last message is not read, count unread messages
+                    msgCursor = mContext.getContentResolver().query(MessageEntry.CONTENT_URI,
+                            MESSAGE_COLUMNS,
+                            MessageEntry.COLUMN_SENDER_ID + " = ? AND " + MessageEntry.COLUMN_IS_READ + " = 0",
+                            new String[]{Integer.toString(cursor.getInt(COL_PROF_ID))}, null);
+                    holder.tvUnreadCount.setText(Integer.toString(msgCursor.getCount()));
+                } else {
+                    holder.tvUnreadCount.setVisibility(View.GONE);
+                }
+            } catch (Exception e) {
+                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                holder.tvUnreadCount.setVisibility(View.GONE);
+            } finally {
+                if (msgCursor != null)
+                    msgCursor.close();
+            }
+            holder.ivActiveState.setColorFilter(getActiveStateColor());
+
         }
 
-
+        private int getActiveStateColor() {
+            return mContext.getResources().getColor(R.color.active_state);
+        }
 
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             public final View mView;
-            public final ImageView mProfilePic;
-            public final TextView mNotifText;
-            public final TextView mNotifTime;
+            public final ImageView ivProfilePic;
+            public final ImageView ivActiveState;
+            public final TextView tvTime;
+            public final TextView tvSenderName;
+            public final TextView tvLastMsg;
+            public final TextView tvUnreadCount;
 
             public ViewHolder(View view) {
                 super(view);
                 mView = view;
-                mProfilePic = (ImageView) view.findViewById(R.id.ivNotifProfilePic);
-                mNotifText = (TextView) view.findViewById(R.id.tvNotifText);
-                mNotifTime = (TextView) view.findViewById(R.id.tvNotifTime);
+                ivProfilePic = (ImageView) view.findViewById(R.id.ivMsgProfilePic);
+                ivActiveState = (ImageView) view.findViewById(R.id.activeState);
+                tvTime = (TextView) view.findViewById(R.id.tvMsgTime);
+                tvSenderName = (TextView) view.findViewById(R.id.tvMsgSenderName);
+                tvLastMsg = (TextView) view.findViewById(R.id.tvLastMsg);
+                tvUnreadCount = (TextView) view.findViewById(R.id.tvUnreadCount);
             }
         }
     }
