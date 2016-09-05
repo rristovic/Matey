@@ -16,18 +16,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.adapters.BulletinRecyclerViewAdapter;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
-import com.mateyinc.marko.matey.model.Bulletin;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
- * interface.
- */
 public class BulletinsFragment extends Fragment {
 
-    private OnListFragmentInteractionListener mListener;
     private Context mContext;
     private BulletinRecyclerViewAdapter mAdapter;
     private BroadcastReceiver mReceiver;
@@ -42,19 +35,13 @@ public class BulletinsFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
             mContext = context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAdapter = new BulletinRecyclerViewAdapter(mContext, mListener);
+        mAdapter = new BulletinRecyclerViewAdapter(mContext);
     }
 
     @Override
@@ -95,20 +82,5 @@ public class BulletinsFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnListFragmentInteractionListener {
-        void onListFragmentInteraction(Bulletin item);
     }
 }

@@ -6,10 +6,8 @@
     android:layout_marginBottom="@dimen/bulletins_listView_bottomMargin"
     android:background="@color/white"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/bulletins_padding_top"
     android:paddingLeft="@dimen/bulletins_padding_side"
-    android:paddingRight="@dimen/bulletins_padding_side"
-    android:paddingTop="@dimen/bulletins_padding_top">
+    android:paddingRight="@dimen/bulletins_padding_side">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -128,7 +126,7 @@
         android:background="@color/light_gray"></FrameLayout>
 
     <RelativeLayout
-        android:id="@+id/rlCommentReplies"
+        android:id="@+id/rlReplies"
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:layout_marginLeft="5dp"

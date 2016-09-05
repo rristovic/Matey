@@ -4,6 +4,7 @@ package com.mateyinc.marko.matey.model;
  * Created by M4rk0 on 5/15/2016.
  */
 public class UserProfile {
+    private int userId;
     private String firstName;
     private String lastName;
     private String profilePictureLink;
@@ -14,6 +15,20 @@ public class UserProfile {
     private String quoteStatus;
     private int numOfPosts;
     private int numOfFriends;
+
+    public UserProfile(int id){
+        userId = id;
+    }
+
+    public UserProfile(){}
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
     public String getFirstName() {
         return firstName;

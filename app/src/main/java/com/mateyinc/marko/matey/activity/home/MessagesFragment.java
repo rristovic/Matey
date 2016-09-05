@@ -40,7 +40,7 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
 
     // For the data view we're showing only a small subset of the stored data.
     // Specify the columns we need.
-    private static final String[] MESSAGE_COLUMNS = {
+    public static final String[] MESSAGE_COLUMNS = {
             MessageEntry.TABLE_NAME + "." + DataContract.MessageEntry._ID,
             MessageEntry.COLUMN_SENDER_NAME,
             MessageEntry.COLUMN_MSG_BODY,
@@ -50,34 +50,22 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
 
     // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
     // must change.
-    static final int COL_MSG_ID = 0;
-    static final int COL_MSG_SENDER_NAME = 1;
-    static final int COL_MSG_BODY = 2;
-    static final int COL_MSG_TIME = 3;
-    static final int COL_MSG_IS_READ = 4;
+    public static final int COL_MSG_ID = 0;
+    public static final int COL_MSG_SENDER_NAME = 1;
+    public static final int COL_MSG_BODY = 2;
+    public static final int COL_MSG_TIME = 3;
+    public static final int COL_MSG_IS_READ = 4;
 
-    private static final String[] PROFILE_COLUMNS = {
+    public static final String[] PROFILE_COLUMNS = {
             ProfileEntry.TABLE_NAME + "." + ProfileEntry._ID,
             ProfileEntry.COLUMN_NAME,
             ProfileEntry.COLUMN_LAST_MSG_ID
     };
 
-    static final int COL_PROF_ID = 0;
-    static final int COL_PROF_NAME = 1;
-    static final int COL_PROF_LAST_MSG_ID = 2;
+    public static final int COL_PROF_ID = 0;
+    public static final int COL_PROF_NAME = 1;
+    public static final int COL_PROF_LAST_MSG_ID = 2;
 
-
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
-    public interface Callback {
-        /**
-         * NotificationsFragment callback for when an item has been selected.
-         */
-        public void onItemSelected();
-    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the

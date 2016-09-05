@@ -12,23 +12,34 @@ public class Bulletin {
     private String mLastName;
     private Date mDate;
     private String mMessage;
-    private String mPostID;
-    private String mUserID;
+    private int mPostID;
+    private int mUserID;
     private LinkedList<BulletinAttachment> mAttachments;
+    private LinkedList<Reply> mReplies;
 
-    public String getPostID() {
+    public LinkedList<Reply> getReplies() {
+        if (mReplies == null)
+            mReplies = new LinkedList<>();
+        return mReplies;
+    }
+
+    public void setReplies(LinkedList<Reply> mReplies) {
+        this.mReplies = mReplies;
+    }
+
+    public int getPostID() {
         return mPostID;
     }
 
-    public void setPostID(String mPostID) {
+    public void setPostID(int mPostID) {
         this.mPostID = mPostID;
     }
 
-    public String getUserID() {
+    public int getUserID() {
         return mUserID;
     }
 
-    public void setUserID(String mUserID) {
+    public void setUserID(int mUserID) {
         this.mUserID = mUserID;
     }
 
@@ -71,7 +82,7 @@ public class Bulletin {
 
     }
 
-    public void setDate(Date date){
+    public void setDate(Date date) {
         this.mDate = date;
     }
 
@@ -83,10 +94,45 @@ public class Bulletin {
         this.mAttachments = mAttachments;
     }
 
+    public Reply getReplyInstance() {
+        return new Reply();
+    }
+
+    public Interest getInterestInstance() {
+        return new Interest();
+    }
+
     @Override
     public String toString() {
         return "Message: " + mMessage
                 + "; From: " + mFirstName + " " + mLastName
                 + "; Date: " + mDate;
+    }
+
+    public class Reply {
+        public int replyId;
+        public String userFirstName;
+        public String userLastName;
+        public int userId;
+        public String replyDate; // TODO - make date object if needed
+        public String replyText;
+        public LinkedList<UserProfile> replyApproves;
+
+        public Reply() {
+            replyApproves = new LinkedList<>();
+        }
+    }
+
+    public class Interest {
+        public int replyId;
+        public String userFirstName;
+        public String userLastName;
+        public int userId;
+        public String replyDate;
+        public String replyText;
+        public LinkedList<UserProfile> replyApproves;
+
+        public Interest() {
+        }
     }
 }

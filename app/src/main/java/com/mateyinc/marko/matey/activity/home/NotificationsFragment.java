@@ -42,7 +42,7 @@ public class NotificationsFragment extends Fragment implements LoaderManager.Loa
 
     // For the data view we're showing only a small subset of the stored data.
     // Specify the columns we need.
-    private static final String[] NOTIF_COLUMNS = {
+    public static final String[] NOTIF_COLUMNS = {
             NotificationEntry.TABLE_NAME + "." + NotificationEntry._ID,
             NotificationEntry.COLUMN_SENDER_ID,
             NotificationEntry.COLUMN_SENDER_NAME,
@@ -54,25 +54,12 @@ public class NotificationsFragment extends Fragment implements LoaderManager.Loa
 
     // These indices are tied to NOTIF_COUMNS.  If NOTIF_COLUMNS changes, these
     // must change.
-    static final int COL_NOTIF_ID = 0;
-    static final int COL_NOTIF_SENDER_ID = 1;
-    static final int COL_NOTIF_SENDER_NAME = 2;
-    static final int COL_NOTIF_BODY = 3;
-    static final int COL_NOTIF_TIME = 4;
-    static final int COL_NOTIF_LINK_ID = 5;
-
-
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
-    public interface Callback {
-        /**
-         * NotificationsFragment callback for when an item has been selected.
-         */
-        public void onItemSelected();
-    }
+    public static final int COL_NOTIF_ID = 0;
+    public static final int COL_NOTIF_SENDER_ID = 1;
+    public static final int COL_NOTIF_SENDER_NAME = 2;
+    public static final int COL_NOTIF_BODY = 3;
+    public static final int COL_NOTIF_TIME = 4;
+    public static final int COL_NOTIF_LINK_ID = 5;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the

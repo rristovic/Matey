@@ -52,21 +52,34 @@ public class BulletinManager {
         }
     }
 
+    public Bulletin getBulletinByPostID(int id) {
+        synchronized (mLock) {
+            for (Bulletin b :
+                    mData) {
+                if (b != null && b.getPostID() == id) // Can be null because of bulletins first item
+                    return b;
+            }
+        }
+        return null;
+    }
+
     public int getBulletinID(int index) {
         synchronized (mLock) {
             return mData.indexOf(getBulletin(index));
         }
     }
 
-    public int getSize(){
+    public int getSize() {
         return mData.size();
     }
 
-    public void setBulletinsLoaded(boolean isLoaded){
+    public void setBulletinsLoaded(boolean isLoaded) {
         mBulletinsLoaded = isLoaded;
     }
 
-    public boolean isBulletinsLoaded(){
+    public boolean isBulletinsLoaded() {
         return mBulletinsLoaded;
     }
+
+
 }

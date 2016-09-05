@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="@dimen/commentview_padding">
+
+    <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+        android:id="@+id/ivBulletinProfilePic"
+        android:layout_width="@dimen/commentview_pic_size"
+        android:layout_height="@dimen/commentview_pic_size"
+        android:layout_marginEnd="7dp"
+        android:cropToPadding="false"
+        android:scaleType="centerCrop"
+        android:src="@drawable/profile_bg"
+        app:riv_border_color="@color/profile_pic_border"
+        app:riv_border_width="0dp"
+        app:riv_oval="true"
+        android:layout_marginRight="7dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:id="@+id/rlHeading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true">
+
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="Radovan"
+                android:textColor="@color/blue"
+                android:textSize="@dimen/body" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:fontFamily="@string/roboto_light"
+                android:text="New Text"
+                android:textSize="@dimen/info"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:id="@+id/imageView7"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="4dp"
+                android:layout_marginRight="4dp"
+                android:layout_toLeftOf="@+id/tvTime"
+                android:layout_toStartOf="@+id/tvTime"
+                android:src="@drawable/ic_clock"
+                android:tint="@color/light_gray" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tvText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/rlHeading"
+            android:text="Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 "
+            android:textSize="@dimen/body" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/tvText"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tvApproves"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="9 approves"
+                android:textColor="@color/blue"
+                android:textSize="@dimen/info" />
+
+            <ImageView
+                android:id="@+id/ivApprove"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/body"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:cropToPadding="false"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_ahoy" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+
+</LinearLayout>

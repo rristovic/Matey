@@ -63,6 +63,10 @@
     <dimen name="bulletin_pic_height">52dp</dimen>
     <dimen name="bulletin_pic_padding">5dp</dimen>
 
+    <!-- Bulletin Reply dimens -->
+    <dimen name="commentview_padding">12dp</dimen>
+    <dimen name="commentview_pic_size">32dp</dimen>
+
     <!-- Notifications dimens -->
     <dimen name="notif_listView_margin">12dp</dimen>
     <dimen name="notif_listView_dividerHeight">8dp</dimen>
@@ -79,5 +83,7 @@
     <dimen name="msg_profile_dimen">60dp</dimen>
     <dimen name="senderName_topMargin">4dp</dimen>
     <dimen name="msg_activeState_dimen">8dp</dimen>
+
+
 
 </resources>

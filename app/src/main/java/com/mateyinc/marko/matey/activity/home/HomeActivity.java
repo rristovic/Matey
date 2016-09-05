@@ -20,9 +20,8 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
-import com.mateyinc.marko.matey.model.Bulletin;
 
-public class HomeActivity extends InsideActivity implements BulletinsFragment.OnListFragmentInteractionListener, View.OnTouchListener {
+public class HomeActivity extends InsideActivity implements View.OnTouchListener {
 
 
     private FragmentManager mFragmentManager;
@@ -298,13 +297,6 @@ public class HomeActivity extends InsideActivity implements BulletinsFragment.On
             return true;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-
-    @Override
-    public void onListFragmentInteraction(Bulletin item) {
-        Intent i = new Intent(this, ProfileActivity.class);
-        startActivity(i);
     }
 
     // Coloring buttons programmatically instead of in XML

@@ -93,6 +93,8 @@
         <activity
             android:name=".activity.home.InterestsActivity"
             android:label="@string/title_activity_profile" />
+        <activity
+            android:name=".activity.view.BulletinRepliesViewActivity" />
 
 
         <provider

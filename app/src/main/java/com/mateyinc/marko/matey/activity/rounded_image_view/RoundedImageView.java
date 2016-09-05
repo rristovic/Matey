@@ -497,10 +497,6 @@ public class RoundedImageView extends ImageView {
     return mBorderWidth;
   }
 
-  public void setBorderWidth(@DimenRes int resId) {
-    setBorderWidth(getResources().getDimension(resId));
-  }
-
   public void setBorderWidth(float width) {
     if (mBorderWidth == width) { return; }
 
