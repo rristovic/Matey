@@ -16,6 +16,7 @@ import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.animation.AccelerateInterpolator;
@@ -157,16 +158,36 @@ public class MainActivity extends MotherActivity {
 
 
 
+//    @Override
+//    protected void onDestroy() {
+////        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+////        isReceiverRegistered = false;
+//        super.onDestroy();
+//
+////        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
+////            tommy.cancel(true);
+////        }
+//
+//    }
+
     @Override
     protected void onDestroy() {
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-//        isReceiverRegistered = false;
         super.onDestroy();
+        Log.d(TAG,"entered onDestroy()");
+        unbindDrawables(rlMain);
+        System.gc();
+    }
 
-//        if (tommy.getStatus() != AsyncTask.Status.FINISHED) {
-//            tommy.cancel(true);
-//        }
-
+    private void unbindDrawables(View view) {
+        if (view.getBackground() != null) {
+            view.getBackground().setCallback(null);
+        }
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                unbindDrawables(((ViewGroup) view).getChildAt(i));
+            }
+            ((ViewGroup) view).removeAllViews();
+        }
     }
 
     private void init() {

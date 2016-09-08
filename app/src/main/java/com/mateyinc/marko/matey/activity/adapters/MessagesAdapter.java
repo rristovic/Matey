@@ -104,6 +104,21 @@ public class MessagesAdapter extends CursorAdapter {
         return mContext.getResources().getColor(R.color.active_state);
     }
 
+    // TODO - change cursoradapter to recycle adapter with these methods
+//    @override
+//    public int getItemCount(){
+//        if( null == mCursor)return 0;
+//        return mCursor.getCount()
+//    }
+//    public void swapCursor(Cursor newCursor){
+//        mCursor = newCursor;
+//        notifyDataSetChanged();
+//    }
+//
+//    public Cursor getCursor(){
+//        return mCursor;
+//    }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;

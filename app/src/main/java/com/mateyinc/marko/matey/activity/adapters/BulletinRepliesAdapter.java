@@ -15,6 +15,7 @@ import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.LinkedList;
+import java.util.Locale;
 
 /**
  * Created by Sarma on 9/5/2016.
@@ -58,18 +59,20 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
         View view = LayoutInflater.from(mContext)
                 .inflate(R.layout.bulletin_replies_list_item, parent, false);
 
-        return new ViewHolder(view, new ViewHolder.ViewHoledClicks() { // Implemented ViewHolderClicks interface from view holder to handle the clicks
+        // Implemented ViewHolderClickListener interface from view holder to handle the clicks
+        return new ViewHolder(view, new ViewHolder.ViewHolderClickListener() {
             public void onApproveClicked(View caller, View rootView) {
-                int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
-                 LinkedList list = mData.get(position).replyApproves;
-                if(list.contains(mCurUserProfile)){ // Unlike
-                    list.remove(mCurUserProfile);
-                    ((ImageView)caller).setColorFilter(mResources.getColor(R.color.light_gray));
-                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-                }else { // Like
-                    list.add(mCurUserProfile); // adding Reply to bulletin
-                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-                }
+                    int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
+                    Bulletin.Reply r = mData.get(position);
+                    LinkedList list = r.replyApproves;
+                    if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
+                        r.removeReplyApproveWithId(mCurUserProfile.getUserId());
+                        ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray));
+                        BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
+                    } else { // Like
+                        list.add(mCurUserProfile); // adding Reply to bulletin
+                        BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
+                    }
             }
         });
 
@@ -84,11 +87,12 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
         mHolder.tvName.setText(text);
         mHolder.tvDate.setText(reply.replyDate);
         mHolder.tvMessage.setText(reply.replyText);
-        text = reply.replyApproves.size() + " approves";
+        text = "%d "+ mContext.getString(R.string.reply_approve);
+        text = String.format(Locale.US, text, reply.replyApproves.size());
         mHolder.tvApproves.setText(text);
 
         // Check if current user has liked the comment
-        if(reply.replyApproves.contains(mCurUserProfile)){
+        if (reply.hasReplyApproveWithId(mCurUserProfile.getUserId())) {
             mHolder.ivApprove.setColorFilter(mResources.getColor(R.color.blue));
         }
 
@@ -99,16 +103,16 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
         return mData.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public final View mView;
         public final TextView tvMessage;
         public final TextView tvName;
         public final TextView tvDate;
         public final TextView tvApproves;
         public final ImageView ivApprove;
-        private final ViewHoledClicks mListener;
+        private final ViewHolderClickListener mListener;
 
-        public ViewHolder(View view, ViewHoledClicks listener) {
+        public ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
             tvMessage = (TextView) view.findViewById(R.id.tvText);
@@ -130,8 +134,8 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
 //            }
         }
 
-        public static interface ViewHoledClicks {
-            public void onApproveClicked(View caller, View rootView);
+        protected interface ViewHolderClickListener {
+            void onApproveClicked(View caller, View rootView);
         }
     }
 }

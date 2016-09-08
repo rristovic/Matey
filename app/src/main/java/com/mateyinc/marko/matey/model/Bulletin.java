@@ -102,6 +102,7 @@ public class Bulletin {
         return new Interest();
     }
 
+
     @Override
     public String toString() {
         return "Message: " + mMessage
@@ -120,6 +121,26 @@ public class Bulletin {
 
         public Reply() {
             replyApproves = new LinkedList<>();
+        }
+
+        public boolean hasReplyApproveWithId(int id){
+            for (UserProfile p :
+                    replyApproves) {
+                if (p != null && p.getUserId() == id)
+                    return true;
+            }
+            return false;
+        }
+
+        public boolean removeReplyApproveWithId(int id){
+            for (UserProfile p :
+                    replyApproves) {
+                if (p != null && p.getUserId() == id) {
+                    replyApproves.remove();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

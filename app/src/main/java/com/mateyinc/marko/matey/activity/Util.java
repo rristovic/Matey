@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.util.TypedValue;
 
+import com.mateyinc.marko.matey.model.UserProfile;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,5 +91,16 @@ public class Util {
 
     public static int getDp(int value, Resources res) {
         return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, res.getDisplayMetrics());
+    }
+
+    public static UserProfile getCurrentUserProfile() {
+        // TODO - finish method
+        UserProfile profile = new UserProfile();
+        profile.setFirstName("Radovan");
+        profile.setLastName("Ristovic");
+        profile.setBirthday(new Date().toString());
+        profile.setUserId(-1);
+
+        return profile;
     }
 }

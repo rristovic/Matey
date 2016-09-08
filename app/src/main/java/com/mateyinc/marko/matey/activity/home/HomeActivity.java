@@ -23,7 +23,7 @@ import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
 public class HomeActivity extends InsideActivity implements View.OnTouchListener {
 
-
+    private SearchFragment mSearchFragment;
     private FragmentManager mFragmentManager;
     private BulletinsFragment mBulletinsFragment;
     private NotificationsFragment mNotificationsFragment;
@@ -46,6 +46,7 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
     private final static String MESSAGES_FRAG_TAG = "MESSAGES";
     private final static String FRIENDS_FRAG_TAG = "FRIENDS";
     private final static String MENU_FRAG_TAG = "MENU";
+    private final static String SEARCH_FRAG_TAG = "MENU";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +138,11 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
                         return true;
                     }
                 });
+
+                if (mSearchFragment == null)
+                    mSearchFragment = new SearchFragment();
+                getSupportFragmentManager().beginTransaction().addToBackStack(null)
+                        .replace(R.id.homeContainer, mSearchFragment).commit();
 
             }
         });
@@ -244,6 +250,9 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }
+
+        // Close search fragment
+        getSupportFragmentManager().popBackStack();
     }
 
     private void changeNavIconColor() {

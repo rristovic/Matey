@@ -12,7 +12,8 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
-        android:layout_marginBottom="6dp">
+        android:layout_marginBottom="6dp"
+        android:layout_marginTop="6dp">
 
         <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
             android:id="@+id/ivBulletinProfilePic"
@@ -22,10 +23,10 @@
             android:layout_marginEnd="5dp"
             android:padding="@dimen/bulletin_pic_padding"
             android:scaleType="centerCrop"
-            android:src="@drawable/profile_bg"
             app:riv_border_color="@color/profile_pic_border"
             app:riv_border_width="0dp"
-            app:riv_oval="true" />
+            app:riv_oval="true"
+            android:src="@drawable/empty_photo" />
 
         <TextView
             android:id="@+id/tvName"
@@ -126,14 +127,13 @@
         android:background="@color/light_gray"></FrameLayout>
 
     <RelativeLayout
-        android:id="@+id/rlReplies"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="38dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp">
 
         <LinearLayout
-            android:id="@+id/btnReply"
+            android:id="@+id/llReply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -161,6 +161,12 @@
                 android:textColor="@color/gray"
                 android:textSize="@dimen/subHeading" />
         </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/rlReplies"
+            android:layout_toLeftOf="@+id/llReply"></RelativeLayout>
 
     </RelativeLayout>
 

@@ -11,6 +11,9 @@ import java.util.ArrayList;
  */
 public class BulletinManager {
     public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.internet.home.bulletins_loaded";
+    public static final String BULLETIN_ITEM_UPDATED = "com.mateyinc.marko.matey.internet.home.bulletin_item_updated";
+    public static final String EXTRA_ITEM_CHANGED_POS = "item_changed_position"; // extra for the bulletin_item_updated intent
+
     private final ArrayList<Bulletin> mData;
     private final Context mAppContext;
     private boolean mBulletinsLoaded;
@@ -61,6 +64,12 @@ public class BulletinManager {
             }
         }
         return null;
+    }
+
+    public int getBulletinIndex(Bulletin b){
+        synchronized (mLock){
+            return mData.indexOf(b);
+        }
     }
 
     public int getBulletinID(int index) {

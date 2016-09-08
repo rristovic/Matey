@@ -2,8 +2,11 @@ package com.mateyinc.marko.matey.activity.home;
 
 
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,14 +51,14 @@ public class SearchFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-//        mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
-//        TabLayout tabs = (TabLayout) rootView.findViewById(R.id.tlSearchTab);
-//        ViewPager pager = (ViewPager) rootView.findViewById(R.id.vpSearchPager);
-//
-//        pager.setAdapter(mSectionsPagerAdapter);
-//        tabs.setupWithViewPager(pager);
+//         Create the adapter that will return a fragment for each of the three
+//         primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
+        TabLayout tabs = (TabLayout) rootView.findViewById(R.id.tlSearchTab);
+        ViewPager pager = (ViewPager) rootView.findViewById(R.id.vpSearchPager);
+
+        pager.setAdapter(mSectionsPagerAdapter);
+        tabs.setupWithViewPager(pager);
 
         // Iterate over all tabs and set the custom tab view
 //        for (int i = 0; i < tabs.getTabCount(); i++) {
@@ -66,17 +69,17 @@ public class SearchFragment extends Fragment {
         return rootView;
     }
 
-    // Destroy childFragmentManager
     @Override
     public void onDetach() {
         super.onDetach();
-
-        if (sChildFragmentManagerField != null) {
-            try {
-                sChildFragmentManagerField.set(this, null);
-            } catch (Exception e) {
-                Log.e(LOGTAG, "Error setting mChildFragmentManager field", e);
-            }
+        try {
+            Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
+            childFragmentManager.setAccessible(true);
+            childFragmentManager.set(this, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -136,6 +139,10 @@ public class SearchFragment extends Fragment {
             super(fm);
         }
 
+        @Override
+        public void restoreState(Parcelable arg0, ClassLoader arg1) {
+            //do nothing here! no call to super.restoreState(arg0, arg1);
+        }
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
