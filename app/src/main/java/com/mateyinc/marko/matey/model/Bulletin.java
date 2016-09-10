@@ -110,6 +110,14 @@ public class Bulletin {
                 + "; Date: " + mDate;
     }
 
+    public LinkedList<Reply> setReplies(String string) {
+        return null; // TODO - finish method
+    }
+
+    public LinkedList<Attachment> setAttachments(String string) {
+        return null; // TODO - finish method
+    }
+
     public class Reply {
         public int replyId;
         public String userFirstName;
@@ -154,6 +162,19 @@ public class Bulletin {
         public LinkedList<UserProfile> replyApproves;
 
         public Interest() {
+        }
+    }
+
+    public class Attachment {
+        public int replyId;
+        public String userFirstName;
+        public String userLastName;
+        public int userId;
+        public String replyDate;
+        public String replyText;
+        public LinkedList<UserProfile> replyApproves;
+
+        public Attachment() {
         }
     }
 }

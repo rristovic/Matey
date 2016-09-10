@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -24,16 +25,15 @@ import java.net.URLEncoder;
  */
 public class UserProfileAs extends AsyncTask<String, Void, String> {
 
+    private final BulletinManager mManager;
     MotherActivity activity;
-    private UserProfile userProfile;
-
-    public UserProfileAs(MotherActivity activity) {
-        this.activity = activity;
-    }
+    private WeakReference<UserProfile> mUserProfile;
+    private int mUserId;
 
     public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile) {
         this.activity = activity;
-        this.userProfile = userProfile.get();
+        this.mUserProfile = userProfile;
+        mManager = BulletinManager.getInstance(activity);
     }
 
     @Override
@@ -45,6 +45,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
             String uid = params[1];
             String device_id = params[2];
             String requested_user_id = params[3];
+            mUserId = Integer.parseInt(user_id);
 
             try {
 
@@ -54,13 +55,9 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         URLEncoder.encode("requested_user_id", "UTF-8") + "=" + URLEncoder.encode(requested_user_id, "UTF-8");
                 HTTP http = new HTTP(UrlData.REQUEST_USER_PROFILE, "POST");
 
-                if (http.sendPost(data)) return http.getData();
-
-
+                if (!isCancelled() && http.sendPost(data)) return http.getData();
             } catch (Exception e) {
-
                 return null;
-
             }
 
         }
@@ -75,9 +72,12 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
         try {
 
             // if there is some result check if successful
-            if (result != null) {
+            if (!isCancelled() && result != null) {
 
                 JSONObject jsonObject = new JSONObject(result);
+
+                UserProfile profile = mUserProfile.get();
+                setPreDownloadedData(profile);
 
                 // if successful, set everything to SecurePreferences
                 if (jsonObject.getBoolean("success")) {
@@ -87,18 +87,18 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
 
                     JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
-                    if (userProfile != null) {
+                    if (mUserProfile.get() != null) {
 
-                        userProfile.setFirstName(dataObj.getString("first_name"));
-                        userProfile.setLastName(dataObj.getString("last_name"));
-                        userProfile.setBirthday(dataObj.getString("birthday"));
-                        userProfile.setGender(dataObj.getString("gender"));
-                        userProfile.setHometown(dataObj.getString("hometown"));
-                        userProfile.setLocation(dataObj.getString("location"));
-                        userProfile.setProfilePictureLink(dataObj.getString("profile_picture_link"));
-                        userProfile.setQuoteStatus(dataObj.getString("quote_status"));
-                        userProfile.setNumOfFriends(dataObj.getInt("num_of_friends"));
-                        userProfile.setNumOfPosts(dataObj.getInt("num_of_posts"));
+                        profile.setFirstName(dataObj.getString("first_name"));
+                        profile.setLastName(dataObj.getString("last_name"));
+                        profile.setBirthday(dataObj.getString("birthday"));
+                        profile.setGender(dataObj.getString("gender"));
+                        profile.setHometown(dataObj.getString("hometown"));
+                        profile.setLocation(dataObj.getString("location"));
+                        profile.setProfilePictureLink(dataObj.getString("profile_picture_link"));
+                        profile.setQuoteStatus(dataObj.getString("quote_status"));
+                        profile.setNumOfFriends(dataObj.getInt("num_of_friends"));
+                        profile.setNumOfPosts(dataObj.getInt("num_of_posts"));
 
                         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
                         broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
@@ -113,7 +113,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                     activity.startActivity(intent);
                     activity.finish();
 
-                } else if (!jsonObject.getBoolean("success")) {
+                } else if (!isCancelled() && !jsonObject.getBoolean("success")) {
 
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
@@ -121,11 +121,25 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
 
                 } else throw new Exception();
 
-            } else throw new Exception();
+            } else if (!isCancelled())
+                throw new Exception();
 
         } catch (Exception e) {
-            activity.showDialog(1000);
+            if (!isCancelled())
+                activity.showDialog(1000);
         }
 
     }
+
+    private void setPreDownloadedData(UserProfile profile) {
+        profile.setFirstName("Radovan"); // TODO - finish from cursor
+    }
+
+    @Override
+    protected void onCancelled(String result) {
+        activity = null;
+        mUserProfile = null;
+    }
+
+
 }

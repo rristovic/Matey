@@ -19,6 +19,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.MessageEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.ProfileEntry;
@@ -66,18 +67,30 @@ public class DbHelper extends SQLiteOpenHelper {
                 " );";
 
         final String SQL_CREATE_PROFILE_TABLE = "CREATE TABLE " + ProfileEntry.TABLE_NAME + " (" +
-                ProfileEntry._ID + " INTEGER, " +
+                ProfileEntry._ID + " INTEGER NOT NULL, " +
                 ProfileEntry.COLUMN_NAME + " TEXT NOT NULL, " +
-                ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER, " +
-                " UNIQUE (" + ProfileEntry.COLUMN_NAME +
-                ") ON CONFLICT REPLACE " +
+                ProfileEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER " +
                 ");";
 
+        final String SQL_CREATE_BULLETIN_TABLE = "CREATE TABLE " + BulletinEntry.TABLE_NAME + " (" +
+                BulletinEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
+                BulletinEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
+                BulletinEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_DATE + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_REPLIES + " TEXT, " +
+                BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +
+                // Set up the sender_id column as a foreign key to profile table.
+                "FOREIGN KEY (" + BulletinEntry.COLUMN_USER_ID + ") REFERENCES " +
+                ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID +
+                ") );";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MSG_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PROFILE_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_NOTIF_TABLE);
-
+        sqLiteDatabase.execSQL(SQL_CREATE_BULLETIN_TABLE);
     }
 
     @Override
@@ -85,6 +98,7 @@ public class DbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + NotificationEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ProfileEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + BulletinEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }

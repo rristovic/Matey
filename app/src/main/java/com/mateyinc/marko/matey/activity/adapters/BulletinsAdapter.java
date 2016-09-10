@@ -27,7 +27,7 @@ import com.mateyinc.marko.matey.model.Bulletin;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final ArrayList<Bulletin> mData;
     private final Context mContext;
@@ -36,7 +36,7 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     private static final int ITEM = 2;
     private final RecyclerView rvList;
 
-    public BulletinRecyclerViewAdapter(Context context, RecyclerView view) {
+    public BulletinsAdapter(Context context, RecyclerView view) {
         mContext = context;
         mManager = BulletinManager.getInstance(context);
         mData = mManager.getBulletinList();
@@ -51,23 +51,7 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                         .inflate(R.layout.bulletin_list_item, parent, false);
 
                 // Implementing ViewHolderClickListener and returning view holder
-                return new ViewHolder(view, new ViewHolder.ViewHolderClickListener() {
-
-                    public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
-                        int position = rvList.getChildAdapterPosition(rootView); // Get child position in adapter
-
-                        if(onlyShowReplies) {
-                            Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                            i.putExtra(BulletinRepliesViewActivity.EXTRA_POST_ID, mData.get(position).getPostID());
-                            mContext.startActivity(i);
-                        }else{
-                            Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                            i.putExtra(BulletinRepliesViewActivity.EXTRA_POST_ID, mData.get(position).getPostID());
-                            i.putExtra(BulletinRepliesViewActivity.EXTRA_SHOW_REPLIES, true);
-                            mContext.startActivity(i);
-                        }
-                    }
-                });
+                return new ViewHolder(view, getViewHolderListener());
             }
             case FIRST_ITEM: {
                 View view = LayoutInflater.from(mContext)
@@ -79,12 +63,46 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         }
     }
 
+    private ViewHolder.ViewHolderClickListener getViewHolderListener() {
+        return new ViewHolder.ViewHolderClickListener() {
+
+            public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
+                int position = rvList.getChildAdapterPosition(rootView); // Get child position in adapter
+
+                if (onlyShowReplies) {
+                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_POST_ID, mData.get(position).getPostID());
+                    mContext.startActivity(i);
+                } else {
+                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_POST_ID, mData.get(position).getPostID());
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
+                    mContext.startActivity(i);
+                }
+            }
+
+            @Override
+            public void onMsgClick(TextView mMessage, View rootView) {
+                // TODO - finish method
+            }
+
+            @Override
+            public void onNameClick(TextView mName, View rootView) {
+                int position = rvList.getChildAdapterPosition(rootView); // Get child position in adapter
+
+                Intent i = new Intent(mContext,ProfileActivity.class);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(position).getUserID());
+                mContext.startActivity(i);
+            }
+        };
+    }
+
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         switch (getItemViewType(position)) {
             // Parsing data to views if available
             case ITEM: {
-                BulletinRecyclerViewAdapter.ViewHolder holder = (ViewHolder) mHolder;
+                BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
                 Bulletin bulletin = mManager.getBulletin(position);
                 try {
                     holder.mMessage.setText(bulletin.getMessage());
@@ -163,7 +181,7 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                 break;
             }
             case FIRST_ITEM: {
-                BulletinRecyclerViewAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
+                BulletinsAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
                 holder.ivProfilePic.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -201,7 +219,9 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             super(view);
             mView = view;
             mMessage = (TextView) view.findViewById(R.id.tvMessage);
+            mMessage.setTag("msg");
             mName = (TextView) view.findViewById(R.id.tvName);
+            mName.setTag("name");
             mDate = (TextView) view.findViewById(R.id.tvDate);
             rlReplies = (RelativeLayout) view.findViewById(R.id.rlReplies);
             btnReply = (LinearLayout) view.findViewById(R.id.llReply);
@@ -209,16 +229,28 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
             rlReplies.setOnClickListener(this);
             btnReply.setOnClickListener(this);
+            mMessage.setOnClickListener(this);
+            mName.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            if(v instanceof RelativeLayout) {
+            if (v instanceof RelativeLayout) {
                 int c = ((RelativeLayout) v).getChildCount();
                 if (c > 0) // Only open if there are comments present
                     mListener.onRepliesClick(rlReplies, mView, true);
-            }else if(v instanceof LinearLayout){
+                return;
+            } else if (v instanceof LinearLayout) {
                 mListener.onRepliesClick(btnReply, mView, false);
+                return;
+            }
+
+            String tag = v.getTag().toString();
+            if (tag.equals("msg")) {
+                mListener.onMsgClick(mMessage, mView);
+            } else if (tag.equals("name")) {
+                mListener.onNameClick(mName, mView);
+                Log.d(BulletinsAdapter.class.getSimpleName(),"onNameClick();");
             }
 
 
@@ -226,6 +258,10 @@ public class BulletinRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
         protected interface ViewHolderClickListener {
             void onRepliesClick(View caller, View rootView, boolean onlyShowReplies);
+
+            void onMsgClick(TextView mMessage, View mView);
+
+            void onNameClick(TextView mName, View mView);
         }
     }
 

@@ -5,9 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Window;
 import android.widget.ImageView;
@@ -27,12 +27,14 @@ import java.lang.ref.WeakReference;
 
 public class ProfileActivity extends MotherActivity {
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
+    public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
     private TextView tvName;
     private ImageView ivProfilePic;
-    private String mUserId;
+    private int mUserId;
     private ImageLoader mImageLoader;
     private UserProfile mUserProfile;
     private BroadcastReceiver mBroadcastReceiver;
+    private UserProfileAs mUserProfileAs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,14 +55,10 @@ public class ProfileActivity extends MotherActivity {
         mUserProfile = new UserProfile();
         initUIL();
 
-        if (getIntent().hasExtra("user_id"))
-            mUserId = getIntent().getExtras().getString("user_id");
+        if (getIntent().hasExtra(EXTRA_PROFILE_ID))
+            mUserId = getIntent().getIntExtra(EXTRA_PROFILE_ID, -1);
 
-        UserProfileAs userProfileAsAs = new UserProfileAs(this, new WeakReference<>(mUserProfile));
-        userProfileAsAs.execute(securePreferences.getString("user_id"),
-                securePreferences.getString("uid"),
-                securePreferences.getString("device_id")
-                , mUserId);
+        mUserProfileAs = new UserProfileAs(this, new WeakReference<>(mUserProfile));
 
         mBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -76,12 +74,23 @@ public class ProfileActivity extends MotherActivity {
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.registerReceiver(mBroadcastReceiver, new IntentFilter(PROFILE_DOWNLOADED));
 
+        // Start downloading data
+        mUserProfileAs.execute(securePreferences.getString("user_id"),
+                securePreferences.getString("uid"),
+                securePreferences.getString("device_id")
+                , Integer.toString(mUserId));
     }
 
     @Override
     protected void onPause() {
         if (mBroadcastReceiver != null)
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+
+        // Stop downloading data if it isn't complete
+        if (mUserProfileAs.getStatus() == AsyncTask.Status.RUNNING) {
+            mUserProfileAs.cancel(true);
+            Log.d(ProfileActivity.class.getSimpleName(), "userProfile info downloading stopped.");
+        }
         super.onPause();
     }
 
@@ -103,7 +112,7 @@ public class ProfileActivity extends MotherActivity {
     }
 
     private void setData() {
-        Log.d("ProfileActivity","Data is set.");
+        Log.d("ProfileActivity", "Data is set.");
         //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
         tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
     }

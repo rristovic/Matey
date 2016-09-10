@@ -13,14 +13,16 @@ public class UserProfile {
     private String hometown;
     private String location;
     private String quoteStatus;
+    private int lastMsgId;
     private int numOfPosts;
     private int numOfFriends;
 
-    public UserProfile(int id){
+    public UserProfile(int id) {
         userId = id;
     }
 
-    public UserProfile(){}
+    public UserProfile() {
+    }
 
     public int getUserId() {
         return userId;
@@ -108,5 +110,13 @@ public class UserProfile {
 
     public void setNumOfFriends(int numOfFriends) {
         this.numOfFriends = numOfFriends;
+    }
+
+    public void setLastMsgId(int msgId) {
+        lastMsgId = msgId;
+    }
+
+    public int getLastMsgId() {
+        return lastMsgId;
     }
 }

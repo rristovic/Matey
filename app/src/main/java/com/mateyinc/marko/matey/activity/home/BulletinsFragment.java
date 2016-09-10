@@ -15,14 +15,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.adapters.BulletinRecyclerViewAdapter;
+import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
 public class BulletinsFragment extends Fragment {
 
     private Context mContext;
-    private BulletinRecyclerViewAdapter mAdapter;
+    private BulletinsAdapter mAdapter;
     private BroadcastReceiver mDataDownloaded;
     private RecyclerView mRecycleView;
     private EndlessScrollListener mScrollListener;
@@ -47,7 +47,7 @@ public class BulletinsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_bulletins, container, false);
-        mAdapter = new BulletinRecyclerViewAdapter(mContext, (RecyclerView) view);
+        mAdapter = new BulletinsAdapter(mContext, (RecyclerView) view);
 
         // Set the adapter
         Context context = view.getContext();

@@ -34,8 +34,10 @@ public class DataProvider extends ContentProvider {
     static final int MESSAGE_WITH_ID = 101;
     static final int NOTIFICATIONS = 200;
     static final int NOTIFICATION_WITH_ID = 201;
-    static final int PROFILE = 300;
+    static final int PROFILES = 300;
     static final int PROFILE_WITH_ID = 301;
+    static final int BULLETINS = 400;
+    static final int BULLETIN_WITH_ID = 401;
 
 
     private String sNotificationIdSelection = DataContract.NotificationEntry.TABLE_NAME +
@@ -57,7 +59,6 @@ public class DataProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
-            // Student: Uncomment and fill out these two cases
             case MESSAGES:
                 return DataContract.MessageEntry.CONTENT_TYPE;
             case MESSAGE_WITH_ID:
@@ -66,10 +67,14 @@ public class DataProvider extends ContentProvider {
                 return DataContract.NotificationEntry.CONTENT_TYPE;
             case NOTIFICATION_WITH_ID:
                 return DataContract.NotificationEntry.CONTENT_ITEM_TYPE;
-            case PROFILE:
-                return DataContract.NotificationEntry.CONTENT_TYPE;
+            case PROFILES:
+                return DataContract.ProfileEntry.CONTENT_TYPE;
             case PROFILE_WITH_ID:
-                return DataContract.NotificationEntry.CONTENT_ITEM_TYPE;
+                return DataContract.ProfileEntry.CONTENT_ITEM_TYPE;
+            case BULLETINS:
+                return DataContract.BulletinEntry.CONTENT_TYPE;
+            case BULLETIN_WITH_ID:
+                return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -119,7 +124,7 @@ public class DataProvider extends ContentProvider {
                 break;
             }
             // "profile"
-            case PROFILE: {
+            case PROFILES: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         DataContract.ProfileEntry.TABLE_NAME,
                         projection,
@@ -134,6 +139,23 @@ public class DataProvider extends ContentProvider {
             // "profile/*"
             case PROFILE_WITH_ID: {
                 retCursor = getProfileByID(uri, projection, sortOrder);
+                break;
+            } // "bulletins"
+            case BULLETINS: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        DataContract.BulletinEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            // "bulletins/*"
+            case BULLETIN_WITH_ID: {
+                retCursor = getBulletinByID(uri, projection, sortOrder);
                 break;
             }
 
@@ -155,6 +177,11 @@ public class DataProvider extends ContentProvider {
     }
 
     private Cursor getMessageByID(Uri uri, String[] projection, String sortOrder) {
+        // TODO - finish function by ID
+        return null;
+    }
+
+    private Cursor getBulletinByID(Uri uri, String[] projection, String sortOrder) {
         // TODO - finish function by ID
         return null;
     }
@@ -183,7 +210,7 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case PROFILE: {
+            case PROFILES: {
                 long _id = db.insert(DataContract.ProfileEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = DataContract.ProfileEntry.buildPorfileUri(_id);
@@ -191,6 +218,15 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case BULLETINS: {
+                long _id = db.insert(DataContract.BulletinEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = DataContract.BulletinEntry.buildBulletinUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case BULLETIN_WITH_ID:
             case MESSAGE_WITH_ID: // TODO - finish insert with id
             case NOTIFICATION_WITH_ID:
             case PROFILE_WITH_ID:
@@ -217,9 +253,13 @@ public class DataProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         DataContract.NotificationEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-            case PROFILE:
+            case PROFILES:
                 rowsDeleted = db.delete(
                         DataContract.ProfileEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case BULLETINS:
+                rowsDeleted = db.delete(
+                        DataContract.BulletinEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -246,8 +286,12 @@ public class DataProvider extends ContentProvider {
                 rowsUpdated = db.update(DataContract.NotificationEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
-            case PROFILE:
+            case PROFILES:
                 rowsUpdated = db.update(DataContract.ProfileEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case BULLETINS:
+                rowsUpdated = db.update(DataContract.BulletinEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             default:
@@ -298,7 +342,7 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case PROFILE:
+            case PROFILES: {
                 db.beginTransaction();
                 int returnCount = 0;
                 try {
@@ -314,6 +358,24 @@ public class DataProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
+            }
+            case BULLETINS: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(DataContract.BulletinEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
             default:
                 return super.bulkInsert(uri, values);
         }
@@ -328,8 +390,10 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_MESSAGES + "/*", MESSAGE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS, NOTIFICATIONS);
         matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS + "/*", NOTIFICATION_WITH_ID);
-        matcher.addURI(authority, DataContract.PATH_PROFILE, PROFILE);
-        matcher.addURI(authority, DataContract.PATH_PROFILE + "/*", PROFILE_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_PROFILES, PROFILES);
+        matcher.addURI(authority, DataContract.PATH_PROFILES + "/*", PROFILE_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_BULLETINS, BULLETINS);
+        matcher.addURI(authority, DataContract.PATH_BULLETINS + "/*", BULLETIN_WITH_ID);
 
         return matcher;
     }

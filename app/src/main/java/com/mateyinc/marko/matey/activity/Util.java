@@ -22,7 +22,7 @@ public class Util {
         // TODO - Get correct day with timezone
         Date now = new Date();
         int hour = Math.round(now.getTime() - date.getTime()) / (1000 * 60 * 60);
-        if (hour > 24)
+        if (hour >= 24)
             return hour / 24 + " days ago";
         else if (hour >= 1)
             return hour + " hours ago";
@@ -39,7 +39,7 @@ public class Util {
         // TODO - Get correct day with timezone
         Date now = new Date();
         int hour = Math.round(now.getTime() - d.getTime()) / (1000 * 60 * 60);
-        if (hour > 24)
+        if (hour >= 24)
             return hour / 24 + " days ago";
         else if (hour >= 1)
             return hour + " hours ago";

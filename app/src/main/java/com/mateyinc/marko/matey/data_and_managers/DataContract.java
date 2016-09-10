@@ -36,8 +36,10 @@ public class DataContract {
     // For instance, content://com.mateyinc.marko.matey/messages/ is a valid path for
     // looking at messages data.
     public static final String PATH_MESSAGES = "messages";
-    public static final String PATH_NOTIFICATIONS = "notification";
-    public static final String PATH_PROFILE = "profile";
+    public static final String PATH_NOTIFICATIONS = "notifications";
+    public static final String PATH_PROFILES = "profiles";
+    public static final String PATH_BULLETINS = "bulletins";
+
 
 
     /* Inner class that defines the table contents of the messages table */
@@ -100,23 +102,52 @@ public class DataContract {
     public static final class ProfileEntry implements BaseColumns {
 
         public static final Uri CONTENT_URI =
-                BASE_CONTENT_URI.buildUpon().appendPath(PATH_PROFILE).build();
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_PROFILES).build();
 
         public static final String CONTENT_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_PROFILE;
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_PROFILES;
         public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_PROFILE;
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_PROFILES;
 
         public static final String TABLE_NAME = "profiles";
 
         // Adding columns DbHelper create table command  must be changed also
-        public static final String COLUMN_NAME = "profile_name";
+        public static final String COLUMN_NAME = "first_name";
+        public static final String COLUMN_LAST_NAME = "last_name";
         public static final String COLUMN_LAST_MSG_ID = "profile_last_msg_id";
 //        public static final String _ID = "id"
 
 
 
         public static Uri buildPorfileUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+    }
+
+    public static final class BulletinEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_BULLETINS).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_BULLETINS;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_BULLETINS;
+
+        public static final String TABLE_NAME = "bulletins";
+
+        // Adding columns DbHelper create table command  must be changed also
+        public static final String COLUMN_POST_ID = "post_id";
+        public static final String COLUMN_USER_ID = "user_id";
+        public static final String COLUMN_FIRST_NAME = "first_name";
+        public static final String COLUMN_LAST_NAME = "last_name";
+        public static final String COLUMN_TEXT = "post_text";
+        public static final String COLUMN_DATE = "post_date";
+        public static final String COLUMN_ATTACHMENTS = "post_attachments";
+        public static final String COLUMN_REPLIES = "post_replies";
+
+        public static Uri buildBulletinUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 

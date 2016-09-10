@@ -18,7 +18,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 
@@ -127,19 +126,11 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         int namesSize = Util.names.length;
         int lNamesSize = Util.lastNames.length;
 
-        ArrayList<UserProfile> friends = mDataManager.mFriendsList;
         for (int i = 0; i < HomeActivity.mCurUser.getNumOfFriends(); i++) {
             // TODO - define what gets saved and what not
             // For now only name and id
 
-            UserProfile friend = new UserProfile(i);
-            friend.setFirstName(Util.names[r.nextInt(namesSize)]);
-            friend.setLastName(Util.lastNames[r.nextInt(lNamesSize)]);
-
-            mDataManager.mFriendsList.add(friend);
-            Log.d("BulletinAs", "Dummy friend added: ID=" + friend.getUserId() +
-                    "; Name=" + friend.getFirstName() + "; LastName=" + friend.getLastName() + ";");
-
+            mDataManager.addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)], null);
         }
     }
 
@@ -201,14 +192,13 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         try {
             mBulletinManager.addNullBulletin();
             Random random = new Random();
-            ArrayList<UserProfile> friends = mDataManager.mFriendsList;
             int itemDownloaded = 0;
 
             for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
 
-                UserProfile friend = friends.get(random.nextInt(HomeActivity.mCurUser.getNumOfFriends()));
+                UserProfile friend = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
                 Date date = new Date();
-                date.setTime(date.getTime() - random.nextInt(DataManager.ONE_DAY) - DataManager.ONE_DAY * BulletinManager.mCurrentPage);
+                date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * BulletinManager.mCurrentPage);
 
                 Bulletin bulletin = new Bulletin();
                 bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * BulletinManager.mCurrentPage);
@@ -220,7 +210,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                 for (int j = 0; j < random.nextInt(20); j++) {
 
-                    UserProfile friendReplied = friends.get(random.nextInt(HomeActivity.mCurUser.getNumOfFriends()));
+                    UserProfile friendReplied = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
                     Bulletin.Reply r = bulletin.getReplyInstance();
 
                     r.replyId = Integer.parseInt(Integer.toString(i) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
@@ -231,7 +221,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                     r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * BulletinManager.mCurrentPage).toString();
 
                     for (int k = 0; k < random.nextInt(5); k++) {
-                        r.replyApproves.add(new UserProfile(random.nextInt(mDataManager.mFriendsList.size() + 80)));
+                        r.replyApproves.add(new UserProfile(random.nextInt(DataManager.mFriendsListCount + 80)));
                     }
 
                     bulletin.getReplies().add(r);
@@ -254,7 +244,5 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         } catch (Exception e) {
             Log.e(BulletinAs.class.getSimpleName(), e.getLocalizedMessage(), e);
         }
-
-
     }
 }

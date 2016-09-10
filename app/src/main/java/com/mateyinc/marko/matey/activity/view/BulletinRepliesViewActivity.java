@@ -26,7 +26,7 @@ import java.util.LinkedList;
 public class BulletinRepliesViewActivity extends Activity {
 
     public static final String EXTRA_POST_ID = "post_id";
-    public static final String EXTRA_SHOW_REPLIES = "show_replies";
+    public static final String EXTRA_NEW_REPLY = "show_replies";
 
     private BulletinRepliesAdapter mAdapter;
     private RecyclerView rvList;
@@ -131,7 +131,7 @@ public class BulletinRepliesViewActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        if (getIntent().hasExtra(EXTRA_SHOW_REPLIES)) {
+        if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
             // Scroll list to the last pos
             rvList.smoothScrollToPosition(mReplies.size() - 1);
 
