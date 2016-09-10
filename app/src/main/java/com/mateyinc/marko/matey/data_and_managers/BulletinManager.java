@@ -13,13 +13,17 @@ public class BulletinManager {
     public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.internet.home.bulletins_loaded";
     public static final String BULLETIN_ITEM_UPDATED = "com.mateyinc.marko.matey.internet.home.bulletin_item_updated";
     public static final String EXTRA_ITEM_CHANGED_POS = "item_changed_position"; // extra for the bulletin_item_updated intent
+    public static final String MORE_BULLETIN_DATA_DOWNLOADED = "com.mateyinc.marko.matey.internet.home.more_bulletins_loaded";
+    public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.internet.home.bulletins_loaded_count";
 
     private final ArrayList<Bulletin> mData;
     private final Context mAppContext;
     private boolean mBulletinsLoaded;
+    public static int mCurrentPage = 0;
+
 
     private static final Object mLock = new Object();
-    private static BulletinManager mInstance;
+    private static BulletinManager mInstance = null;
 
     public static BulletinManager getInstance(Context context) {
         synchronized (mLock) {
@@ -39,6 +43,13 @@ public class BulletinManager {
     public void addBulletin(Bulletin b) {
         synchronized (mLock) {
             mData.add(b);
+        }
+    }
+
+    public void addNullBulletin() {
+        synchronized (mLock) {
+            if (mData.size() == 0 || mData.get(0) == null)
+                mData.add(0, new Bulletin());
         }
     }
 
@@ -66,8 +77,8 @@ public class BulletinManager {
         return null;
     }
 
-    public int getBulletinIndex(Bulletin b){
-        synchronized (mLock){
+    public int getBulletinIndex(Bulletin b) {
+        synchronized (mLock) {
             return mData.indexOf(b);
         }
     }

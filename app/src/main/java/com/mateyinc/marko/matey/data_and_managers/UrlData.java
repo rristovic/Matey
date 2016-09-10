@@ -18,4 +18,5 @@ public class UrlData {
     public final static String FETCH_ALL_POSTS = "http://notifinda-api-m4rk07-1.c9users.io/web/index.php/api/user/requestAllPosts";
     public final static String REQUEST_USER_PROFILE = "http://notifinda-api-m4rk07-1.c9users.io/web/index.php/api/user/requestUserProfile";
 
+    public static final String FETCH_ALL_POSTS_WITH_FRIENDS = "http://example.com"; // TODO - Complete method on server
 }

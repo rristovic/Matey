@@ -9,17 +9,18 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 
 /**
  * Created by M4rk0 on 5/12/2016.
@@ -27,18 +28,26 @@ import java.net.URLEncoder;
 public class BulletinAs extends AsyncTask<String, Void, String> {
 
     HomeActivity mContext;
-    BulletinManager bulletinManager;
+    BulletinManager mBulletinManager;
+    DataManager mDataManager;
+
+    private boolean mIsInit = false;
 
     public BulletinAs(HomeActivity activity) {
         this.mContext = activity;
-        bulletinManager = BulletinManager.getInstance(activity);
+        mBulletinManager = BulletinManager.getInstance(activity);
+        mDataManager = DataManager.getInstance(activity);
     }
 
     @Override
     protected String doInBackground(String... params) {
 
-        if (!isCancelled()) {
+        boolean init = Boolean.parseBoolean(params[4].toLowerCase());
 
+        // Init download bulletins with friends list
+        if (!isCancelled() && init) {
+
+            mIsInit = true;
             String user_id = params[0];
             String uid = params[1];
             String device_id = params[2];
@@ -48,7 +57,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                 String data = URLEncoder.encode("user_id", "UTF-8") + "=" + URLEncoder.encode(user_id, "UTF-8") + "&" +
                         URLEncoder.encode("uid", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
-                HTTP http = new HTTP(UrlData.FETCH_ALL_POSTS, "POST");
+                HTTP http = new HTTP(createUrl(params[3]), "POST");
 
                 if (http.sendPost(data)) return http.getData();
 
@@ -60,17 +69,82 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
             }
 
+
+            // Downloading without friends list
+        } else if (!isCancelled()) {
+            String user_id = params[0];
+            String uid = params[1];
+            String device_id = params[2];
+
+            try {
+
+                String data = URLEncoder.encode("user_id", "UTF-8") + "=" + URLEncoder.encode(user_id, "UTF-8") + "&" +
+                        URLEncoder.encode("uid", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
+                        URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
+                HTTP http = new HTTP(createUrl(params[3]), "POST");
+
+                if (http.sendPost(data)) return http.getData();
+
+
+            } catch (Exception e) {
+
+                Log.e("BulletinAs", e.getMessage());
+                return null;
+
+            }
         }
 
         return null;
 
     }
 
+    private String createUrl(String curPage) {
+        // TODO - finish method with mCurPage as param
+        return null;
+    }
+
     @Override
     protected void onPostExecute(String result) {
 
-        try {
+        if (mIsInit) {
+            parseFriendsAndBulletins(result);
+            mIsInit = false;
+        } else {
+            parseBulletins(result);
+        }
+    }
 
+    private void parseFriendsAndBulletins(String result) {
+        //Parsing friends
+        // TODO - finish method with SQLite
+        createDummyFriendsData();
+
+        parseBulletins(result);
+    }
+
+    private void createDummyFriendsData() {
+        Random r = new Random();
+        int namesSize = Util.names.length;
+        int lNamesSize = Util.lastNames.length;
+
+        ArrayList<UserProfile> friends = mDataManager.mFriendsList;
+        for (int i = 0; i < HomeActivity.mCurUser.getNumOfFriends(); i++) {
+            // TODO - define what gets saved and what not
+            // For now only name and id
+
+            UserProfile friend = new UserProfile(i);
+            friend.setFirstName(Util.names[r.nextInt(namesSize)]);
+            friend.setLastName(Util.lastNames[r.nextInt(lNamesSize)]);
+
+            mDataManager.mFriendsList.add(friend);
+            Log.d("BulletinAs", "Dummy friend added: ID=" + friend.getUserId() +
+                    "; Name=" + friend.getFirstName() + "; LastName=" + friend.getLastName() + ";");
+
+        }
+    }
+
+    private void parseBulletins(String result) {
+        try {
             // if there is some result check if successful
             if (result != null) {
 
@@ -96,13 +170,13 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                         bulletin.setMessage(dataObj.getString("text"));
 
 //                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
-                        bulletinManager.addBulletin(bulletin);
+                        mBulletinManager.addBulletin(bulletin);
 
                     }
 
-                    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
-                    broadcastManager.sendBroadcast(new Intent(BulletinManager.BULLETIN_LIST_LOADED));
-                    Log.d("BulletinAs", "Bulletin list is downloaded.");
+//                    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext); // TODO - add EXTRA_ITEM_DOWNLOADED_COUNT
+//                    broadcastManager.sendBroadcast(new Intent(BulletinManager.BULLETIN_LIST_LOADED));
+//                    Log.d("BulletinAs", "Bulletin list is downloaded.");
 
                 } else if (!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized"))) {
 
@@ -120,66 +194,67 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             mContext.showDialog(1000);
         }
 
-        createDummyData();
-
+        createDummyBulletinData();
     }
 
-    private void createDummyData() {
-        JSONArray posts;
+    private void createDummyBulletinData() {
         try {
-            JSONObject jsonObject = new JSONObject(Util.LoadFile("posts", true, mContext));
-            posts = jsonObject.getJSONArray("posts");
-        } catch (JSONException e) {
-            Log.e(BulletinAs.class.getSimpleName(), e.getLocalizedMessage(), e);
-            return;
-        } catch (IOException e) {
-            Log.e(BulletinAs.class.getSimpleName(), e.getLocalizedMessage(), e);
-            return;
-        }
-        try {
-            bulletinManager.addBulletin(null);
-            for (int i = 0; i < posts.length(); i++) {
-                JSONObject post = (JSONObject)posts.get(i);
+            mBulletinManager.addNullBulletin();
+            Random random = new Random();
+            ArrayList<UserProfile> friends = mDataManager.mFriendsList;
+            int itemDownloaded = 0;
+
+            for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
+
+                UserProfile friend = friends.get(random.nextInt(HomeActivity.mCurUser.getNumOfFriends()));
+                Date date = new Date();
+                date.setTime(date.getTime() - random.nextInt(DataManager.ONE_DAY) - DataManager.ONE_DAY * BulletinManager.mCurrentPage);
 
                 Bulletin bulletin = new Bulletin();
-                bulletin.setPostID(post.getInt("post_id"));
-                bulletin.setUserID(post.getInt("user_posted_id"));
-                bulletin.setFirstName(post.getString("user_posted_first_name"));
-                bulletin.setLastName(post.getString("user_posted_last_name"));
-                bulletin.setDate(post.getString("post_date"));
-                bulletin.setMessage(post.getString("post_text"));
+                bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * BulletinManager.mCurrentPage);
+                bulletin.setUserID(i + 80);
+                bulletin.setFirstName(friend.getFirstName());
+                bulletin.setLastName(friend.getLastName());
+                bulletin.setDate(date);
+                bulletin.setMessage(Util.loremIspum);
 
-                JSONArray replies = post.getJSONArray("replies");
-                for (int j = 0; j< replies.length();j++){
-                    JSONObject reply = (JSONObject)replies.get(j);
+                for (int j = 0; j < random.nextInt(20); j++) {
 
+                    UserProfile friendReplied = friends.get(random.nextInt(HomeActivity.mCurUser.getNumOfFriends()));
                     Bulletin.Reply r = bulletin.getReplyInstance();
-                    r.replyId = reply.getInt("reply_id");
-                    r.userId = reply.getInt("reply_user_id");
-                    r.userFirstName = reply.getString("user_replied_first_name");
-                    r.userLastName = reply.getString("user_replied_last_name");
-                    r.replyText = reply.getString("reply_text");
-                    r.replyDate = reply.getString("reply_date");
 
-                    JSONArray replyApproves = reply.getJSONArray("reply_approves");
-                    for(int k = 0;k<replyApproves.length();k++){
-                        JSONObject replyApprove = replyApproves.getJSONObject(k);
-                        r.replyApproves.add(new UserProfile(replyApprove.getInt("aprv_user_id")));
+                    r.replyId = Integer.parseInt(Integer.toString(i) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
+                    r.userId = friendReplied.getUserId();
+                    r.userFirstName = friendReplied.getFirstName();
+                    r.userLastName = friendReplied.getLastName();
+                    r.replyText = Util.loremIpsumShort;
+                    r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * BulletinManager.mCurrentPage).toString();
+
+                    for (int k = 0; k < random.nextInt(5); k++) {
+                        r.replyApproves.add(new UserProfile(random.nextInt(mDataManager.mFriendsList.size() + 80)));
                     }
 
                     bulletin.getReplies().add(r);
                 }
 
-//                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
-                bulletinManager.addBulletin(bulletin);
+                mBulletinManager.addBulletin(bulletin);
+                itemDownloaded++;
+                Log.d("BulletinAs", "Dummy bulletin added: Post_ID=" + bulletin.getPostID() +
+                        "; Name=" + bulletin.getFirstName() + " " + bulletin.getLastName() + "; Replies size=" + bulletin.getReplies().size() + ";");
+
+
             }
-        } catch (JSONException e) {
+
+            LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
+            Intent i = new Intent(BulletinManager.BULLETIN_LIST_LOADED);
+            i.putExtra(BulletinManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
+            broadcastManager.sendBroadcast(i);
+            HomeActivity.mListDownloaded = true;
+            Log.d("BulletinAs", "Bulletin list is downloaded. Last item: " + mBulletinManager.getBulletin(mBulletinManager.getSize() - 1).toString());
+        } catch (Exception e) {
             Log.e(BulletinAs.class.getSimpleName(), e.getLocalizedMessage(), e);
         }
 
-        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
-        broadcastManager.sendBroadcast(new Intent(BulletinManager.BULLETIN_LIST_LOADED));
-        Log.d("BulletinAs", "Bulletin list is downloaded.");
-    }
 
+    }
 }

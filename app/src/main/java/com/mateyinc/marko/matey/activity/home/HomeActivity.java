@@ -18,10 +18,25 @@ import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
+import com.mateyinc.marko.matey.model.UserProfile;
 
 public class HomeActivity extends InsideActivity implements View.OnTouchListener {
+
+    private final static String TAG = HomeActivity.class.getSimpleName();
+
+    // Current user profile data
+    public final static UserProfile mCurUser = new UserProfile();
+    public static boolean mListDownloaded = false;
+
+    private final static String BULLETIN_FRAG_TAG = "BULLETINS";
+    private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
+    private final static String MESSAGES_FRAG_TAG = "MESSAGES";
+    private final static String FRIENDS_FRAG_TAG = "FRIENDS";
+    private final static String MENU_FRAG_TAG = "MENU";
+    private final static String SEARCH_FRAG_TAG = "MENU";
 
     private SearchFragment mSearchFragment;
     private FragmentManager mFragmentManager;
@@ -41,19 +56,13 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
      */
     private int mCurrentPage = 0;
 
-    private final static String BULLETIN_FRAG_TAG = "BULLETINS";
-    private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
-    private final static String MESSAGES_FRAG_TAG = "MESSAGES";
-    private final static String FRIENDS_FRAG_TAG = "FRIENDS";
-    private final static String MENU_FRAG_TAG = "MENU";
-    private final static String SEARCH_FRAG_TAG = "MENU";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         super.setSecurePreferences(this);
 
+        getFragmentManager();
         init();
         getBulletins();
     }
@@ -74,7 +83,7 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
         ibMenu = (ImageButton) findViewById(R.id.ibMenu);
         ibMessages = (ImageButton) findViewById(R.id.ibMessages);
         ibNotifications = (ImageButton) findViewById(R.id.ibNotifications);
-        setClickListeners();
+        setListeners();
 
         // Adding Bulletins fragment to home layout on start
         mFragmentManager = getSupportFragmentManager();
@@ -85,15 +94,7 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
 
     }
 
-    private void getBulletins() {
-        // Getting posts for the user
-        BulletinAs bulletinsAs = new BulletinAs(this);
-        bulletinsAs.execute(securePreferences.getString("user_id"),
-                securePreferences.getString("uid"),
-                securePreferences.getString("device_id"));
-    }
-
-    private void setClickListeners() {
+    private void setListeners() {
         ibSearch.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -235,6 +236,31 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
         });
         ibMenu.setOnTouchListener(this);
 
+    }
+
+    private void getBulletins() {
+
+        // Gets the user params from SharedPref; TODO - set the on changePreference listener later
+        getCurUser();
+
+        // Getting posts for the user
+        BulletinAs bulletinsAs = new BulletinAs(this);
+        bulletinsAs.execute(Integer.toString(mCurUser.getUserId()),
+                securePreferences.getString("uid"),
+                securePreferences.getString("device_id"),
+                Integer.toString(BulletinManager.mCurrentPage),
+                "true");
+    }
+
+    private void getCurUser() {
+        // TODO - get params from prefs
+
+        // Dummy data
+        mCurUser.setUserId(-100);
+        mCurUser.setFirstName("Radovan");
+        mCurUser.setLastName("Ristovic");
+        mCurUser.setGender("m");
+        mCurUser.setNumOfFriends(120);
     }
 
     private void closeSearchView() {

@@ -21,15 +21,20 @@ import java.util.Random;
  */
 public class DataManager {
 
+    public static final int BULLETIN_NO_MAX = 20; // Def for max number of bulletins downloaded and saved on disk
+    public static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
+                                                        // maybe depend on no of friends and group
+
     public static final int ONE_DAY = 86400000;
+    public static final int ONE_MIN = 60000;
 
     public final ArrayList<Notification> mNotificationList = new ArrayList<>();
     public final ArrayList<Message> mMessageList;
-    public final ArrayList<UserProfile> mFriendsList;
+    public ArrayList<UserProfile> mFriendsList;
 
     private final Context mAppContext;
     private static final Object mLock = new Object();
-    private static DataManager mInstance;
+    private static DataManager mInstance = null;
 
     public static DataManager getInstance(Context context) {
         synchronized (mLock) {

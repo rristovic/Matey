@@ -85,7 +85,7 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
 
         String text = reply.userFirstName + " " + reply.userLastName;
         mHolder.tvName.setText(text);
-        mHolder.tvDate.setText(reply.replyDate);
+        mHolder.tvDate.setText(Util.getReadableDateText(reply.replyDate));
         mHolder.tvMessage.setText(reply.replyText);
         text = "%d "+ mContext.getString(R.string.reply_approve);
         text = String.format(Locale.US, text, reply.replyApproves.size());

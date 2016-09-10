@@ -103,4 +103,18 @@ public class Util {
 
         return profile;
     }
+
+
+    public static final int ONE_DAY = 86400000;
+    public static final int ONE_MIN = 60000;
+
+    public static final String[] names = {"Aleksandar","Bozidar","Velibor","Goran","David","Djordje","Zlatko","Janko","Jovan","Lazar","Ljubbisa",
+    "Monojlo","Mijat","Milivoje","Nesko","Ninoslav","Obrad", "Pavle","Prodan", "Radomir","Rodoljub","Ranka","Milica","Nikoleta","Ivana", "Marica","Evandjelija",
+    "Jana", "Sara","Marina","Tamara"};
+
+    public static final String[] lastNames = {"Ristic","Nikolic","Markovic","Ruzic","Stancic","Stankovic","Ognjenovic","Golubovic",
+    "Peric","Petrovic","Vasov","Bojic","Bozinovic","Lazarevic","Tomcic","Stamenkovic"};
+
+    public static final String loremIpsumShort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+    public static final String loremIspum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 }
