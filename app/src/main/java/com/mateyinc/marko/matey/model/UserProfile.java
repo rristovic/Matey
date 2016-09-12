@@ -4,6 +4,12 @@ package com.mateyinc.marko.matey.model;
  * Created by M4rk0 on 5/15/2016.
  */
 public class UserProfile {
+    public static final String USER_ID = "userid";
+    public static final String FIRST_NAME = "firstname";
+    public static final String
+            LAST_NAME = "lastname";
+    public static final String LAST_MSG_ID = "lastmsgid";
+
     private int userId;
     private String firstName;
     private String lastName;

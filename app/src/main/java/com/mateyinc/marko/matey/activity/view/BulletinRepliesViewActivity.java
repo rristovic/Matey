@@ -25,7 +25,7 @@ import java.util.LinkedList;
 
 public class BulletinRepliesViewActivity extends Activity {
 
-    public static final String EXTRA_POST_ID = "post_id";
+    public static final String EXTRA_BULLETIN_POS = "post_id";
     public static final String EXTRA_NEW_REPLY = "show_replies";
 
     private BulletinRepliesAdapter mAdapter;
@@ -67,9 +67,8 @@ public class BulletinRepliesViewActivity extends Activity {
 
 
     private void getReplies() {
-        if (getIntent().hasExtra(EXTRA_POST_ID)) {
-            mReplies = BulletinManager.getInstance(BulletinRepliesViewActivity.this).getBulletinByPostID(getIntent().getIntExtra(EXTRA_POST_ID, -1))
-                    .getReplies();
+        if (getIntent().hasExtra(EXTRA_BULLETIN_POS)) {
+            mReplies = BulletinManager.getInstance(BulletinRepliesViewActivity.this).getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1)).getReplies();
             mAdapter.setData(mReplies);
         } else {
             finish();
@@ -97,7 +96,7 @@ public class BulletinRepliesViewActivity extends Activity {
             @Override
             public void onClick(View v) {
                 BulletinManager manager = BulletinManager.getInstance(BulletinRepliesViewActivity.this);
-                Bulletin b = manager.getBulletinByPostID(getIntent().getIntExtra(EXTRA_POST_ID, -1));
+                Bulletin b = manager.getBulletinByPostID(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
                 Bulletin.Reply r = b.getReplyInstance();
                 UserProfile profile = Util.getCurrentUserProfile();
 
@@ -133,7 +132,7 @@ public class BulletinRepliesViewActivity extends Activity {
 
         if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
             // Scroll list to the last pos
-            rvList.smoothScrollToPosition(mReplies.size() - 1);
+//            rvList.smoothScrollToPosition(((LinearLayoutManager)rvList.getLayoutManager()).findLastVisibleItemPosition());
 
             // Get focus on edit text and show keyboard
             etReplyText.setFocusableInTouchMode(true);

@@ -18,6 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 
@@ -161,7 +162,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                         bulletin.setMessage(dataObj.getString("text"));
 
 //                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
-                        mBulletinManager.addBulletin(bulletin);
+//                        mBulletinManager.addBulletin(bulletin);
 
                     }
 
@@ -194,6 +195,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             Random random = new Random();
             int itemDownloaded = 0;
 
+            ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
             for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
 
                 UserProfile friend = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
@@ -202,7 +204,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                 Bulletin bulletin = new Bulletin();
                 bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * BulletinManager.mCurrentPage);
-                bulletin.setUserID(i + 80);
+                bulletin.setUserID(friend.getUserId());
                 bulletin.setFirstName(friend.getFirstName());
                 bulletin.setLastName(friend.getLastName());
                 bulletin.setDate(date);
@@ -227,20 +229,17 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                     bulletin.getReplies().add(r);
                 }
 
-                mBulletinManager.addBulletin(bulletin);
+//                mBulletinManager.addBulletin(bulletin);
+                list.add(bulletin);
                 itemDownloaded++;
-                Log.d("BulletinAs", "Dummy bulletin added: Post_ID=" + bulletin.getPostID() +
-                        "; Name=" + bulletin.getFirstName() + " " + bulletin.getLastName() + "; Replies size=" + bulletin.getReplies().size() + ";");
-
-
             }
+            mBulletinManager.addBulletins(list);
 
             LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
             Intent i = new Intent(BulletinManager.BULLETIN_LIST_LOADED);
             i.putExtra(BulletinManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
             broadcastManager.sendBroadcast(i);
             HomeActivity.mListDownloaded = true;
-            Log.d("BulletinAs", "Bulletin list is downloaded. Last item: " + mBulletinManager.getBulletin(mBulletinManager.getSize() - 1).toString());
         } catch (Exception e) {
             Log.e(BulletinAs.class.getSimpleName(), e.getLocalizedMessage(), e);
         }

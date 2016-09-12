@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.internet.profile;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -9,6 +10,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
+import com.mateyinc.marko.matey.data_and_managers.DataContract;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -24,16 +26,45 @@ import java.net.URLEncoder;
  * Created by M4rk0 on 5/15/2016.
  */
 public class UserProfileAs extends AsyncTask<String, Void, String> {
+    private static final String TAG = UserProfileAs.class.getSimpleName();
 
     private final BulletinManager mManager;
     MotherActivity activity;
     private WeakReference<UserProfile> mUserProfile;
     private int mUserId;
 
-    public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile) {
+    public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile, int reqUserId) {
         this.activity = activity;
         this.mUserProfile = userProfile;
         mManager = BulletinManager.getInstance(activity);
+        mUserId = reqUserId;
+    }
+
+    @Override
+    protected void onPreExecute() {
+
+        if (!isCancelled()) {
+            Cursor c = null;
+            try {
+                c = activity.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI,
+                        new String[]{DataContract.ProfileEntry.COLUMN_NAME, DataContract.ProfileEntry.COLUMN_LAST_NAME},
+                        DataContract.ProfileEntry._ID + " = " + mUserId, null, null);
+
+                UserProfile profile = mUserProfile.get();
+                if (c != null && c.moveToFirst() && profile != null) {
+                    profile.setFirstName(c.getString(0));
+                    profile.setLastName(c.getString(1));
+                }
+
+                LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
+                broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
+            } catch (Exception e) {
+                Log.e(TAG, e.getLocalizedMessage(), e);
+            } finally {
+                if (null != c)
+                    c.close();
+            }
+        }
     }
 
     @Override
@@ -41,15 +72,14 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
 
         if (!isCancelled()) {
 
-            String user_id = params[0];
+            String cur_user_id = params[0];
             String uid = params[1];
             String device_id = params[2];
             String requested_user_id = params[3];
-            mUserId = Integer.parseInt(user_id);
 
             try {
 
-                String data = URLEncoder.encode("user_id", "UTF-8") + "=" + URLEncoder.encode(user_id, "UTF-8") + "&" +
+                String data = URLEncoder.encode("user_id", "UTF-8") + "=" + URLEncoder.encode(cur_user_id, "UTF-8") + "&" +
                         URLEncoder.encode("uid", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8") + "&" +
                         URLEncoder.encode("requested_user_id", "UTF-8") + "=" + URLEncoder.encode(requested_user_id, "UTF-8");
@@ -99,6 +129,8 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         profile.setQuoteStatus(dataObj.getString("quote_status"));
                         profile.setNumOfFriends(dataObj.getInt("num_of_friends"));
                         profile.setNumOfPosts(dataObj.getInt("num_of_posts"));
+
+                        // TODO - add to database
 
                         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
                         broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));

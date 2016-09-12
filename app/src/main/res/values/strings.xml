@@ -57,4 +57,7 @@
     <string name="search_messages">Messages</string>
     <string name="search_friends">Friends</string>
 
+    <!-- App related -->
+    <string name="empty_list">No data</string>
+
 </resources>

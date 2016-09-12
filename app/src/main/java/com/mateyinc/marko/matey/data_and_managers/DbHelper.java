@@ -84,8 +84,8 @@ public class DbHelper extends SQLiteOpenHelper {
                 BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +
                 // Set up the sender_id column as a foreign key to profile table.
                 "FOREIGN KEY (" + BulletinEntry.COLUMN_USER_ID + ") REFERENCES " +
-                ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID +
-                ") );";
+                ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
+                " UNIQUE (" + BulletinEntry.COLUMN_POST_ID + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MSG_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PROFILE_TABLE);

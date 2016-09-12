@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.activity.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,58 +25,65 @@ import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
 import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private final ArrayList<Bulletin> mData;
-    private final Context mContext;
-    private final BulletinManager mManager;
     private static final int FIRST_ITEM = 1;
     private static final int ITEM = 2;
-    private final RecyclerView rvList;
 
-    public BulletinsAdapter(Context context, RecyclerView view) {
+    private final Context mContext;
+    private final BulletinManager mManager;
+    private View mEmptyView;
+    private Cursor mCursor;
+    private RecyclerView mRecycleView;
+
+    public BulletinsAdapter(Context context, TextView emptyView) {
         mContext = context;
         mManager = BulletinManager.getInstance(context);
-        mData = mManager.getBulletinList();
-        rvList = view;
+        mEmptyView = emptyView;
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        switch (viewType) {
-            case ITEM: {
-                View view = LayoutInflater.from(mContext) //Inflate the view
-                        .inflate(R.layout.bulletin_list_item, parent, false);
+        if (parent instanceof RecyclerView) {
 
-                // Implementing ViewHolderClickListener and returning view holder
-                return new ViewHolder(view, getViewHolderListener());
+            if (mRecycleView == null)
+                mRecycleView = (RecyclerView)parent;
+
+            switch (viewType) {
+                case ITEM: {
+                    View view = LayoutInflater.from(mContext) //Inflate the view
+                            .inflate(R.layout.bulletin_list_item, parent, false);
+
+                    // Implementing ViewHolderClickListener and returning view holder
+                    return new ViewHolder(view, getViewHolderListener());
+                }
+                case FIRST_ITEM: {
+                    View view = LayoutInflater.from(mContext)
+                            .inflate(R.layout.bulletin_first_list_item, parent, false);
+                    return new ViewHolderFirst(view);
+                }
+                default:
+                    return null;
             }
-            case FIRST_ITEM: {
-                View view = LayoutInflater.from(mContext)
-                        .inflate(R.layout.bulletin_first_list_item, parent, false);
-                return new ViewHolderFirst(view);
-            }
-            default:
-                return null;
+        } else {
+            throw new RuntimeException("Not bound to RecyclerView");
         }
+
     }
 
     private ViewHolder.ViewHolderClickListener getViewHolderListener() {
         return new ViewHolder.ViewHolderClickListener() {
-
             public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
-                int position = rvList.getChildAdapterPosition(rootView); // Get child position in adapter
-
+                int position = mRecycleView.getChildAdapterPosition(rootView);
                 if (onlyShowReplies) {
                     Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_POST_ID, mData.get(position).getPostID());
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
                     mContext.startActivity(i);
                 } else {
                     Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_POST_ID, mData.get(position).getPostID());
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
                     i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
                     mContext.startActivity(i);
                 }
@@ -88,10 +96,9 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
             @Override
             public void onNameClick(TextView mName, View rootView) {
-                int position = rvList.getChildAdapterPosition(rootView); // Get child position in adapter
-
-                Intent i = new Intent(mContext,ProfileActivity.class);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(position).getUserID());
+                int position = mRecycleView.getChildAdapterPosition(rootView);
+                Intent i = new Intent(mContext, ProfileActivity.class);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(position,mCursor).getUserID());
                 mContext.startActivity(i);
             }
         };
@@ -100,10 +107,10 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         switch (getItemViewType(position)) {
-            // Parsing data to views if available
+//             Parsing data to views if available
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
-                Bulletin bulletin = mManager.getBulletin(position);
+                Bulletin bulletin = mManager.getBulletin(position, mCursor);
                 try {
                     holder.mMessage.setText(bulletin.getMessage());
                 } catch (Exception e) {
@@ -111,7 +118,7 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     holder.mMessage.setText(mContext.getString(R.string.error_message));
                 }
                 try {
-                    holder.mName.setText(bulletin.getFirstName() + " " + mManager.getBulletin(position).getLastName());
+                    holder.mName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
                 } catch (Exception e) {
                     Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
                     holder.mName.setText(mContext.getString(R.string.error_message));
@@ -193,6 +200,8 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 holder.ibLocation.setOnTouchListener((HomeActivity) mContext);
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -203,8 +212,26 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     @Override
     public int getItemCount() {
-        return mData.size();
+        if (null == mCursor) return 0;
+        return mCursor.getCount();
     }
+
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
+
+    public void swapCursor(Cursor newCursor) {
+        mCursor = newCursor;
+        notifyDataSetChanged();
+        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+    }
+
+    public Cursor getCursor() {
+        return mCursor;
+    }
+
 
     protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public final View mView;
@@ -250,7 +277,7 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 mListener.onMsgClick(mMessage, mView);
             } else if (tag.equals("name")) {
                 mListener.onNameClick(mName, mView);
-                Log.d(BulletinsAdapter.class.getSimpleName(),"onNameClick();");
+                Log.d(BulletinsAdapter.class.getSimpleName(), "onNameClick();");
             }
 
 

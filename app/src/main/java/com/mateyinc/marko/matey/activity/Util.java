@@ -16,6 +16,9 @@ import java.util.Date;
  */
 public class Util {
     public static String getReadableDateText(Date date) {
+        if(date == null){
+            return "Invalid date";
+        }
         // TODO - set the timezone to server timezone
         //TimeZone.setDefault(TimeZone.getTimeZone("Europe/London"));
 
@@ -32,6 +35,9 @@ public class Util {
     }
 
     public static String getReadableDateText(String date) {
+        if(date != null || date.length() == 0 ){
+            return "Invalid date";
+        }
         Date d = new Date(date);
         // TODO - set the timezone to server timezone
         //TimeZone.setDefault(TimeZone.getTimeZone("Europe/London"));

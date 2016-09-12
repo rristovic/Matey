@@ -26,6 +26,8 @@ import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import java.lang.ref.WeakReference;
 
 public class ProfileActivity extends MotherActivity {
+    private String TAG = ProfileActivity.class.getSimpleName();
+
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
     public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
     private TextView tvName;
@@ -47,7 +49,9 @@ public class ProfileActivity extends MotherActivity {
         setContentView(R.layout.activity_profile);
 
         init();
+        downloadData();
     }
+
 
     private void init() {
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
@@ -58,7 +62,7 @@ public class ProfileActivity extends MotherActivity {
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getIntExtra(EXTRA_PROFILE_ID, -1);
 
-        mUserProfileAs = new UserProfileAs(this, new WeakReference<>(mUserProfile));
+        mUserProfileAs = new UserProfileAs(this, new WeakReference<>(mUserProfile),mUserId);
 
         mBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -68,17 +72,26 @@ public class ProfileActivity extends MotherActivity {
         };
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-        broadcastManager.registerReceiver(mBroadcastReceiver, new IntentFilter(PROFILE_DOWNLOADED));
-
+    private void downloadData() {
         // Start downloading data
         mUserProfileAs.execute(securePreferences.getString("user_id"),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id")
                 , Integer.toString(mUserId));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+        broadcastManager.registerReceiver(mBroadcastReceiver, new IntentFilter(PROFILE_DOWNLOADED));
+
+        try {
+            setData();
+        } catch (Exception e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+        }
     }
 
     @Override

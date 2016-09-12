@@ -31,7 +31,7 @@ public class DataManager {
 
     public final ArrayList<Notification> mNotificationList = new ArrayList<>();
     public final ArrayList<Message> mMessageList;
-    public static int mFriendsListCount = 0;
+    public static int mFriendsListCount = 120;
 
     private final Context mAppContext;
     private static final Object mLock = new Object();
@@ -102,7 +102,6 @@ public class DataManager {
             );
 
             userProfId = ContentUris.parseId(insertedUri);
-            mFriendsListCount++;
             Log.d("DataManager", "UserProfile added: ID=" + userId +
                     "; Name=" + userName + "; LastName=" + userLastName + "; LastMsgId=" + lastMsgId);
         }
@@ -136,26 +135,30 @@ public class DataManager {
                 "; Name=" + userName + "; LastName=" + userLastName + "; LastMsgId=" + lastMsgId);
     }
 
-    public UserProfile getUserProfile(int index){
+    public UserProfile getUserProfile(int index) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.ProfileEntry.CONTENT_URI,
-                new String[]{DataContract.ProfileEntry._ID, DataContract.ProfileEntry.COLUMN_LAST_NAME,
+                new String[]{DataContract.ProfileEntry._ID, DataContract.ProfileEntry.COLUMN_NAME,
                         DataContract.ProfileEntry.COLUMN_LAST_NAME, DataContract.ProfileEntry.COLUMN_LAST_MSG_ID},
                 null,
                 null,
                 null);
 
+        UserProfile profile = null;
         try {
             cursor.moveToPosition(index);
-        }catch (NullPointerException e){
-            Log.e(TAG,e.getLocalizedMessage(),e);
+
+            profile = new UserProfile();
+            profile.setUserId(cursor.getInt(0));
+            profile.setFirstName(cursor.getString(1));
+            profile.setLastName(cursor.getString(2));
+            profile.setLastMsgId(cursor.getInt(3));
+
+            cursor.close();
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
             return null;
         }
-        UserProfile profile = new UserProfile();
-        profile.setUserId(cursor.getInt(0));
-        profile.setFirstName(cursor.getString(1));
-        profile.setLastName(cursor.getString(2));
-        profile.setLastMsgId(cursor.getInt(3));
 
         return profile;
     }
@@ -274,7 +277,6 @@ public class DataManager {
 
         return msgId;
     }
-
 
 
     // TODO - add data management system
