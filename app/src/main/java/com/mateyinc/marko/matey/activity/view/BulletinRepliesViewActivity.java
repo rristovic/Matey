@@ -16,7 +16,7 @@ import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.adapters.BulletinRepliesAdapter;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -28,12 +28,13 @@ public class BulletinRepliesViewActivity extends Activity {
     public static final String EXTRA_BULLETIN_POS = "post_id";
     public static final String EXTRA_NEW_REPLY = "show_replies";
 
+    public static int mBulletinPos = -1;
+
     private BulletinRepliesAdapter mAdapter;
     private RecyclerView rvList;
     private ImageButton ibBack;
     private TextView tvHeading, etReplyText;
     private ImageView ivReply;
-
 
     private LinkedList<Bulletin.Reply> mReplies;
 
@@ -65,10 +66,10 @@ public class BulletinRepliesViewActivity extends Activity {
         setListeners();
     }
 
-
     private void getReplies() {
         if (getIntent().hasExtra(EXTRA_BULLETIN_POS)) {
-            mReplies = BulletinManager.getInstance(BulletinRepliesViewActivity.this).getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1)).getReplies();
+            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
+            mReplies = DataManager.getInstance(BulletinRepliesViewActivity.this).getBulletin(mBulletinPos).getReplies();
             mAdapter.setData(mReplies);
         } else {
             finish();
@@ -95,8 +96,8 @@ public class BulletinRepliesViewActivity extends Activity {
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                BulletinManager manager = BulletinManager.getInstance(BulletinRepliesViewActivity.this);
-                Bulletin b = manager.getBulletinByPostID(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
+                DataManager manager = DataManager.getInstance(BulletinRepliesViewActivity.this);
+                Bulletin b = manager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
                 Bulletin.Reply r = b.getReplyInstance();
                 UserProfile profile = Util.getCurrentUserProfile();
 
@@ -107,20 +108,26 @@ public class BulletinRepliesViewActivity extends Activity {
                 r.userId = profile.getUserId();
                 r.replyId = createReplyId();
                 r.replyText = etReplyText.getText().toString();
-                // Add reply to data
+
+                // Add reply to data and to database
                 mReplies.add(r);
+                manager.addReplyToBulletin(mBulletinPos, r);
 
                 // Update UI
                 mAdapter.notifyItemInserted(mAdapter.getItemCount() - 1);
                 rvList.scrollToPosition(mAdapter.getItemCount() - 1);
                 setHeadingText();
-                BulletinsFragment.updatedPos = manager.getBulletinIndex(b);
+                BulletinsFragment.updatedPos = mBulletinPos;
             }
         });
 
         ivReply.setOnTouchListener(new OnTouchInterface(this));
     }
 
+    /**
+     * Creating ReplyId for the current bulletin
+     * @return the newly created reply id
+     */
     private int createReplyId() {
         // TODO - finish method
         return 0;

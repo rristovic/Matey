@@ -21,9 +21,9 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.data_and_managers.DataContract;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -101,7 +101,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
                 bulletinsAs.execute(Integer.toString(HomeActivity.mCurUser.getUserId()),
                         "securePreferences.getString(uid)",
                         "securePreferences.getString(device_id)",
-                        Integer.toString(BulletinManager.mCurrentPage),
+                        Integer.toString(DataManager.mCurrentPage),
                         "false");
             }
         };
@@ -128,12 +128,12 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         LocalBroadcastManager.getInstance(mContext).registerReceiver(mDataDownloaded = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                BulletinManager.mCurrentPage++; // Update curPage
+                DataManager.mCurrentPage++; // Update curPage
                 mScrollListener.mLoading = false;
 
-                Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + BulletinManager.mCurrentPage);
+                Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + DataManager.mCurrentPage);
             }
-        }, new IntentFilter(BulletinManager.BULLETIN_LIST_LOADED));
+        }, new IntentFilter(DataManager.BULLETIN_LIST_LOADED));
     }
 
     @Override

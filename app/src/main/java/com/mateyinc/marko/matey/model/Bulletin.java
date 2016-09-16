@@ -2,7 +2,7 @@ package com.mateyinc.marko.matey.model;
 
 import android.util.Log;
 
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -127,12 +127,12 @@ public class Bulletin {
                 "UserID=" + mUserID + "; ReplyPostId=" + mPostID;
     }
 
-    public LinkedList<Reply> setRepliesFromJSON(String string) {
+    public void setRepliesFromJSON(String string) {
         LinkedList<Reply> replies = new LinkedList<>();
 
         try {
             JSONObject jObject = new JSONObject(string);
-            JSONArray jArray = jObject.getJSONArray(BulletinManager.REPLIES_LIST);
+            JSONArray jArray = jObject.getJSONArray(DataManager.REPLIES_LIST);
             for (int i = 0; i < jArray.length(); i++) {
                 JSONObject replyJson = jArray.getJSONObject(i);
 
@@ -144,7 +144,7 @@ public class Bulletin {
                 r.replyDate = replyJson.getString(Reply.DATE);
                 r.replyText = replyJson.getString(Reply.TEXT);
 
-                JSONArray replyApprvs = replyJson.getJSONArray(BulletinManager.REPLY_APPRVS);
+                JSONArray replyApprvs = replyJson.getJSONArray(DataManager.REPLY_APPRVS);
                 for (int j = 0; j < replyApprvs.length(); j++) {
                     JSONObject userProfile = replyApprvs.getJSONObject(j);
 
@@ -163,11 +163,11 @@ public class Bulletin {
             Log.e(TAG, jse.getLocalizedMessage(), jse);
         }
 
-        return replies;
+        mReplies = replies;
     }
 
-    public LinkedList<Attachment> setAttachmentsFromJSON(String string) {
-        return null; // TODO - finish method
+    public void setAttachmentsFromJSON(String string) {
+        return; // TODO - finish method
     }
 
     public class Reply {

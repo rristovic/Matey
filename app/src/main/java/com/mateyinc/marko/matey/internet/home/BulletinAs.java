@@ -8,7 +8,6 @@ import android.util.Log;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -28,14 +27,14 @@ import java.util.Random;
 public class BulletinAs extends AsyncTask<String, Void, String> {
 
     HomeActivity mContext;
-    BulletinManager mBulletinManager;
+    DataManager mBulletinManager;
     DataManager mDataManager;
 
     private boolean mIsInit = false;
 
     public BulletinAs(HomeActivity activity) {
         this.mContext = activity;
-        mBulletinManager = BulletinManager.getInstance(activity);
+        mBulletinManager = DataManager.getInstance(activity);
         mDataManager = DataManager.getInstance(activity);
     }
 
@@ -105,7 +104,6 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-
         if (mIsInit) {
             parseFriendsAndBulletins(result);
             mIsInit = false;
@@ -131,7 +129,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             // TODO - define what gets saved and what not
             // For now only name and id
 
-            mDataManager.addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)], null);
+            mDataManager.addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)], -1);
         }
     }
 
@@ -200,10 +198,10 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                 UserProfile friend = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
                 Date date = new Date();
-                date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * BulletinManager.mCurrentPage);
+                date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * DataManager.mCurrentPage);
 
                 Bulletin bulletin = new Bulletin();
-                bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * BulletinManager.mCurrentPage);
+                bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * DataManager.mCurrentPage);
                 bulletin.setUserID(friend.getUserId());
                 bulletin.setFirstName(friend.getFirstName());
                 bulletin.setLastName(friend.getLastName());
@@ -220,7 +218,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                     r.userFirstName = friendReplied.getFirstName();
                     r.userLastName = friendReplied.getLastName();
                     r.replyText = Util.loremIpsumShort;
-                    r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * BulletinManager.mCurrentPage).toString();
+                    r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage).toString();
 
                     for (int k = 0; k < random.nextInt(5); k++) {
                         r.replyApproves.add(new UserProfile(random.nextInt(DataManager.mFriendsListCount + 80)));
@@ -236,8 +234,8 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             mBulletinManager.addBulletins(list);
 
             LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
-            Intent i = new Intent(BulletinManager.BULLETIN_LIST_LOADED);
-            i.putExtra(BulletinManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
+            Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
+            i.putExtra(DataManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
             broadcastManager.sendBroadcast(i);
             HomeActivity.mListDownloaded = true;
         } catch (Exception e) {

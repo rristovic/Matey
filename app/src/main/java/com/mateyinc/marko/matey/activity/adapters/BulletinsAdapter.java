@@ -22,7 +22,7 @@ import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
@@ -33,14 +33,14 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private static final int ITEM = 2;
 
     private final Context mContext;
-    private final BulletinManager mManager;
+    private final DataManager mManager;
     private View mEmptyView;
     private Cursor mCursor;
     private RecyclerView mRecycleView;
 
     public BulletinsAdapter(Context context, TextView emptyView) {
         mContext = context;
-        mManager = BulletinManager.getInstance(context);
+        mManager = DataManager.getInstance(context);
         mEmptyView = emptyView;
     }
 

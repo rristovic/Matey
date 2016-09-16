@@ -9,8 +9,8 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
 import com.mateyinc.marko.matey.data_and_managers.DataContract;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.data_and_managers.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
@@ -28,7 +28,8 @@ import java.net.URLEncoder;
 public class UserProfileAs extends AsyncTask<String, Void, String> {
     private static final String TAG = UserProfileAs.class.getSimpleName();
 
-    private final BulletinManager mManager;
+    private final DataManager mManager;
+    private final DataManager mDataManager;
     MotherActivity activity;
     private WeakReference<UserProfile> mUserProfile;
     private int mUserId;
@@ -36,7 +37,8 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile, int reqUserId) {
         this.activity = activity;
         this.mUserProfile = userProfile;
-        mManager = BulletinManager.getInstance(activity);
+        mManager = DataManager.getInstance(activity);
+        mDataManager = DataManager.getInstance(activity);
         mUserId = reqUserId;
     }
 
@@ -50,6 +52,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         new String[]{DataContract.ProfileEntry.COLUMN_NAME, DataContract.ProfileEntry.COLUMN_LAST_NAME},
                         DataContract.ProfileEntry._ID + " = " + mUserId, null, null);
 
+                // Setting pre downloaded data from db
                 UserProfile profile = mUserProfile.get();
                 if (c != null && c.moveToFirst() && profile != null) {
                     profile.setFirstName(c.getString(0));
@@ -107,7 +110,6 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                 JSONObject jsonObject = new JSONObject(result);
 
                 UserProfile profile = mUserProfile.get();
-                setPreDownloadedData(profile);
 
                 // if successful, set everything to SecurePreferences
                 if (jsonObject.getBoolean("success")) {
@@ -130,7 +132,8 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         profile.setNumOfFriends(dataObj.getInt("num_of_friends"));
                         profile.setNumOfPosts(dataObj.getInt("num_of_posts"));
 
-                        // TODO - add to database
+                        // Adding to db
+                        mDataManager.addUserProfile(profile);
 
                         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
                         broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
@@ -161,10 +164,6 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                 activity.showDialog(1000);
         }
 
-    }
-
-    private void setPreDownloadedData(UserProfile profile) {
-        profile.setFirstName("Radovan"); // TODO - finish from cursor
     }
 
     @Override

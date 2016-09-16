@@ -18,7 +18,7 @@ import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data_and_managers.BulletinManager;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -248,7 +248,7 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
         bulletinsAs.execute(Integer.toString(mCurUser.getUserId()),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id"),
-                Integer.toString(BulletinManager.mCurrentPage),
+                Integer.toString(DataManager.mCurrentPage),
                 "true");
     }
 

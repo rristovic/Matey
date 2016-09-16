@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
+import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -23,6 +25,7 @@ import java.util.Locale;
 public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinRepliesAdapter.ViewHolder> {
     private final String TAG = BulletinRepliesAdapter.class.getSimpleName();
 
+    private final DataManager mManager;
     private LinkedList<Bulletin.Reply> mData;
     private final Context mContext;
     private RecyclerView mRecycleView;
@@ -33,6 +36,7 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
         mContext = context;
         mData = data;
         mRecycleView = view;
+        mManager = DataManager.getInstance(context);
 
         init();
     }
@@ -40,6 +44,7 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
     public BulletinRepliesAdapter(Context context, RecyclerView view) {
         mContext = context;
         mRecycleView = view;
+        mManager = DataManager.getInstance(context);
 
         init();
     }
@@ -66,11 +71,14 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
                     Bulletin.Reply r = mData.get(position);
                     LinkedList list = r.replyApproves;
                     if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
+                        mManager.removeReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
+
                         r.removeReplyApproveWithId(mCurUserProfile.getUserId());
                         ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray));
                         BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
                     } else { // Like
                         list.add(mCurUserProfile); // adding Reply to bulletin
+                        mManager.addReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
                         BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
                     }
             }
