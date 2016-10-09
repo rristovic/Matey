@@ -1,5 +1,6 @@
 package com.mateyinc.marko.matey.activity.view;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -44,7 +45,8 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
             ReplyEntry.COLUMN_TEXT,
             ReplyEntry.COLUMN_DATE,
             ReplyEntry.COLUMN_NUM_OF_APPRVS,
-            ReplyEntry.COLUMN_APPRVS
+            ReplyEntry.COLUMN_APPRVS,
+            ReplyEntry.COLUMN_POST_ID
     };
 
     // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
@@ -57,6 +59,8 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
     public static final int COL_DATE = 5;
     public static final int COL_NUM_OF_APPRVS = 6;
     public static final int COL_APPRVS = 7;
+    public static final int COL_POST_ID = 8;
+
 
     public static int mBulletinPos = -1;
 
@@ -80,13 +84,23 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
     }
 
     private void init() {
+        Intent i = getIntent();
+        mManager = DataManager.getInstance(BulletinRepliesViewActivity.this);
+
+        if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
+            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
+            if (null == mCurBulletin)
+                mCurBulletin = mManager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
+        } else {
+            finish();
+        }
+
         ibBack = (ImageButton) findViewById(R.id.ibBack);
         rvList = (RecyclerView) findViewById(R.id.rvBulletinRepliesList);
         tvHeading = (TextView) findViewById(R.id.tvReplyViewHeading);
         mAdapter = new BulletinRepliesAdapter(this, rvList);
         ivReply = (ImageView) findViewById(R.id.ivSendReply);
         etReplyText = (TextView) findViewById(R.id.tvReply);
-        mManager = DataManager.getInstance(BulletinRepliesViewActivity.this);
 
         // Laying out view from the last position
         final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
@@ -95,13 +109,9 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
 
         // Init loader
         getSupportLoaderManager().initLoader(Util.REPLIES_LOADER, null, this);
-
         setListeners();
     }
 
-    private void getReplies() {
-
-    }
 
     private void setHeadingText() {
         String text = "";
@@ -111,7 +121,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
         if (replyCount > 1) {
             text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), --replyCount);
         } else if (replyCount == 1)
-            text = String.format(getString(R.string.bulletin_onereply_header),  c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
+            text = String.format(getString(R.string.bulletin_onereply_header), c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
         tvHeading.setText(text);
         c = null;
     }
@@ -126,7 +136,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bulletin.Reply r = mCurBulletin.getReplyInstance();
+                Bulletin.Reply r = new Bulletin().getReplyInstance();
                 UserProfile profile = Util.getCurrentUserProfile();
 
                 // Create new reply
@@ -135,21 +145,31 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
                 r.replyDate = new Date().toString();
                 r.userId = profile.getUserId();
                 r.postId = mCurBulletin.getPostID();
-                r.replyId = createReplyId();
+                String id = mCurBulletin.getPostID() + "" + mCurBulletin.getNumOfReplies();
+                r.replyId = Integer.parseInt(id);
                 r.replyText = etReplyText.getText().toString();
 
-                // Add reply to data and to database
-                mReplies.addFirst(r);
-//                mManager.updateBulletinReplies(mCurBulletin);
+                // Add reply to database
                 mManager.addReply(r);
+
                 // Update UI
                 mAdapter.notifyDataSetChanged();
                 setHeadingText();
-                BulletinsFragment.updatedPos = mBulletinPos;
+                ContentValues values = new ContentValues(1);
+                int num = mCurBulletin.getNumOfReplies();
+                values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++num);
+                getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry.COLUMN_POST_ID + " = " + mCurBulletin.getPostID(), null);
             }
         });
 
         ivReply.setOnTouchListener(new OnTouchInterface(this));
+    }
+
+    /**
+     * If some change is made, notify bulletins fragment and its adapter
+     */
+    public void notifyBulletinFragment() {
+        BulletinsFragment.updatedPos = mBulletinPos;
     }
 
     /**
@@ -179,20 +199,12 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent i = getIntent();
-        if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
-            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
-            if (null == mCurBulletin)
-                mCurBulletin = mManager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
-        } else {
-            finish();
-        }
 
         return new CursorLoader(BulletinRepliesViewActivity.this,
                 DataContract.ReplyEntry.CONTENT_URI,
                 REPLIES_COLUMNS,
                 ReplyEntry.COLUMN_POST_ID + " = ?",
-                new String[]{Integer.toString(i.getIntExtra(EXTRA_BULLETIN_ID, -1))},
+                new String[]{Integer.toString(getIntent().getIntExtra(EXTRA_BULLETIN_ID, -1))},
                 null);
     }
 

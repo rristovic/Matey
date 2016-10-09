@@ -472,10 +472,10 @@ public class DataManager {
             );
 
             if (insertedUri == null) {
-                Log.e(TAG, "Error inserting Bulletin: ID=" + postId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
+                Log.e(TAG, "Error inserting Bulletin: ID=" + postId + "; UserID=" + userId + "; Text=" + text.substring(0, 20) + "...");
             } else {
                 String debugtext = "Bulletin added: ID=" + postId +
-                        "; Name=" + userName + "; LastName=" + userLastName + "; Text=" + text.substring(0, 30)
+                        "; Name=" + userName + "; LastName=" + userLastName + "; Text=" + text.substring(0, 20)
                         + "...; Date=" + date;
                 debugtext += "; Num of replies=" + numOfReplies;
                 debugtext += "; Num of attachments=";
@@ -511,7 +511,7 @@ public class DataManager {
             Log.e(TAG, "Error setting bulletin: PostID=" + postId + "; UserID=" + userId + "; Number of rows updated=" + numOfUpdatedRows);
         } else {
             String debugtext = "Bulletin added: ID=" + postId +
-                    "; Name=" + userName + "; LastName=" + userLastName + "; Text=" + text.substring(0, 30)
+                    "; Name=" + userName + "; LastName=" + userLastName + "; Text=" + text
                     + "...; Date=" + date;
             debugtext += "; Num of replies=" + numOfReplies;
             debugtext += "; Num of attachments=";
@@ -566,10 +566,14 @@ public class DataManager {
         Bulletin bulletin = null;
         try {
             bulletin = getBulletin(index, cursor);
+
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return null;
         }
+
+        if(cursor != null)
+            cursor.close();
 
         return bulletin;
     }
@@ -718,7 +722,7 @@ public class DataManager {
 
             // TODO - delete old data
         }
-        Log.d(TAG, inserted + " bulletins added");
+        Log.d(TAG, inserted + " replies added");
     }
 
     /**
@@ -728,7 +732,7 @@ public class DataManager {
      */
     public void addReply(Bulletin.Reply reply) {
         addReply(reply.replyId, reply.userId, reply.postId, reply.userFirstName, reply.userLastName, reply.replyText, reply.replyDate
-                , reply.numOfApprvs, reply.replyApproves);
+                , reply.replyApproves.size(), reply.replyApproves);
     }
 
     /**
@@ -770,7 +774,7 @@ public class DataManager {
             values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
 
             Uri insertedUri = mAppContext.getContentResolver().insert(
-                    DataContract.BulletinEntry.CONTENT_URI,
+                    DataContract.ReplyEntry.CONTENT_URI,
                     values
             );
 
@@ -778,11 +782,12 @@ public class DataManager {
                 Log.e(TAG, "Error inserting reply: ID=" + replyId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
             } else {
                 String debugtext = "Reply added: ID=" + replyId +
-                        "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text.substring(0, 30)
+                        "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
                         + "...; Date=" + date;
                 debugtext += "; Num of approves=" + numOfApprvs;
                 Log.d(TAG, debugtext);
             }
+
         }
         if (replyCursor != null)
             replyCursor.close();
@@ -803,14 +808,19 @@ public class DataManager {
 
 
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.ReplyEntry.CONTENT_URI, values,
-                DataContract.ReplyEntry.COLUMN_REPLY_ID + " = ?", new String[]{Integer.toString(postId)});
+                DataContract.ReplyEntry.COLUMN_REPLY_ID + " = ?", new String[]{Integer.toString(replyId)});
 
         if (numOfUpdatedRows != 1) {
             Log.e(TAG, "Error updating reply: replyId=" + replyId + "; UserID=" + userId + "; Number of rows updated=" + numOfUpdatedRows);
         } else {
-            String debugtext = "Reply added: ID=" + replyId +
-                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text.substring(0, 30)
-                    + "...; Date=" + date;
+            String debugtext = "Reply updated: ID=" + replyId +
+                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=";
+            try{
+                debugtext+= text.substring(0, 30);
+            }catch (Exception e){
+                debugtext += text;
+            }
+            debugtext += "...; Date=" + date;
             debugtext += "; Num of approves=" + numOfApprvs;
             Log.d(TAG, debugtext);
         }
@@ -831,6 +841,7 @@ public class DataManager {
 
             reply.replyId = cursor.getInt(BulletinRepliesViewActivity.COL_REPLY_ID);
             reply.userId = cursor.getInt(BulletinRepliesViewActivity.COL_USER_ID);
+            reply.postId = cursor.getInt(BulletinRepliesViewActivity.COL_POST_ID);
             reply.userFirstName = cursor.getString(BulletinRepliesViewActivity.COL_FIRST_NAME);
             reply.userLastName = cursor.getString(BulletinRepliesViewActivity.COL_LAST_NAME);
             reply.replyDate = cursor.getString(BulletinRepliesViewActivity.COL_DATE);
@@ -866,6 +877,9 @@ public class DataManager {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return null;
         }
+
+        if(cursor!=null)
+            cursor.close();
 
         return reply;
     }

@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -220,6 +221,8 @@ public class MainActivity extends MotherActivity {
 //                }
 //            }
 //        };
+
+
 
         startIntro();
         setOnClickListeners();

@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,6 +12,8 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -64,6 +67,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
     private ViewHolder.ViewHolderClickListener getViewHolderListener() {
         return new ViewHolder.ViewHolderClickListener() {
+
             public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
 //                int position = mRecycleView.getChildAdapterPosition(rootView);
 //                if (onlyShowReplies) {
@@ -80,25 +84,28 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
             @Override
             public void onApproveClicked(View caller, View rootView) {
-//                int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
-//                Bulletin.Reply r = mData.get(position);
-//                if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
-//
-//                    // Remove approve from data and from database
-//                    r.replyApproves.remove(mCurUserProfile);
-////                    mManager.removeReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
-//
-////                    r.removeReplyApproveWithId(mCurUserProfile.getUserId());
-//                    ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray)); // Changing the color of button
-//                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-//                } else { // Like
-//
-//                    // Add approve to data and to database
-//                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
-////                    mManager.addReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
-//
-//                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-//                }
+                int position = mRecycleView.getChildAdapterPosition(rootView); // Get child position in adapter
+                mCursor.moveToPosition(position);
+                Bulletin.Reply r = mManager.getReply(position, mCursor);
+
+                if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
+                    // Remove approve from data and from database
+                    for (UserProfile p : r.replyApproves) {
+                        if (p.getUserId() == mCurUserProfile.getUserId())
+                            r.replyApproves.remove(p);
+                    }
+                    mManager.addReply(r);
+
+                    ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray)); // Changing the color of button
+                    ((BulletinRepliesViewActivity)mContext).notifyBulletinFragment();
+
+                } else { // Like
+                    // Add approve  to database
+                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
+                    mManager.addReply(r);
+
+                    ((BulletinRepliesViewActivity)mContext).notifyBulletinFragment();
+                }
             }
 
             @Override
@@ -108,10 +115,11 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
             @Override
             public void onNameClicked(View caller, View rootView) {
-//                int position = mRecycleView.getChildAdapterPosition(rootView);
-//                Intent i = new Intent(mContext, ProfileActivity.class);
-//                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(position).userId);
-//                mContext.startActivity(i);
+                int position = mRecycleView.getChildAdapterPosition(rootView);
+                Intent i = new Intent(mContext, ProfileActivity.class);
+                mCursor.moveToPosition(position);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getInt(BulletinRepliesViewActivity.COL_USER_ID));
+                mContext.startActivity(i);
             }
         };
     }
@@ -126,9 +134,10 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         holder.tvName.setText(text);
         holder.tvDate.setText(Util.getReadableDateText(reply.replyDate));
         holder.tvMessage.setText(reply.replyText);
-        text = "%d "+ mContext.getString(R.string.reply_approve);
+        text = "%d " + mContext.getString(R.string.reply_approve);
         text = String.format(Locale.US, text, reply.replyApproves.size());
         holder.tvApproves.setText(text);
+        holder.ivApprove.setColorFilter(mResources.getColor(R.color.light_gray));
 
         // Check if current user has liked the comment
         if (reply.hasReplyApproveWithId(mCurUserProfile.getUserId())) {
@@ -185,7 +194,9 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
         protected interface ViewHolderClickListener {
             void onApproveClicked(View caller, View rootView);
+
             void onShowApprovesClicked(View caller, View rootView);
+
             void onNameClicked(View caller, View rootView);
         }
     }

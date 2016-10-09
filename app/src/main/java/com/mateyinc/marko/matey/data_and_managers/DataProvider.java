@@ -78,9 +78,9 @@ public class DataProvider extends ContentProvider {
             case BULLETIN_WITH_ID:
                 return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
             case REPLIES:
-                return DataContract.BulletinEntry.CONTENT_TYPE;
+                return DataContract.ReplyEntry.CONTENT_TYPE;
             case REPLY_WITH_ID:
-                return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
+                return DataContract.ReplyEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }

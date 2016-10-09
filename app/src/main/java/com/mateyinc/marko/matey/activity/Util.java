@@ -15,6 +15,7 @@ import java.util.Date;
  * Created by Sarma on 9/2/2016.
  */
 public class Util {
+
     public static String getReadableDateText(Date date) {
         if(date == null){
             return "Invalid date";

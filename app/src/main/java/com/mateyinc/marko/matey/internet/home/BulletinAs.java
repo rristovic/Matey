@@ -1,6 +1,8 @@
 package com.mateyinc.marko.matey.internet.home;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -104,6 +106,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     /**
      * Method for creating the url for the server to download the new data from the given page
+     *
      * @param curPage the page of the new data to be downloaded
      * @return newly created url ready to send to the server
      */
@@ -114,6 +117,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
+
         if (mIsInit) {
             parseFriendsAndBulletins(result);
             mIsInit = false;
@@ -124,17 +128,26 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     /**
      * Helper method for parsing friends and bulletins data into the database
+     *
      * @param result the data collected from the server that needs to be parsed
      */
     private void parseFriendsAndBulletins(String result) {
         //Parsing friends
         // TODO - finish method with SQLite
-        createDummyFriendsData();
+
+        if (!mContext.getPreferences(Context.MODE_PRIVATE).getBoolean("DATA_CREATED", false)) {
+            createDummyFriendsData();
+            createDummyBulletinData();
+        }
 
         parseBulletins(result);
     }
 
     private void createDummyFriendsData() {
+        SharedPreferences.Editor editor = mContext.getPreferences(Context.MODE_PRIVATE).edit();
+        editor.putBoolean("DATA_CREATED", true);
+        editor.commit();
+
         Random r = new Random();
         int namesSize = Util.names.length;
         int lNamesSize = Util.lastNames.length;
@@ -149,6 +162,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     /**
      * Method for parsing bulletins into the db
+     *
      * @param result bulletins that needs to be parsed
      */
     private void parseBulletins(String result) {
@@ -202,7 +216,6 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             mContext.showDialog(1000);
         }
 
-        createDummyBulletinData();
     }
 
     private void createDummyBulletinData() {
@@ -234,7 +247,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                     UserProfile friendReplied = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
                     Bulletin.Reply r = bulletin.getReplyInstance();
 
-                    r.replyId = Integer.parseInt(Integer.toString(i) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
+                    r.replyId = Integer.parseInt(Integer.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
                     r.userId = friendReplied.getUserId();
                     r.postId = bulletin.getPostID();
                     r.userFirstName = friendReplied.getFirstName();

@@ -251,7 +251,7 @@ public class Bulletin {
 
         @Override
         public String toString() {
-            return "Reply: " + "id=" + replyId
+            return "Reply: " + "id=" + replyId + "; postId=" + postId
                     + "; From: " + userFirstName + " " + userLastName
                     + "; Date: " + replyDate +
                     "; Text=" + replyText;
