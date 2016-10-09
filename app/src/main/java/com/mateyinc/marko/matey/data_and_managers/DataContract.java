@@ -145,7 +145,7 @@ public class DataContract {
         public static final String COLUMN_TEXT = "post_text";
         public static final String COLUMN_DATE = "post_date";
         public static final String COLUMN_ATTACHMENTS = "post_attachments";
-        public static final String COLUMN_NO_OF_REPLIES = "post_replies";
+        public static final String COLUMN_NUM_OF_REPLIES = "post_replies";
 
         public static Uri buildBulletinUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

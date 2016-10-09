@@ -1,8 +1,12 @@
 package com.mateyinc.marko.matey.activity.view;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -16,17 +20,43 @@ import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.adapters.BulletinRepliesAdapter;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
+import com.mateyinc.marko.matey.data_and_managers.DataContract;
+import com.mateyinc.marko.matey.data_and_managers.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.inall.InsideActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 import java.util.LinkedList;
 
-public class BulletinRepliesViewActivity extends Activity {
+public class BulletinRepliesViewActivity extends InsideActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static final String EXTRA_BULLETIN_POS = "post_id";
+    public static final String EXTRA_BULLETIN_ID = "post_id";
+    public static final String EXTRA_BULLETIN_POS = "bulletin_adapter_pos";
     public static final String EXTRA_NEW_REPLY = "show_replies";
+
+    public static final String[] REPLIES_COLUMNS = {
+            ReplyEntry.TABLE_NAME + "." + ReplyEntry.COLUMN_REPLY_ID,
+            ReplyEntry.COLUMN_USER_ID,
+            ReplyEntry.COLUMN_FIRST_NAME,
+            ReplyEntry.COLUMN_LAST_NAME,
+            ReplyEntry.COLUMN_TEXT,
+            ReplyEntry.COLUMN_DATE,
+            ReplyEntry.COLUMN_NUM_OF_APPRVS,
+            ReplyEntry.COLUMN_APPRVS
+    };
+
+    // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
+    // must change.
+    public static final int COL_REPLY_ID = 0;
+    public static final int COL_USER_ID = 1;
+    public static final int COL_FIRST_NAME = 2;
+    public static final int COL_LAST_NAME = 3;
+    public static final int COL_TEXT = 4;
+    public static final int COL_DATE = 5;
+    public static final int COL_NUM_OF_APPRVS = 6;
+    public static final int COL_APPRVS = 7;
 
     public static int mBulletinPos = -1;
 
@@ -63,31 +93,27 @@ public class BulletinRepliesViewActivity extends Activity {
         rvList.setLayoutManager(linearLayoutManager);
         rvList.setAdapter(mAdapter);
 
-        getReplies();
-        setHeadingText();
+        // Init loader
+        getSupportLoaderManager().initLoader(Util.REPLIES_LOADER, null, this);
+
         setListeners();
     }
 
     private void getReplies() {
-        if (getIntent().hasExtra(EXTRA_BULLETIN_POS)) {
-            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
-            if (null == mCurBulletin)
-                mCurBulletin = mManager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
-            mReplies = mCurBulletin.getReplies();
-            mAdapter.setData(mReplies);
-        } else {
-            finish();
-        }
+
     }
 
     private void setHeadingText() {
         String text = "";
-        int replyCount = mReplies.size();
+        int replyCount = mAdapter.getItemCount();
+        Cursor c = mAdapter.getCursor();
+        c.moveToFirst();
         if (replyCount > 1) {
-            text = String.format(getString(R.string.bulletin_reply_header), mReplies.get(0).userFirstName, --replyCount);
+            text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), --replyCount);
         } else if (replyCount == 1)
-            text = String.format(getString(R.string.bulletin_onereply_header), mReplies.get(0).userFirstName, mReplies.get(0).userLastName);
+            text = String.format(getString(R.string.bulletin_onereply_header),  c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
         tvHeading.setText(text);
+        c = null;
     }
 
     private void setListeners() {
@@ -108,13 +134,14 @@ public class BulletinRepliesViewActivity extends Activity {
                 r.userLastName = profile.getLastName();
                 r.replyDate = new Date().toString();
                 r.userId = profile.getUserId();
+                r.postId = mCurBulletin.getPostID();
                 r.replyId = createReplyId();
                 r.replyText = etReplyText.getText().toString();
 
                 // Add reply to data and to database
                 mReplies.addFirst(r);
-                mManager.updateBulletinReplies(mCurBulletin);
-
+//                mManager.updateBulletinReplies(mCurBulletin);
+                mManager.addReply(r);
                 // Update UI
                 mAdapter.notifyDataSetChanged();
                 setHeadingText();
@@ -148,5 +175,35 @@ public class BulletinRepliesViewActivity extends Activity {
                     .getSystemService(Context.INPUT_METHOD_SERVICE);
             inputMethodManager.showSoftInput(etReplyText, InputMethodManager.SHOW_IMPLICIT);
         }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Intent i = getIntent();
+        if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
+            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
+            if (null == mCurBulletin)
+                mCurBulletin = mManager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
+        } else {
+            finish();
+        }
+
+        return new CursorLoader(BulletinRepliesViewActivity.this,
+                DataContract.ReplyEntry.CONTENT_URI,
+                REPLIES_COLUMNS,
+                ReplyEntry.COLUMN_POST_ID + " = ?",
+                new String[]{Integer.toString(i.getIntExtra(EXTRA_BULLETIN_ID, -1))},
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mAdapter.swapCursor(data);
+        setHeadingText();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapCursor(null);
     }
 }

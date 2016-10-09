@@ -39,7 +39,6 @@ public class Bulletin {
     public int mDbIndex;
 
 
-
     public int getPostID() {
         return mPostID;
     }
@@ -224,6 +223,30 @@ public class Bulletin {
                 }
             }
             return false;
+        }
+
+        public LinkedList<UserProfile> setApprovesFromJSON(String string) {
+            LinkedList<UserProfile> apprvs = new LinkedList<>();
+            if (string == null || string.length() == 0) {
+                return apprvs;
+            }
+
+            try {
+                JSONObject jObject = new JSONObject(string);
+                JSONArray jArray = jObject.getJSONArray(DataManager.REPLY_APPRVS);
+                for (int i = 0; i < jArray.length(); i++) {
+                    JSONObject apprv = jArray.getJSONObject(i);
+
+                    UserProfile r = new UserProfile();
+                    r.setUserId(apprv.getInt(UserProfile.USER_ID));
+
+                    apprvs.add(r);
+                }
+            } catch (JSONException jse) {
+                Log.e(TAG, jse.getLocalizedMessage(), jse);
+            }
+
+            return apprvs;
         }
 
         @Override

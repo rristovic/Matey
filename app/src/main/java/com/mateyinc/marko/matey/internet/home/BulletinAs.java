@@ -33,7 +33,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     /**
      * Indicates if BulletinAs Async task is started for the first time in application or not.
-     * If it is first start, then download friends data and bulletin data from server, otherwise just download bulletin data
+     * If it is first start, then download friends data and bulletins data from the server, otherwise just download bulletin data
      */
     private boolean mIsInit = false;
 
@@ -102,6 +102,11 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     }
 
+    /**
+     * Method for creating the url for the server to download the new data from the given page
+     * @param curPage the page of the new data to be downloaded
+     * @return newly created url ready to send to the server
+     */
     private String createUrl(String curPage) {
         // TODO - finish method with mCurPage as param
         return null;
@@ -117,6 +122,10 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         }
     }
 
+    /**
+     * Helper method for parsing friends and bulletins data into the database
+     * @param result the data collected from the server that needs to be parsed
+     */
     private void parseFriendsAndBulletins(String result) {
         //Parsing friends
         // TODO - finish method with SQLite
@@ -131,13 +140,17 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         int lNamesSize = Util.lastNames.length;
 
         for (int i = 0; i < HomeActivity.mCurUser.getNumOfFriends(); i++) {
-            // TODO - define what gets saved and what not
+            // define what gets saved and what not
             // For now only name and id
 
             mDataManager.addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)], -1);
         }
     }
 
+    /**
+     * Method for parsing bulletins into the db
+     * @param result bulletins that needs to be parsed
+     */
     private void parseBulletins(String result) {
         try {
             // if there is some result check if successful

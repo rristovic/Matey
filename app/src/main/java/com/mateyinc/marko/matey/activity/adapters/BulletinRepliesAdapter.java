@@ -1,7 +1,6 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,8 +11,6 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -24,19 +21,16 @@ import java.util.Locale;
 /**
  * Created by Sarma on 9/5/2016.
  */
-public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinRepliesAdapter.ViewHolder> {
+public class BulletinRepliesAdapter extends RecycleCursorAdapter {
     private final String TAG = BulletinRepliesAdapter.class.getSimpleName();
 
-    private final DataManager mManager;
-    private LinkedList<Bulletin.Reply> mData;
-    private final Context mContext;
     private RecyclerView mRecycleView;
     private UserProfile mCurUserProfile;
     private Resources mResources;
 
+
     public BulletinRepliesAdapter(Context context, RecyclerView view, LinkedList data) {
         mContext = context;
-        mData = data;
         mRecycleView = view;
         mManager = DataManager.getInstance(context);
 
@@ -56,10 +50,6 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
         mResources = mContext.getResources();
     }
 
-    public void setData(LinkedList data) {
-        mData = data;
-        this.notifyDataSetChanged();
-    }
 
     @Override
     public BulletinRepliesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -71,43 +61,44 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
 
     }
 
+
     private ViewHolder.ViewHolderClickListener getViewHolderListener() {
         return new ViewHolder.ViewHolderClickListener() {
             public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
-                int position = mRecycleView.getChildAdapterPosition(rootView);
-                if (onlyShowReplies) {
-                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
-                    mContext.startActivity(i);
-                } else {
-                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
-                    mContext.startActivity(i);
-                }
+//                int position = mRecycleView.getChildAdapterPosition(rootView);
+//                if (onlyShowReplies) {
+//                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+//                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_ID, position);
+//                    mContext.startActivity(i);
+//                } else {
+//                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+//                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_ID, position);
+//                    i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
+//                    mContext.startActivity(i);
+//                }
             }
 
             @Override
             public void onApproveClicked(View caller, View rootView) {
-                int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
-                Bulletin.Reply r = mData.get(position);
-                if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
-
-                    // Remove approve from data and from database
-                    r.replyApproves.remove(mCurUserProfile);
-//                    mManager.removeReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
-
-//                    r.removeReplyApproveWithId(mCurUserProfile.getUserId());
-                    ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray)); // Changing the color of button
-                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-                } else { // Like
-
-                    // Add approve to data and to database
-                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
-//                    mManager.addReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
-
-                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-                }
+//                int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
+//                Bulletin.Reply r = mData.get(position);
+//                if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
+//
+//                    // Remove approve from data and from database
+//                    r.replyApproves.remove(mCurUserProfile);
+////                    mManager.removeReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
+//
+////                    r.removeReplyApproveWithId(mCurUserProfile.getUserId());
+//                    ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray)); // Changing the color of button
+//                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
+//                } else { // Like
+//
+//                    // Add approve to data and to database
+//                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
+////                    mManager.addReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
+//
+//                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
+//                }
             }
 
             @Override
@@ -117,38 +108,35 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
 
             @Override
             public void onNameClicked(View caller, View rootView) {
-                int position = mRecycleView.getChildAdapterPosition(rootView);
-                Intent i = new Intent(mContext, ProfileActivity.class);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(position).userId);
-                mContext.startActivity(i);
+//                int position = mRecycleView.getChildAdapterPosition(rootView);
+//                Intent i = new Intent(mContext, ProfileActivity.class);
+//                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(position).userId);
+//                mContext.startActivity(i);
             }
         };
     }
 
 
     @Override
-    public void onBindViewHolder(final BulletinRepliesAdapter.ViewHolder mHolder, final int position) {
-        Bulletin.Reply reply = mData.get(position);
+    public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
+        Bulletin.Reply reply = mManager.getReply(position, mCursor);
+        BulletinRepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
 
         String text = reply.userFirstName + " " + reply.userLastName;
-        mHolder.tvName.setText(text);
-        mHolder.tvDate.setText(Util.getReadableDateText(reply.replyDate));
-        mHolder.tvMessage.setText(reply.replyText);
+        holder.tvName.setText(text);
+        holder.tvDate.setText(Util.getReadableDateText(reply.replyDate));
+        holder.tvMessage.setText(reply.replyText);
         text = "%d "+ mContext.getString(R.string.reply_approve);
         text = String.format(Locale.US, text, reply.replyApproves.size());
-        mHolder.tvApproves.setText(text);
+        holder.tvApproves.setText(text);
 
         // Check if current user has liked the comment
         if (reply.hasReplyApproveWithId(mCurUserProfile.getUserId())) {
-            mHolder.ivApprove.setColorFilter(mResources.getColor(R.color.blue));
+            holder.ivApprove.setColorFilter(mResources.getColor(R.color.blue));
         }
 
     }
 
-    @Override
-    public int getItemCount() {
-        return mData.size();
-    }
 
     protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private static final String TAG_NAME = "name";

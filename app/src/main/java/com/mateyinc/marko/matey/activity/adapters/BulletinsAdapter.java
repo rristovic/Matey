@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
@@ -27,15 +28,12 @@ import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
-public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class BulletinsAdapter extends RecycleCursorAdapter {
 
     private static final int FIRST_ITEM = 1;
     private static final int ITEM = 2;
 
-    private final Context mContext;
-    private final DataManager mManager;
     private View mEmptyView;
-    private Cursor mCursor;
     private RecyclerView mRecycleView;
 
     public BulletinsAdapter(Context context, TextView emptyView) {
@@ -49,7 +47,7 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if (parent instanceof RecyclerView) {
 
             if (mRecycleView == null)
-                mRecycleView = (RecyclerView)parent;
+                mRecycleView = (RecyclerView) parent;
 
             switch (viewType) {
                 case ITEM: {
@@ -73,18 +71,27 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     }
 
+    /**
+     * Helper method for creating ViewHolder listener
+     *
+     * @return newly created listener
+     */
     private ViewHolder.ViewHolderClickListener getViewHolderListener() {
         return new ViewHolder.ViewHolderClickListener() {
             public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
                 int position = mRecycleView.getChildAdapterPosition(rootView);
                 if (onlyShowReplies) {
                     Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+                    mCursor.moveToPosition(position);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(BulletinsFragment.COL_POST_ID));
                     i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
                     mContext.startActivity(i);
                 } else {
                     Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
                     i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
+                    mCursor.moveToPosition(position);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(BulletinsFragment.COL_POST_ID));
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
                     mContext.startActivity(i);
                 }
             }
@@ -98,7 +105,7 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             public void onNameClick(TextView mName, View rootView) {
                 int position = mRecycleView.getChildAdapterPosition(rootView);
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(position,mCursor).getUserID());
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(position, mCursor).getUserID());
                 mContext.startActivity(i);
             }
         };
@@ -135,7 +142,7 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 // Adding replies programmatically
                 try {
                     Resources resources = mContext.getResources();
-                    int repliesCount = bulletin.getReplies().size();
+                    int repliesCount = bulletin.getNumOfReplies();
                     int margin = 0;
                     int marginIncrease = Util.getDp(15, resources);
                     int height = Util.getDp(24, resources);
@@ -210,26 +217,10 @@ public class BulletinsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         return position == 0 ? FIRST_ITEM : ITEM;
     }
 
-    @Override
-    public int getItemCount() {
-        if (null == mCursor) return 0;
-        return mCursor.getCount();
-    }
-
-
-    @Override
-    public long getItemId(int position) {
-        return super.getItemId(position);
-    }
 
     public void swapCursor(Cursor newCursor) {
-        mCursor = newCursor;
-        notifyDataSetChanged();
+        super.swapCursor(newCursor);
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
-    }
-
-    public Cursor getCursor() {
-        return mCursor;
     }
 
 

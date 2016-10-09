@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data_and_managers.DataContract;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
@@ -35,9 +36,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     private EndlessScrollListener mScrollListener;
     private TextView mEmptyView;
 
-
     public static int updatedPos = -1;
-    private int BULLETINS_LOADER = 100;
 
     public static final String[] BULLETIN_COLUMNS = {
             BulletinEntry.TABLE_NAME + "." + BulletinEntry.COLUMN_POST_ID,
@@ -46,11 +45,11 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             BulletinEntry.COLUMN_LAST_NAME,
             BulletinEntry.COLUMN_TEXT,
             BulletinEntry.COLUMN_DATE,
-            BulletinEntry.COLUMN_REPLIES,
+            BulletinEntry.COLUMN_NUM_OF_REPLIES,
             BulletinEntry.COLUMN_ATTACHMENTS
     };
 
-    // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
+    // These indices are tied to BULLETIN_COLUMNS.  If BULLETIN_COLUMNS changes, these
     // must change.
     public static final int COL_POST_ID = 0;
     public static final int COL_USER_ID = 1;
@@ -58,7 +57,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public static final int COL_LAST_NAME = 3;
     public static final int COL_TEXT = 4;
     public static final int COL_DATE = 5;
-    public static final int COL_REPLIES = 6;
+    public static final int COL_NUM_OF_REPLIES = 6;
     public static final int COL_ATTCHS = 7;
 
 
@@ -74,7 +73,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         super.onAttach(context);
         mContext = context;
 
-        getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
+        getLoaderManager().initLoader(Util.BULLETINS_LOADER, null, this);
     }
 
     @Override

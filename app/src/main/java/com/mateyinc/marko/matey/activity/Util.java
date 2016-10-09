@@ -114,7 +114,10 @@ public class Util {
     public static final int ONE_DAY = 86400000;
     public static final int ONE_MIN = 60000;
 
-    public static final String[] names = {"Aleksandar","Bozidar","Velibor","Goran","David","Djordje","Zlatko","Janko","Jovan","Lazar","Ljubbisa",
+    public static final int BULLETINS_LOADER = 100;
+    public static final int REPLIES_LOADER = 200;
+
+    public static final String[] names = {"Stefana","Aleksandar","Bozidar","Velibor","Goran","David","Djordje","Zlatko","Janko","Jovan","Lazar","Ljubbisa",
     "Monojlo","Mijat","Milivoje","Nesko","Ninoslav","Obrad", "Pavle","Prodan", "Radomir","Rodoljub","Ranka","Milica","Nikoleta","Ivana", "Marica","Evandjelija",
     "Jana", "Sara","Marina","Tamara"};
 
