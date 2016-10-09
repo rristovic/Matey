@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.home;
+package com.mateyinc.marko.matey.activity.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
