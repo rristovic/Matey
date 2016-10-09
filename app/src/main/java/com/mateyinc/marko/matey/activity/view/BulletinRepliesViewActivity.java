@@ -35,8 +35,10 @@ public class BulletinRepliesViewActivity extends Activity {
     private ImageButton ibBack;
     private TextView tvHeading, etReplyText;
     private ImageView ivReply;
+    private DataManager mManager;
 
     private LinkedList<Bulletin.Reply> mReplies;
+    private Bulletin mCurBulletin = null;
 
 
     @Override
@@ -54,10 +56,10 @@ public class BulletinRepliesViewActivity extends Activity {
         mAdapter = new BulletinRepliesAdapter(this, rvList);
         ivReply = (ImageView) findViewById(R.id.ivSendReply);
         etReplyText = (TextView) findViewById(R.id.tvReply);
+        mManager = DataManager.getInstance(BulletinRepliesViewActivity.this);
 
         // Laying out view from the last position
         final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setReverseLayout(true);
         rvList.setLayoutManager(linearLayoutManager);
         rvList.setAdapter(mAdapter);
 
@@ -69,7 +71,9 @@ public class BulletinRepliesViewActivity extends Activity {
     private void getReplies() {
         if (getIntent().hasExtra(EXTRA_BULLETIN_POS)) {
             mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
-            mReplies = DataManager.getInstance(BulletinRepliesViewActivity.this).getBulletin(mBulletinPos).getReplies();
+            if (null == mCurBulletin)
+                mCurBulletin = mManager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
+            mReplies = mCurBulletin.getReplies();
             mAdapter.setData(mReplies);
         } else {
             finish();
@@ -96,9 +100,7 @@ public class BulletinRepliesViewActivity extends Activity {
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DataManager manager = DataManager.getInstance(BulletinRepliesViewActivity.this);
-                Bulletin b = manager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
-                Bulletin.Reply r = b.getReplyInstance();
+                Bulletin.Reply r = mCurBulletin.getReplyInstance();
                 UserProfile profile = Util.getCurrentUserProfile();
 
                 // Create new reply
@@ -110,12 +112,11 @@ public class BulletinRepliesViewActivity extends Activity {
                 r.replyText = etReplyText.getText().toString();
 
                 // Add reply to data and to database
-                mReplies.add(r);
-                manager.addReplyToBulletin(mBulletinPos, r);
+                mReplies.addFirst(r);
+                mManager.updateBulletinReplies(mCurBulletin);
 
                 // Update UI
-                mAdapter.notifyItemInserted(mAdapter.getItemCount() - 1);
-                rvList.scrollToPosition(mAdapter.getItemCount() - 1);
+                mAdapter.notifyDataSetChanged();
                 setHeadingText();
                 BulletinsFragment.updatedPos = mBulletinPos;
             }
@@ -126,6 +127,7 @@ public class BulletinRepliesViewActivity extends Activity {
 
     /**
      * Creating ReplyId for the current bulletin
+     *
      * @return the newly created reply id
      */
     private int createReplyId() {
@@ -138,9 +140,6 @@ public class BulletinRepliesViewActivity extends Activity {
         super.onResume();
 
         if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
-            // Scroll list to the last pos
-//            rvList.smoothScrollToPosition(((LinearLayoutManager)rvList.getLayoutManager()).findLastVisibleItemPosition());
-
             // Get focus on edit text and show keyboard
             etReplyText.setFocusableInTouchMode(true);
             etReplyText.requestFocus();

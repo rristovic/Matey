@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.adapters.GroupsRecyclerViewAdapter;
 import com.mateyinc.marko.matey.inall.InsideActivity;
 
 import java.util.ArrayList;

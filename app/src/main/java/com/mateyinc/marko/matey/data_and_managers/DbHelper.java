@@ -23,6 +23,7 @@ import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.MessageEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.ProfileEntry;
+import com.mateyinc.marko.matey.data_and_managers.DataContract.ReplyEntry;
 
 /**
  * Manages a local database for data.
@@ -80,17 +81,34 @@ public class DbHelper extends SQLiteOpenHelper {
                 BulletinEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_DATE + " TEXT NOT NULL, " +
-                BulletinEntry.COLUMN_REPLIES + " TEXT, " +
+                BulletinEntry.COLUMN_NO_OF_REPLIES + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +
                 // Set up the sender_id column as a foreign key to profile table.
                 "FOREIGN KEY (" + BulletinEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
                 " UNIQUE (" + BulletinEntry.COLUMN_POST_ID + ") ON CONFLICT REPLACE);";
 
+        final String SQL_CREATE_REPLY_TABLE = "CREATE TABLE " + ReplyEntry.TABLE_NAME + " (" +
+                ReplyEntry.COLUMN_REPLY_ID + " INTEGER NOT NULL, " +
+                ReplyEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
+                ReplyEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
+                ReplyEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
+                ReplyEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
+                ReplyEntry.COLUMN_DATE + " TEXT NOT NULL, " +
+                ReplyEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                ReplyEntry.COLUMN_NUM_OF_APPRVS + " INTEGER DEFAULT 0," +
+                ReplyEntry.COLUMN_APPRVS + " TEXT, " +
+                "FOREIGN KEY (" + ReplyEntry.COLUMN_USER_ID + ") REFERENCES " +
+                ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
+                "FOREIGN KEY (" + ReplyEntry.COLUMN_POST_ID + ") REFERENCES " +
+                BulletinEntry.TABLE_NAME + " (" + BulletinEntry.COLUMN_POST_ID + "), " +
+                " UNIQUE (" + ReplyEntry.COLUMN_REPLY_ID + ") ON CONFLICT REPLACE);";
+
         sqLiteDatabase.execSQL(SQL_CREATE_MSG_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PROFILE_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_NOTIF_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_BULLETIN_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_REPLY_TABLE);
     }
 
     @Override
@@ -99,6 +117,7 @@ public class DbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + NotificationEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ProfileEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + BulletinEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReplyEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }

@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -65,25 +67,62 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
                 .inflate(R.layout.bulletin_replies_list_item, parent, false);
 
         // Implemented ViewHolderClickListener interface from view holder to handle the clicks
-        return new ViewHolder(view, new ViewHolder.ViewHolderClickListener() {
-            public void onApproveClicked(View caller, View rootView) {
-                    int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
-                    Bulletin.Reply r = mData.get(position);
-                    LinkedList list = r.replyApproves;
-                    if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
-                        mManager.removeReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
+        return new ViewHolder(view, getViewHolderListener());
 
-                        r.removeReplyApproveWithId(mCurUserProfile.getUserId());
-                        ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray));
-                        BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-                    } else { // Like
-                        list.add(mCurUserProfile); // adding Reply to bulletin
-                        mManager.addReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
-                        BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
-                    }
+    }
+
+    private ViewHolder.ViewHolderClickListener getViewHolderListener() {
+        return new ViewHolder.ViewHolderClickListener() {
+            public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
+                int position = mRecycleView.getChildAdapterPosition(rootView);
+                if (onlyShowReplies) {
+                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
+                    mContext.startActivity(i);
+                } else {
+                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
+                    i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
+                    mContext.startActivity(i);
+                }
             }
-        });
 
+            @Override
+            public void onApproveClicked(View caller, View rootView) {
+                int position = mRecycleView.indexOfChild(rootView); // Get child position in adapter
+                Bulletin.Reply r = mData.get(position);
+                if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
+
+                    // Remove approve from data and from database
+                    r.replyApproves.remove(mCurUserProfile);
+//                    mManager.removeReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
+
+//                    r.removeReplyApproveWithId(mCurUserProfile.getUserId());
+                    ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray)); // Changing the color of button
+                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
+                } else { // Like
+
+                    // Add approve to data and to database
+                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
+//                    mManager.addReplyApprove(BulletinRepliesViewActivity.mBulletinPos, r.replyId);
+
+                    BulletinRepliesAdapter.this.notifyItemChanged(position); // notify adapter of item changed
+                }
+            }
+
+            @Override
+            public void onShowApprovesClicked(View caller, View rootView) {
+                // TODO - finish method
+            }
+
+            @Override
+            public void onNameClicked(View caller, View rootView) {
+                int position = mRecycleView.getChildAdapterPosition(rootView);
+                Intent i = new Intent(mContext, ProfileActivity.class);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(position).userId);
+                mContext.startActivity(i);
+            }
+        };
     }
 
 
@@ -112,6 +151,10 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
     }
 
     protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private static final String TAG_NAME = "name";
+        private static final String TAG_APPROVE = "approvebtn";
+        private static final String TAG_SHOW_APPROVES = "showapprvs";
+
         public final View mView;
         public final TextView tvMessage;
         public final TextView tvName;
@@ -130,20 +173,32 @@ public class BulletinRepliesAdapter extends RecyclerView.Adapter<BulletinReplies
             ivApprove = (ImageView) view.findViewById(R.id.ivApprove);
             mListener = listener;
 
+            ivApprove.setTag(TAG_APPROVE);
+            tvApproves.setTag(TAG_SHOW_APPROVES);
+            tvName.setTag(TAG_NAME);
+
             ivApprove.setOnClickListener(this);
+            tvApproves.setOnClickListener(this);
+            tvName.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
 
-            mListener.onApproveClicked(v, mView);
-//            } else {
-//                mListener.onPotato(v);
-//            }
+            String tag = v.getTag().toString();
+            if (tag.equals(TAG_NAME)) {
+                mListener.onNameClicked(v, mView);
+            } else if (tag.equals(TAG_APPROVE)) {
+                mListener.onApproveClicked(v, mView);
+            } else if (tag.equals(TAG_SHOW_APPROVES)) {
+                mListener.onShowApprovesClicked(v, mView);
+            }
         }
 
         protected interface ViewHolderClickListener {
             void onApproveClicked(View caller, View rootView);
+            void onShowApprovesClicked(View caller, View rootView);
+            void onNameClicked(View caller, View rootView);
         }
     }
 }

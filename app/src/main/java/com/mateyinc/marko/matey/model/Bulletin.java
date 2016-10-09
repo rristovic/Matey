@@ -25,17 +25,20 @@ public class Bulletin {
     private int mPostID;
     private int mUserID;
     private LinkedList<Attachment> mAttachments;
-    private LinkedList<Reply> mReplies;
 
-    public LinkedList<Reply> getReplies() {
-        if (mReplies == null)
-            mReplies = new LinkedList<>();
-        return mReplies;
+    private int noOfReplies = 0;
+
+    public int getNumOfReplies() {
+        return noOfReplies;
     }
 
-    public void setRepliesFromJSON(LinkedList<Reply> mReplies) {
-        this.mReplies = mReplies;
+    public void setNumOfReplies(int noOfReplies) {
+        this.noOfReplies = noOfReplies;
     }
+
+    public int mDbIndex;
+
+
 
     public int getPostID() {
         return mPostID;
@@ -163,7 +166,7 @@ public class Bulletin {
             Log.e(TAG, jse.getLocalizedMessage(), jse);
         }
 
-        mReplies = replies;
+//        mReplies = replies;
     }
 
     public void setAttachmentsFromJSON(String string) {
@@ -179,13 +182,25 @@ public class Bulletin {
         public static final String TEXT = "reply_text";
         public static final String REPLY_APPRVS = "reply_approves";
 
+        /**
+         * The ID of the reply
+         */
         public int replyId;
+        /**
+         * The ID of the user that has replied
+         */
+        public int userId;
+        /**
+         * The ID of the post/bulletin that has been replied on
+         */
+        public int postId;
+
         public String userFirstName;
         public String userLastName;
-        public int userId;
         public String replyDate; // TODO - make date object if needed
         public String replyText;
-        public LinkedList<UserProfile> replyApproves;
+        public int numOfApprvs;
+        public LinkedList<UserProfile> replyApproves;// Not in DB
 
         public Reply() {
             replyApproves = new LinkedList<>();
@@ -209,6 +224,14 @@ public class Bulletin {
                 }
             }
             return false;
+        }
+
+        @Override
+        public String toString() {
+            return "Reply: " + "id=" + replyId
+                    + "; From: " + userFirstName + " " + userLastName
+                    + "; Date: " + replyDate +
+                    "; Text=" + replyText;
         }
     }
 

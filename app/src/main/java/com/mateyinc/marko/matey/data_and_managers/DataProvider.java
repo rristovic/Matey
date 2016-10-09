@@ -38,6 +38,8 @@ public class DataProvider extends ContentProvider {
     static final int PROFILE_WITH_ID = 301;
     static final int BULLETINS = 400;
     static final int BULLETIN_WITH_ID = 401;
+    static final int REPLIES = 500;
+    static final int REPLY_WITH_ID = 501;
 
 
     private String sNotificationIdSelection = DataContract.NotificationEntry.TABLE_NAME +
@@ -74,6 +76,10 @@ public class DataProvider extends ContentProvider {
             case BULLETINS:
                 return DataContract.BulletinEntry.CONTENT_TYPE;
             case BULLETIN_WITH_ID:
+                return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
+            case REPLIES:
+                return DataContract.BulletinEntry.CONTENT_TYPE;
+            case REPLY_WITH_ID:
                 return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -158,12 +164,33 @@ public class DataProvider extends ContentProvider {
                 retCursor = getBulletinByID(uri, projection, sortOrder);
                 break;
             }
+            // "replies"
+            case REPLIES: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        DataContract.ReplyEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case REPLY_WITH_ID: {
+                retCursor = getReplyByID(uri, projection, sortOrder);
+                break;
+            }
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         retCursor.setNotificationUri(getContext().getContentResolver(), uri);
         return retCursor;
+    }
+
+    private Cursor getReplyByID(Uri uri, String[] projection, String sortOrder) {
+        return null;
     }
 
     private Cursor getProfileByID(Uri uri, String[] projection, String sortOrder) {
@@ -213,7 +240,7 @@ public class DataProvider extends ContentProvider {
             case PROFILES: {
                 long _id = db.insert(DataContract.ProfileEntry.TABLE_NAME, null, values);
                 if (_id > 0)
-                    returnUri = DataContract.ProfileEntry.buildPorfileUri(_id);
+                    returnUri = DataContract.ProfileEntry.buildProfileUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -226,6 +253,15 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case REPLIES: {
+                long _id = db.insert(DataContract.ReplyEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = DataContract.ReplyEntry.buildReplyUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case REPLY_WITH_ID:
             case BULLETIN_WITH_ID:
             case MESSAGE_WITH_ID: // TODO - finish insert with id
             case NOTIFICATION_WITH_ID:
@@ -261,6 +297,10 @@ public class DataProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         DataContract.BulletinEntry.TABLE_NAME, selection, selectionArgs);
                 break;
+            case REPLIES:
+                rowsDeleted = db.delete(
+                        DataContract.ReplyEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -292,6 +332,10 @@ public class DataProvider extends ContentProvider {
                 break;
             case BULLETINS:
                 rowsUpdated = db.update(DataContract.BulletinEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case REPLIES:
+                rowsUpdated = db.update(DataContract.ReplyEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             default:
@@ -376,6 +420,23 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
+            case REPLIES: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(DataContract.ReplyEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
             default:
                 return super.bulkInsert(uri, values);
         }
@@ -394,6 +455,8 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_PROFILES + "/*", PROFILE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_BULLETINS, BULLETINS);
         matcher.addURI(authority, DataContract.PATH_BULLETINS + "/*", BULLETIN_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_REPLIES, REPLIES);
+        matcher.addURI(authority, DataContract.PATH_REPLIES + "/*", REPLY_WITH_ID);
 
         return matcher;
     }

@@ -62,27 +62,6 @@ public abstract class EndlessScrollListener extends RecyclerView.OnScrollListene
             lastVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findLastVisibleItemPosition();
         }
 
-//        // If the total item count is zero and the previous isn't, assume the
-//        // list is invalidated and should be reset back to initial state
-//        if (totalItemCount < mPreviousTotalItemCount) {
-//            this.mCurrentPage = this.mStartingPageIndex;
-//            this.mPreviousTotalItemCount = totalItemCount;
-//            if (totalItemCount == 0) {
-//                this.mLoading = true;
-//            }
-//        }
-//        // If it’s still mLoading, we check to see if the dataset count has
-//        // changed, if so we conclude it has finished mLoading and update the current page
-//        // number and total item count.
-//        if (mLoading && (totalItemCount > mPreviousTotalItemCount)) {
-//            mLoading = false;
-//            mPreviousTotalItemCount = totalItemCount;
-//        }
-
-        // check to see if we have breached
-        // the mVisibleThreshold and need to reload more data.
-        // If we do need to reload some more data, we execute onLoadMore to fetch the data.
-        // threshold should reflect how many total columns there are too
         if (!mLoading && (lastVisibleItemPosition + mVisibleThreshold) > totalItemCount) {
             mCurrentPage++;
             onLoadMore(mCurrentPage, totalItemCount);
@@ -90,11 +69,6 @@ public abstract class EndlessScrollListener extends RecyclerView.OnScrollListene
         }
     }
 
-    // Defines the process for actually loading more data based on page
     public abstract void onLoadMore(int page, int totalItemsCount);
-
-    public void setVisibleThreshold(int visibleThreshold) {
-        this.mVisibleThreshold = visibleThreshold;
-    }
 
 }

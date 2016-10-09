@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Random;
 
 /**
@@ -30,6 +31,10 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
     DataManager mBulletinManager;
     DataManager mDataManager;
 
+    /**
+     * Indicates if BulletinAs Async task is started for the first time in application or not.
+     * If it is first start, then download friends data and bulletin data from server, otherwise just download bulletin data
+     */
     private boolean mIsInit = false;
 
     public BulletinAs(HomeActivity activity) {
@@ -194,6 +199,8 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             int itemDownloaded = 0;
 
             ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+            LinkedList<Bulletin.Reply> repliesList = new LinkedList<>();
+
             for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
 
                 UserProfile friend = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
@@ -207,14 +214,16 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                 bulletin.setLastName(friend.getLastName());
                 bulletin.setDate(date);
                 bulletin.setMessage(Util.loremIspum);
+                bulletin.setNumOfReplies(random.nextInt(20));
 
-                for (int j = 0; j < random.nextInt(20); j++) {
+                for (int j = 0; j < bulletin.getNumOfReplies(); j++) {
 
                     UserProfile friendReplied = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
                     Bulletin.Reply r = bulletin.getReplyInstance();
 
                     r.replyId = Integer.parseInt(Integer.toString(i) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
                     r.userId = friendReplied.getUserId();
+                    r.postId = bulletin.getPostID();
                     r.userFirstName = friendReplied.getFirstName();
                     r.userLastName = friendReplied.getLastName();
                     r.replyText = Util.loremIpsumShort;
@@ -222,20 +231,23 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                     for (int k = 0; k < random.nextInt(5); k++) {
                         r.replyApproves.add(new UserProfile(random.nextInt(DataManager.mFriendsListCount + 80)));
+                        r.numOfApprvs++;
                     }
 
-                    bulletin.getReplies().add(r);
+                    repliesList.add(r);
                 }
 
-//                mBulletinManager.addBulletin(bulletin);
                 list.add(bulletin);
                 itemDownloaded++;
             }
             mBulletinManager.addBulletins(list);
+            mBulletinManager.addReplies(repliesList);
 
             LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
             Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
             i.putExtra(DataManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
+
+            // Notifying HomeActivity that the data has been downloaded with broadcast and static member TODO - notify in onPostExecute later
             broadcastManager.sendBroadcast(i);
             HomeActivity.mListDownloaded = true;
         } catch (Exception e) {
