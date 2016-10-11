@@ -103,6 +103,9 @@ public class Bulletin {
     public void setDate(Date date) {
         this.mDate = date;
     }
+    public void setDate(long timeInMilis) {
+        this.mDate = new Date(timeInMilis);
+    }
 
     public LinkedList<Attachment> getAttachments() {
         return mAttachments;
@@ -143,7 +146,7 @@ public class Bulletin {
                 r.userId = replyJson.getInt(Reply.USER_ID);
                 r.userFirstName = replyJson.getString(Reply.FIRST_NAME);
                 r.userLastName = replyJson.getString(Reply.LAST_NAME);
-                r.replyDate = replyJson.getString(Reply.DATE);
+                r.replyDate = new Date(replyJson.getString(Reply.DATE));
                 r.replyText = replyJson.getString(Reply.TEXT);
 
                 JSONArray replyApprvs = replyJson.getJSONArray(DataManager.REPLY_APPRVS);
@@ -196,7 +199,7 @@ public class Bulletin {
 
         public String userFirstName;
         public String userLastName;
-        public String replyDate; // TODO - make date object if needed
+        public Date replyDate;
         public String replyText;
         public int numOfApprvs;
         public LinkedList<UserProfile> replyApproves;// Not in DB
@@ -248,6 +251,30 @@ public class Bulletin {
 
             return apprvs;
         }
+
+        public void setDate(String mDateString) {
+
+            try {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                replyDate = dateFormat.parse(mDateString);
+            } catch (Exception e) {
+                try {
+                    replyDate = new Date(mDateString);
+                } catch (Exception es) {
+                    Log.e(TAG, es.getLocalizedMessage(), es);
+                    replyDate = new Date();
+                }
+            }
+
+        }
+
+        public void setDate(Date date) {
+            replyDate = date;
+        }
+        public void setDate(long timeInMilis) {
+            replyDate = new Date(timeInMilis);
+        }
+
 
         @Override
         public String toString() {

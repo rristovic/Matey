@@ -20,6 +20,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
+import com.mateyinc.marko.matey.activity.home.NewBulletinActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
@@ -182,7 +183,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                         textView.setLayoutParams(layoutParams);
 
                         textView.setGravity(Gravity.CENTER_VERTICAL);
-                        String text = String.format(mContext.getString(R.string.bulletin_reply_text), repliesCount - 3);
+                        String text = String.format(mContext.getString(R.string.bulletin_reply_text), Integer.toString(repliesCount - 3));
                         textView.setText(text);
 
                         holder.rlReplies.addView(textView);
@@ -297,6 +298,14 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             btnSendToSea = (TextView) view.findViewById(R.id.tvSendToSea);
             ibLocation = (ImageButton) view.findViewById(R.id.ibLocation);
             ibAttachment = (ImageButton) view.findViewById(R.id.ibAttachment);
+
+            mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(mView.getContext(), NewBulletinActivity.class);
+                    mView.getContext().startActivity(i);
+                }
+            });
         }
 
 

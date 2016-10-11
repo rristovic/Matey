@@ -84,24 +84,20 @@
         <activity
             android:name=".activity.home.GroupsActivity"
             android:label="@string/title_activity_profile" />
-
         <activity
             android:name=".activity.home.FeedbackActivity"
             android:label="@string/title_activity_profile" />
-
         <activity
             android:name=".activity.home.InterestsActivity"
             android:label="@string/title_activity_profile" />
-        <activity
-            android:name=".activity.view.BulletinRepliesViewActivity" />
-
+        <activity android:name=".activity.view.BulletinRepliesViewActivity" />
 
         <provider
             android:name=".data_and_managers.DataProvider"
             android:authorities="@string/content_authority"
             android:exported="false" />
 
-
+        <activity android:name=".activity.home.NewBulletinActivity"></activity>
     </application>
 
 </manifest>

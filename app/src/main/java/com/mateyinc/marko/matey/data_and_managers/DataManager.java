@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -349,6 +350,8 @@ public class DataManager {
     // Bulletins methods ///////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
+    public static final String BULLETIN_ORDER = DataContract.BulletinEntry.COLUMN_DATE + " DESC";
+
     /**
      * Method for adding empty Bulletin to first row into the database, called on first launch of the app
      */
@@ -368,7 +371,7 @@ public class DataManager {
             values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, "nn");
             values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, "nn");
             values.put(DataContract.BulletinEntry.COLUMN_TEXT, "nn");
-            values.put(DataContract.BulletinEntry.COLUMN_DATE, "nn");
+            values.put(DataContract.BulletinEntry.COLUMN_DATE, new Date().getTime());
 
             mAppContext.getContentResolver().insert(
                     DataContract.BulletinEntry.CONTENT_URI,
@@ -376,10 +379,21 @@ public class DataManager {
             );
 
             Log.d(TAG, "Null bulletin added.");
+        }else{
+            updateNullBulletin();
         }
 
         if (cursor != null)
             cursor.close();
+    }
+
+    public void updateNullBulletin(){
+        ContentValues values = new ContentValues(1);
+        values.put(DataContract.BulletinEntry.COLUMN_DATE, new Date().getTime());
+        mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI,values, DataContract.BulletinEntry.COLUMN_POST_ID + " = -1",
+                null);
+
+        Log.d(TAG, "Null bulletin updated.");
     }
 
 
@@ -399,7 +413,7 @@ public class DataManager {
             values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, b.getFirstName());
             values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, b.getLastName());
             values.put(DataContract.BulletinEntry.COLUMN_TEXT, b.getMessage());
-            values.put(DataContract.BulletinEntry.COLUMN_DATE, b.getDate().toString());
+            values.put(DataContract.BulletinEntry.COLUMN_DATE, b.getDate().getTime());
             values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, b.getNumOfReplies());
             values.put(DataContract.BulletinEntry.COLUMN_ATTACHMENTS, parseAttachmentsToJSON(b.getAttachments()));
 
@@ -412,6 +426,8 @@ public class DataManager {
         if (cVVector.size() > 0) {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
             cVVector.toArray(cvArray);
+
+            updateNullBulletin();
             inserted = mAppContext.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI, cvArray);
 
             // TODO - delete old data
@@ -426,7 +442,7 @@ public class DataManager {
      */
     public void addBulletin(Bulletin b) {
         addBulletin(b.getPostID(), b.getUserID(), b.getFirstName(), b.getLastName(), b.getMessage(),
-                b.getDate().toString(), b.getNumOfReplies(), b.getAttachments());
+                b.getDate(), b.getNumOfReplies(), b.getAttachments());
     }
 
     /**
@@ -437,12 +453,12 @@ public class DataManager {
      * @param userName     name of user
      * @param userLastName last name of user
      * @param text         post text
-     * @param date         post date
+     * @param date         post date in UTC
      * @param numOfReplies the number of replies
      * @param attachments  list of post attachments
      * @return the row ID of the added bulletin.
      */
-    public void addBulletin(int postId, int userId, String userName, String userLastName, String text, String date,
+    public void addBulletin(int postId, int userId, String userName, String userLastName, String text, Date date,
                             int numOfReplies, LinkedList<Bulletin.Attachment> attachments) {
 
         Cursor msgCursor = mAppContext.getContentResolver().query(
@@ -450,7 +466,7 @@ public class DataManager {
                 new String[]{DataContract.BulletinEntry.COLUMN_POST_ID},
                 DataContract.BulletinEntry.COLUMN_POST_ID + " = " + postId,
                 null,
-                null);
+                BULLETIN_ORDER);
 
         if (msgCursor != null && msgCursor.moveToFirst()) {
             updateBulletin(postId, userId, userName, userLastName, text, date, numOfReplies, attachments);
@@ -462,20 +478,21 @@ public class DataManager {
             values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, userName);
             values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, userLastName);
             values.put(DataContract.BulletinEntry.COLUMN_TEXT, text);
-            values.put(DataContract.BulletinEntry.COLUMN_DATE, date);
+            values.put(DataContract.BulletinEntry.COLUMN_DATE, date.getTime());
             values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, numOfReplies);
             values.put(DataContract.BulletinEntry.COLUMN_ATTACHMENTS, parseAttachmentsToJSON(attachments));
 
+            updateNullBulletin();
             Uri insertedUri = mAppContext.getContentResolver().insert(
                     DataContract.BulletinEntry.CONTENT_URI,
                     values
             );
 
             if (insertedUri == null) {
-                Log.e(TAG, "Error inserting Bulletin: ID=" + postId + "; UserID=" + userId + "; Text=" + text.substring(0, 20) + "...");
+                Log.e(TAG, "Error inserting Bulletin: ID=" + postId + "; UserID=" + userId + "; Text=" + text);
             } else {
                 String debugtext = "Bulletin added: ID=" + postId +
-                        "; Name=" + userName + "; LastName=" + userLastName + "; Text=" + text.substring(0, 20)
+                        "; Name=" + userName + "; LastName=" + userLastName + "; Text=" + text
                         + "...; Date=" + date;
                 debugtext += "; Num of replies=" + numOfReplies;
                 debugtext += "; Num of attachments=";
@@ -490,7 +507,7 @@ public class DataManager {
     /**
      * Method for changing bulletin in db
      */
-    public void updateBulletin(int postId, int userId, String userName, String userLastName, String text, String date,
+    public void updateBulletin(int postId, int userId, String userName, String userLastName, String text, Date date,
                                int numOfReplies, LinkedList<Bulletin.Attachment> attachments) {
 
         ContentValues values = new ContentValues();
@@ -499,11 +516,11 @@ public class DataManager {
         values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, userName);
         values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, userLastName);
         values.put(DataContract.BulletinEntry.COLUMN_TEXT, text);
-        values.put(DataContract.BulletinEntry.COLUMN_DATE, date);
+        values.put(DataContract.BulletinEntry.COLUMN_DATE, date.getTime());
         values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, numOfReplies);
         values.put(DataContract.BulletinEntry.COLUMN_ATTACHMENTS, parseAttachmentsToJSON(attachments));
 
-
+        updateNullBulletin();
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
                 DataContract.BulletinEntry.COLUMN_POST_ID + " = ?", new String[]{Integer.toString(postId)});
 
@@ -539,7 +556,7 @@ public class DataManager {
             bulletin.setFirstName(cursor.getString(2));
             bulletin.setLastName(cursor.getString(3));
             bulletin.setMessage(cursor.getString(4));
-            bulletin.setDate(cursor.getString(5));
+            bulletin.setDate(cursor.getLong(5));
             bulletin.setNumOfReplies(cursor.getInt(6));
             bulletin.setAttachmentsFromJSON(cursor.getString(7));
         } catch (NullPointerException e) {
@@ -561,7 +578,7 @@ public class DataManager {
                 BulletinsFragment.BULLETIN_COLUMNS,
                 null,
                 null,
-                null);
+                BULLETIN_ORDER);
 
         Bulletin bulletin = null;
         try {
@@ -572,7 +589,7 @@ public class DataManager {
             return null;
         }
 
-        if(cursor != null)
+        if (cursor != null)
             cursor.close();
 
         return bulletin;
@@ -631,50 +648,6 @@ public class DataManager {
     /**
      * Method for parsing Reply list to JSON String format;
      *
-     * @param replies LinkedList of Reply objects
-     * @return JSON formatted string
-     */
-    private String parseRepliesToJSON(LinkedList<Bulletin.Reply> replies) {
-        if (replies == null || replies.size() == 0)
-            return "";
-
-        JSONObject jObject = new JSONObject();
-        try {
-            JSONArray jArray = new JSONArray();
-            for (Bulletin.Reply r : replies) {
-                JSONObject replyJson = new JSONObject();
-                replyJson.put(Bulletin.Reply.REPLY_ID, r.replyId);
-                replyJson.put(Bulletin.Reply.FIRST_NAME, r.userFirstName);
-                replyJson.put(Bulletin.Reply.LAST_NAME, r.userLastName);
-                replyJson.put(Bulletin.Reply.USER_ID, r.userId);
-                replyJson.put(Bulletin.Reply.TEXT, r.replyText);
-                replyJson.put(Bulletin.Reply.DATE, r.replyDate);
-
-                JSONArray replyApprvs = new JSONArray();
-                for (UserProfile profile : r.replyApproves) {
-                    JSONObject apprvJson = new JSONObject();
-                    apprvJson.put(UserProfile.USER_ID, profile.getUserId());
-                    apprvJson.put(UserProfile.FIRST_NAME, profile.getFirstName());
-                    apprvJson.put(UserProfile.LAST_NAME, profile.getLastName());
-                    apprvJson.put(UserProfile.LAST_MSG_ID, profile.getLastMsgId());
-
-                    replyApprvs.put(apprvJson);
-                }
-                replyJson.put(REPLY_APPRVS, replyApprvs);
-
-                jArray.put(replyJson);
-            }
-            jObject.put(REPLIES_LIST, jArray);
-        } catch (JSONException jse) {
-            Log.e(TAG, jse.getLocalizedMessage(), jse);
-        }
-
-        return jObject.toString();
-    }
-
-    /**
-     * Method for parsing Reply list to JSON String format;
-     *
      * @param attachments LinkedList of Attachemnt objects
      * @return JSON formatted string
      */
@@ -689,6 +662,11 @@ public class DataManager {
     //////////////////////////////////////////////////////////////////////////
 
     /**
+     * Cursor sort order
+     */
+    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " DESC";
+
+    /**
      * Method for adding list of Replies to the database
      *
      * @param list the list to be added to the db
@@ -696,6 +674,7 @@ public class DataManager {
     public void addReplies(LinkedList<Bulletin.Reply> list) {
         Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
 
+        int numReplies = 0;
         for (Bulletin.Reply r : list) {
             ContentValues values = new ContentValues();
 
@@ -705,13 +684,15 @@ public class DataManager {
             values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, r.userFirstName);
             values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, r.userLastName);
             values.put(DataContract.ReplyEntry.COLUMN_TEXT, r.replyText);
-            values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate);
+            values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate.getTime());
             values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(r.replyApproves));
             values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, r.numOfApprvs);
 
             cVVector.add(values);
             Log.d(TAG, "Reply added: " + r.toString());
+            numReplies++;
         }
+
 
         int inserted = 0;
         // add to database
@@ -744,11 +725,11 @@ public class DataManager {
      * @param firstName   user's first name
      * @param lastName    user's last name
      * @param text        the message of the reply
-     * @param date        the date of the reply
+     * @param date        the date of the reply in UTC
      * @param numOfApprvs the number of the reply approves
      * @param approves    the list of approves
      */
-    public void addReply(int replyId, int userId, int postId, String firstName, String lastName, String text, String date,
+    public void addReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date,
                          int numOfApprvs, LinkedList<UserProfile> approves) {
 
         Cursor replyCursor = mAppContext.getContentResolver().query(
@@ -756,7 +737,7 @@ public class DataManager {
                 new String[]{DataContract.ReplyEntry.COLUMN_REPLY_ID},
                 DataContract.ReplyEntry.COLUMN_REPLY_ID + " = " + replyId,
                 null,
-                null);
+                REPLIES_ORDER_BY);
 
         if (replyCursor != null && replyCursor.moveToFirst()) {
             updateReply(replyId, userId, postId, firstName, lastName, text, date, numOfApprvs, approves);
@@ -769,7 +750,7 @@ public class DataManager {
             values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
             values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
             values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
-            values.put(DataContract.ReplyEntry.COLUMN_DATE, date);
+            values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
             values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
             values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
 
@@ -793,7 +774,7 @@ public class DataManager {
             replyCursor.close();
     }
 
-    private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, String date, int numOfApprvs, LinkedList<UserProfile> approves) {
+    private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, LinkedList<UserProfile> approves) {
         ContentValues values = new ContentValues();
 
         values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, replyId);
@@ -802,7 +783,7 @@ public class DataManager {
         values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
         values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
         values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
-        values.put(DataContract.ReplyEntry.COLUMN_DATE, date);
+        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
         values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
         values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
 
@@ -815,9 +796,9 @@ public class DataManager {
         } else {
             String debugtext = "Reply updated: ID=" + replyId +
                     "; Name=" + firstName + "; LastName=" + lastName + "; Text=";
-            try{
-                debugtext+= text.substring(0, 30);
-            }catch (Exception e){
+            try {
+                debugtext += text.substring(0, 30);
+            } catch (Exception e) {
                 debugtext += text;
             }
             debugtext += "...; Date=" + date;
@@ -844,7 +825,7 @@ public class DataManager {
             reply.postId = cursor.getInt(BulletinRepliesViewActivity.COL_POST_ID);
             reply.userFirstName = cursor.getString(BulletinRepliesViewActivity.COL_FIRST_NAME);
             reply.userLastName = cursor.getString(BulletinRepliesViewActivity.COL_LAST_NAME);
-            reply.replyDate = cursor.getString(BulletinRepliesViewActivity.COL_DATE);
+            reply.setDate(cursor.getLong(BulletinRepliesViewActivity.COL_DATE));
             reply.replyText = cursor.getString(BulletinRepliesViewActivity.COL_TEXT);
             reply.numOfApprvs = cursor.getInt(BulletinRepliesViewActivity.COL_NUM_OF_APPRVS);
             reply.replyApproves = reply.setApprovesFromJSON(cursor.getString(BulletinRepliesViewActivity.COL_APPRVS));
@@ -868,7 +849,7 @@ public class DataManager {
                 BulletinRepliesViewActivity.REPLIES_COLUMNS,
                 null,
                 null,
-                null);
+                REPLIES_ORDER_BY);
 
         Bulletin.Reply reply;
         try {
@@ -878,7 +859,7 @@ public class DataManager {
             return null;
         }
 
-        if(cursor!=null)
+        if (cursor != null)
             cursor.close();
 
         return reply;

@@ -155,7 +155,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
                 BULLETIN_COLUMNS,
                 null,
                 null,
-                null);
+                BulletinEntry.COLUMN_DATE + " DESC");
     }
 
     @Override

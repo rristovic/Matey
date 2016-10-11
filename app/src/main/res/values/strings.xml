@@ -49,7 +49,7 @@
     <string name="bulletin_sendtosea_tittle">Send to the sea..</string>
     <string name="bulletin_reply_header"><xliff:g id="first_reply_name">%1$s</xliff:g> and <xliff:g id="reply_count">%2$s</xliff:g> more</string>
     <string name="bulletin_onereply_header"><xliff:g id="first_name">%1$s</xliff:g> <xliff:g id="last_name">%2$s</xliff:g> has replied</string>
-    <string name="bulletin_reply_text" >... <xliff:g id="replies_count">%1$s</xliff:g> more replies</string>
+    <string name="bulletin_reply_text">... <xliff:g id="replies_count">%1$s</xliff:g> more replies</string>
     <string name="reply_approve">approves</string>
 
     <!-- Search fragment related -->

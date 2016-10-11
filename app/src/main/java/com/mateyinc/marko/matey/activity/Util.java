@@ -16,8 +16,14 @@ import java.util.Date;
  */
 public class Util {
 
+    /**
+     * Method for getting readable date string that indicates how long ago was the bulletin added
+     *
+     * @param date the date that bulletin was added on
+     * @return friendly date text
+     */
     public static String getReadableDateText(Date date) {
-        if(date == null){
+        if (date == null) {
             return "Invalid date";
         }
         // TODO - set the timezone to server timezone
@@ -35,8 +41,12 @@ public class Util {
         }
     }
 
+    public static String getReadableDateText(long timeInMilis) {
+        return getReadableDateText(new Date(timeInMilis));
+    }
+
     public static String getReadableDateText(String date) {
-        if(date != null || date.length() == 0 ){
+        if (date != null || date.length() == 0) {
             return "Invalid date";
         }
         Date d = new Date(date);
@@ -97,7 +107,7 @@ public class Util {
     }
 
     public static int getDp(int value, Resources res) {
-        return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, res.getDisplayMetrics());
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, res.getDisplayMetrics());
     }
 
     public static UserProfile getCurrentUserProfile() {
@@ -111,6 +121,10 @@ public class Util {
         return profile;
     }
 
+    public static long getPostId() {
+        return new Date().getTime(); // TODO - finish method
+    }
+
 
     public static final int ONE_DAY = 86400000;
     public static final int ONE_MIN = 60000;
@@ -118,13 +132,15 @@ public class Util {
     public static final int BULLETINS_LOADER = 100;
     public static final int REPLIES_LOADER = 200;
 
-    public static final String[] names = {"Stefana","Aleksandar","Bozidar","Velibor","Goran","David","Djordje","Zlatko","Janko","Jovan","Lazar","Ljubbisa",
-    "Monojlo","Mijat","Milivoje","Nesko","Ninoslav","Obrad", "Pavle","Prodan", "Radomir","Rodoljub","Ranka","Milica","Nikoleta","Ivana", "Marica","Evandjelija",
-    "Jana", "Sara","Marina","Tamara"};
+    public static final String[] names = {"Stefana", "Aleksandar", "Bozidar", "Velibor", "Goran", "David", "Djordje", "Zlatko", "Janko", "Jovan", "Lazar", "Ljubbisa",
+            "Monojlo", "Mijat", "Milivoje", "Nesko", "Ninoslav", "Obrad", "Pavle", "Prodan", "Radomir", "Rodoljub", "Ranka", "Milica", "Nikoleta", "Ivana", "Marica", "Evandjelija",
+            "Jana", "Sara", "Marina", "Tamara"};
 
-    public static final String[] lastNames = {"Ristic","Nikolic","Markovic","Ruzic","Stancic","Stankovic","Ognjenovic","Golubovic",
-    "Peric","Petrovic","Vasov","Bojic","Bozinovic","Lazarevic","Tomcic","Stamenkovic"};
+    public static final String[] lastNames = {"Ristic", "Nikolic", "Markovic", "Ruzic", "Stancic", "Stankovic", "Ognjenovic", "Golubovic",
+            "Peric", "Petrovic", "Vasov", "Bojic", "Bozinovic", "Lazarevic", "Tomcic", "Stamenkovic"};
 
     public static final String loremIpsumShort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
     public static final String loremIspum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
+
 }

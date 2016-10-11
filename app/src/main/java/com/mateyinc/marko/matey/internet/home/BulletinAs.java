@@ -140,6 +140,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
             createDummyBulletinData();
         }
 
+        mBulletinManager.addNullBulletin();
         parseBulletins(result);
     }
 
@@ -220,7 +221,6 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     private void createDummyBulletinData() {
         try {
-            mBulletinManager.addNullBulletin();
             Random random = new Random();
             int itemDownloaded = 0;
 
@@ -253,7 +253,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
                     r.userFirstName = friendReplied.getFirstName();
                     r.userLastName = friendReplied.getLastName();
                     r.replyText = Util.loremIpsumShort;
-                    r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage).toString();
+                    r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage);
 
                     for (int k = 0; k < random.nextInt(5); k++) {
                         r.replyApproves.add(new UserProfile(random.nextInt(DataManager.mFriendsListCount + 80)));

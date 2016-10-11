@@ -31,6 +31,8 @@ import com.mateyinc.marko.matey.model.UserProfile;
 import java.util.Date;
 import java.util.LinkedList;
 
+import static com.mateyinc.marko.matey.data_and_managers.DataManager.REPLIES_ORDER_BY;
+
 public class BulletinRepliesViewActivity extends InsideActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String EXTRA_BULLETIN_ID = "post_id";
@@ -62,6 +64,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
     public static final int COL_POST_ID = 8;
 
 
+
     public static int mBulletinPos = -1;
 
     private BulletinRepliesAdapter mAdapter;
@@ -90,7 +93,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
         if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
             mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
             if (null == mCurBulletin)
-                mCurBulletin = mManager.getBulletin(getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1));
+                mCurBulletin = mManager.getBulletin(mBulletinPos);
         } else {
             finish();
         }
@@ -119,7 +122,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
         Cursor c = mAdapter.getCursor();
         c.moveToFirst();
         if (replyCount > 1) {
-            text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), --replyCount);
+            text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), Integer.toString(--replyCount));
         } else if (replyCount == 1)
             text = String.format(getString(R.string.bulletin_onereply_header), c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
         tvHeading.setText(text);
@@ -142,7 +145,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
                 // Create new reply
                 r.userFirstName = profile.getFirstName();
                 r.userLastName = profile.getLastName();
-                r.replyDate = new Date().toString();
+                r.replyDate = new Date();
                 r.userId = profile.getUserId();
                 r.postId = mCurBulletin.getPostID();
                 String id = mCurBulletin.getPostID() + "" + mCurBulletin.getNumOfReplies();
@@ -205,7 +208,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
                 REPLIES_COLUMNS,
                 ReplyEntry.COLUMN_POST_ID + " = ?",
                 new String[]{Integer.toString(getIntent().getIntExtra(EXTRA_BULLETIN_ID, -1))},
-                null);
+                REPLIES_ORDER_BY);
     }
 
     @Override
