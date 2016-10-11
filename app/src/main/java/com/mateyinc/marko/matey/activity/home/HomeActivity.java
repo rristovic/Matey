@@ -29,14 +29,13 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
 
     // Current user profile data
     public final static UserProfile mCurUser = new UserProfile();
-    public static boolean mListDownloaded = false;
 
     private final static String BULLETIN_FRAG_TAG = "BULLETINS";
     private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
     private final static String MESSAGES_FRAG_TAG = "MESSAGES";
     private final static String FRIENDS_FRAG_TAG = "FRIENDS";
     private final static String MENU_FRAG_TAG = "MENU";
-    private final static String SEARCH_FRAG_TAG = "MENU";
+    private final static String SEARCH_FRAG_TAG = "SEARCH";
 
     private SearchFragment mSearchFragment;
     private FragmentManager mFragmentManager;
@@ -49,7 +48,17 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
     private Toolbar toolbar;
     private SearchView searchView;
     private ImageView logo;
+
+    /**
+     * Indicates if search view is visible or not
+     */
     public boolean mSearchActive;
+
+    /**
+     * Indicates if data is downloaded or not
+     */
+    public static boolean mListDownloaded = false;
+
 
     /**
      * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
@@ -140,6 +149,7 @@ public class HomeActivity extends InsideActivity implements View.OnTouchListener
                     }
                 });
 
+                // Adding search fragment
                 if (mSearchFragment == null)
                     mSearchFragment = new SearchFragment();
                 getSupportFragmentManager().beginTransaction().addToBackStack(null)

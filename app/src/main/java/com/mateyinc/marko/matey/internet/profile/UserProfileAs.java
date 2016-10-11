@@ -57,11 +57,12 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                 if (c != null && c.moveToFirst() && profile != null) {
                     profile.setFirstName(c.getString(0));
                     profile.setLastName(c.getString(1));
+
+                    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
+                    broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
                 }
 
-                LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
-                broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
-            } catch (Exception e) {
+                 } catch (Exception e) {
                 Log.e(TAG, e.getLocalizedMessage(), e);
             } finally {
                 if (null != c)

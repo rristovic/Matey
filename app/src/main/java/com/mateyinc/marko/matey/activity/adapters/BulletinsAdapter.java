@@ -4,8 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +24,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
@@ -29,13 +37,24 @@ import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
-public class BulletinsAdapter extends RecycleCursorAdapter {
+public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnContextClickListener {
+    private static final String TAG = BulletinsAdapter.class.getSimpleName();
+
+    // Maximum number of character in a post
+    private static final int CHAR_LIM = 600;
 
     private static final int FIRST_ITEM = 1;
     private static final int ITEM = 2;
 
     private View mEmptyView;
     private RecyclerView mRecycleView;
+
+    /**
+     * Used in long click to determine the position of clicked view
+     */
+    public static int clickedPosition = -1;
+    public static String clickedText = "";
+    public static final int COPYTEXT_ID = 100;
 
     public BulletinsAdapter(Context context, TextView emptyView) {
         mContext = context;
@@ -109,8 +128,25 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(position, mCursor).getUserID());
                 mContext.startActivity(i);
             }
+
+            @Override
+            public boolean onLongClick(View v, View rootView) {
+                clickedPosition = mRecycleView.getChildAdapterPosition(rootView);
+                clickedText = ((TextView)v).getText().toString();
+                return false;
+            }
         };
     }
+
+    @Override
+    public boolean onContextClick(View v) {
+        Log.d(TAG, "Context clicked");
+        return false;
+    }
+
+
+
+
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
@@ -120,7 +156,32 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
                 Bulletin bulletin = mManager.getBulletin(position, mCursor);
                 try {
-                    holder.mMessage.setText(bulletin.getMessage());
+                    if (bulletin.getMessage().length() > CHAR_LIM) {
+                        // Setting text view message
+                        SpannableString ss = new SpannableString(bulletin.getMessage().substring(0, CHAR_LIM - 1).concat(" ... ")
+                                .concat(mContext.getString(R.string.continue_reading_message)));
+
+                        ClickableSpan clickableSpan = new ClickableSpan() {
+                            @Override
+                            public void onClick(View textView) {
+                                Log.d(TAG, "Spannable clicked");
+                            }
+
+                            @Override
+                            public void updateDrawState(TextPaint ds) {
+                                super.updateDrawState(ds);
+                                ds.setUnderlineText(false);
+                            }
+                        };
+                        ss.setSpan(clickableSpan, CHAR_LIM + 4, ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                        // Set the message
+                        holder.mMessage.setMovementMethod(LinkMovementMethod.getInstance());
+                        holder.mMessage.setHighlightColor(Color.TRANSPARENT);
+                        holder.mMessage.setText(ss);
+                    } else {
+                        holder.mMessage.setText(bulletin.getMessage());
+                    }
                 } catch (Exception e) {
                     Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
                     holder.mMessage.setText(mContext.getString(R.string.error_message));
@@ -225,7 +286,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     }
 
 
-    protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
+
+
         public final View mView;
         public final TextView mMessage;
         public final TextView mName;
@@ -245,11 +308,13 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             rlReplies = (RelativeLayout) view.findViewById(R.id.rlReplies);
             btnReply = (LinearLayout) view.findViewById(R.id.llReply);
             mListener = listener;
-
+            
             rlReplies.setOnClickListener(this);
+            btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
             btnReply.setOnClickListener(this);
             mMessage.setOnClickListener(this);
             mName.setOnClickListener(this);
+            mMessage.setOnCreateContextMenuListener(this);
         }
 
         @Override
@@ -275,12 +340,28 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
         }
 
+        @Override
+        public boolean onLongClick(View v) {
+            return mListener.onLongClick(v, mView);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            menu.setHeaderTitle(null);
+            menu.add(0, COPYTEXT_ID, 0, mView.getContext().getString(R.string.menu_item_copy_text));//groupId, itemId, order, title
+        }
+
+
+
+
         protected interface ViewHolderClickListener {
             void onRepliesClick(View caller, View rootView, boolean onlyShowReplies);
 
             void onMsgClick(TextView mMessage, View mView);
 
             void onNameClick(TextView mName, View mView);
+
+            boolean onLongClick(View v, View mView);
         }
     }
 

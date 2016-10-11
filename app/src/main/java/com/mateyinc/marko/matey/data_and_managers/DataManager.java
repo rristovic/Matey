@@ -51,6 +51,14 @@ public class DataManager {
     // One minute in milliseconds
     public static final int ONE_MIN = 60000;
 
+
+    /**
+     * Loader identifiers for data
+     */
+    public static final int BULLETINS_LOADER = 100;
+    public static final int REPLIES_LOADER = 200;
+
+
     public final ArrayList<Notification> mNotificationList = new ArrayList<>();
     public final ArrayList<Message> mMessageList;
 

@@ -1,6 +1,8 @@
 package com.mateyinc.marko.matey.activity.home;
 
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,17 +17,20 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data_and_managers.DataContract;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
+
+import static com.mateyinc.marko.matey.data_and_managers.DataManager.BULLETINS_LOADER;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -73,7 +78,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         super.onAttach(context);
         mContext = context;
 
-        getLoaderManager().initLoader(Util.BULLETINS_LOADER, null, this);
+        getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
     }
 
     @Override
@@ -118,10 +123,12 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             updatedPos = -1;
         }
 
-        if (HomeActivity.mListDownloaded && null == mRecycleView.getAdapter()) // If data is already downloaded, set the list, if not it will be set in broadcast receiver
+        // If data is already downloaded, set the list, if not it will be set in broadcast receiver
+        if (HomeActivity.mListDownloaded && null == mRecycleView.getAdapter())
             mRecycleView.setAdapter(mAdapter);
 
-        mRecycleView.addOnScrollListener(mScrollListener); // Settings list scroll listener
+        // Settings list scroll listener
+        mRecycleView.addOnScrollListener(mScrollListener);
 
         // Whole list downloaded broadcast
         LocalBroadcastManager.getInstance(mContext).registerReceiver(mDataDownloaded = new BroadcastReceiver() {
@@ -144,8 +151,17 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public boolean onContextItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case BulletinsAdapter.COPYTEXT_ID:
+                ClipboardManager clipboard = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(getString(R.string.clipboard_copiedtext_label), BulletinsAdapter.clickedText);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(mContext, R.string.toast_textcopied, Toast.LENGTH_LONG).show();
+                break;
+        }
+        return super.onContextItemSelected(item);
     }
 
     @Override

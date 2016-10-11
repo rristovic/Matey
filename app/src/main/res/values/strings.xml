@@ -10,7 +10,6 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="login_dialog_message">Getting you in..</string>
     <string name="title_activity_profile">Profile</string>
-    <string name="error_message">Something went wrong :(</string>
 
     <!-- Database and content provider authority string -->
     <string name="content_authority" translatable="false">com.mateyinc.marko.matey</string>
@@ -26,6 +25,7 @@
     <string name="menu_item_groups">Groups</string>
     <string name="menu_item_interests">Interests</string>
     <string name="menu_item_profile">Profile</string>
+    <string name="menu_item_copy_text">Copy text</string>
 
     <!-- Groups strings -->
     <string name="groups_joined_section_name">Joined</string>
@@ -51,6 +51,8 @@
     <string name="bulletin_onereply_header"><xliff:g id="first_name">%1$s</xliff:g> <xliff:g id="last_name">%2$s</xliff:g> has replied</string>
     <string name="bulletin_reply_text">... <xliff:g id="replies_count">%1$s</xliff:g> more replies</string>
     <string name="reply_approve">approves</string>
+    <string name="continue_reading_message">Continue reading</string>
+
 
     <!-- Search fragment related -->
     <string name="search_posts">Posts</string>
@@ -59,5 +61,12 @@
 
     <!-- App related -->
     <string name="empty_list">No data</string>
+    <string name="clipboard_copiedtext_label">Post text</string>
+    <string name="toast_textcopied">Text copied to clipboard.</string>
+    <string name="error_message">Something went wrong :(</string>
+
+    <!-- New post related -->
+    <string name="post_to_matey">Post to Matey</string>
+    <string name="post">Post</string>
 
 </resources>

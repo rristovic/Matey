@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -59,8 +60,12 @@ public class ProfileActivity extends MotherActivity {
         mUserProfile = new UserProfile();
         initUIL();
 
+        // If intent doesn't have extra profile id, then ProfileActivity is called for the current user profile
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getIntExtra(EXTRA_PROFILE_ID, -1);
+        else{
+            mUserId = Util.getCurrentUserProfileId();
+        }
 
         mUserProfileAs = new UserProfileAs(this, new WeakReference<>(mUserProfile),mUserId);
 
@@ -87,6 +92,7 @@ public class ProfileActivity extends MotherActivity {
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.registerReceiver(mBroadcastReceiver, new IntentFilter(PROFILE_DOWNLOADED));
 
+        // Trying to set the data if the it's downloaded before broadcast receiver is initiated
         try {
             setData();
         } catch (Exception e) {

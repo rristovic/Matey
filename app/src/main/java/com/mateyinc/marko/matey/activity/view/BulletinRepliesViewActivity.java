@@ -31,6 +31,7 @@ import com.mateyinc.marko.matey.model.UserProfile;
 import java.util.Date;
 import java.util.LinkedList;
 
+import static com.mateyinc.marko.matey.data_and_managers.DataManager.REPLIES_LOADER;
 import static com.mateyinc.marko.matey.data_and_managers.DataManager.REPLIES_ORDER_BY;
 
 public class BulletinRepliesViewActivity extends InsideActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -111,7 +112,7 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
         rvList.setAdapter(mAdapter);
 
         // Init loader
-        getSupportLoaderManager().initLoader(Util.REPLIES_LOADER, null, this);
+        getSupportLoaderManager().initLoader(REPLIES_LOADER, null, this);
         setListeners();
     }
 
@@ -159,6 +160,8 @@ public class BulletinRepliesViewActivity extends InsideActivity implements Loade
                 mAdapter.notifyDataSetChanged();
                 setHeadingText();
                 ContentValues values = new ContentValues(1);
+
+                // Update number of replies in bulletin db
                 int num = mCurBulletin.getNumOfReplies();
                 values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++num);
                 getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry.COLUMN_POST_ID + " = " + mCurBulletin.getPostID(), null);
