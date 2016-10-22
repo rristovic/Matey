@@ -7,7 +7,8 @@
     android:background="@color/white"
     android:orientation="vertical"
     android:paddingLeft="@dimen/bulletins_padding_side"
-    android:paddingRight="@dimen/bulletins_padding_side">
+    android:paddingRight="@dimen/bulletins_padding_side"
+    android:id="@+id/llBulletinPanel">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -132,7 +133,8 @@
         android:layout_width="match_parent"
         android:layout_height="38dp"
         android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp">
+        android:layout_marginRight="5dp"
+        android:id="@+id/rlRepliesPanel">
 
         <LinearLayout
             android:id="@+id/llReply"

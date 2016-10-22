@@ -9,6 +9,11 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
 
     <permission
         android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE"
@@ -90,14 +95,35 @@
         <activity
             android:name=".activity.home.InterestsActivity"
             android:label="@string/title_activity_profile" />
-        <activity android:name=".activity.view.BulletinRepliesViewActivity" />
+        <activity android:name=".activity.view.BulletinViewActivity" />
 
         <provider
             android:name=".data_and_managers.DataProvider"
             android:authorities="@string/content_authority"
-            android:exported="false" />
+            android:exported="false"
+            android:syncable="true" />
 
-        <activity android:name=".activity.home.NewBulletinActivity"></activity>
+        <activity android:name=".activity.home.NewBulletinActivity" />
+
+        <service android:name=".internet.MateyAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+        <service
+            android:name=".internet.MateySyncService"
+            android:exported="true"
+            android:process=":sync">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
     </application>
 
 </manifest>

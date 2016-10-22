@@ -7,7 +7,7 @@
     android:background="@color/gray_background_color"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context=".activity.view.BulletinRepliesViewActivity">
+    tools:context=".activity.view.BulletinViewActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -28,55 +28,55 @@
             android:src="@drawable/ic_back" />
 
         <TextView
+            android:id="@+id/tvReplyViewHeading"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:gravity="center_vertical"
-            android:textSize="@dimen/subHeading"
-            android:id="@+id/tvReplyViewHeading"
-            android:paddingRight="50dp" />
+            android:paddingRight="50dp"
+            android:textSize="@dimen/subHeading" />
 
     </android.support.v7.widget.Toolbar>
 
+
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvBulletinRepliesList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:id="@+id/rvBulletinRepliesList"
-        app:layoutManager="LinearLayoutManager"
+        android:layout_weight="1"
         android:background="@color/white"
-        android:layout_weight="1" />
+        app:layoutManager="LinearLayoutManager" />
 
     <RelativeLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/navBar"
-        android:elevation="15dp">
+        android:elevation="15dp"
+        android:orientation="horizontal">
 
         <EditText
+            android:id="@+id/tvReply"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvReply"
-            android:gravity="center_vertical"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
             android:layout_toLeftOf="@+id/ivSendReply"
             android:layout_toStartOf="@id/ivSendReply"
+            android:gravity="center_vertical"
             android:maxLines="4"
             android:minHeight="?android:attr/actionBarSize"
-            android:layout_marginLeft="16dp"
             android:paddingBottom="5dp"
-            android:paddingTop="5dp"
-            />
+            android:paddingTop="5dp" />
 
         <ImageView
+            android:id="@+id/ivSendReply"
             android:layout_width="?android:attr/actionBarSize"
             android:layout_height="?android:attr/actionBarSize"
-            android:id="@+id/ivSendReply"
-            android:src="@drawable/ic_bottle_send"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
             android:cropToPadding="false"
             android:padding="10dp"
-            android:layout_centerVertical="true" />
+            android:src="@drawable/ic_bottle_send" />
     </RelativeLayout>
 </LinearLayout>

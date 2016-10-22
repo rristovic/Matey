@@ -9,7 +9,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONArray;

@@ -12,14 +12,14 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
-import com.mateyinc.marko.matey.inall.InsideActivity;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
 
-public class NewBulletinActivity extends InsideActivity {
+public class NewBulletinActivity extends MotherActivity {
 
     private EditText etNewPostMsg;
     private TextView tvPost;
@@ -40,9 +40,9 @@ public class NewBulletinActivity extends InsideActivity {
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        etNewPostMsg = (EditText)findViewById(R.id.etNewBulletinMsg);
-        ibBack = (ImageButton)findViewById(R.id.ibBack);
-        tvPost = (TextView)findViewById(R.id.tvPost);
+        etNewPostMsg = (EditText) findViewById(R.id.etNewBulletinMsg);
+        ibBack = (ImageButton) findViewById(R.id.ibBack);
+        tvPost = (TextView) findViewById(R.id.tvPost);
         tvPost.setEnabled(false); // Can't post until something is typed in
 
         setClickListeners();
@@ -59,21 +59,27 @@ public class NewBulletinActivity extends InsideActivity {
         etNewPostMsg.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                enableButton(s);
 
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(s == null || s.length() == 0 ){
-                    tvPost.setEnabled(false);
-                }else{
-                    tvPost.setEnabled(true);
-                }
+                enableButton(s);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
+                enableButton(s);
 
+            }
+
+            private void enableButton(CharSequence s) {
+                if (s == null || s.length() == 0) {
+                    tvPost.setEnabled(false);
+                } else {
+                    tvPost.setEnabled(true);
+                }
             }
         });
 
@@ -82,7 +88,7 @@ public class NewBulletinActivity extends InsideActivity {
             public void onClick(View v) {
                 UserProfile profile = Util.getCurrentUserProfile();
                 Bulletin b = new Bulletin();
-                b.setPostID((int)Util.getPostId());
+                b.setPostID((int) Util.getPostId());
                 b.setUserID(Util.getCurrentUserProfileId());
                 b.setDate(new Date());
                 b.setFirstName(profile.getFirstName());

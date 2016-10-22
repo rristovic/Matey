@@ -2,6 +2,8 @@ package com.mateyinc.marko.matey.activity;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.TypedValue;
 
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -125,6 +127,22 @@ public class Util {
         return new Date().getTime(); // TODO - finish method
     }
 
+    /**
+     * Status code when there is no connection
+     */
+    public static final int STATUS_NO_INTERNET = 1800;
+
+    public static boolean isInternetConnected(Context context) {
+
+        ConnectivityManager connMgr = (ConnectivityManager)
+               context. getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnected()) return true;
+        else return false;
+
+    }
+
 
     public static final int ONE_DAY = 86400000;
     public static final int ONE_MIN = 60000;
@@ -138,6 +156,4 @@ public class Util {
 
     public static final String loremIpsumShort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
     public static final String loremIspum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-
-
 }

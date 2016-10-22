@@ -26,18 +26,19 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.home.NewBulletinActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
-import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
+import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
-public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnContextClickListener {
+import static com.mateyinc.marko.matey.data_and_managers.DataManager.COL_POST_ID;
+
+public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
 
     // Maximum number of character in a post
@@ -101,17 +102,17 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
             public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
                 int position = mRecycleView.getChildAdapterPosition(rootView);
                 if (onlyShowReplies) {
-                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
+                    Intent i = new Intent(mContext, BulletinViewActivity.class);
                     mCursor.moveToPosition(position);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(BulletinsFragment.COL_POST_ID));
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
+                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
+                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
                     mContext.startActivity(i);
                 } else {
-                    Intent i = new Intent(mContext, BulletinRepliesViewActivity.class);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_NEW_REPLY, true);
+                    Intent i = new Intent(mContext, BulletinViewActivity.class);
+                    i.putExtra(BulletinViewActivity.EXTRA_NEW_REPLY, true);
                     mCursor.moveToPosition(position);
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(BulletinsFragment.COL_POST_ID));
-                    i.putExtra(BulletinRepliesViewActivity.EXTRA_BULLETIN_POS, position);
+                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
+                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
                     mContext.startActivity(i);
                 }
             }
@@ -132,29 +133,21 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
             @Override
             public boolean onLongClick(View v, View rootView) {
                 clickedPosition = mRecycleView.getChildAdapterPosition(rootView);
-                clickedText = ((TextView)v).getText().toString();
+                clickedText = ((TextView) v).getText().toString();
                 return false;
             }
         };
     }
-
-    @Override
-    public boolean onContextClick(View v) {
-        Log.d(TAG, "Context clicked");
-        return false;
-    }
-
-
-
 
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         switch (getItemViewType(position)) {
 //             Parsing data to views if available
+
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
-                Bulletin bulletin = mManager.getBulletin(position, mCursor);
+                final Bulletin bulletin = mManager.getBulletin(position, mCursor);
                 try {
                     if (bulletin.getMessage().length() > CHAR_LIM) {
                         // Setting text view message
@@ -164,7 +157,11 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
                         ClickableSpan clickableSpan = new ClickableSpan() {
                             @Override
                             public void onClick(View textView) {
-                                Log.d(TAG, "Spannable clicked");
+                                Intent i = new Intent(mContext, BulletinViewActivity.class);
+                                i.putExtra(BulletinViewActivity.EXTRA_SHOW_BULLETIN, true);
+                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, bulletin.getPostID());
+                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
+                                mContext.startActivity(i);
                             }
 
                             @Override
@@ -286,18 +283,17 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
     }
 
 
-    protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
+    private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
 
+        private final View mView;
+        private final TextView mMessage;
+        private final TextView mName;
+        private final TextView mDate;
+        private final RelativeLayout rlReplies;
+        private final LinearLayout btnReply;
+        ViewHolderClickListener mListener;
 
-        public final View mView;
-        public final TextView mMessage;
-        public final TextView mName;
-        public final TextView mDate;
-        public final RelativeLayout rlReplies;
-        public final LinearLayout btnReply;
-        public ViewHolderClickListener mListener;
-
-        public ViewHolder(View view, ViewHolderClickListener listener) {
+        private ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
             mMessage = (TextView) view.findViewById(R.id.tvMessage);
@@ -308,7 +304,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
             rlReplies = (RelativeLayout) view.findViewById(R.id.rlReplies);
             btnReply = (LinearLayout) view.findViewById(R.id.llReply);
             mListener = listener;
-            
+
             rlReplies.setOnClickListener(this);
             btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
             btnReply.setOnClickListener(this);
@@ -352,9 +348,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
         }
 
 
-
-
-        protected interface ViewHolderClickListener {
+        private interface ViewHolderClickListener {
             void onRepliesClick(View caller, View rootView, boolean onlyShowReplies);
 
             void onMsgClick(TextView mMessage, View mView);
@@ -365,14 +359,14 @@ public class BulletinsAdapter extends RecycleCursorAdapter implements View.OnCon
         }
     }
 
-    protected static class ViewHolderFirst extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final ImageView ivProfilePic;
-        public final TextView btnSendToSea;
-        public final ImageButton ibLocation;
-        public final ImageButton ibAttachment;
+    private static class ViewHolderFirst extends RecyclerView.ViewHolder {
+        private final View mView;
+        private final ImageView ivProfilePic;
+        private final TextView btnSendToSea;
+        private final ImageButton ibLocation;
+        private final ImageButton ibAttachment;
 
-        public ViewHolderFirst(View view) {
+        private ViewHolderFirst(View view) {
             super(view);
             mView = view;
             ivProfilePic = (ImageView) view.findViewById(R.id.ivProfilePic);

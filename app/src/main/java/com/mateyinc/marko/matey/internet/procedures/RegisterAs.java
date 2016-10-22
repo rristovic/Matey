@@ -2,16 +2,11 @@ package com.mateyinc.marko.matey.internet.procedures;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
-import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
-
-import java.net.URLEncoder;
 
 /**
  * Created by M4rk0 on 5/7/2016.
@@ -19,6 +14,7 @@ import java.net.URLEncoder;
 public class RegisterAs extends AsyncTask<String,Void,String>{
 
     MainActivity activity;
+    private String result = "";
 
     public RegisterAs (MainActivity activity) {
         this.activity = activity;
@@ -39,24 +35,8 @@ public class RegisterAs extends AsyncTask<String,Void,String>{
             String merge = params[2];
             String accessToken = params[3];
 
-            try {
 
-                String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
-                        URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8") + "&" +
-                        URLEncoder.encode("firstname", "UTF-8") + "=" + URLEncoder.encode("Marko", "UTF-8") + "&" +
-                        URLEncoder.encode("lastname", "UTF-8") + "=" + URLEncoder.encode("Ognjenović", "UTF-8") + "&" +
-                        URLEncoder.encode("merge", "UTF-8") + "=" + URLEncoder.encode(merge, "UTF-8") + "&" +
-                        URLEncoder.encode("accessToken", "UTF-8") + "=" + URLEncoder.encode(accessToken, "UTF-8");
-                HTTP http = new HTTP(UrlData.REGISTER_URL, "POST");
 
-                if(http.sendPost(data)) return http.getData();
-
-            } catch (Exception e) {
-
-                Log.e("RegisterAs",e.getMessage());
-                return null;
-
-            }
 
         }
 

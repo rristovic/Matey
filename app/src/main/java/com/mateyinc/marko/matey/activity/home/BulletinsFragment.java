@@ -31,6 +31,7 @@ import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
 import static com.mateyinc.marko.matey.data_and_managers.DataManager.BULLETINS_LOADER;
+import static com.mateyinc.marko.matey.data_and_managers.DataManager.BULLETIN_COLUMNS;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -42,28 +43,6 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     private TextView mEmptyView;
 
     public static int updatedPos = -1;
-
-    public static final String[] BULLETIN_COLUMNS = {
-            BulletinEntry.TABLE_NAME + "." + BulletinEntry.COLUMN_POST_ID,
-            BulletinEntry.COLUMN_USER_ID,
-            BulletinEntry.COLUMN_FIRST_NAME,
-            BulletinEntry.COLUMN_LAST_NAME,
-            BulletinEntry.COLUMN_TEXT,
-            BulletinEntry.COLUMN_DATE,
-            BulletinEntry.COLUMN_NUM_OF_REPLIES,
-            BulletinEntry.COLUMN_ATTACHMENTS
-    };
-
-    // These indices are tied to BULLETIN_COLUMNS.  If BULLETIN_COLUMNS changes, these
-    // must change.
-    public static final int COL_POST_ID = 0;
-    public static final int COL_USER_ID = 1;
-    public static final int COL_FIRST_NAME = 2;
-    public static final int COL_LAST_NAME = 3;
-    public static final int COL_TEXT = 4;
-    public static final int COL_DATE = 5;
-    public static final int COL_NUM_OF_REPLIES = 6;
-    public static final int COL_ATTCHS = 7;
 
 
     /**

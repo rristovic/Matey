@@ -11,7 +11,7 @@ import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data_and_managers.DataContract;
 import com.mateyinc.marko.matey.data_and_managers.DataManager;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -30,6 +30,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
 
     private final DataManager mManager;
     private final DataManager mDataManager;
+    // TODO - rework weak reference
     MotherActivity activity;
     private WeakReference<UserProfile> mUserProfile;
     private int mUserId;

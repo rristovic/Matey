@@ -18,7 +18,6 @@ package com.mateyinc.marko.matey.data_and_managers;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.net.Uri;
-import android.provider.BaseColumns;
 
 /**
  * Defines table and column names for the  database.
@@ -44,7 +43,7 @@ public class DataContract {
 
 
     /* Inner class that defines the table contents of the messages table */
-    public static final class MessageEntry implements BaseColumns {
+    public static final class MessageEntry implements MBaseColumns {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_MESSAGES).build();
@@ -73,7 +72,7 @@ public class DataContract {
     }
 
     /* Inner class that defines the table contents of the notifications table */
-    public static final class NotificationEntry implements BaseColumns {
+    public static final class NotificationEntry implements MBaseColumns {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_NOTIFICATIONS).build();
@@ -100,7 +99,7 @@ public class DataContract {
 
     }
 
-    public static final class ProfileEntry implements BaseColumns {
+    public static final class ProfileEntry implements MBaseColumns {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PROFILES).build();
@@ -115,6 +114,8 @@ public class DataContract {
         // Adding columns DbHelper create table command  must be changed also
         public static final String COLUMN_NAME = "first_name";
         public static final String COLUMN_LAST_NAME = "last_name";
+        public static final String COLUMN_EMAIL = "email";
+        public static final String COLUMN_PICTURE = "picture";
         public static final String COLUMN_LAST_MSG_ID = "profile_last_msg_id";
 //        public static final String _ID = "id"
 
@@ -125,7 +126,7 @@ public class DataContract {
 
     }
 
-    public static final class BulletinEntry implements BaseColumns {
+    public static final class BulletinEntry implements MBaseColumns {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_BULLETINS).build();
@@ -153,7 +154,7 @@ public class DataContract {
 
     }
 
-    public static final class ReplyEntry implements BaseColumns {
+    public static final class ReplyEntry implements MBaseColumns {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_REPLIES).build();

@@ -31,7 +31,7 @@ import com.mateyinc.marko.matey.data_and_managers.DataContract.ReplyEntry;
 public class DbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public static final String DATABASE_NAME = "matey.db";
 
@@ -71,6 +71,8 @@ public class DbHelper extends SQLiteOpenHelper {
                 ProfileEntry._ID + " INTEGER NOT NULL, " +
                 ProfileEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_EMAIL + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_PICTURE + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER " +
                 ");";
 

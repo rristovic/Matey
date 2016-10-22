@@ -16,14 +16,14 @@ import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.GroupsRecyclerViewAdapter;
-import com.mateyinc.marko.matey.inall.InsideActivity;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.util.ArrayList;
 
 /**
  * Created by Sarma on 8/30/2016.
  */
-public class GroupsActivity extends InsideActivity {
+public class GroupsActivity extends MotherActivity {
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
 

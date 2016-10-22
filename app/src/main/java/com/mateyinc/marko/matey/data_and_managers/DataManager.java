@@ -7,8 +7,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
-import com.mateyinc.marko.matey.activity.view.BulletinRepliesViewActivity;
+import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data_and_managers.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Message;
@@ -51,12 +50,38 @@ public class DataManager {
     // One minute in milliseconds
     public static final int ONE_MIN = 60000;
 
-
     /**
      * Loader identifiers for data
      */
     public static final int BULLETINS_LOADER = 100;
+    public static final int BULLETIN_LOADER = 101;
     public static final int REPLIES_LOADER = 200;
+
+    /**
+     * Columns that bulletin cursor loaders will load up
+     */
+    public static final String[] BULLETIN_COLUMNS = {
+            DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry.COLUMN_POST_ID,
+            DataContract.BulletinEntry.COLUMN_USER_ID,
+            DataContract.BulletinEntry.COLUMN_FIRST_NAME,
+            DataContract.BulletinEntry.COLUMN_LAST_NAME,
+            DataContract.BulletinEntry.COLUMN_TEXT,
+            DataContract.BulletinEntry.COLUMN_DATE,
+            DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES,
+            DataContract.BulletinEntry.COLUMN_ATTACHMENTS
+    };
+
+    // These indices are tied to BULLETIN_COLUMNS.  If BULLETIN_COLUMNS changes, these
+    // must change.
+    public static final int COL_POST_ID = 0;
+    public static final int COL_USER_ID = 1;
+    public static final int COL_FIRST_NAME = 2;
+    public static final int COL_LAST_NAME = 3;
+    public static final int COL_TEXT = 4;
+    public static final int COL_DATE = 5;
+    public static final int COL_NUM_OF_REPLIES = 6;
+    public static final int COL_ATTCHS = 7;
+
 
 
     public final ArrayList<Notification> mNotificationList = new ArrayList<>();
@@ -108,9 +133,7 @@ public class DataManager {
      * @param lastMsgId    last message id that the user has sent to the current user
      * @return the row ID of the added user profile.
      */
-    public long addUserProfile(int userId, String userName, String userLastName, int lastMsgId) {
-//        long userProfId;
-
+    public long addUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.ProfileEntry.CONTENT_URI,
                 new String[]{DataContract.ProfileEntry._ID},
@@ -119,15 +142,15 @@ public class DataManager {
                 null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            setUserProfile(userId, userName, userLastName, lastMsgId);
-//            int userProfIdIndex = cursor.getColumnIndex(DataContract.MessageEntry._ID);
-//            userProfId = cursor.getLong(userProfIdIndex);
+            updateUserProfile(userId, userName, userLastName, email, picture, lastMsgId);
         } else {
             ContentValues userValues = new ContentValues();
 
             userValues.put(DataContract.ProfileEntry._ID, userId);
             userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
+            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
+            userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
 
             Uri insertedUri = mAppContext.getContentResolver().insert(
@@ -141,19 +164,15 @@ public class DataManager {
                 Log.d("DataManager", "UserProfile added: ID=" + userId +
                         "; Name=" + userName + "; LastName=" + userLastName + "; LastMsgId=" + lastMsgId);
             }
-
-//            userProfId = ContentUris.parseId(insertedUri);
         }
-
         if (cursor != null)
             cursor.close();
 
         return userId;
-//        return userProfId;
     }
 
     public void addUserProfile(UserProfile profile) {
-        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getLastMsgId());
+        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getEmail(), profile.getProfilePictureLink(), profile.getLastMsgId());
     }
 
     /**
@@ -164,13 +183,14 @@ public class DataManager {
      * @param userLastName last name of the user
      * @param lastMsgId    last message id that the user has sent to the current user
      */
-    public void setUserProfile(int userId, String userName, String userLastName, int lastMsgId) {
+    public void updateUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId) {
         ContentValues userValues = new ContentValues();
 
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
         userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
-
+        userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
+        userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,
                 DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(userId)});
@@ -559,8 +579,8 @@ public class DataManager {
         try {
             cursor.moveToPosition(index);
 
-            bulletin.setUserID(cursor.getInt(BulletinsFragment.COL_USER_ID));
-            bulletin.setPostID(cursor.getInt(BulletinsFragment.COL_POST_ID));
+            bulletin.setUserID(cursor.getInt(COL_USER_ID));
+            bulletin.setPostID(cursor.getInt(COL_POST_ID));
             bulletin.setFirstName(cursor.getString(2));
             bulletin.setLastName(cursor.getString(3));
             bulletin.setMessage(cursor.getString(4));
@@ -583,7 +603,7 @@ public class DataManager {
     public Bulletin getBulletin(int index) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.BulletinEntry.CONTENT_URI,
-                BulletinsFragment.BULLETIN_COLUMNS,
+                BULLETIN_COLUMNS,
                 null,
                 null,
                 BULLETIN_ORDER);
@@ -739,17 +759,6 @@ public class DataManager {
      */
     public void addReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date,
                          int numOfApprvs, LinkedList<UserProfile> approves) {
-
-        Cursor replyCursor = mAppContext.getContentResolver().query(
-                DataContract.ReplyEntry.CONTENT_URI,
-                new String[]{DataContract.ReplyEntry.COLUMN_REPLY_ID},
-                DataContract.ReplyEntry.COLUMN_REPLY_ID + " = " + replyId,
-                null,
-                REPLIES_ORDER_BY);
-
-        if (replyCursor != null && replyCursor.moveToFirst()) {
-            updateReply(replyId, userId, postId, firstName, lastName, text, date, numOfApprvs, approves);
-        } else {
             ContentValues values = new ContentValues();
 
             values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, replyId);
@@ -776,10 +785,6 @@ public class DataManager {
                 debugtext += "; Num of approves=" + numOfApprvs;
                 Log.d(TAG, debugtext);
             }
-
-        }
-        if (replyCursor != null)
-            replyCursor.close();
     }
 
     private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, LinkedList<UserProfile> approves) {
@@ -828,15 +833,15 @@ public class DataManager {
         try {
             cursor.moveToPosition(index);
 
-            reply.replyId = cursor.getInt(BulletinRepliesViewActivity.COL_REPLY_ID);
-            reply.userId = cursor.getInt(BulletinRepliesViewActivity.COL_USER_ID);
-            reply.postId = cursor.getInt(BulletinRepliesViewActivity.COL_POST_ID);
-            reply.userFirstName = cursor.getString(BulletinRepliesViewActivity.COL_FIRST_NAME);
-            reply.userLastName = cursor.getString(BulletinRepliesViewActivity.COL_LAST_NAME);
-            reply.setDate(cursor.getLong(BulletinRepliesViewActivity.COL_DATE));
-            reply.replyText = cursor.getString(BulletinRepliesViewActivity.COL_TEXT);
-            reply.numOfApprvs = cursor.getInt(BulletinRepliesViewActivity.COL_NUM_OF_APPRVS);
-            reply.replyApproves = reply.setApprovesFromJSON(cursor.getString(BulletinRepliesViewActivity.COL_APPRVS));
+            reply.replyId = cursor.getInt(BulletinViewActivity.COL_REPLY_ID);
+            reply.userId = cursor.getInt(BulletinViewActivity.COL_USER_ID);
+            reply.postId = cursor.getInt(BulletinViewActivity.COL_POST_ID);
+            reply.userFirstName = cursor.getString(BulletinViewActivity.COL_FIRST_NAME);
+            reply.userLastName = cursor.getString(BulletinViewActivity.COL_LAST_NAME);
+            reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
+            reply.replyText = cursor.getString(BulletinViewActivity.COL_TEXT);
+            reply.numOfApprvs = cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS);
+            reply.replyApproves = reply.setApprovesFromJSON(cursor.getString(BulletinViewActivity.COL_APPRVS));
 
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
@@ -854,7 +859,7 @@ public class DataManager {
     public Bulletin.Reply getReply(int index) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.ReplyEntry.CONTENT_URI,
-                BulletinRepliesViewActivity.REPLIES_COLUMNS,
+                BulletinViewActivity.REPLIES_COLUMNS,
                 null,
                 null,
                 REPLIES_ORDER_BY);

@@ -1,18 +1,17 @@
 package com.mateyinc.marko.matey.model;
 
-/**
- * Created by M4rk0 on 5/15/2016.
- */
 public class UserProfile {
     public static final String USER_ID = "userid";
     public static final String FIRST_NAME = "firstname";
     public static final String LAST_NAME = "lastname";
     public static final String LAST_MSG_ID = "lastmsgid";
+    public static final String EMAIL = "email";
 
     private int userId;
 
     private String firstName;
     private String lastName;
+    private String email;
     private String profilePictureLink;
     private String gender;
     private String birthday;
@@ -24,11 +23,23 @@ public class UserProfile {
     private int numOfPosts;
     private int numOfFriends;
 
-    public UserProfile(int id) {
-        userId = id;
+    public UserProfile() {
     }
 
-    public UserProfile() {
+    public UserProfile(int userId, String firstName, String lastName, String email, String picture) {
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.profilePictureLink = picture;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public int getUserId() {

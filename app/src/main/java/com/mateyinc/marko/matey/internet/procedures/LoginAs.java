@@ -6,10 +6,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONArray;
@@ -32,9 +31,7 @@ public class LoginAs extends AsyncTask<String, Void, String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mProgDialog = new ProgressDialog(activity);
-        mProgDialog.setMessage(activity.getResources().getString(R.string.login_dialog_message));
-        mProgDialog.show();
+
     }
 
     @Override

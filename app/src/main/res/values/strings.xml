@@ -11,8 +11,22 @@
     <string name="login_dialog_message">Getting you in..</string>
     <string name="title_activity_profile">Profile</string>
 
+    <!-- App related -->
+    <string name="empty_list">No data</string>
+    <string name="clipboard_copiedtext_label">Post text</string>
+    <string name="toast_textcopied">Text copied to clipboard.</string>
+    <string name="error_message">Something went wrong :(</string>
+    <string name="error_tittle">Error</string>
+    <string name="nogcm_message">Your device without Google Play Services is not supported.</string>
+    <string name="success_reg_message">You have successfully registered!</string>
+    <string name="registering_dialog_message">Registration in progress..</string>
+
+
     <!-- Database and content provider authority string -->
     <string name="content_authority" translatable="false">com.mateyinc.marko.matey</string>
+
+    <!-- Account type -->
+    <string name="account_type" translatable="false">com.matey.user_account</string>
 
     <!-- Friends strings -->
     <string name="friends_section_name">Friends</string>
@@ -59,11 +73,6 @@
     <string name="search_messages">Messages</string>
     <string name="search_friends">Friends</string>
 
-    <!-- App related -->
-    <string name="empty_list">No data</string>
-    <string name="clipboard_copiedtext_label">Post text</string>
-    <string name="toast_textcopied">Text copied to clipboard.</string>
-    <string name="error_message">Something went wrong :(</string>
 
     <!-- New post related -->
     <string name="post_to_matey">Post to Matey</string>

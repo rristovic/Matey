@@ -1,36 +1,35 @@
 package com.mateyinc.marko.matey.gcm;
 
-/**
- * Created by Sarma on 5/11/2016.
- */
-
-
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.data_and_managers.UrlData;
-import com.mateyinc.marko.matey.internet.http.HTTP;
+import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
+import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.io.IOException;
-import java.net.URLEncoder;
+
+import static com.mateyinc.marko.matey.activity.Util.STATUS_NO_INTERNET;
+import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
+import static com.mateyinc.marko.matey.activity.main.MainActivity.OLD_GCM_TOKEN;
 
 public class RegistrationIntentService extends IntentService {
 
-    private static final String TAG = "RegIntentService";
+    private static final String TAG = RegistrationIntentService.class.getSimpleName();
     private static final String[] TOPICS = {"global"};
     private String device_id;
 
     public RegistrationIntentService() {
-
         super(TAG);
-
     }
 
     @Override
@@ -38,7 +37,7 @@ public class RegistrationIntentService extends IntentService {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         this.device_id = intent.getStringExtra("device_id");
-
+        String token = null;
         try {
             // [START register_for_gcm]
             // Initially this call goes out to the network to retrieve the token, subsequent calls
@@ -47,14 +46,19 @@ public class RegistrationIntentService extends IntentService {
             // See https://developers.google.com/cloud-messaging/android/start for details on this file.
             // [START get_token]
             InstanceID instanceID = InstanceID.getInstance(this);
-            String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
+            token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
                     GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             // [END get_token]
-            Log.d("etoken", token);
             Log.i(TAG, "GCM Registration Token: " + token);
 
-            // TODO: Implement this method to send any registration to your app's servers.
-            sendRegistrationToServer(token);
+//            sendRegistrationToServer(token);
+            // Saving tokens
+            if (sharedPreferences.getString(NEW_GCM_TOKEN, null) == null)
+                sharedPreferences.edit().putString(NEW_GCM_TOKEN, token).commit();
+            else {
+                String oldToken = sharedPreferences.getString(NEW_GCM_TOKEN, "");
+                sharedPreferences.edit().putString(OLD_GCM_TOKEN, oldToken).putString(NEW_GCM_TOKEN, token).commit();
+            }
 
             // Subscribe to topic channels
             subscribeTopics(token);
@@ -70,14 +74,15 @@ public class RegistrationIntentService extends IntentService {
             // on a third-party server, this ensures that we'll attempt the update at a later time.
             sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, false).apply();
         }
-        // Notify UI that registration has completed, so the progress indicator can be hidden.
-//        Intent registrationComplete = new Intent(MateyGCMPreferences.REGISTRATION_COMPLETE);
-//        LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
+        // Notify UI that registration has completed
+        Intent registrationComplete = new Intent(MateyGCMPreferences.REGISTRATION_COMPLETE);
+        registrationComplete.putExtra(MainActivity.EXTRA_GCM_TOKEN, token);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
     }
 
     /**
      * Persist registration to third-party servers.
-     *
+     * <p>
      * Modify this method to associate the user's GCM registration token with any server-side account
      * maintained by your application.
      *
@@ -86,17 +91,44 @@ public class RegistrationIntentService extends IntentService {
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
 
-        try {
+//        SecurePreferences  securePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
+//        String device_id = securePreferences.getString("device_id");
+//
+//        if (device_id == null) {
+//            if (!Util.isInternetConnected(this))
+//
+//            return new InstallationIDManager().getInstallationID(this, securePreferences);
+//        }
+//        try {
+//            String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
+//                    URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(this.device_id, "UTF-8");
+//            HTTP http = new HTTP(UrlData.GCM_REGISTRATION, "POST");
+//
+//            String result = null;
+//            if (http.sendPost(data)) result = http.getData();
+//        } catch (Exception e) {}
 
-            String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
-                    URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(this.device_id, "UTF-8");
-            HTTP http = new HTTP(UrlData.GCM_REGISTRATION, "POST");
+    }
 
-            String result = null;
-            if (http.sendPost(data)) result = http.getData();
+    /**
+     * Method for getting the application id
+     *
+     * @return <p> InstallationIDManager.STATUS_OK if the app id is in SecurePrefs and on hard drive;
+     * <br> InstallationIDManager.STATUS_ERROR_APPID if there was an error and the appid isn't saved;
+     * <br> Util.STATUS_NO_INTERNET if there is no internet connection
+     * </p>
+     */
+    private int deviceIDSet() {
+        SecurePreferences securePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
+        String device_id = securePreferences.getString("device_id");
 
-        } catch (Exception e) {}
+        if (device_id == null) {
+            if (!Util.isInternetConnected(this))
+                return STATUS_NO_INTERNET;
+            return new InstallationIDManager().getInstallationID(this, securePreferences);
+        }
 
+        return InstallationIDManager.STATUS_OK;
     }
 
     /**
