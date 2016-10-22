@@ -22,6 +22,7 @@ public class UserProfile {
     private int lastMsgId;
     private int numOfPosts;
     private int numOfFriends;
+    private boolean mIsFriend = false;
 
     public UserProfile() {
     }
@@ -136,5 +137,13 @@ public class UserProfile {
 
     public int getLastMsgId() {
         return lastMsgId;
+    }
+
+    public boolean isFriend() {
+        return mIsFriend;
+    }
+
+    public void setFriend(boolean isFriend) {
+        mIsFriend = isFriend;
     }
 }

@@ -21,16 +21,10 @@ abstract public class MotherActivity extends AppCompatActivity {
     public SecurePreferences securePreferences;
     public boolean mServerReady = false;
     public boolean mDeviceReady = false;
+    public boolean mLoggedIn = false;
+
 
     public int fbAnswerType = 0;
-
-    public void startTommy() {
-
-        if (tommy == null)
-            tommy = new ScepticTommy(this);
-
-        tommy.execute();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -64,7 +58,7 @@ abstract public class MotherActivity extends AppCompatActivity {
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        startTommy();
+//                                        startTommy();
                                     }
                                 })
                         .setNegativeButton("Cancel",
@@ -143,6 +137,5 @@ abstract public class MotherActivity extends AppCompatActivity {
         return super.onCreateDialog(id);
 
     }
-
 
 }

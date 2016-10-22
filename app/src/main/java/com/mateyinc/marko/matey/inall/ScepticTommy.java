@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.inall;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -8,7 +7,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.activity.home.HomeActivity;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -37,12 +36,12 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
     private static final int STATUS_NO_LOGIN = 0;
 
 
-    private WeakReference<MotherActivity> activityRef;
-    private MotherActivity activity;
+    private WeakReference<MainActivity> activityRef;
+    private MainActivity activity;
     private SecurePreferences securePreferences;
 
     // constructor for referencing activity and secure preferences
-    public ScepticTommy(MotherActivity activity) {
+    public ScepticTommy(MainActivity activity) {
 
         this.activityRef = new WeakReference<>(activity);
         this.securePreferences = activity.getSecurePreferences();
@@ -60,8 +59,10 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
     protected void onPostExecute(Integer checkResult) {
 
         // if some error occured with the app id
-        if (checkResult == SessionManager.STATUS_ERROR_APPID)
+        if (checkResult == SessionManager.STATUS_ERROR_APPID) {
             activity.showDialog(1000);
+            activity.mDeviceReady = true;
+        }
 
             // if there is no internet connection
         else if (checkResult == STATUS_NO_INTERNET) {
@@ -74,9 +75,7 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
             // if user is logged in
         else if (checkResult == STATUS_LOGGED_IN) {
 //            activity.showDialog(2);
-            Intent i = new Intent(activity, HomeActivity.class);
-            activity.startActivity(i);
-            activity.finish();
+            activity.loggedIn();
         }
 
     }
@@ -93,9 +92,8 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
     private int checkAll() {
 
         if(!Util.isInternetConnected(activity)) return STATUS_NO_INTERNET;
-//        int devIdSet = deviceIDSet();
 //
-//        if (devIdSet == SessionManager.STATUS_ERROR_APPID)
+//        if (deviceIDSet() == SessionManager.STATUS_ERROR_APPID)
 //            return SessionManager.STATUS_ERROR_APPID;
 //        if (devIdSet == STATUS_NO_INTERNET) return STATUS_NO_INTERNET;
         if(securePreferences.getString(PREF_DEVICE_ID)!=null){
@@ -146,9 +144,9 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
             return STATUS_NO_LOGIN;
         }
         // If token has expired, must get new one
-        int expiresIn;
+        long expiresIn;
         try{
-            expiresIn = Integer.parseInt(securePreferences.getString(KEY_EXPIRES_IN));
+            expiresIn = Long.parseLong(securePreferences.getString(KEY_EXPIRES_IN));
             // Token saved in seconds, must convert to ms
             expiresIn*=1000;
         }catch (NumberFormatException e){

@@ -20,6 +20,7 @@
     <string name="nogcm_message">Your device without Google Play Services is not supported.</string>
     <string name="success_reg_message">You have successfully registered!</string>
     <string name="registering_dialog_message">Registration in progress..</string>
+    <string name="try_connecting_again_btn_tittle">TRY AGAIN</string>
 
 
     <!-- Database and content provider authority string -->
@@ -77,5 +78,10 @@
     <!-- New post related -->
     <string name="post_to_matey">Post to Matey</string>
     <string name="post">Post</string>
+    <string name="dev_name">Radovan</string>
+    <string name="dev_lname">Ristovic</string>
+    <string name="dev_email">radovanr995@gmail.com</string>
+    <string name="dev_pic">https://scontent-amt2-1.xx.fbcdn.net/t31.0-8/13418666_1802825583286785_9080680072636685389_o.jpg</string>
+    <string name="dev_nopic">https://www.colourbox.com/preview/3851270-no-user-profile-picture.jpg</string>
 
 </resources>

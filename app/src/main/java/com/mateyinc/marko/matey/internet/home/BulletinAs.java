@@ -2,19 +2,31 @@ package com.mateyinc.marko.matey.internet.home;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.Random;
 
+/**
+ * Created by M4rk0 on 5/12/2016.
+ */
 public class BulletinAs extends AsyncTask<String, Void, String> {
 
     HomeActivity mContext;
@@ -37,6 +49,12 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
     protected String doInBackground(String... params) {
 
         boolean init = Boolean.parseBoolean(params[4].toLowerCase());
+
+        if(mContext.isDebug()){
+            if(init) mIsInit
+                     = true;
+           return null;
+        }
 
         // Init download bulletins with friends list
         if (!isCancelled() && init) {
@@ -122,10 +140,17 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
     private void parseFriendsAndBulletins(String result) {
         //Parsing friends
         // TODO - finish method with SQLite
-
         mBulletinManager.addNullBulletin();
+
+        if (mContext.isDebug() && !PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean("DATA_CREATED", false)) {
+            createDummyFriendsData();
+            createDummyBulletinData();
+            return;
+        }
+
         parseBulletins(result);
     }
+
 
 
     /**
@@ -185,4 +210,83 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         }
 
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    private void createDummyBulletinData() {
+        try {
+            Random random = new Random();
+            int itemDownloaded = 0;
+
+            ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+            LinkedList<Bulletin.Reply> repliesList = new LinkedList<>();
+
+            for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
+
+                UserProfile friend = mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount));
+                Date date = new Date();
+                date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * DataManager.mCurrentPage);
+
+                Bulletin bulletin = new Bulletin();
+                bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * DataManager.mCurrentPage);
+                bulletin.setUserID(friend.getUserId());
+                bulletin.setFirstName(friend.getFirstName());
+                bulletin.setLastName(friend.getLastName());
+                bulletin.setDate(date);
+                bulletin.setMessage(Util.loremIspum);
+                bulletin.setNumOfReplies(random.nextInt(20));
+
+                for (int j = 0; j < bulletin.getNumOfReplies(); j++) {
+
+                    UserProfile friendReplied = mDataManager.getUserProfile(random.nextInt(HomeActivity.mCurUser.getNumOfFriends()));
+                    Bulletin.Reply r = bulletin.getReplyInstance();
+
+                    r.replyId = Integer.parseInt(Integer.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
+                    r.userId = friendReplied.getUserId();
+                    r.postId = bulletin.getPostID();
+                    r.userFirstName = friendReplied.getFirstName();
+                    r.userLastName = friendReplied.getLastName();
+                    r.replyText = Util.loremIpsumShort;
+                    r.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage);
+
+                    for (int k = 0; k < random.nextInt(5); k++) {
+                        r.replyApproves.add(mDataManager.getUserProfile(random.nextInt(DataManager.mFriendsListCount)));
+                        r.numOfApprvs++;
+                    }
+
+                    repliesList.add(r);
+                }
+
+                list.add(bulletin);
+                itemDownloaded++;
+            }
+            mBulletinManager.addBulletins(list);
+            mBulletinManager.addReplies(repliesList);
+
+            LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
+            Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
+            i.putExtra(DataManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
+
+            // Notifying HomeActivity that the data has been downloaded with broadcast and static member TODO - notify in onPostExecute later
+            broadcastManager.sendBroadcast(i);
+            HomeActivity.mListDownloaded = true;
+        } catch (Exception e) {
+            Log.e(BulletinAs.class.getSimpleName(), e.getLocalizedMessage(), e);
+        }
+    }
+
+    private void createDummyFriendsData() {
+        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putBoolean("DATA_CREATED",true).apply();
+
+        Random r = new Random();
+        int namesSize = Util.names.length;
+        int lNamesSize = Util.lastNames.length;
+
+        HomeActivity.mCurUser.setNumOfFriends(40);
+        for (int i = 1; i <= HomeActivity.mCurUser.getNumOfFriends(); i++) {
+            mDataManager.addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)],
+                    mContext.getString(R.string.dev_email),mContext.getString(R.string.dev_nopic),0,true);
+        }
+    }
+
 }

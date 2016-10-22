@@ -29,8 +29,6 @@ import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.UserProfile;
 
-import static android.os.Build.VERSION_CODES.M;
-
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
 
     private final static String TAG = HomeActivity.class.getSimpleName();
@@ -86,6 +84,9 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     }
 
     private void init() {
+        // Test/debug
+        ifTest();
+
         // Settings the app bar via custom toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -271,28 +272,27 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private void getCurUser() {
         // TODO - get params from prefs
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int user_id = preferences.getInt(DataManager.CUR_USERPROFILE_ID,-1);
-        if(user_id==-1){
+        int user_id = preferences.getInt(DataManager.CUR_USERPROFILE_ID, -1);
+        if (user_id == -1) {
             Intent i = new Intent(this, MainActivity.class);
             startActivity(i);
             finish();
         }
         Cursor c = getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI, null,
-                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(user_id)},null,null);
+                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(user_id)}, null, null);
 
-        if(c!=null && c.moveToFirst()){
+        if (c != null && c.moveToFirst()) {
             UserProfile userProfile = new UserProfile(user_id, c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_NAME)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_LAST_NAME)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_EMAIL)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_PICTURE)));
-            // Dummy data
-            DataManager dataManager = DataManager.getInstance(this);
-            dataManager.setCurrentUserProfile(userProfile);
             mCurUser = userProfile;
-        }
-        else{
+        } else {
             SessionManager.logout(this, securePreferences);
         }
+
+        if (c != null)
+            c.close();
 
 
     }
@@ -388,5 +388,26 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         }
         return false;
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    private boolean mIsDebug;
+
+    /**
+     * Testing/debugging
+     */
+    private void ifTest() {
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("IS_DEBUG", false)) {
+            mIsDebug = true;
+        }
+    }
+
+    /**
+     * Testing/debugging
+     *
+     * @return true if it's debug mode, false otherwise
+     */
+    public boolean isDebug() {
+        return mIsDebug;
     }
 }

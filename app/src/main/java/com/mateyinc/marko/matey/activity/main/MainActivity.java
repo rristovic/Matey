@@ -15,6 +15,9 @@ import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
@@ -59,9 +62,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.MyApplication;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.home.HomeActivity;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.UrlData;
@@ -74,6 +80,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Pattern;
 
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
@@ -98,6 +106,7 @@ public class MainActivity extends MotherActivity {
     private LinearLayout llEmail, llPass, line1, line2;
     public EditText etPass;
     public AutoCompleteTextView etEmail;
+    private Timer mTimer;
 
     private float mLoginBtnMoveY;
     private float mRegBtnMoveY;
@@ -152,7 +161,10 @@ public class MainActivity extends MotherActivity {
         initGCM();
 
         // sceptic tommy starts checking everything
-        super.startTommy();
+        if (tommy == null)
+            tommy = new ScepticTommy(this);
+        tommy.execute();
+
         init();
 
         new MyApplication().printHash(this);
@@ -196,7 +208,8 @@ public class MainActivity extends MotherActivity {
                             @Override
                             public void onErrorResponse(VolleyError error) {
                                 sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
-                                Log.d(TAG, "Response error");
+                                mServerReady = true;
+                                Log.e(TAG, error.getLocalizedMessage(), error);
                                 // TODO - error in response
                             }
                         });
@@ -288,8 +301,10 @@ public class MainActivity extends MotherActivity {
                     showLoginForm();
                 else {
 
-                    String email = etEmail.getText().toString();
-                    String pass = etPass.getText().toString();
+                    String email = etEmail.getText().toString().toLowerCase();
+                    email = email.trim();
+                    String pass = etPass.getText().toString().toLowerCase();
+                    email = email.trim();
 
                     Bundle bundle = new Bundle();
 
@@ -314,8 +329,10 @@ public class MainActivity extends MotherActivity {
                 if (!mRegFormVisible)
                     showRegForm();
                 else {
-                    String email = etEmail.getText().toString();
-                    String pass = etPass.getText().toString();
+                    String email = etEmail.getText().toString().toLowerCase();
+                    email = email.trim();
+                    String pass = etPass.getText().toString().toLowerCase();
+                    email = email.trim();
 
                     Bundle bundle = new Bundle();
 
@@ -636,7 +653,7 @@ public class MainActivity extends MotherActivity {
     }
 
     // Loading anim
-    private void startIntroAnim(final View view, int fromX, int toX, int fromY, int toY, int time) {
+    private void startIntroAnim(final View view, int fromX, int toX, int fromY, int toY, final int time) {
         view.setVisibility(View.VISIBLE);
         view.setAlpha(0);
         view.setScaleX(2f);
@@ -656,11 +673,41 @@ public class MainActivity extends MotherActivity {
                     @Override
                     public void run() {
                         mLoadingHeadIntroTransl = ivLoadingHead.getTop();
+
+                        final Handler mHandler = new Handler(Looper.getMainLooper());
+
+                        mTimer = new Timer();
+                        mTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                if(!MainActivity.this.mLoggedIn)
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        new AlertDialog.Builder(MainActivity.this)
+                                                .setMessage("Sorry mate, the server is not responding..")
+                                                .setIcon(R.drawable.matey_logo)
+                                                .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                        MainActivity.this.endLoadingAnim();
+                                                    }
+                                                }).setPositiveButton(getString(R.string.try_connecting_again_btn_tittle), new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                // TODO - restart connection
+                                            }
+                                        }).show();
+                                    }
+                                });
+                            }
+                        }, 5000);
                         goUpAnim(500);
                     }
                 });
 
-//        CountDownTimer timer = new CountDownTimer(time * 2, time) {
+//        CountDownTimer mTimer = new CountDownTimer(time * 2, time) {
 //            @Override
 //            public void onTick(long millisUntilFinished) {
 //            }
@@ -671,7 +718,7 @@ public class MainActivity extends MotherActivity {
 //                goUpAnim(500);
 //            }
 //        };
-//        timer.start();
+//        mTimer.start();
 
     }
 
@@ -707,6 +754,10 @@ public class MainActivity extends MotherActivity {
     }
 
     private void endLoadingAnim() {
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer.purge();
+        }
         // Return pic to center and  move layout
         // TODO - rework other anims via ViewPropertyAnimatior because it does not interfere with system transitions
         ivLoadingHead.animate().y(0)
@@ -734,6 +785,13 @@ public class MainActivity extends MotherActivity {
 
                     }
                 });
+    }
+
+    public void loggedIn() {
+        mLoggedIn = true;
+        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
     //////////////////////////////////////////////////////////////////////////
 

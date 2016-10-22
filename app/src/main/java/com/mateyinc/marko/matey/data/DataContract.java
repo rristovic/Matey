@@ -116,6 +116,7 @@ public class DataContract {
         public static final String COLUMN_LAST_NAME = "last_name";
         public static final String COLUMN_EMAIL = "email";
         public static final String COLUMN_PICTURE = "picture";
+        public static final String COLUMN_IS_FRIEND = "is_friend";
         public static final String COLUMN_LAST_MSG_ID = "profile_last_msg_id";
 //        public static final String _ID = "id"
 

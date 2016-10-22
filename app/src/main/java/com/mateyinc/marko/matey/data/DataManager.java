@@ -38,7 +38,7 @@ public class DataManager {
     /**
      * the current count of the friends list in the database
      */
-    public static int mFriendsListCount = 120; // for dummy data is 120
+    public static int mFriendsListCount = 0; // for dummy data is 120
 
     /**
      * The current page of bulletins in the database
@@ -83,7 +83,6 @@ public class DataManager {
     public static final int COL_ATTCHS = 7;
 
 
-
     public final ArrayList<Notification> mNotificationList = new ArrayList<>();
     public final ArrayList<Message> mMessageList;
 
@@ -112,7 +111,7 @@ public class DataManager {
         synchronized (mLock) {
             if (mInstance == null) {
                 mInstance = new DataManager(context.getApplicationContext());
-                if(mInstance.mCurrentUserProfile == null){
+                if (mInstance.mCurrentUserProfile == null) {
 
                 }
                 Log.d("DataManager", "New instance of manager created.");
@@ -126,6 +125,10 @@ public class DataManager {
         mMessageList = new ArrayList<>();
     }
 
+    public static void setFriendsListCount(int numOfFriends) {
+        mFriendsListCount = numOfFriends;
+    }
+
     // UserProfile methods /////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
@@ -134,11 +137,14 @@ public class DataManager {
      */
     public static final String CUR_USERPROFILE_ID = "cur_userprofile_id";
 
-    public void setCurrentUserProfile(UserProfile userProfile){
+    public void setCurrentUserProfile(UserProfile userProfile) {
         mCurrentUserProfile = userProfile;
+
+        if (userProfile != null)
+            mFriendsListCount = userProfile.getNumOfFriends();
     }
 
-    public synchronized UserProfile getCurrentUserProfile(){
+    public synchronized UserProfile getCurrentUserProfile() {
         return mCurrentUserProfile;
     }
 
@@ -151,7 +157,7 @@ public class DataManager {
      * @param lastMsgId    last message id that the user has sent to the current user
      * @return the row ID of the added user profile.
      */
-    public long addUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId) {
+    public long addUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.ProfileEntry.CONTENT_URI,
                 new String[]{DataContract.ProfileEntry._ID},
@@ -160,7 +166,7 @@ public class DataManager {
                 null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            updateUserProfile(userId, userName, userLastName, email, picture, lastMsgId);
+            updateUserProfile(userId, userName, userLastName, email, picture, lastMsgId, isFriend);
         } else {
             ContentValues userValues = new ContentValues();
 
@@ -169,6 +175,7 @@ public class DataManager {
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
             userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
+            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend?1:0);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
 
             Uri insertedUri = mAppContext.getContentResolver().insert(
@@ -190,7 +197,7 @@ public class DataManager {
     }
 
     public void addUserProfile(UserProfile profile) {
-        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getEmail(), profile.getProfilePictureLink(), profile.getLastMsgId());
+        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getEmail(), profile.getProfilePictureLink(), profile.getLastMsgId(), profile.isFriend());
     }
 
     /**
@@ -201,13 +208,14 @@ public class DataManager {
      * @param userLastName last name of the user
      * @param lastMsgId    last message id that the user has sent to the current user
      */
-    public void updateUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId) {
+    public void updateUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
         ContentValues userValues = new ContentValues();
 
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
         userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
+        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend?1:0);
         userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,
@@ -258,18 +266,18 @@ public class DataManager {
         return profile;
     }
 
-    public void removeUserProfile(int user_id){
+    public void removeUserProfile(int user_id) {
         int numOfRows = mAppContext.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI,
-                DataContract.ProfileEntry._ID + " = ?",new String[]{Integer.toString(user_id)});
+                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(user_id)});
 
-        if(numOfRows == 1){
-            Log.d(TAG, "User profile with id="+user_id+" has been successfully removed from db.");
-        }else{
-            Log.d(TAG, "Error deleting user profile with id="+user_id);
+        if (numOfRows == 1) {
+            Log.d(TAG, "User profile with id=" + user_id + " has been successfully removed from db.");
+        } else {
+            Log.d(TAG, "Error deleting user profile with id=" + user_id);
         }
     }
 
-    public void removeUserProfile(UserProfile userProfile){
+    public void removeUserProfile(UserProfile userProfile) {
         removeUserProfile(userProfile.getUserId());
     }
 
@@ -416,7 +424,8 @@ public class DataManager {
     public static final String BULLETIN_ORDER = DataContract.BulletinEntry.COLUMN_DATE + " DESC";
 
     /**
-     * Method for adding empty Bulletin to first row into the database, called on first launch of the app
+     * Method for adding empty Bulletin to first row into the database, called on first launch of the app;
+     * NOTE: It must be added, doesn't matter when;
      */
     public void addNullBulletin() {
         Cursor cursor = mAppContext.getContentResolver().query(
@@ -442,7 +451,7 @@ public class DataManager {
             );
 
             Log.d(TAG, "Null bulletin added.");
-        }else{
+        } else {
             updateNullBulletin();
         }
 
@@ -450,10 +459,10 @@ public class DataManager {
             cursor.close();
     }
 
-    public void updateNullBulletin(){
+    public void updateNullBulletin() {
         ContentValues values = new ContentValues(1);
         values.put(DataContract.BulletinEntry.COLUMN_DATE, new Date().getTime());
-        mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI,values, DataContract.BulletinEntry.COLUMN_POST_ID + " = -1",
+        mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry.COLUMN_POST_ID + " = -1",
                 null);
 
         Log.d(TAG, "Null bulletin updated.");
@@ -794,32 +803,32 @@ public class DataManager {
      */
     public void addReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date,
                          int numOfApprvs, LinkedList<UserProfile> approves) {
-            ContentValues values = new ContentValues();
+        ContentValues values = new ContentValues();
 
-            values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, replyId);
-            values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
-            values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
-            values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
-            values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
-            values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
-            values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
-            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
-            values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
+        values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, replyId);
+        values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
+        values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
+        values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
+        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
+        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
+        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
+        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
+        values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
 
-            Uri insertedUri = mAppContext.getContentResolver().insert(
-                    DataContract.ReplyEntry.CONTENT_URI,
-                    values
-            );
+        Uri insertedUri = mAppContext.getContentResolver().insert(
+                DataContract.ReplyEntry.CONTENT_URI,
+                values
+        );
 
-            if (insertedUri == null) {
-                Log.e(TAG, "Error inserting reply: ID=" + replyId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
-            } else {
-                String debugtext = "Reply added: ID=" + replyId +
-                        "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
-                        + "...; Date=" + date;
-                debugtext += "; Num of approves=" + numOfApprvs;
-                Log.d(TAG, debugtext);
-            }
+        if (insertedUri == null) {
+            Log.e(TAG, "Error inserting reply: ID=" + replyId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
+        } else {
+            String debugtext = "Reply added: ID=" + replyId +
+                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
+                    + "...; Date=" + date;
+            debugtext += "; Num of approves=" + numOfApprvs;
+            Log.d(TAG, debugtext);
+        }
     }
 
     private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, LinkedList<UserProfile> approves) {
