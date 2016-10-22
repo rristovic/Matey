@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data_and_managers;
+package com.mateyinc.marko.matey.data;
 
 import android.provider.BaseColumns;
 

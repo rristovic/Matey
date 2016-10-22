@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mateyinc.marko.matey.data_and_managers;
+package com.mateyinc.marko.matey.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.MessageEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.NotificationEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
+import com.mateyinc.marko.matey.data.DataContract.MessageEntry;
+import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
+import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 
 /**
  * Manages a local database for data.

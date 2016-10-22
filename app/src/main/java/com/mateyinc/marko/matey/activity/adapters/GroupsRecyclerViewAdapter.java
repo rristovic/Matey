@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataManager;
 
 /**
  * Created by Sarma on 8/30/2016.

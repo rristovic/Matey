@@ -22,8 +22,8 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.NotificationEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.data.DataManager;
 
 import java.util.Date;
 

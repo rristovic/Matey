@@ -14,7 +14,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.MessagesFragment;
-import com.mateyinc.marko.matey.data_and_managers.DataContract;
+import com.mateyinc.marko.matey.data.DataContract;
 
 public class MessagesAdapter extends CursorAdapter {
 

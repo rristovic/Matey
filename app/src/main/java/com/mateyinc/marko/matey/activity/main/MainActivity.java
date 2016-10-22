@@ -5,7 +5,6 @@ import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,7 +39,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -52,23 +50,22 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.mateyinc.marko.matey.MyApplication;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.HomeActivity;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.MateyRequest;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.UrlData;
-import com.mateyinc.marko.matey.internet.procedures.FacebookLoginAs;
 import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
-import com.mateyinc.marko.matey.model.KVPair;
-import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,12 +77,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
-import static com.mateyinc.marko.matey.internet.MateyRequest.KEY_ACCESS_TOKEN;
-import static com.mateyinc.marko.matey.internet.MateyRequest.KEY_EXPIRES_IN;
-import static com.mateyinc.marko.matey.internet.MateyRequest.KEY_REFRESH_TOKEN;
-import static com.mateyinc.marko.matey.internet.MateyRequest.KEY_TOKEN_TYPE;
-import static com.mateyinc.marko.matey.internet.MateyRequest.Method;
-import static com.mateyinc.marko.matey.internet.MateyRequest.TOKEN_SAVED_TIME;
+import static com.mateyinc.marko.matey.internet.SessionManager.PREF_DEVICE_ID;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -136,12 +128,16 @@ public class MainActivity extends MotherActivity {
     // Instance fields
     Account mAccount;
 
+    // Request code
+    private static final int FACEBOOK_REQ_CODE = 5555;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        super.setSecurePreferences(this);
 
-        FacebookSdk.sdkInitialize(getApplicationContext());
+        FacebookSdk.sdkInitialize(getApplicationContext(), FACEBOOK_REQ_CODE);
         fbCallbackManager = CallbackManager.Factory.create();
         facebookLogin();
 
@@ -152,14 +148,14 @@ public class MainActivity extends MotherActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
-        super.setSecurePreferences(this);
+
+        initGCM();
 
         // sceptic tommy starts checking everything
-        initGCM();
-//
-//        super.startTommy();
-
+        super.startTommy();
         init();
+
+        new MyApplication().printHash(this);
     }
 
     /**
@@ -172,7 +168,6 @@ public class MainActivity extends MotherActivity {
                 final SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(context);
                 String token = intent.getStringExtra(EXTRA_GCM_TOKEN);
-
 
                 // GCM complete with success
                 if (token != null && token.length() != 0) {
@@ -188,6 +183,7 @@ public class MainActivity extends MotherActivity {
                             public void onResponse(String response) {
                                 try {
                                     JSONObject object = new JSONObject(response);
+                                    // TODO - rework the code, ScepticTommy must w8 for GCM registration before it can continue
                                     mServerReady = true;
                                     securePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
                                     Log.d(TAG, "Device id=" + object.getString(PREF_DEVICE_ID));
@@ -283,37 +279,6 @@ public class MainActivity extends MotherActivity {
 
     }
 
-    private Account createSyncAccount(Context context) {
-        // Create the account type and default account
-        Account newAccount = new Account(
-                ACCOUNT, ACCOUNT_TYPE);
-        // Get an instance of the Android account manager
-        AccountManager accountManager =
-                (AccountManager) context.getSystemService(
-                        ACCOUNT_SERVICE);
-        /*
-         * Add the account and account type, no password or user data
-         * If successful, return the Account object, otherwise report an error.
-         */
-        if (accountManager.addAccountExplicitly(newAccount, null, null)) {
-
-            /*
-             * If you don't set android:syncable="true" in
-             * in your <provider> element in the manifest,
-             * then call context.setIsSyncable(account, AUTHORITY, 1)
-             * here.
-             */
-            return newAccount;
-        } else {
-            /*
-             * The account exists or some other error occurred. Log this, report it,
-             * or handle it internally.
-             */
-            return null;
-        }
-
-    }
-
     private void setOnClickListeners() {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -335,117 +300,12 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", "Password needs to be at least 5 characters long.");
                         showDialog(1004, bundle);
                     } else {
-                        loginWithVolley(email, pass);
+                        SessionManager.loginWithVolley(email, pass, securePreferences, MainActivity.this);
                     }
                 }
             }
 
-            /**
-             * Helper method for user login on to the server
-             * @param email user's email address
-             * @param pass user's password
-             */
-            private void loginWithVolley(final String email, String pass) {
 
-                // Showing progress dialog
-                final ProgressDialog mProgDialog = new ProgressDialog(MainActivity.this);
-                mProgDialog.setMessage(MainActivity.this.getResources().getString(R.string.login_dialog_message));
-                mProgDialog.show();
-
-                // First contacting OAuth2 server
-                final RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                MateyRequest oauthRequest = new MateyRequest(Request.Method.POST, UrlData.OAUTH_LOGIN, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-
-                        // Parsing response.data
-                        try {
-                            JSONObject dataObj = new JSONObject(response);
-
-                            // Add data to secure prefs TODO - rework secure prefs Editor()
-                            ArrayList<KVPair> list = new ArrayList<KVPair>();
-                            list.add(new KVPair(KEY_ACCESS_TOKEN, dataObj.getString(KEY_ACCESS_TOKEN)));
-                            list.add(new KVPair(KEY_EXPIRES_IN, dataObj.getString(KEY_EXPIRES_IN)));
-                            list.add(new KVPair(KEY_REFRESH_TOKEN, dataObj.getString(KEY_REFRESH_TOKEN)));
-                            list.add(new KVPair(KEY_TOKEN_TYPE, dataObj.getString(KEY_TOKEN_TYPE)));
-                            securePreferences.putValues(list);
-
-                            // Saves the time when token is created
-                            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                            preferences.edit().putLong(TOKEN_SAVED_TIME, System.currentTimeMillis()).apply();
-
-                            // Immediately after contacting OAuth2 Server proceed to resource server for login
-                            // Creating new request for the resource server
-                            MateyRequest resRequest = new MateyRequest(Method.POST, UrlData.LOGIN_USER, new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    JSONObject object;
-
-                                    // Parsing response.data
-                                    try {
-                                        object = new JSONObject(response);
-
-                                        // Adding current user to the database
-                                        DataManager dataManager = DataManager.getInstance(MainActivity.this);
-                                        dataManager.addUserProfile(new UserProfile(object.getInt(MateyRequest.KEY_USER_ID),
-                                                object.getString(MateyRequest.KEY_FIRST_NAME),
-                                                object.getString(MateyRequest.KEY_LAST_NAME),
-                                                object.getString(MateyRequest.KEY_EMAIL),
-                                                object.getString(MateyRequest.KEY_PROFILE_PICTURE)));
-
-                                    } catch (JSONException e) {
-                                        // TODO - finish error handling
-                                        Log.e(TAG, e.getLocalizedMessage(), e);
-                                        return;
-                                    } catch (SecurityException se){
-                                        Log.e(TAG, se.getLocalizedMessage(), se);
-                                    }
-
-                                    // Close progress dialog
-                                    if (mProgDialog.isShowing())
-                                        mProgDialog.dismiss();
-
-                                    // Close activity and proceed to HomeActivity
-                                    Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                                    MainActivity.this.startActivity(intent);
-                                    MainActivity.this.finish();
-                                }
-                            }, new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    // TODO - handle errors
-                                    Log.e(TAG, error.toString());
-                                    if (mProgDialog.isShowing())
-                                        mProgDialog.dismiss();
-                                }
-                            });
-                            // Setting request params and sending POST request
-                            resRequest.addParam(UrlData.PARAM_EMAIL, email);
-                            resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(PREF_DEVICE_ID));
-                            resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, securePreferences.getString(PREF_DEVICE_ID));
-                            queue.add(resRequest);
-
-                        } catch (JSONException e) {
-                            Log.e(TAG, e.getLocalizedMessage(), e);
-                            // TODO - finish error handling
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, "Error while authenticating user.",error.getCause());
-                        // TODO - finish method
-                    }
-                });
-
-                // Contacting OAuth2 server with required params
-                oauthRequest.addParam(UrlData.PARAM_GRANT_TYPE, UrlData.PARAM_GRANT_TYPE_PASSWORD);
-                oauthRequest.addParam(UrlData.PARAM_CLIENT_ID, UrlData.PARAM_CLIENT_ID_VALUE);
-                oauthRequest.addParam(UrlData.PARAM_CLIENT_SECRET, UrlData.PARAM_CLIENT_SECRET_VALUE);
-                oauthRequest.addParam(UrlData.PARAM_USERNAME, email);
-                oauthRequest.addParam(UrlData.PARAM_PASSWORD, pass);
-                queue.add(oauthRequest);
-            }
         });
 
         btnReg.setOnClickListener(new View.OnClickListener() {
@@ -466,57 +326,9 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", "Password needs to be at least 5 characters long.");
                         showDialog(1004, bundle);
                     } else {
-                        registerWithVolley(email, pass);
+                        SessionManager.registerWithVolley(email, pass, MainActivity.this);
                     }
                 }
-            }
-
-            /**
-             * Helper method for user registration on to the server
-             * @param email user email address
-             * @param pass user password
-             */
-            private void registerWithVolley(final String email, String pass) {
-                // Showing progress dialog
-                final ProgressDialog mProgDialog = new ProgressDialog(MainActivity.this);
-                mProgDialog.setMessage(MainActivity.this.getResources().getString(R.string.registering_dialog_message));
-                mProgDialog.show();
-
-                // Making new request and contacting the server
-                RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Toast.makeText(MainActivity.this, R.string.success_reg_message, Toast.LENGTH_SHORT).show();
-
-                        if(mProgDialog.isShowing())
-                            mProgDialog.dismiss();
-
-                        // Adding new account to AM
-                        AccountManager am = AccountManager.get(MainActivity.this);
-                        Account account = new Account(email, getString(R.string.account_type));
-                        am.addAccountExplicitly(account, null, null);
-
-                        // Updating UI
-                        startRegReverseAnim();
-                        mRegFormVisible = false;
-                        etEmail.setText("");
-                        etPass.setText("");
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, "Error while registering user.");
-                        // TODO - finish method
-                    }
-                });
-
-                // TODO - finish params in UI
-                request.addParam(UrlData.PARAM_USER_FIRST_NAME, "KURAC");
-                request.addParam(UrlData.PARAM_USER_LAST_NAME, "KURAC");
-                request.addParam(UrlData.PARAM_EMAIL, email);
-                request.addParam(UrlData.PARAM_PASSWORD, pass);
-                queue.add(request);
             }
         });
 
@@ -562,7 +374,9 @@ public class MainActivity extends MotherActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        fbCallbackManager.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == FACEBOOK_REQ_CODE)
+            fbCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
 
@@ -578,27 +392,49 @@ public class MainActivity extends MotherActivity {
                         final AccessToken accessToken = loginResult.getAccessToken();
                         final Profile profile = Profile.getCurrentProfile();
 
-                        // OVDE RADNJE NAKON LOGIN-A
+                        final String[] email = new String[1];
+                        GraphRequest request = GraphRequest.newMeRequest(
+                                loginResult.getAccessToken(),
+                                new GraphRequest.GraphJSONObjectCallback() {
+                                    @Override
+                                    public void onCompleted(JSONObject object, GraphResponse response) {
+                                        Log.v("LoginActivity", response.toString());
+
+                                        // Application code
+                                        try {
+                                            email[0] = (object.getString("email"));
+
+                                            SessionManager.loginWithFacebook(accessToken.getToken(), profile.getId(),
+                                                    email[0], securePreferences, MainActivity.this);
+//
+                                        } catch (JSONException e) {
+                                            Log.e(TAG, e.getLocalizedMessage(), e);
+                                        }
+                                    }
+                                });
+                        Bundle parameters = new Bundle();
+                        parameters.putString("fields", "id,name,email,gender,birthday");
+                        request.setParameters(parameters);
+                        request.executeAsync();
+
+                        // When there's no reg user with the given email
                         if (fbAnswerType == 0) {
 
                             if (profile.getId() != null) {
-
-                                FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
-                                fbLogin.execute(accessToken.getToken(), profile.getId(), securePreferences.getString("device_id"));
-
+                                Log.e(TAG, accessToken.getToken());
+//                                   FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
+//                                fbLogin.execute(accessToken.getToken(), profile.getId(), securePreferences.getString("device_id"));
                             }
 
+                            // When there the user is already registered with that email. Ask to merge accounts
                         } else {
-
-                            String email = etEmail.getText().toString();
+                            String emailString = etEmail.getText().toString();
                             String pass = etPass.getText().toString();
 
                             // start asynchronous task to handle user registration
                             RegisterAs registerAs = new RegisterAs(MainActivity.this);
-                            registerAs.execute(email, pass, "yes", accessToken.getToken());
-
+                            registerAs.execute(emailString, pass, "yes", accessToken.getToken());
                         }
-
                     }
 
                     @Override
@@ -846,10 +682,11 @@ public class MainActivity extends MotherActivity {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         ivLoadingHead.clearAnimation();
-                        if (!mServerReady) {
-                            goDownAnim(700);
-                        } else
+                        if (mServerReady && mDeviceReady) {
                             endLoadingAnim();
+                        } else
+                            goDownAnim(700);
+
                     }
                 });
     }
@@ -861,10 +698,10 @@ public class MainActivity extends MotherActivity {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         ivLoadingHead.clearAnimation();
-                        if (!mServerReady) {
-                            goUpAnim(700);
-                        } else
+                        if (mServerReady && mDeviceReady) {
                             endLoadingAnim();
+                        } else
+                            goUpAnim(700);
                     }
                 });
     }

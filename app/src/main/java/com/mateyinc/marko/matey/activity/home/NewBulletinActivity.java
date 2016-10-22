@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;

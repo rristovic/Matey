@@ -25,13 +25,13 @@ import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
-import com.mateyinc.marko.matey.data_and_managers.DataContract;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.BulletinEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
-import static com.mateyinc.marko.matey.data_and_managers.DataManager.BULLETINS_LOADER;
-import static com.mateyinc.marko.matey.data_and_managers.DataManager.BULLETIN_COLUMNS;
+import static com.mateyinc.marko.matey.data.DataManager.BULLETINS_LOADER;
+import static com.mateyinc.marko.matey.data.DataManager.BULLETIN_COLUMNS;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 

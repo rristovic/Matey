@@ -6,9 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.http.HTTP;
 
 import org.json.JSONObject;
 
@@ -39,9 +37,9 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
                 String data = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
                         URLEncoder.encode("uid", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8");
-                HTTP http = new HTTP(UrlData.LOG_OUT_URL, "POST");
+//                HTTP http = new HTTP(UrlData.LOG_OUT_URL, "POST");
 
-                if(http.sendPost(data)) return http.getData();
+//                if(http.sendPost(data)) return http.getData();
 
             } catch (Exception e) {
 
@@ -68,7 +66,7 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
                 // if successful, set everything to SecurePreferences
                 if (jsonObject.getBoolean("success")) {
 
-                    activity.clearUserCredentials();
+//                    activity.clearUserCredentials();
 
                     Intent intent = new Intent(activity, MainActivity.class);
                     activity.startActivity(intent);

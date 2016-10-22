@@ -9,11 +9,9 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data_and_managers.DataContract;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
-import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
@@ -88,9 +86,9 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         URLEncoder.encode("uid", "UTF-8") + "=" + URLEncoder.encode(uid, "UTF-8") + "&" +
                         URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(device_id, "UTF-8") + "&" +
                         URLEncoder.encode("requested_user_id", "UTF-8") + "=" + URLEncoder.encode(requested_user_id, "UTF-8");
-                HTTP http = new HTTP(UrlData.REQUEST_USER_PROFILE, "POST");
+//                HTTP http = new HTTP(UrlData.REQUEST_USER_PROFILE, "POST");
 
-                if (!isCancelled() && http.sendPost(data)) return http.getData();
+//                if (!isCancelled() && http.sendPost(data)) return http.getData();
             } catch (Exception e) {
                 return null;
             }
@@ -144,7 +142,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
 
                 } else if (!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized"))) {
 
-                    activity.clearUserCredentials();
+//                    activity.clearUserCredentials();
 
                     Intent intent = new Intent(activity, MainActivity.class);
                     activity.startActivity(intent);

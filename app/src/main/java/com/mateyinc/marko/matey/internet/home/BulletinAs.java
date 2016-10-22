@@ -6,7 +6,7 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.internet.http.HTTP;
 import com.mateyinc.marko.matey.model.Bulletin;
 
@@ -170,7 +170,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                 } else if (!jsonObject.getBoolean("success") && (jsonObject.getString("message").equals("not_logged") || jsonObject.getString("message").equals("not_authorized"))) {
 
-                    mContext.clearUserCredentials();
+//                    mContext.clearUserCredentials();
 
                     Intent intent = new Intent(mContext, MainActivity.class);
                     mContext.startActivity(intent);

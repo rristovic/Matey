@@ -2,7 +2,7 @@ package com.mateyinc.marko.matey.model;
 
 import android.util.Log;
 
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;

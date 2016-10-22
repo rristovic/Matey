@@ -98,7 +98,7 @@
         <activity android:name=".activity.view.BulletinViewActivity" />
 
         <provider
-            android:name=".data_and_managers.DataProvider"
+            android:name=".data.DataProvider"
             android:authorities="@string/content_authority"
             android:exported="false"
             android:syncable="true" />

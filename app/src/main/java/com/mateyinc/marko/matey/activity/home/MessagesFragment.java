@@ -22,10 +22,10 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.data_and_managers.DataContract;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.MessageEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataContract.MessageEntry;
+import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
+import com.mateyinc.marko.matey.data.DataManager;
 
 /**
  * Created by Sarma on 8/27/2016.

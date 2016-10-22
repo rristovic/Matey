@@ -22,17 +22,17 @@ import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.adapters.BulletinRepliesAdapter;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
-import com.mateyinc.marko.matey.data_and_managers.DataContract;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.ReplyEntry;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
-import static com.mateyinc.marko.matey.data_and_managers.DataManager.REPLIES_LOADER;
-import static com.mateyinc.marko.matey.data_and_managers.DataManager.REPLIES_ORDER_BY;
+import static com.mateyinc.marko.matey.data.DataManager.REPLIES_LOADER;
+import static com.mateyinc.marko.matey.data.DataManager.REPLIES_ORDER_BY;
 
 public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 

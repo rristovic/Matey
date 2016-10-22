@@ -13,7 +13,7 @@ import com.google.android.gms.iid.InstanceID;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data_and_managers.InstallationIDManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.io.IOException;
@@ -97,7 +97,7 @@ public class RegistrationIntentService extends IntentService {
 //        if (device_id == null) {
 //            if (!Util.isInternetConnected(this))
 //
-//            return new InstallationIDManager().getInstallationID(this, securePreferences);
+//            return new SessionManager().getInstallationID(this, securePreferences);
 //        }
 //        try {
 //            String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
@@ -113,8 +113,8 @@ public class RegistrationIntentService extends IntentService {
     /**
      * Method for getting the application id
      *
-     * @return <p> InstallationIDManager.STATUS_OK if the app id is in SecurePrefs and on hard drive;
-     * <br> InstallationIDManager.STATUS_ERROR_APPID if there was an error and the appid isn't saved;
+     * @return <p> SessionManager.STATUS_OK if the app id is in SecurePrefs and on hard drive;
+     * <br> SessionManager.STATUS_ERROR_APPID if there was an error and the appid isn't saved;
      * <br> Util.STATUS_NO_INTERNET if there is no internet connection
      * </p>
      */
@@ -125,10 +125,10 @@ public class RegistrationIntentService extends IntentService {
         if (device_id == null) {
             if (!Util.isInternetConnected(this))
                 return STATUS_NO_INTERNET;
-            return new InstallationIDManager().getInstallationID(this, securePreferences);
+            return new SessionManager().getInstallationID(this, securePreferences);
         }
 
-        return InstallationIDManager.STATUS_OK;
+        return SessionManager.STATUS_OK;
     }
 
     /**

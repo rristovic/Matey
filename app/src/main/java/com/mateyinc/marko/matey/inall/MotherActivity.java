@@ -16,11 +16,11 @@ import java.util.Arrays;
 
 abstract public class MotherActivity extends AppCompatActivity {
 
-    public static final String PREF_DEVICE_ID = "device_id";
 
     protected ScepticTommy tommy;
     public SecurePreferences securePreferences;
-    protected boolean mServerReady = false;
+    public boolean mServerReady = false;
+    public boolean mDeviceReady = false;
 
     public int fbAnswerType = 0;
 
@@ -46,14 +46,6 @@ abstract public class MotherActivity extends AppCompatActivity {
 
     public SecurePreferences getSecurePreferences() {
         return securePreferences;
-    }
-
-    public synchronized void clearUserCredentials() {
-        securePreferences.removeValue("user_id");
-        securePreferences.removeValue("uid");
-        securePreferences.removeValue("username");
-        securePreferences.removeValue("firstname");
-        securePreferences.removeValue("lastname");
     }
 
 

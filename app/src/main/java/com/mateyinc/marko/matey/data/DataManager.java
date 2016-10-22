@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data_and_managers;
+package com.mateyinc.marko.matey.data;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data_and_managers.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Message;
 import com.mateyinc.marko.matey.model.Notification;
@@ -100,6 +100,8 @@ public class DataManager {
     private static DataManager mInstance = null;
     private final Context mAppContext;
 
+    private UserProfile mCurrentUserProfile;
+
     /**
      * Method for retrieving DataManager singleton
      *
@@ -110,6 +112,9 @@ public class DataManager {
         synchronized (mLock) {
             if (mInstance == null) {
                 mInstance = new DataManager(context.getApplicationContext());
+                if(mInstance.mCurrentUserProfile == null){
+
+                }
                 Log.d("DataManager", "New instance of manager created.");
             }
             return mInstance;
@@ -123,6 +128,19 @@ public class DataManager {
 
     // UserProfile methods /////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
+
+    /**
+     * Key for storing user prfile id in shared prefs
+     */
+    public static final String CUR_USERPROFILE_ID = "cur_userprofile_id";
+
+    public void setCurrentUserProfile(UserProfile userProfile){
+        mCurrentUserProfile = userProfile;
+    }
+
+    public synchronized UserProfile getCurrentUserProfile(){
+        return mCurrentUserProfile;
+    }
 
     /**
      * Helper method to handle the insertion of a new user profile to the db and the server
@@ -239,6 +257,23 @@ public class DataManager {
 
         return profile;
     }
+
+    public void removeUserProfile(int user_id){
+        int numOfRows = mAppContext.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI,
+                DataContract.ProfileEntry._ID + " = ?",new String[]{Integer.toString(user_id)});
+
+        if(numOfRows == 1){
+            Log.d(TAG, "User profile with id="+user_id+" has been successfully removed from db.");
+        }else{
+            Log.d(TAG, "Error deleting user profile with id="+user_id);
+        }
+    }
+
+    public void removeUserProfile(UserProfile userProfile){
+        removeUserProfile(userProfile.getUserId());
+    }
+
+
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 

@@ -13,6 +13,7 @@ import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.internet.SessionManager;
 
 /**
  * Created by Sarma on 8/27/2016.
@@ -83,10 +84,10 @@ public class MenuFragment extends Fragment {
 //                        startActivity(i);
 //                        break;
 //                    }
-//                    case LOGOUT_ITEM_ID: {
-//                        // TODO - logout
-//                        break;
-//                    }
+                    case LOGOUT_ITEM_ID: {
+                        SessionManager.logout((HomeActivity)MenuFragment.this.getActivity(), ((HomeActivity)MenuFragment.this.getActivity()).getSecurePreferences());
+                        break;
+                    }
                     default:
                         return;
                 }

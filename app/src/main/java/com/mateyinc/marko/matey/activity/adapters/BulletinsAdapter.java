@@ -31,12 +31,12 @@ import com.mateyinc.marko.matey.activity.home.NewBulletinActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
-import static com.mateyinc.marko.matey.data_and_managers.DataManager.COL_POST_ID;
+import static com.mateyinc.marko.matey.data.DataManager.COL_POST_ID;
 
 public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();

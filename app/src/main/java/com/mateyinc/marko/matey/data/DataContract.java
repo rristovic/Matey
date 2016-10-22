@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mateyinc.marko.matey.data_and_managers;
+package com.mateyinc.marko.matey.data;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;

@@ -2,8 +2,11 @@ package com.mateyinc.marko.matey.activity.home;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
@@ -17,18 +20,23 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data_and_managers.DataManager;
+import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.UserProfile;
+
+import static android.os.Build.VERSION_CODES.M;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
 
     private final static String TAG = HomeActivity.class.getSimpleName();
 
     // Current user profile data
-    public final static UserProfile mCurUser = new UserProfile();
+    public static UserProfile mCurUser = new UserProfile();
 
     private final static String BULLETIN_FRAG_TAG = "BULLETINS";
     private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
@@ -73,6 +81,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         getFragmentManager();
         init();
+        getCurUser();
         getBulletins();
     }
 
@@ -250,9 +259,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private void getBulletins() {
 
-        // Gets the user params from SharedPref; TODO - set the on changePreference listener later
-        getCurUser();
-
         // Getting posts for the user
         BulletinAs bulletinsAs = new BulletinAs(this);
         bulletinsAs.execute(Integer.toString(mCurUser.getUserId()),
@@ -264,13 +270,31 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private void getCurUser() {
         // TODO - get params from prefs
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        int user_id = preferences.getInt(DataManager.CUR_USERPROFILE_ID,-1);
+        if(user_id==-1){
+            Intent i = new Intent(this, MainActivity.class);
+            startActivity(i);
+            finish();
+        }
+        Cursor c = getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI, null,
+                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(user_id)},null,null);
 
-        // Dummy data
-        mCurUser.setUserId(-100);
-        mCurUser.setFirstName("Radovan");
-        mCurUser.setLastName("Ristovic");
-        mCurUser.setGender("m");
-        mCurUser.setNumOfFriends(120);
+        if(c!=null && c.moveToFirst()){
+            UserProfile userProfile = new UserProfile(user_id, c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_NAME)),
+                    c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_LAST_NAME)),
+                    c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_EMAIL)),
+                    c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_PICTURE)));
+            // Dummy data
+            DataManager dataManager = DataManager.getInstance(this);
+            dataManager.setCurrentUserProfile(userProfile);
+            mCurUser = userProfile;
+        }
+        else{
+            SessionManager.logout(this, securePreferences);
+        }
+
+
     }
 
     private void closeSearchView() {
