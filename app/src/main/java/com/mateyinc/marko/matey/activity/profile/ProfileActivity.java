@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -31,7 +31,7 @@ public class ProfileActivity extends MotherActivity {
 
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
     public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
-    private TextView tvName;
+    private TextView tvName,tvNumberOfMates;
     private ImageView ivProfilePic;
     private int mUserId;
     private ImageLoader mImageLoader;
@@ -57,6 +57,7 @@ public class ProfileActivity extends MotherActivity {
     private void init() {
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
         tvName = (TextView) findViewById(R.id.tvName);
+        tvNumberOfMates = (TextView)findViewById(R.id.tvNumOfMates);
         mUserProfile = new UserProfile();
         initUIL();
 
@@ -64,7 +65,7 @@ public class ProfileActivity extends MotherActivity {
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getIntExtra(EXTRA_PROFILE_ID, -1);
         else{
-            mUserId = Util.getCurrentUserProfileId();
+            mUserId = DataManager.getCurrentUserProfile().getUserId();
         }
 
         mUserProfileAs = new UserProfileAs(this, new WeakReference<>(mUserProfile),mUserId);
@@ -75,6 +76,13 @@ public class ProfileActivity extends MotherActivity {
                 setData();
             }
         };
+    }
+
+    private void setData() {
+        Log.d("ProfileActivity", "Data is set.");
+        //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
+        tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
+        tvNumberOfMates.setText(mUserProfile.getNumOfFriends());
     }
 
     private void downloadData() {
@@ -128,12 +136,6 @@ public class ProfileActivity extends MotherActivity {
                 .writeDebugLogs().build();
         ImageLoader.getInstance().init(config);
         mImageLoader = ImageLoader.getInstance();
-    }
-
-    private void setData() {
-        Log.d("ProfileActivity", "Data is set.");
-        //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
-        tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
     }
 
 }

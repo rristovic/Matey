@@ -44,7 +44,14 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     @Override
     protected void onPreExecute() {
 
-        if (!isCancelled()) {
+        if(mUserId == mDataManager.getCurrentUserProfile().getUserId()){
+            mUserProfile.get().setData(mDataManager.getCurrentUserProfile());
+            notifyActivity();
+            this.cancel(true);
+            return;
+        }
+
+        if (!isCancelled() ) {
             Cursor c = null;
             try {
                 c = activity.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI,
@@ -57,8 +64,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                     profile.setFirstName(c.getString(0));
                     profile.setLastName(c.getString(1));
 
-                    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
-                    broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
+                    notifyActivity();
                 }
 
                  } catch (Exception e) {
@@ -103,7 +109,6 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String result) {
 
         try {
-
             // if there is some result check if successful
             if (!isCancelled() && result != null) {
 
@@ -135,8 +140,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         // Adding to db
                         mDataManager.addUserProfile(profile);
 
-                        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
-                        broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
+                        notifyActivity();
                         Log.d("UserProfileAs", "Profile data is downloaded.");
                     }
 
@@ -170,6 +174,14 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     protected void onCancelled(String result) {
         activity = null;
         mUserProfile = null;
+    }
+
+    /**
+     * Notifies the activity that the data has been downloaded
+     */
+    private void notifyActivity() {
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(activity);
+        broadcastManager.sendBroadcast(new Intent(ProfileActivity.PROFILE_DOWNLOADED));
     }
 
 

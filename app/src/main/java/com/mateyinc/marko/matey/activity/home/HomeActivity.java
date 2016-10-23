@@ -33,9 +33,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private final static String TAG = HomeActivity.class.getSimpleName();
 
-    // Current user profile data
-    public static UserProfile mCurUser = new UserProfile();
-
     private final static String BULLETIN_FRAG_TAG = "BULLETINS";
     private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
     private final static String MESSAGES_FRAG_TAG = "MESSAGES";
@@ -262,7 +259,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         // Getting posts for the user
         BulletinAs bulletinsAs = new BulletinAs(this);
-        bulletinsAs.execute(Integer.toString(mCurUser.getUserId()),
+        bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id"),
                 Integer.toString(DataManager.mCurrentPage),
@@ -270,6 +267,9 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     }
 
     private void getCurUser() {
+
+        if (DataManager.getCurrentUserProfile() != null) return;
+
         // TODO - get params from prefs
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int user_id = preferences.getInt(DataManager.CUR_USERPROFILE_ID, -1);
@@ -286,7 +286,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_LAST_NAME)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_EMAIL)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_PICTURE)));
-            mCurUser = userProfile;
+             DataManager.setCurrentUserProfile(preferences, userProfile);
         } else {
             SessionManager.logout(this, securePreferences);
         }

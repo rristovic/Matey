@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.data;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
@@ -99,7 +100,7 @@ public class DataManager {
     private static DataManager mInstance = null;
     private final Context mAppContext;
 
-    private UserProfile mCurrentUserProfile;
+    private static UserProfile mCurrentUserProfile;
 
     /**
      * Method for retrieving DataManager singleton
@@ -137,14 +138,20 @@ public class DataManager {
      */
     public static final String CUR_USERPROFILE_ID = "cur_userprofile_id";
 
-    public void setCurrentUserProfile(UserProfile userProfile) {
+    /**
+     * Helper method for storing current user profile in memory, and in shared prefs.
+     * @param preferences the Shared Preferences object used to store user_id
+     * @param userProfile the current user profile
+     */
+    public static void setCurrentUserProfile(SharedPreferences preferences, UserProfile userProfile) {
         mCurrentUserProfile = userProfile;
+        preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
 
         if (userProfile != null)
             mFriendsListCount = userProfile.getNumOfFriends();
     }
 
-    public synchronized UserProfile getCurrentUserProfile() {
+    public static synchronized UserProfile getCurrentUserProfile() {
         return mCurrentUserProfile;
     }
 

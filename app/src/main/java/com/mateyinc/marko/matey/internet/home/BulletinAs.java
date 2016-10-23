@@ -238,7 +238,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                 for (int j = 0; j < bulletin.getNumOfReplies(); j++) {
 
-                    UserProfile friendReplied = mDataManager.getUserProfile(random.nextInt(HomeActivity.mCurUser.getNumOfFriends()));
+                    UserProfile friendReplied = mDataManager.getUserProfile(random.nextInt(DataManager.getCurrentUserProfile().getNumOfFriends()));
                     Bulletin.Reply r = bulletin.getReplyInstance();
 
                     r.replyId = Integer.parseInt(Integer.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
@@ -282,8 +282,8 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
         int namesSize = Util.names.length;
         int lNamesSize = Util.lastNames.length;
 
-        HomeActivity.mCurUser.setNumOfFriends(40);
-        for (int i = 1; i <= HomeActivity.mCurUser.getNumOfFriends(); i++) {
+        DataManager.getCurrentUserProfile().setNumOfFriends(40);
+        for (int i = 1; i <= DataManager.getCurrentUserProfile().getNumOfFriends(); i++) {
             mDataManager.addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)],
                     mContext.getString(R.string.dev_email),mContext.getString(R.string.dev_nopic),0,true);
         }

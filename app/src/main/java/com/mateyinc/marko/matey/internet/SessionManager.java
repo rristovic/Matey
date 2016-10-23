@@ -201,8 +201,7 @@ public class SessionManager {
                                         object.getString(KEY_EMAIL),
                                         object.getString(KEY_PROFILE_PICTURE));
                                 dataManager.addUserProfile(userProfile);
-                                dataManager.setCurrentUserProfile(userProfile);
-                                preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
+                                dataManager.setCurrentUserProfile(preferences, userProfile);
 
                             } catch (JSONException e) {
                                 // TODO - finish error handling
@@ -303,8 +302,7 @@ public class SessionManager {
                                         object.getString(KEY_EMAIL),
                                         object.getString(KEY_PROFILE_PICTURE));
                                 dataManager.addUserProfile(userProfile);
-                                dataManager.setCurrentUserProfile(userProfile);
-                                preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
+                                dataManager.setCurrentUserProfile(preferences, userProfile);
 
                             } catch (JSONException e) {
                                 // TODO - finish error handling
@@ -389,7 +387,7 @@ public class SessionManager {
         SharedPreferences preferences = getDefaultSharedPreferences(context);
         DataManager dataManager = DataManager.getInstance(context);
         dataManager.removeUserProfile(preferences.getInt(DataManager.CUR_USERPROFILE_ID, -1));
-        dataManager.setCurrentUserProfile(null);
+        dataManager.setCurrentUserProfile(preferences, null);
 
         preferences.edit().remove(DataManager.CUR_USERPROFILE_ID).remove(TOKEN_SAVED_TIME).commit();
 
@@ -515,8 +513,7 @@ public class SessionManager {
                 context.getString(R.string.dev_pic));
         userProfile.setNumOfFriends(40);
         dataManager.addUserProfile(userProfile);
-        dataManager.setCurrentUserProfile(userProfile);
-        preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
+        dataManager.setCurrentUserProfile(preferences, userProfile);
 
         // Close progress dialog
         if (mProgDialog.isShowing())

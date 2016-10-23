@@ -81,7 +81,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             public void onLoadMore(int page, int totalItemsCount) {
                 // Getting posts for the user
                 BulletinAs bulletinsAs = new BulletinAs((HomeActivity) mContext);
-                bulletinsAs.execute(Integer.toString(HomeActivity.mCurUser.getUserId()),
+                bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
                         "securePreferences.getString(uid)",
                         "securePreferences.getString(device_id)",
                         Integer.toString(DataManager.mCurrentPage),

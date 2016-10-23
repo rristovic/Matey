@@ -23,7 +23,6 @@ abstract public class MotherActivity extends AppCompatActivity {
     public boolean mDeviceReady = false;
     public boolean mLoggedIn = false;
 
-
     public int fbAnswerType = 0;
 
     @Override

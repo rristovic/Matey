@@ -146,4 +146,21 @@ public class UserProfile {
     public void setFriend(boolean isFriend) {
         mIsFriend = isFriend;
     }
+
+    public void setData(UserProfile currentUserProfile) {
+        this.firstName = currentUserProfile.firstName;
+        this.lastName = currentUserProfile.lastName;
+        this.mIsFriend = currentUserProfile.mIsFriend;
+        this.birthday = currentUserProfile.birthday;
+        this.email = currentUserProfile.email;
+        this.gender = currentUserProfile.gender;
+        this.numOfFriends = currentUserProfile.numOfFriends;
+        this.numOfPosts = currentUserProfile.numOfPosts;
+        this.lastMsgId = currentUserProfile.lastMsgId;
+        this.profilePictureLink = currentUserProfile.profilePictureLink;
+        this.hometown = currentUserProfile.hometown;
+        this.location = currentUserProfile.location;
+        this.quoteStatus = currentUserProfile.quoteStatus;
+        this.userId = currentUserProfile.userId;
+    }
 }
