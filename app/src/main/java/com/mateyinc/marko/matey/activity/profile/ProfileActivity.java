@@ -33,7 +33,7 @@ public class ProfileActivity extends MotherActivity {
     public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
     private TextView tvName,tvNumberOfMates;
     private ImageView ivProfilePic;
-    private int mUserId;
+    private long mUserId;
     private ImageLoader mImageLoader;
     private UserProfile mUserProfile;
     private BroadcastReceiver mBroadcastReceiver;
@@ -63,7 +63,7 @@ public class ProfileActivity extends MotherActivity {
 
         // If intent doesn't have extra profile id, then ProfileActivity is called for the current user profile
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
-            mUserId = getIntent().getIntExtra(EXTRA_PROFILE_ID, -1);
+            mUserId = getIntent().getLongExtra(EXTRA_PROFILE_ID, -1);
         else{
             mUserId = DataManager.getCurrentUserProfile().getUserId();
         }
@@ -90,7 +90,7 @@ public class ProfileActivity extends MotherActivity {
         mUserProfileAs.execute(securePreferences.getString("user_id"),
                 securePreferences.getString("uid"),
                 securePreferences.getString("device_id")
-                , Integer.toString(mUserId));
+                , Long.toString(mUserId));
     }
 
     @Override

@@ -85,7 +85,7 @@ public class MenuFragment extends Fragment {
 //                        break;
 //                    }
                     case LOGOUT_ITEM_ID: {
-                        SessionManager.logout((HomeActivity)MenuFragment.this.getActivity(), ((HomeActivity)MenuFragment.this.getActivity()).getSecurePreferences());
+                        SessionManager.getInstance(MenuFragment.this.getContext()).logout((HomeActivity)MenuFragment.this.getActivity(), ((HomeActivity)MenuFragment.this.getActivity()).getSecurePreferences());
                         break;
                     }
                     default:

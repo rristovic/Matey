@@ -85,6 +85,7 @@ import java.util.TimerTask;
 import java.util.regex.Pattern;
 
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
+import static com.mateyinc.marko.matey.internet.SessionManager.KEY_ACCESS_TOKEN;
 import static com.mateyinc.marko.matey.internet.SessionManager.PREF_DEVICE_ID;
 
 @SuppressLint("NewApi")
@@ -315,7 +316,7 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", "Password needs to be at least 5 characters long.");
                         showDialog(1004, bundle);
                     } else {
-                        SessionManager.loginWithVolley(email, pass, securePreferences, MainActivity.this);
+                        SessionManager.getInstance(MainActivity.this).loginWithVolley(email, pass, securePreferences, MainActivity.this);
                     }
                 }
             }
@@ -343,7 +344,7 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", "Password needs to be at least 5 characters long.");
                         showDialog(1004, bundle);
                     } else {
-                        SessionManager.registerWithVolley(email, pass, MainActivity.this);
+                        SessionManager.getInstance(MainActivity.this).registerWithVolley(email, pass, MainActivity.this);
                     }
                 }
             }
@@ -421,7 +422,8 @@ public class MainActivity extends MotherActivity {
                                         try {
                                             email[0] = (object.getString("email"));
 
-                                            SessionManager.loginWithFacebook(accessToken.getToken(), profile.getId(),
+                                            SessionManager.getInstance(MainActivity.this)
+                                                    .loginWithFacebook(accessToken.getToken(), profile.getId(),
                                                     email[0], securePreferences, MainActivity.this);
 //
                                         } catch (JSONException e) {
@@ -787,8 +789,12 @@ public class MainActivity extends MotherActivity {
                 });
     }
 
+    /**
+     * Method to call when login process if finished
+     */
     public void loggedIn() {
         mLoggedIn = true;
+        SessionManager.getInstance(this).setAccessToken(securePreferences.getString(KEY_ACCESS_TOKEN));
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
         startActivity(intent);
         finish();

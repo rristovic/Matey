@@ -89,7 +89,7 @@ public class NewBulletinActivity extends MotherActivity {
                 UserProfile profile = Util.getCurrentUserProfile();
                 Bulletin b = new Bulletin();
                 b.setPostID((int) Util.getPostId());
-                b.setUserID(Util.getCurrentUserProfileId());
+                b.setUserID(DataManager.getInstance(NewBulletinActivity.this).getCurrentUserProfile().getUserId());
                 b.setDate(new Date());
                 b.setFirstName(profile.getFirstName());
                 b.setLastName(profile.getLastName());

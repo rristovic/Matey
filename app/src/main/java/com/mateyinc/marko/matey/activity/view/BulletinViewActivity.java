@@ -42,7 +42,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     public static final String EXTRA_SHOW_BULLETIN = "show_bulletin";
 
     public static final String[] REPLIES_COLUMNS = {
-            ReplyEntry.TABLE_NAME + "." + ReplyEntry.COLUMN_REPLY_ID,
+            ReplyEntry.TABLE_NAME + "." + ReplyEntry._ID,
             ReplyEntry.COLUMN_USER_ID,
             ReplyEntry.COLUMN_FIRST_NAME,
             ReplyEntry.COLUMN_LAST_NAME,
@@ -183,7 +183,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 ContentValues values = new ContentValues(1);
                 int num = mCurBulletin.getNumOfReplies();
                 values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++num);
-                getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry.COLUMN_POST_ID + " = " + mCurBulletin.getPostID(), null);
+                getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = " + mCurBulletin.getPostID(), null);
             }
         });
 

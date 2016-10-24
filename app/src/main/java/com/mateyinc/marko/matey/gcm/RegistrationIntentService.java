@@ -125,7 +125,7 @@ public class RegistrationIntentService extends IntentService {
         if (device_id == null) {
             if (!Util.isInternetConnected(this))
                 return STATUS_NO_INTERNET;
-            return new SessionManager().getInstallationID(this, securePreferences);
+            return SessionManager.getInstance(this).getInstallationID(this, securePreferences);
         }
 
         return SessionManager.STATUS_OK;

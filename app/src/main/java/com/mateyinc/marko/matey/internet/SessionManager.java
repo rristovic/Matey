@@ -6,7 +6,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,13 +17,14 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.data.JSONParserAs;
 import com.mateyinc.marko.matey.model.KVPair;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -31,10 +35,16 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
+import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
+import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
+import static com.mateyinc.marko.matey.internet.UrlData.PARAM_COUNT;
+import static com.mateyinc.marko.matey.internet.UrlData.PARAM_START_POS;
 
 
 /**
@@ -42,10 +52,9 @@ import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SER
  */
 
 /**
- * Class for syncing with the server
+ * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER, DOWNLOAD & UPLOAD DATA)
  */
 public class SessionManager {
-
     private static final String TAG = SessionManager.class.getSimpleName();
     public static final String APPID_FILE_NAME = "did.dat";
 
@@ -92,7 +101,63 @@ public class SessionManager {
      */
     public static final long SERVER_CONECTION_TIMEOUT = 15000;
 
-    private static ProgressDialog mProgDialog;
+    private static SessionManager mInstance;
+    private static Context mAppContext;
+    private ImageLoader mImageLoader;
+    private RequestQueue mRequestQueue;
+    private ProgressDialog mProgDialog;
+
+    /**
+     * ACCESS_TOKEN used to authorise with the server
+     */
+    private String ACCESS_TOKEN = "";
+
+
+    public static synchronized SessionManager getInstance(Context context) {
+        if (mInstance == null) {
+            mInstance = new SessionManager(context);
+        }
+
+        return mInstance;
+    }
+
+    private SessionManager(Context context) {
+        mAppContext = context.getApplicationContext();
+        mRequestQueue = getRequestQueue();
+
+        mImageLoader = new ImageLoader(mRequestQueue,
+                new ImageLoader.ImageCache() {
+                    private final LruCache<String, Bitmap>
+                            cache = new LruCache<String, Bitmap>(20);
+
+                    @Override
+                    public Bitmap getBitmap(String url) {
+                        return cache.get(url);
+                    }
+
+                    @Override
+                    public void putBitmap(String url, Bitmap bitmap) {
+                        cache.put(url, bitmap);
+                    }
+                });
+
+    }
+
+    private RequestQueue getRequestQueue() {
+        if (mRequestQueue == null) {
+            mRequestQueue = Volley.newRequestQueue(mAppContext);
+            Log.e(TAG, "New requestQueue has been created!");
+        }
+        return mRequestQueue;
+    }
+
+    public <T> void addToRequestQueue(Request<T> req) {
+        getRequestQueue().add(req);
+    }
+
+    public ImageLoader getImageLoader() {
+        return mImageLoader;
+    }
 
     /**
      * Helper method for user registration on to the server, also updates the UI
@@ -100,14 +165,13 @@ public class SessionManager {
      * @param email user email address
      * @param pass  user password
      */
-    public static void registerWithVolley(final String email, String pass, final MainActivity context) {
+    public void registerWithVolley(final String email, String pass, final MainActivity context) {
         // Showing progress dialog
         mProgDialog = new ProgressDialog(context);
         mProgDialog.setMessage(context.getResources().getString(R.string.registering_dialog_message));
         mProgDialog.show();
 
         // Making new request and contacting the server
-        RequestQueue queue = Volley.newRequestQueue(context.getApplicationContext());
         MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -140,7 +204,7 @@ public class SessionManager {
         request.addParam(UrlData.PARAM_USER_LAST_NAME, "KURAC");
         request.addParam(UrlData.PARAM_EMAIL, email);
         request.addParam(UrlData.PARAM_PASSWORD, pass);
-        queue.add(request);
+        mRequestQueue.add(request);
     }
 
     /**
@@ -149,7 +213,7 @@ public class SessionManager {
      * @param email user's email address
      * @param pass  user's password
      */
-    public static void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, final MainActivity context) {
+    public void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, final MainActivity context) {
 
         // Showing progress dialog
         mProgDialog = new ProgressDialog(context);
@@ -161,7 +225,6 @@ public class SessionManager {
         }
 
         // First contacting OAuth2 server
-        final RequestQueue queue = Volley.newRequestQueue(context.getApplicationContext());
         MateyRequest oauthRequest = new MateyRequest(Request.Method.POST, UrlData.OAUTH_LOGIN, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -231,10 +294,9 @@ public class SessionManager {
                     // Setting request params and sending POST request
                     resRequest.addParam(UrlData.PARAM_EMAIL, email);
                     resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(PREF_DEVICE_ID));
-                    resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, securePreferences.getString(KEY_ACCESS_TOKEN));
-                    resRequest.setAuthHeader("Authorization",
+                    resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
                             String.format("Bearer %s", securePreferences.getString(KEY_ACCESS_TOKEN)));
-                    queue.add(resRequest);
+                    mRequestQueue.add(resRequest);
 
                 } catch (JSONException e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
@@ -257,12 +319,12 @@ public class SessionManager {
         oauthRequest.addParam(UrlData.PARAM_CLIENT_SECRET, UrlData.PARAM_CLIENT_SECRET_VALUE);
         oauthRequest.addParam(UrlData.PARAM_USERNAME, email);
         oauthRequest.addParam(UrlData.PARAM_PASSWORD, pass);
-        queue.add(oauthRequest);
+        mRequestQueue.add(oauthRequest);
     }
 
-    public static void loginWithFacebook(String accessToken, String profileId, final String email, final SecurePreferences securePreferences, final MotherActivity context) {
-        final RequestQueue queue = Volley.newRequestQueue(context);
+    public void loginWithFacebook(final String accessToken, String profileId, final String email, final SecurePreferences securePreferences, final MainActivity context) {
         String url = UrlData.FACEBOOK_LOGIN;
+
         // Request a string response from the provided URL.
         MateyRequest oauthRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
@@ -317,9 +379,7 @@ public class SessionManager {
 //                                mProgDialog.dismiss();
 
                             // Close activity and proceed to HomeActivity
-                            Intent intent = new Intent(context, HomeActivity.class);
-                            context.startActivity(intent);
-                            context.finish();
+                            context.loggedIn();
                         }
                     }, new Response.ErrorListener() {
                         @Override
@@ -333,10 +393,10 @@ public class SessionManager {
                     // Setting request params and sending POST request
                     resRequest.addParam(UrlData.PARAM_EMAIL, email);
                     resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(PREF_DEVICE_ID));
-                    resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, securePreferences.getString(KEY_ACCESS_TOKEN));
-                    resRequest.setAuthHeader("Authorization",
+//                    resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, securePreferences.getString(KEY_ACCESS_TOKEN));
+                    resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
                             String.format("Bearer %s", securePreferences.getString(KEY_ACCESS_TOKEN)));
-                    queue.add(resRequest);
+                    mRequestQueue.add(resRequest);
 
                 } catch (JSONException e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
@@ -357,17 +417,60 @@ public class SessionManager {
         oauthRequest.addParam(UrlData.PARAM_GRANT_TYPE, UrlData.PARAM_GRANT_TYPE_SOCIAL);
         oauthRequest.addParam(UrlData.PARAM_CLIENT_ID, UrlData.PARAM_CLIENT_ID_VALUE);
         oauthRequest.addParam(UrlData.PARAM_CLIENT_SECRET, UrlData.PARAM_CLIENT_SECRET_VALUE);
-        oauthRequest.addParam(UrlData.PARAM_FB_ACCESS_TOKEN, accessToken);
-        queue.add(oauthRequest);
+        oauthRequest.addParam(UrlData.PARAM_FBTOKEN, accessToken);
+        mRequestQueue.add(oauthRequest);
+    }
+
+    public void getNewsFeed(int start, int count, final DataManager dm) {
+
+        Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
+        builder.appendQueryParameter(PARAM_START_POS, Integer.toString(start))
+                .appendQueryParameter(PARAM_COUNT, Integer.toString(count));
+        URL url;
+        try {
+            url = new URL(builder.build().toString());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return;
+        }
+
+        MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                // Parse data in new thread
+                JSONParserAs jsonParserAS = new JSONParserAs(mAppContext);
+                jsonParserAS.execute(response);
+            }
+
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
+            }
+        });
+        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", ACCESS_TOKEN));
+
+        mRequestQueue.add(request);
     }
 
     /**
-     * Helper method for loggin out from the app
+     * Helper method for downloading news feed from the server to the database;
+     * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server
+     *
+     * @param context the context of activity which is calling this method
+     */
+    public void getNewsFeed(final Context context) {
+        int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
+        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, DataManager.getInstance(context));
+    }
+
+    /**
+     * Helper method for logging out from the app
      *
      * @param context           the HomeActivity context
      * @param securePreferences the SecuredPrefs user to clear user credentials
      */
-    public static void logout(HomeActivity context, SecurePreferences securePreferences) {
+    public void logout(HomeActivity context, SecurePreferences securePreferences) {
         clearUserCredentials(context, securePreferences);
         clearDatabase(context);
         context.mLoggedIn = false;
@@ -399,11 +502,11 @@ public class SessionManager {
     }
 
     private static void clearDatabase(Context context) {
-        context.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI,null,null);
-        context.getContentResolver().delete(DataContract.ReplyEntry.CONTENT_URI,null,null);
-        context.getContentResolver().delete(DataContract.BulletinEntry.CONTENT_URI,null,null);
-        context.getContentResolver().delete(DataContract.MessageEntry.CONTENT_URI,null,null);
-        context.getContentResolver().delete(DataContract.NotificationEntry.CONTENT_URI,null,null);
+        context.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI, null, null);
+        context.getContentResolver().delete(DataContract.ReplyEntry.CONTENT_URI, null, null);
+        context.getContentResolver().delete(DataContract.BulletinEntry.CONTENT_URI, null, null);
+        context.getContentResolver().delete(DataContract.MessageEntry.CONTENT_URI, null, null);
+        context.getContentResolver().delete(DataContract.NotificationEntry.CONTENT_URI, null, null);
     }
 
     /**
@@ -491,8 +594,11 @@ public class SessionManager {
         return datax.toString();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////// DEBUG/TEST //////////////////////////////////////////////////////////////////////////////////////
 
-    private static void login(SecurePreferences securePreferences, MainActivity context) {
+    private void login(SecurePreferences securePreferences, MainActivity context) {
         ArrayList<KVPair> list = new ArrayList<KVPair>();
         list.add(new KVPair(KEY_ACCESS_TOKEN, "radovan"));
         list.add(new KVPair(KEY_EXPIRES_IN, "100000000000"));
@@ -524,5 +630,18 @@ public class SessionManager {
         getDefaultSharedPreferences(context).edit().putBoolean("IS_DEBUG", true).commit();
         context.startActivity(intent);
         context.finish();
+    }
+
+    public void createDummyData(HomeActivity homeActivity) {
+        DataManager dm = DataManager.getInstance(homeActivity);
+        dm.createDummyData();
+    }
+
+    public void setAccessToken(String string) {
+        ACCESS_TOKEN = string;
+    }
+
+    public String getAccessToken(String string) {
+        return ACCESS_TOKEN;
     }
 }

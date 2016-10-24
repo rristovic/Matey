@@ -140,7 +140,6 @@ public class DataContract {
         public static final String TABLE_NAME = "bulletins";
 
         // Adding columns DbHelper create table command  must be changed also
-        public static final String COLUMN_POST_ID = "post_id";
         public static final String COLUMN_USER_ID = "user_id";
         public static final String COLUMN_FIRST_NAME = "first_name";
         public static final String COLUMN_LAST_NAME = "last_name";
@@ -168,7 +167,6 @@ public class DataContract {
         public static final String TABLE_NAME = "replies";
 
         // Adding columns DbHelper create table command  must be changed also
-        public static final String COLUMN_REPLY_ID = "reply_id";
         public static final String COLUMN_POST_ID = "post_id";
         public static final String COLUMN_USER_ID = "user_id";
         public static final String COLUMN_FIRST_NAME = "first_name";

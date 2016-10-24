@@ -121,7 +121,8 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
 
         if (device_id == null) {
             if (activity != null && !Util.isInternetConnected(activity)) return STATUS_NO_INTERNET;
-            return new SessionManager().getInstallationID(activity, activity.getSecurePreferences());
+//            return new SessionManager().getInstallationID(activity, activity.getSecurePreferences());
+            return STATUS_NO_INTERNET;
         }
 
         return SessionManager.STATUS_OK;

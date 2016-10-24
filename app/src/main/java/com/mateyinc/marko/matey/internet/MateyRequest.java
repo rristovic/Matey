@@ -12,7 +12,7 @@ import java.util.Map;
  */
 
 public class MateyRequest extends StringRequest {
-    private static final String TAG = MateyRequest.class.getSimpleName();
+    protected static final String TAG = MateyRequest.class.getSimpleName();
 
     private Map<String, String> mParams = new LinkedHashMap<>();
     private Map<String, String> authHeader = new LinkedHashMap<>();

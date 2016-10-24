@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
@@ -18,13 +19,41 @@ import java.util.LinkedList;
 public class Bulletin {
     private String TAG = Bulletin.class.getSimpleName();
 
+    // Keys for JSON data from the server
+    private static final String KEY_ID = "activity_id";
+    private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_SOURCE_ID = "source_id";
+    private static final String KEY_PARENT_ID = "parent_id";
+    private static final String KEY_PARENT_TYPE = "parent_type";
+    private static final String KEY_ACTIVITY_TYPE = "activity_type";
+    private static final String KEY_DATE_ADDED = "date_added";
+    private static final String KEY_FIRSTNAME = "first_name";
+    private static final String KEY_LASTNAME = "last_name";
+    private static final String KEY_PROFILE_PIC = "profile_picture";
+    private static final String KEY_DATA = "data";
+    private static final String KEY_POST_ID = "post_id";
+    private static final String KEY_TEXT = "text";
+    private static final String KEY_STATISTICS = "statistics";
+    private static final String KEY_NUM_OF_RESPONSES = "num_of_responses";
+    private static final String KEY_NUM_OF_SHARES = "num_of_shares";
+    private static final String KEY_LAST_USER_RESPOND = "last_user_respond";
+
     private String mFirstName;
     private String mLastName;
     private Date mDate;
-    private String mMessage;
-    private int mPostID;
-    private int mUserID;
+    private String mText;
+    private long mPostID;
+    private long mUserID;
     private LinkedList<Attachment> mAttachments;
+
+    public Bulletin(long post_id, long user_id, String firstName, String lastName, String text, Date date) {
+        mPostID = post_id;
+        mUserID = user_id;
+        mFirstName = firstName;
+        mLastName = lastName;
+        mText = text;
+        mDate = date;
+    }
 
     private int noOfReplies = 0;
 
@@ -39,7 +68,7 @@ public class Bulletin {
     public int mDbIndex;
 
 
-    public int getPostID() {
+    public long getPostID() {
         return mPostID;
     }
 
@@ -47,7 +76,7 @@ public class Bulletin {
         this.mPostID = mPostID;
     }
 
-    public int getUserID() {
+    public long getUserID() {
         return mUserID;
     }
 
@@ -57,11 +86,11 @@ public class Bulletin {
 
 
     public String getMessage() {
-        return mMessage;
+        return mText;
     }
 
     public void setMessage(String mMessage) {
-        this.mMessage = mMessage;
+        this.mText = mMessage;
     }
 
     public String getFirstName() {
@@ -103,8 +132,20 @@ public class Bulletin {
     public void setDate(Date date) {
         this.mDate = date;
     }
+
     public void setDate(long timeInMilis) {
         this.mDate = new Date(timeInMilis);
+    }
+
+    /**
+     * Method for parsing the date string into {@link Date}
+     *
+     * @param date the date string retrieved from the server in format "YYYY-mm-DD HH:MM:SS"
+     * @return the Date object represented by the date argument
+     */
+    public static Date parseDate(String date) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("YYYY-mm-DD HH:MM:SS");
+        return format.parse(date);
     }
 
     public LinkedList<Attachment> getAttachments() {
@@ -115,8 +156,11 @@ public class Bulletin {
         this.mAttachments = mAttachments;
     }
 
-    public Reply getReplyInstance() {
+    public  Reply getReplyInstance() {
         return new Reply();
+    }
+
+    public Bulletin(){
     }
 
     public Interest getInterestInstance() {
@@ -126,7 +170,7 @@ public class Bulletin {
 
     @Override
     public String toString() {
-        return "Message: " + mMessage.substring(0, 10)
+        return "Message: " + mText.substring(0, 10)
                 + "; From: " + mFirstName + " " + mLastName
                 + "; Date: " + mDate +
                 "UserID=" + mUserID + "; ReplyPostId=" + mPostID;
@@ -175,6 +219,26 @@ public class Bulletin {
         return; // TODO - finish method
     }
 
+    /**
+     * Method for parsing JSON response into new {@link Bulletin}
+     *
+     * @param response string response retrieved from the server
+     * @return A Bulletin object made from JSON data
+     */
+    public static Bulletin parseBulletin(String response) throws JSONException, ParseException {
+        JSONObject object = new JSONObject(response);
+        Bulletin b = new Bulletin(
+                object.getLong(KEY_POST_ID),
+                object.getLong(KEY_USER_ID),
+                object.getString(KEY_FIRSTNAME),
+                object.getString(KEY_LASTNAME),
+                object.getString(KEY_TEXT),
+                parseDate(object.getString(KEY_DATE_ADDED))
+        );
+
+        return b;
+    }
+
     public class Reply {
         public static final String REPLY_ID = "reply_id";
         public static final String FIRST_NAME = "reply_username";
@@ -187,15 +251,15 @@ public class Bulletin {
         /**
          * The ID of the reply
          */
-        public int replyId;
+        public long replyId;
         /**
          * The ID of the user that has replied
          */
-        public int userId;
+        public long userId;
         /**
          * The ID of the post/bulletin that has been replied on
          */
-        public int postId;
+        public long postId;
 
         public String userFirstName;
         public String userLastName;
@@ -271,6 +335,7 @@ public class Bulletin {
         public void setDate(Date date) {
             replyDate = date;
         }
+
         public void setDate(long timeInMilis) {
             replyDate = new Date(timeInMilis);
         }

@@ -31,9 +31,9 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     // TODO - rework weak reference
     MotherActivity activity;
     private WeakReference<UserProfile> mUserProfile;
-    private int mUserId;
+    private long mUserId;
 
-    public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile, int reqUserId) {
+    public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile, long reqUserId) {
         this.activity = activity;
         this.mUserProfile = userProfile;
         mManager = DataManager.getInstance(activity);

@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,7 +27,6 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
-import com.mateyinc.marko.matey.internet.home.BulletinAs;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
@@ -57,24 +57,22 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
      */
     public boolean mSearchActive;
 
-    /**
-     * Indicates if data is downloaded or not
-     */
-    public static boolean mListDownloaded = false;
 
 
     /**
      * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
      */
     private int mCurrentPage = 0;
+    private SessionManager mSessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "entered onCreate()");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         super.setSecurePreferences(this);
 
-        getFragmentManager();
         init();
         getCurUser();
         getBulletins();
@@ -83,6 +81,8 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private void init() {
         // Test/debug
         ifTest();
+
+        mSessionManager = SessionManager.getInstance(this);
 
         // Settings the app bar via custom toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -258,12 +258,16 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private void getBulletins() {
 
         // Getting posts for the user
-        BulletinAs bulletinsAs = new BulletinAs(this);
-        bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
-                securePreferences.getString("uid"),
-                securePreferences.getString("device_id"),
-                Integer.toString(DataManager.mCurrentPage),
-                "true");
+//        BulletinAs bulletinsAs = new BulletinAs(this);
+//        bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
+//                securePreferences.getString("uid"),
+//                securePreferences.getString("device_id"),
+//                Integer.toString(DataManager.mCurrentPage),
+//                "true");
+        if (isDebug()) {
+            mSessionManager.createDummyData(this);
+        } else
+            mSessionManager.getNewsFeed(this);
     }
 
     private void getCurUser() {
@@ -286,9 +290,9 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_LAST_NAME)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_EMAIL)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_PICTURE)));
-             DataManager.setCurrentUserProfile(preferences, userProfile);
+            DataManager.setCurrentUserProfile(preferences, userProfile);
         } else {
-            SessionManager.logout(this, securePreferences);
+            SessionManager.getInstance(HomeActivity.this).logout(this, securePreferences);
         }
 
         if (c != null)

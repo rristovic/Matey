@@ -78,7 +78,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 ");";
 
         final String SQL_CREATE_BULLETIN_TABLE = "CREATE TABLE " + BulletinEntry.TABLE_NAME + " (" +
-                BulletinEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
+                BulletinEntry._ID + " INTEGER NOT NULL, " +
                 BulletinEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 BulletinEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
@@ -89,10 +89,10 @@ public class DbHelper extends SQLiteOpenHelper {
                 // Set up the sender_id column as a foreign key to profile table.
                 "FOREIGN KEY (" + BulletinEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
-                " UNIQUE (" + BulletinEntry.COLUMN_POST_ID + ") ON CONFLICT REPLACE);";
+                " UNIQUE (" + BulletinEntry._ID + ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_REPLY_TABLE = "CREATE TABLE " + ReplyEntry.TABLE_NAME + " (" +
-                ReplyEntry.COLUMN_REPLY_ID + " INTEGER NOT NULL, " +
+                ReplyEntry._ID + " INTEGER NOT NULL, " +
                 ReplyEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 ReplyEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
                 ReplyEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
@@ -104,7 +104,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_POST_ID + ") REFERENCES " +
-                BulletinEntry.TABLE_NAME + " (" + BulletinEntry.COLUMN_POST_ID + "));";
+                BulletinEntry.TABLE_NAME + " (" + BulletinEntry._ID + "));";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MSG_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PROFILE_TABLE);

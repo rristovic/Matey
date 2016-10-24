@@ -28,7 +28,6 @@ import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.internet.home.BulletinAs;
 
 import static com.mateyinc.marko.matey.data.DataManager.BULLETINS_LOADER;
 import static com.mateyinc.marko.matey.data.DataManager.BULLETIN_COLUMNS;
@@ -80,12 +79,14 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
                 // Getting posts for the user
-                BulletinAs bulletinsAs = new BulletinAs((HomeActivity) mContext);
-                bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
-                        "securePreferences.getString(uid)",
-                        "securePreferences.getString(device_id)",
-                        Integer.toString(DataManager.mCurrentPage),
-                        "false");
+//                BulletinAs bulletinsAs = new BulletinAs((HomeActivity) mContext);
+//                bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
+//                        "securePreferences.getString(uid)",
+//                        "securePreferences.getString(device_id)",
+//                        Integer.toString(DataManager.mCurrentPage),
+//                        "false");
+                // TODO - finish scroll listener
+
             }
         };
 
@@ -102,9 +103,9 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             updatedPos = -1;
         }
 
-        // If data is already downloaded, set the list, if not it will be set in broadcast receiver
-        if (HomeActivity.mListDownloaded && null == mRecycleView.getAdapter())
-            mRecycleView.setAdapter(mAdapter);
+//        // If data is already downloaded, set the list, if not it will be set in broadcast receiver
+//        if (HomeActivity.mListDownloaded && null == mRecycleView.getAdapter())
+//            mRecycleView.setAdapter(mAdapter);
 
         // Settings list scroll listener
         mRecycleView.addOnScrollListener(mScrollListener);
@@ -115,7 +116,6 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             public void onReceive(Context context, Intent intent) {
                 DataManager.mCurrentPage++; // Update curPage
                 mScrollListener.mLoading = false;
-
                 Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + DataManager.mCurrentPage);
             }
         }, new IntentFilter(DataManager.BULLETIN_LIST_LOADED));

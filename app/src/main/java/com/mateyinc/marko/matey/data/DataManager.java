@@ -3,11 +3,15 @@ package com.mateyinc.marko.matey.data;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.model.Bulletin;
@@ -19,9 +23,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.Vector;
 
 /**
@@ -31,6 +37,7 @@ public class DataManager {
     private static final String TAG = DataManager.class.getSimpleName();
 
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
+
     /**
      * Number of bulletins to download from the server
      */
@@ -62,7 +69,7 @@ public class DataManager {
      * Columns that bulletin cursor loaders will load up
      */
     public static final String[] BULLETIN_COLUMNS = {
-            DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry.COLUMN_POST_ID,
+            DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID,
             DataContract.BulletinEntry.COLUMN_USER_ID,
             DataContract.BulletinEntry.COLUMN_FIRST_NAME,
             DataContract.BulletinEntry.COLUMN_LAST_NAME,
@@ -92,6 +99,7 @@ public class DataManager {
     public static final String REPLIES_LIST = "replieslist";
 
     // For broadcast IntentFilters
+    public static final String BULLETIN_LIST_LOAD_FAILED = "com.mateyinc.marko.matey.internet.home.bulletins_load_failed";
     public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.internet.home.bulletins_loaded";
     public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.internet.home.bulletins_loaded_count";
 
@@ -112,9 +120,7 @@ public class DataManager {
         synchronized (mLock) {
             if (mInstance == null) {
                 mInstance = new DataManager(context.getApplicationContext());
-                if (mInstance.mCurrentUserProfile == null) {
-
-                }
+                mInstance.addNullBulletin();
                 Log.d("DataManager", "New instance of manager created.");
             }
             return mInstance;
@@ -140,19 +146,60 @@ public class DataManager {
 
     /**
      * Helper method for storing current user profile in memory, and in shared prefs.
+     *
      * @param preferences the Shared Preferences object used to store user_id
      * @param userProfile the current user profile
      */
     public static void setCurrentUserProfile(SharedPreferences preferences, UserProfile userProfile) {
         mCurrentUserProfile = userProfile;
-        preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
 
-        if (userProfile != null)
+        if (userProfile != null) {
             mFriendsListCount = userProfile.getNumOfFriends();
+            preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
+            Log.d(TAG, "Current user removed updated.");
+        } else {
+            preferences.edit().remove(DataManager.CUR_USERPROFILE_ID).apply();
+            Log.d(TAG, "Current user removed from prefs.");
+        }
     }
 
     public static synchronized UserProfile getCurrentUserProfile() {
         return mCurrentUserProfile;
+    }
+
+    /**
+     * Method for adding list of user profile to the database
+     *
+     * @param list the list of user profiles ready for the database
+     */
+    public void addUserProfiles(ArrayList<UserProfile> list) {
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+
+        for (UserProfile profile : list) {
+            ContentValues userValues = new ContentValues();
+
+            userValues.put(DataContract.ProfileEntry._ID, profile.getUserId());
+            userValues.put(DataContract.ProfileEntry.COLUMN_NAME, profile.getFirstName());
+            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, profile.getLastName());
+            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, profile.getEmail());
+            userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, profile.getProfilePictureLink());
+            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, profile.isFriend() ? 1 : 0);
+            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
+
+            cVVector.add(userValues);
+            Log.d(TAG, "Bulletin added: " + userValues.toString());
+        }
+
+        int inserted = 0;
+        // add to database
+        if (cVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            cVVector.toArray(cvArray);
+
+            inserted = mAppContext.getContentResolver().bulkInsert(DataContract.ProfileEntry.CONTENT_URI, cvArray);
+            // TODO - delete old data
+        }
+        Log.d(TAG, inserted + " user profile added.");
     }
 
     /**
@@ -182,7 +229,7 @@ public class DataManager {
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
             userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
-            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend?1:0);
+            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend ? 1 : 0);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
 
             Uri insertedUri = mAppContext.getContentResolver().insert(
@@ -222,7 +269,7 @@ public class DataManager {
         userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend?1:0);
+        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend ? 1 : 0);
         userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,
@@ -429,16 +476,34 @@ public class DataManager {
     ////////////////////////////////////////////////////////////////
 
     public static final String BULLETIN_ORDER = DataContract.BulletinEntry.COLUMN_DATE + " DESC";
+    public static final int NUM_OF_BULLETINS_TO_DOWNLOAD = 40;
 
     /**
-     * Method for adding empty Bulletin to first row into the database, called on first launch of the app;
-     * NOTE: It must be added, doesn't matter when;
+     * Method for parsing the JSON data retrieved from the server to the database
+     *
+     * @param response the string response from the server
      */
-    public void addNullBulletin() {
+    public void parseBulletins(String response) throws JSONException, ParseException {
+        JSONArray bulletinArray = new JSONArray(response);
+        ArrayList<Bulletin> bulletinList = new ArrayList<>(bulletinArray.length());
+
+        for (int i = 0; i < bulletinArray.length(); i++) {
+            Bulletin b = Bulletin.parseBulletin(bulletinArray.get(i).toString());
+            bulletinList.add(b);
+        }
+
+        addBulletins(bulletinList);
+    }
+
+    /**
+     * Method for adding empty Bulletin to first row into the database;
+     * Called on instance initialisation;
+     */
+    private void addNullBulletin() {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.BulletinEntry.CONTENT_URI,
-                new String[]{DataContract.BulletinEntry.COLUMN_POST_ID},
-                DataContract.BulletinEntry.COLUMN_POST_ID + " = ?",
+                new String[]{DataContract.BulletinEntry._ID},
+                DataContract.BulletinEntry._ID + " = ?",
                 new String[]{"-1"},
                 null);
 
@@ -446,18 +511,23 @@ public class DataManager {
             ContentValues values = new ContentValues();
 
             values.put(DataContract.BulletinEntry.COLUMN_USER_ID, -1);
-            values.put(DataContract.BulletinEntry.COLUMN_POST_ID, -1);
+            values.put(DataContract.BulletinEntry._ID, -1);
             values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, "nn");
             values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, "nn");
             values.put(DataContract.BulletinEntry.COLUMN_TEXT, "nn");
             values.put(DataContract.BulletinEntry.COLUMN_DATE, new Date().getTime());
 
-            mAppContext.getContentResolver().insert(
+            Uri uri = mAppContext.getContentResolver().insert(
                     DataContract.BulletinEntry.CONTENT_URI,
                     values
             );
 
-            Log.d(TAG, "Null bulletin added.");
+            if (uri != null) {
+                Log.d(TAG, "Null bulletin added.");
+            } else {
+                Log.e(TAG, "Failed to add null bulletin.");
+            }
+
         } else {
             updateNullBulletin();
         }
@@ -469,7 +539,7 @@ public class DataManager {
     public void updateNullBulletin() {
         ContentValues values = new ContentValues(1);
         values.put(DataContract.BulletinEntry.COLUMN_DATE, new Date().getTime());
-        mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry.COLUMN_POST_ID + " = -1",
+        mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = -1",
                 null);
 
         Log.d(TAG, "Null bulletin updated.");
@@ -487,7 +557,7 @@ public class DataManager {
         for (Bulletin b : list) {
             ContentValues values = new ContentValues();
 
-            values.put(DataContract.BulletinEntry.COLUMN_POST_ID, b.getPostID());
+            values.put(DataContract.BulletinEntry._ID, b.getPostID());
             values.put(DataContract.BulletinEntry.COLUMN_USER_ID, b.getUserID());
             values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, b.getFirstName());
             values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, b.getLastName());
@@ -537,13 +607,13 @@ public class DataManager {
      * @param attachments  list of post attachments
      * @return the row ID of the added bulletin.
      */
-    public void addBulletin(int postId, int userId, String userName, String userLastName, String text, Date date,
+    public void addBulletin(long postId, long userId, String userName, String userLastName, String text, Date date,
                             int numOfReplies, LinkedList<Bulletin.Attachment> attachments) {
 
         Cursor msgCursor = mAppContext.getContentResolver().query(
                 DataContract.BulletinEntry.CONTENT_URI,
-                new String[]{DataContract.BulletinEntry.COLUMN_POST_ID},
-                DataContract.BulletinEntry.COLUMN_POST_ID + " = " + postId,
+                new String[]{DataContract.BulletinEntry._ID},
+                DataContract.BulletinEntry._ID + " = " + postId,
                 null,
                 BULLETIN_ORDER);
 
@@ -552,7 +622,7 @@ public class DataManager {
         } else {
             ContentValues values = new ContentValues();
 
-            values.put(DataContract.BulletinEntry.COLUMN_POST_ID, postId);
+            values.put(DataContract.BulletinEntry._ID, postId);
             values.put(DataContract.BulletinEntry.COLUMN_USER_ID, userId);
             values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, userName);
             values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, userLastName);
@@ -586,7 +656,7 @@ public class DataManager {
     /**
      * Method for changing bulletin in db
      */
-    public void updateBulletin(int postId, int userId, String userName, String userLastName, String text, Date date,
+    public void updateBulletin(long postId, long userId, String userName, String userLastName, String text, Date date,
                                int numOfReplies, LinkedList<Bulletin.Attachment> attachments) {
 
         ContentValues values = new ContentValues();
@@ -601,7 +671,7 @@ public class DataManager {
 
         updateNullBulletin();
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
-                DataContract.BulletinEntry.COLUMN_POST_ID + " = ?", new String[]{Integer.toString(postId)});
+                DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(postId)});
 
         if (numOfUpdatedRows != 1) {
             Log.e(TAG, "Error setting bulletin: PostID=" + postId + "; UserID=" + userId + "; Number of rows updated=" + numOfUpdatedRows);
@@ -626,17 +696,18 @@ public class DataManager {
      * @return the new instance of Bulletin from the database
      */
     public Bulletin getBulletin(int index, Cursor cursor) {
-        Bulletin bulletin = new Bulletin();
+        Bulletin bulletin;
         try {
             cursor.moveToPosition(index);
 
-            bulletin.setUserID(cursor.getInt(COL_USER_ID));
-            bulletin.setPostID(cursor.getInt(COL_POST_ID));
-            bulletin.setFirstName(cursor.getString(2));
-            bulletin.setLastName(cursor.getString(3));
-            bulletin.setMessage(cursor.getString(4));
-            bulletin.setDate(cursor.getLong(5));
-            bulletin.setNumOfReplies(cursor.getInt(6));
+            bulletin = new Bulletin(
+                    cursor.getInt(COL_POST_ID),
+                    cursor.getInt(COL_USER_ID),
+                    cursor.getString(COL_FIRST_NAME),
+                    cursor.getString(COL_LAST_NAME),
+                    cursor.getString(COL_TEXT),
+                    new Date(cursor.getLong(COL_DATE)));
+
             bulletin.setAttachmentsFromJSON(cursor.getString(7));
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
@@ -672,6 +743,21 @@ public class DataManager {
             cursor.close();
 
         return bulletin;
+    }
+
+    /**
+     * Returns the number of bulletins in the database
+     */
+    public int getNumOfBulletinsInDb() {
+        try {
+            Cursor c = mAppContext.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, null, null, null, null, null);
+            int count = c.getCount();
+            c.close();
+            return count;
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return 0;
+        }
     }
 
     public void addReplyApprove(int mBulletinPos, int replyId) {
@@ -757,7 +843,7 @@ public class DataManager {
         for (Bulletin.Reply r : list) {
             ContentValues values = new ContentValues();
 
-            values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, r.replyId);
+            values.put(DataContract.ReplyEntry._ID, r.replyId);
             values.put(DataContract.ReplyEntry.COLUMN_POST_ID, r.postId);
             values.put(DataContract.ReplyEntry.COLUMN_USER_ID, r.userId);
             values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, r.userFirstName);
@@ -808,11 +894,11 @@ public class DataManager {
      * @param numOfApprvs the number of the reply approves
      * @param approves    the list of approves
      */
-    public void addReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date,
+    public void addReply(long replyId, long userId, long postId, String firstName, String lastName, String text, Date date,
                          int numOfApprvs, LinkedList<UserProfile> approves) {
         ContentValues values = new ContentValues();
 
-        values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, replyId);
+        values.put(DataContract.ReplyEntry._ID, replyId);
         values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
         values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
         values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
@@ -841,7 +927,7 @@ public class DataManager {
     private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, LinkedList<UserProfile> approves) {
         ContentValues values = new ContentValues();
 
-        values.put(DataContract.ReplyEntry.COLUMN_REPLY_ID, replyId);
+        values.put(DataContract.ReplyEntry._ID, replyId);
         values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
         values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
         values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
@@ -853,7 +939,7 @@ public class DataManager {
 
 
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.ReplyEntry.CONTENT_URI, values,
-                DataContract.ReplyEntry.COLUMN_REPLY_ID + " = ?", new String[]{Integer.toString(replyId)});
+                DataContract.ReplyEntry._ID + " = ?", new String[]{Integer.toString(replyId)});
 
         if (numOfUpdatedRows != 1) {
             Log.e(TAG, "Error updating reply: replyId=" + replyId + "; UserID=" + userId + "; Number of rows updated=" + numOfUpdatedRows);
@@ -950,5 +1036,81 @@ public class DataManager {
         return jObject.toString();
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    public void createDummyData() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Random r = new Random();
+                int namesSize = Util.names.length;
+                int lNamesSize = Util.lastNames.length;
+
+                getCurrentUserProfile().setNumOfFriends(40);
+                for (int i = 1; i <= getCurrentUserProfile().getNumOfFriends(); i++) {
+                    addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)],
+                            mAppContext.getString(R.string.dev_email), mAppContext.getString(R.string.dev_nopic), 0, true);
+                }
+
+                int itemDownloaded = 0;
+
+                ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+                LinkedList<Bulletin.Reply> repliesList = new LinkedList<>();
+
+                for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
+
+                    UserProfile friend = getUserProfile(r.nextInt(mAppContext.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI,
+                            null, null, null, null).getCount()));
+                    Date date = new Date();
+                    date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * DataManager.mCurrentPage);
+
+                    Bulletin bulletin = new Bulletin();
+                    bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * DataManager.mCurrentPage);
+                    bulletin.setUserID(friend.getUserId());
+                    bulletin.setFirstName(friend.getFirstName());
+                    bulletin.setLastName(friend.getLastName());
+                    bulletin.setDate(date);
+                    bulletin.setMessage(Util.loremIspum);
+                    bulletin.setNumOfReplies(r.nextInt(20));
+
+                    for (int j = 0; j < bulletin.getNumOfReplies(); j++) {
+
+                        UserProfile friendReplied = getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends()));
+                        Bulletin.Reply reply = bulletin.getReplyInstance();
+
+                        reply.replyId = Integer.parseInt(Long.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
+                        reply.userId = friendReplied.getUserId();
+                        reply.postId = bulletin.getPostID();
+                        reply.userFirstName = friendReplied.getFirstName();
+                        reply.userLastName = friendReplied.getLastName();
+                        reply.replyText = Util.loremIpsumShort;
+                        reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage);
+
+                        for (int k = 0; k < r.nextInt(5); k++) {
+                            reply.replyApproves.add(getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends())));
+                            reply.numOfApprvs++;
+                        }
+
+                        repliesList.add(reply);
+                    }
+
+                    list.add(bulletin);
+                    itemDownloaded++;
+                }
+                addBulletins(list);
+                addReplies(repliesList);
+
+                LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mAppContext);
+                Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
+                i.putExtra(DataManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
+
+                // Notifying HomeActivity that the data has been downloaded with broadcast and static member TODO - notify in onPostExecute later
+                broadcastManager.sendBroadcast(i);
+            }
+        });
+        thread.start();
+    }
 
 }
+
