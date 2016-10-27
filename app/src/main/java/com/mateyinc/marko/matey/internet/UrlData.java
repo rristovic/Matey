@@ -1,14 +1,13 @@
 package com.mateyinc.marko.matey.internet;
 
 public class UrlData {
-    /**
-     * Server API version
-     */
+    /** Server API version */
     private final static String API_VERSION = "v1";
 
-    // Server authorisation headers
+    /** Server authorisation header */
     public final static String PARAM_AUTH_TYPE ="X-Bearer-Authorization";
 
+    /** Base server url */
     public final static String BASE_URL = "https://matey-api-m4rk07.c9users.io/web/index.php";
 
     /**
@@ -17,27 +16,42 @@ public class UrlData {
      */
     public final static String ACCESS_BASE_URL = BASE_URL.concat("/api/").concat(API_VERSION);
 
-
-    // Register new device
+    /** Url for registering new device */
     public final static String REGISTER_DEVICE = BASE_URL.concat("/register/device");
-    /**
-     * Used when app is freshly installed without old gcm token
-     */
+
+    /** The device id retrieved from the server */
     public final static String PARAM_DEVICE_ID = "device_id";
 
-    /**
-     * Used when the token has already been created but it needs refresh
-     */
+    /** GCM Token param */
     public final static String PARAM_NEW_GCM_ID = "gcm";
+    /** GCM Token param */
     public final static String PARAM_OLD_GCM_ID = "old_gcm";
 
-    // Data download URLs
-    public static final String GET_NEWSFEED_ROUTE = ACCESS_BASE_URL.concat("/newsfeed");
-    /** Position parameter of the post in the database for route GET_NEWSFEED_ROUTE */
-    public static final String PARAM_START_POS = "start";
-    /** Count parameter for post count to download at route GET_NEWSFEED_ROUTE */
-    public static final String PARAM_COUNT = "count";
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Data download params and urls ////////////////////////////////////////////////////
 
+    /** Url for downloading news feed */
+     static final String GET_NEWSFEED_ROUTE = ACCESS_BASE_URL.concat("/newsfeed");
+
+    /** Position parameter of the post in the database for route {@link UrlData#GET_NEWSFEED_ROUTE} */
+     static final String PARAM_START_POS = "start";
+
+    /** Count parameter for post count to download at route {@link UrlData#GET_NEWSFEED_ROUTE} */
+     static final String PARAM_COUNT = "count";
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Data upload params and urls //////////////////////////////////////////////////////
+
+    /** Url for uploading new post to the server. */
+    public static final String POST_NEW_BULLETIN_ROUTE = ACCESS_BASE_URL.concat("/post/add");
+
+    /** Interest_id parameter of the selected interest in new post */
+    public static final String PARAM_INTEREST_ID = "interest_id";
+
+    /** Text param of new post */
+    public static final String PARAM_TEXT_DATA = "text";
+    /////////////////////////////////////////////////////////////////////////////////////
 
     // Register new user
     public final static String REGISTER_USER = BASE_URL.concat("/register/user");

@@ -32,11 +32,13 @@ import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
 import static com.mateyinc.marko.matey.data.DataManager.COL_POST_ID;
+import static com.mateyinc.marko.matey.data.DataManager.STATUS_UPLOADING;
 
 public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
@@ -75,6 +77,23 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     View view = LayoutInflater.from(mContext) //Inflate the view
                             .inflate(R.layout.bulletin_list_item, parent, false);
 
+//                    LinearLayout retryView = new LinearLayout(mContext);
+//                    LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,Util.getDp(30,mContext.getResources()));
+//                    retryView.setLayoutParams(retryParams);
+//                    retryView.setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//
+//                        }
+//                    });
+//
+//                    LinearLayout container = new LinearLayout(mContext);
+//                    LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//                    container.setLayoutParams(containerParams);
+//                    container.setOrientation(LinearLayout.VERTICAL);
+//
+//                    container.addView(retryView);
+
                     // Implementing ViewHolderClickListener and returning view holder
                     return new ViewHolder(view, getViewHolderListener());
                 }
@@ -89,7 +108,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         } else {
             throw new RuntimeException("Not bound to RecyclerView");
         }
-
     }
 
     /**
@@ -148,6 +166,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
                 final Bulletin bulletin = mManager.getBulletin(position, mCursor);
+
                 try {
                     if (bulletin.getMessage().length() > CHAR_LIM) {
                         // Setting text view message
@@ -180,19 +199,19 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                         holder.mMessage.setText(bulletin.getMessage());
                     }
                 } catch (Exception e) {
-                    Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                    Log.e(TAG, e.getLocalizedMessage(), e);
                     holder.mMessage.setText(mContext.getString(R.string.error_message));
                 }
                 try {
                     holder.mName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
                 } catch (Exception e) {
-                    Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                    Log.e(TAG, e.getLocalizedMessage(), e);
                     holder.mName.setText(mContext.getString(R.string.error_message));
                 }
                 try {
                     holder.mDate.setText(Util.getReadableDateText(bulletin.getDate()));
                 } catch (Exception e) {
-                    Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                    Log.e(TAG, e.getLocalizedMessage(), e);
                     holder.mDate.setText(Util.getReadableDateText(new Date()));
                 }
 
@@ -249,8 +268,54 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     }
 
                 } catch (Exception e) {
-                    Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+                    Log.e(TAG, e.getLocalizedMessage(), e);
                 }
+
+                switch (bulletin.getServerStatus()) {
+                    case DataManager.STATUS_UPLOADING: {
+                        holder.mView.setAlpha(0.7f);
+
+                        if(((LinearLayout)holder.mView).getChildAt(0).getTag() !=null )
+                            ((LinearLayout)holder.mView).removeViewAt(0);
+                        break;
+                    }
+
+                    case DataManager.STATUS_RETRY_UPLOAD: {
+                        // TODO - finish ui update
+                        holder.mView.setAlpha(0.3f);
+
+                        // If mView already has retry text view, don't add it again
+                        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null &&
+                                ((LinearLayout) holder.mView).getChildAt(0).getTag().equals("RetryTextView")) {
+                            break;
+                        }
+
+                        TextView textView = new TextView(mContext);
+                        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.getDp(30, mContext.getResources()));
+                        textView.setLayoutParams(params);
+                        textView.setText("Retry");
+                        textView.setTag("RetryTextView");
+
+                        textView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                SessionManager.getInstance(mContext).postNewBulletin(bulletin, mManager);
+                                mManager.updateBulletinServerStatus(bulletin.getPostID(), STATUS_UPLOADING);
+                            }
+                        });
+                        ((LinearLayout) holder.mView).addView(textView, 0);
+                        break;
+                    }
+
+                    case DataManager.STATUS_SUCCESS: {
+                        holder.mView.setAlpha(1f);
+
+                        if(((LinearLayout)holder.mView).getChildAt(0).getTag() !=null )
+                            ((LinearLayout)holder.mView).removeViewAt(0);
+                        break;
+                    }
+                }
+
                 break;
             }
             case FIRST_ITEM: {
@@ -276,12 +341,10 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         return position == 0 ? FIRST_ITEM : ITEM;
     }
 
-
     public void swapCursor(Cursor newCursor) {
         super.swapCursor(newCursor);
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
-
 
     private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
 
@@ -332,8 +395,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 mListener.onNameClick(mName, mView);
                 Log.d(BulletinsAdapter.class.getSimpleName(), "onNameClick();");
             }
-
-
         }
 
         @Override

@@ -65,7 +65,7 @@ public class ProfileActivity extends MotherActivity {
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getLongExtra(EXTRA_PROFILE_ID, -1);
         else{
-            mUserId = DataManager.getCurrentUserProfile().getUserId();
+            mUserId = DataManager.getInstance(ProfileActivity.this).getCurrentUserProfile().getUserId();
         }
 
         mUserProfileAs = new UserProfileAs(this, new WeakReference<>(mUserProfile),mUserId);

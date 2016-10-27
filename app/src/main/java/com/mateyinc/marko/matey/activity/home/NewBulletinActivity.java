@@ -10,9 +10,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -86,17 +86,18 @@ public class NewBulletinActivity extends MotherActivity {
         tvPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UserProfile profile = Util.getCurrentUserProfile();
+                DataManager dataManager = DataManager.getInstance(NewBulletinActivity.this);
+
+                UserProfile profile = dataManager.getCurrentUserProfile();
                 Bulletin b = new Bulletin();
-                b.setPostID((int) Util.getPostId());
-                b.setUserID(DataManager.getInstance(NewBulletinActivity.this).getCurrentUserProfile().getUserId());
+                b.setUserID(profile.getUserId());
+                b.setPostID(dataManager.getNewPostID());
                 b.setDate(new Date());
                 b.setFirstName(profile.getFirstName());
                 b.setLastName(profile.getLastName());
                 b.setMessage(etNewPostMsg.getText().toString());
 
-                DataManager manager = DataManager.getInstance(NewBulletinActivity.this);
-                manager.addBulletin(b);
+                SessionManager.getInstance(NewBulletinActivity.this).postNewBulletin(b, dataManager);
 
                 finish();
             }

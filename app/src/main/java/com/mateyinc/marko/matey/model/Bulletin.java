@@ -1,5 +1,7 @@
 package com.mateyinc.marko.matey.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.data.DataManager;
@@ -13,30 +15,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 
-/**
- * Created by Sarma on 5/12/2016.
- */
-public class Bulletin {
+public class Bulletin extends MModel {
     private String TAG = Bulletin.class.getSimpleName();
 
     // Keys for JSON data from the server
-    private static final String KEY_ID = "activity_id";
-    private static final String KEY_USER_ID = "user_id";
-    private static final String KEY_SOURCE_ID = "source_id";
-    private static final String KEY_PARENT_ID = "parent_id";
-    private static final String KEY_PARENT_TYPE = "parent_type";
-    private static final String KEY_ACTIVITY_TYPE = "activity_type";
-    private static final String KEY_DATE_ADDED = "date_added";
-    private static final String KEY_FIRSTNAME = "first_name";
-    private static final String KEY_LASTNAME = "last_name";
-    private static final String KEY_PROFILE_PIC = "profile_picture";
-    private static final String KEY_DATA = "data";
-    private static final String KEY_POST_ID = "post_id";
-    private static final String KEY_TEXT = "text";
-    private static final String KEY_STATISTICS = "statistics";
-    private static final String KEY_NUM_OF_RESPONSES = "num_of_responses";
-    private static final String KEY_NUM_OF_SHARES = "num_of_shares";
-    private static final String KEY_LAST_USER_RESPOND = "last_user_respond";
+    public static final String KEY_DATA = "data";
+    public static final String KEY_POST_ID = "post_id";
+    public static final String KEY_TEXT = "text";
+    public static final String KEY_STATISTICS = "statistics";
+    public static final String KEY_NUM_OF_RESPONSES = "num_of_responses";
+    public static final String KEY_NUM_OF_SHARES = "num_of_shares";
+    public static final String KEY_LAST_USER_RESPOND = "last_user_respond";
 
     private String mFirstName;
     private String mLastName;
@@ -55,6 +44,16 @@ public class Bulletin {
         mDate = date;
     }
 
+    public Bulletin(long post_id, long user_id, String firstName, String lastName, String text, Date date, int serverStatus) {
+        mPostID = post_id;
+        mUserID = user_id;
+        mFirstName = firstName;
+        mLastName = lastName;
+        mText = text;
+        mDate = date;
+        this.setServerStatus(serverStatus);
+    }
+
     private int noOfReplies = 0;
 
     public int getNumOfReplies() {
@@ -64,8 +63,6 @@ public class Bulletin {
     public void setNumOfReplies(int noOfReplies) {
         this.noOfReplies = noOfReplies;
     }
-
-    public int mDbIndex;
 
 
     public long getPostID() {
@@ -144,7 +141,7 @@ public class Bulletin {
      * @return the Date object represented by the date argument
      */
     public static Date parseDate(String date) throws ParseException {
-        SimpleDateFormat format = new SimpleDateFormat("YYYY-mm-DD HH:MM:SS");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         return format.parse(date);
     }
 
@@ -156,24 +153,15 @@ public class Bulletin {
         this.mAttachments = mAttachments;
     }
 
-    public  Reply getReplyInstance() {
+    public Reply getReplyInstance() {
         return new Reply();
     }
 
-    public Bulletin(){
+    public Bulletin() {
     }
 
     public Interest getInterestInstance() {
         return new Interest();
-    }
-
-
-    @Override
-    public String toString() {
-        return "Message: " + mText.substring(0, 10)
-                + "; From: " + mFirstName + " " + mLastName
-                + "; Date: " + mDate +
-                "UserID=" + mUserID + "; ReplyPostId=" + mPostID;
     }
 
     public void setRepliesFromJSON(String string) {
@@ -227,17 +215,71 @@ public class Bulletin {
      */
     public static Bulletin parseBulletin(String response) throws JSONException, ParseException {
         JSONObject object = new JSONObject(response);
+        JSONObject dataObject = object.getJSONObject(KEY_DATA);
+
         Bulletin b = new Bulletin(
-                object.getLong(KEY_POST_ID),
+                dataObject.getLong(KEY_POST_ID),
                 object.getLong(KEY_USER_ID),
                 object.getString(KEY_FIRSTNAME),
                 object.getString(KEY_LASTNAME),
-                object.getString(KEY_TEXT),
+                dataObject.getString(KEY_TEXT),
                 parseDate(object.getString(KEY_DATE_ADDED))
         );
 
         return b;
     }
+
+    public Bulletin(Parcel source){
+        mPostID = source.readLong();
+        mUserID = source.readLong();
+        mFirstName = source.readString();
+        mLastName = source.readString();
+        mText = source.readString();
+        mServerStatus = source.readInt();
+        mDate = (Date)source.readSerializable();
+        source.readList(mAttachments, Attachment.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator<Bulletin>(){
+
+        @Override
+        public Bulletin createFromParcel(Parcel source) {
+            return new Bulletin(source);
+        }
+
+        @Override
+        public Bulletin[] newArray(int size) {
+            return new Bulletin[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(mPostID);
+        dest.writeLong(mUserID);
+        dest.writeString(mFirstName);
+        dest.writeString(mLastName);
+        dest.writeString(mText);
+        dest.writeInt(mServerStatus);
+        dest.writeSerializable(mDate);
+        dest.writeList(mAttachments);
+    }
+
+    @Override
+    public String toString() {
+        return "Message: " + mText.substring(0, 10)
+                + "; From: " + mFirstName + " " + mLastName
+                + "; Date: " + mDate +
+                "UserID=" + mUserID + "; ReplyPostId=" + mPostID;
+    }
+
+
+
 
     public class Reply {
         public static final String REPLY_ID = "reply_id";

@@ -31,7 +31,7 @@ import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 public class DbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     public static final String DATABASE_NAME = "matey.db";
 
@@ -85,6 +85,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 BulletinEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_DATE + " INT NOT NULL, " +
                 BulletinEntry.COLUMN_NUM_OF_REPLIES + " INTEGER DEFAULT 0, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +
                 // Set up the sender_id column as a foreign key to profile table.
                 "FOREIGN KEY (" + BulletinEntry.COLUMN_USER_ID + ") REFERENCES " +

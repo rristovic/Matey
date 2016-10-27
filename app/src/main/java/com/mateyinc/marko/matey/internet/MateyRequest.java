@@ -7,6 +7,8 @@ import com.android.volley.toolbox.StringRequest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
+
 /**
  * Created by Sarma on 10/20/2016.
  */
@@ -25,8 +27,12 @@ public class MateyRequest extends StringRequest {
         mParams.put(key, value);
     }
 
-    public void setAuthHeader(String key, String value){
-        authHeader.put(key,value);
+    public void setAuthHeader(String key, String value) {
+        authHeader.put(key, value);
+    }
+
+    public void setAuthHeader(String value) {
+        authHeader.put(PARAM_AUTH_TYPE, String.format("Bearer %s", value));
     }
 
     @Override

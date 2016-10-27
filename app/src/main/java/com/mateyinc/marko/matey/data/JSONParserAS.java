@@ -14,6 +14,9 @@ import java.text.ParseException;
  * Created by Sarma on 10/23/2016.
  */
 
+/**
+ * AsyncTask class used for parsing downloaded data to the database
+ */
 public class JSONParserAs extends AsyncTask<String, Void, Void> {
     private static final String TAG = JSONParserAs.class.getSimpleName();
     Context mContext;

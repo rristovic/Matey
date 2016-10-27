@@ -3,11 +3,14 @@ package com.mateyinc.marko.matey.internet;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -25,6 +28,8 @@ import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.JSONParserAs;
+import com.mateyinc.marko.matey.internet.procedures.UploadService;
+import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.KVPair;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -101,16 +106,20 @@ public class SessionManager {
      */
     public static final long SERVER_CONECTION_TIMEOUT = 15000;
 
+    /**
+     * ACCESS_TOKEN used to authorise with the server
+     */
+    private String ACCESS_TOKEN = "";
+
+
     private static SessionManager mInstance;
     private static Context mAppContext;
     private ImageLoader mImageLoader;
     private RequestQueue mRequestQueue;
     private ProgressDialog mProgDialog;
-
-    /**
-     * ACCESS_TOKEN used to authorise with the server
-     */
-    private String ACCESS_TOKEN = "";
+    private UploadService mUploadService;
+    private final Object mLock;
+    private boolean mIsBound;
 
 
     public static synchronized SessionManager getInstance(Context context) {
@@ -124,6 +133,7 @@ public class SessionManager {
     private SessionManager(Context context) {
         mAppContext = context.getApplicationContext();
         mRequestQueue = getRequestQueue();
+        mLock = new Object();
 
         mImageLoader = new ImageLoader(mRequestQueue,
                 new ImageLoader.ImageCache() {
@@ -152,11 +162,121 @@ public class SessionManager {
     }
 
     public <T> void addToRequestQueue(Request<T> req) {
-        getRequestQueue().add(req);
+        synchronized (mLock) {
+            getRequestQueue().add(req);
+        }
     }
 
     public ImageLoader getImageLoader() {
         return mImageLoader;
+    }
+
+    /**
+     * Helper method to start {@link UploadService} used for uploading data to the server
+     *
+     * @param context the context used to start a service
+     */
+    public void startUploadService(Context context) {
+        Intent intent = new Intent(context, UploadService.class);
+        context.startService(intent);
+        mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * Helper method to stop {@link UploadService}
+     *
+     * @param context the context used to stop a service
+     */
+    public void stopUploadService(Context context) {
+
+        if (mIsBound) {
+            context.unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
+
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            UploadService.LocalBinder binder = (UploadService.LocalBinder) service;
+            mUploadService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            // TODO - finish error handling
+            mUploadService = null;
+            Log.e(TAG, "Service disconected");
+        }
+    };
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////// INTERNET METHODS ////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void postNewBulletin(Bulletin b, DataManager dataManager) {
+        Log.d(TAG, "Posting new bulletin.");
+
+
+        dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
+        if (mUploadService != null && mConnection != null)
+            mUploadService.uploadBulletin(b);
+        else {
+            dataManager.updateBulletinServerStatus(b.getPostID(), DataManager.STATUS_RETRY_UPLOAD);
+            startUploadService(dataManager.getContext());
+        }
+    }
+
+    public void getNewsFeed(int start, int count, final DataManager dm) {
+
+        Log.d(TAG, "Downloading news feed. Start position=".concat(Integer.toString(start))
+                .concat("; Count=").concat(Integer.toString(count)));
+
+        Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
+        builder.appendQueryParameter(PARAM_START_POS, Integer.toString(start))
+                .appendQueryParameter(PARAM_COUNT, Integer.toString(count));
+        URL url;
+        try {
+            url = new URL(builder.build().toString());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Downloading failed: " + e.getLocalizedMessage(), e);
+            return;
+        }
+
+        MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                // Parse data in new thread
+                JSONParserAs jsonParserAS = new JSONParserAs(mAppContext);
+                jsonParserAS.execute(response);
+            }
+
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
+            }
+        });
+        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", ACCESS_TOKEN));
+
+        mRequestQueue.add(request);
+    }
+
+    /**
+     * Helper method for downloading news feed from the server to the database;
+     * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server;
+     * Automatically determines from what bulletin position to download by calling {@link DataManager#getNumOfBulletinsInDb()}
+     *
+     * @param context the context of activity which is calling this method
+     */
+    public void getNewsFeed(final Context context) {
+        int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
+        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, DataManager.getInstance(context));
     }
 
     /**
@@ -421,49 +541,6 @@ public class SessionManager {
         mRequestQueue.add(oauthRequest);
     }
 
-    public void getNewsFeed(int start, int count, final DataManager dm) {
-
-        Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
-        builder.appendQueryParameter(PARAM_START_POS, Integer.toString(start))
-                .appendQueryParameter(PARAM_COUNT, Integer.toString(count));
-        URL url;
-        try {
-            url = new URL(builder.build().toString());
-        } catch (MalformedURLException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return;
-        }
-
-        MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                // Parse data in new thread
-                JSONParserAs jsonParserAS = new JSONParserAs(mAppContext);
-                jsonParserAS.execute(response);
-            }
-
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
-            }
-        });
-        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", ACCESS_TOKEN));
-
-        mRequestQueue.add(request);
-    }
-
-    /**
-     * Helper method for downloading news feed from the server to the database;
-     * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server
-     *
-     * @param context the context of activity which is calling this method
-     */
-    public void getNewsFeed(final Context context) {
-        int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
-        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, DataManager.getInstance(context));
-    }
-
     /**
      * Helper method for logging out from the app
      *
@@ -594,6 +671,15 @@ public class SessionManager {
         return datax.toString();
     }
 
+    public void setAccessToken(String string) {
+        ACCESS_TOKEN = string;
+    }
+
+    public String getAccessToken() {
+        return ACCESS_TOKEN;
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////// DEBUG/TEST //////////////////////////////////////////////////////////////////////////////////////
@@ -635,13 +721,5 @@ public class SessionManager {
     public void createDummyData(HomeActivity homeActivity) {
         DataManager dm = DataManager.getInstance(homeActivity);
         dm.createDummyData();
-    }
-
-    public void setAccessToken(String string) {
-        ACCESS_TOKEN = string;
-    }
-
-    public String getAccessToken(String string) {
-        return ACCESS_TOKEN;
     }
 }

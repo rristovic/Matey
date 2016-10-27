@@ -37,7 +37,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
     public void onBindViewHolder(ViewHolder holder, int position) {
         // Parsing data to views if available
         try {
-            holder.mNotifText.setText(mManager.mNotificationList.get(position).getMessage());
+            holder.mNotifText.setText("null");
         } catch (Exception e) {
             Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
         }
@@ -45,7 +45,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
 
     @Override
     public int getItemCount() {
-        return mManager.mNotificationList.size();
+        return 0;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

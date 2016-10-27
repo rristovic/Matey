@@ -19,7 +19,6 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.OnTouchInterface;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.adapters.BulletinRepliesAdapter;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.data.DataContract;
@@ -159,7 +158,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             @Override
             public void onClick(View v) {
                 Bulletin.Reply r = new Bulletin().getReplyInstance();
-                UserProfile profile = Util.getCurrentUserProfile();
+                UserProfile profile = mManager.getCurrentUserProfile();
 
                 // Create new reply
                 r.userFirstName = profile.getFirstName();
@@ -190,11 +189,9 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivReply.setOnTouchListener(new OnTouchInterface(this));
     }
 
-    /**
-     * If some change is made, notify bulletins fragment and its adapter
-     */
+    /** If some change is made, notify bulletins fragment and its adapter */
     public void notifyBulletinFragment() {
-        BulletinsFragment.updatedPos = mBulletinPos;
+        BulletinsFragment.mUpdatedPositions.add(mBulletinPos);
     }
 
     private void setHeadingText() {

@@ -28,6 +28,10 @@ import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import static com.mateyinc.marko.matey.data.DataManager.BULLETINS_LOADER;
 import static com.mateyinc.marko.matey.data.DataManager.BULLETIN_COLUMNS;
@@ -41,8 +45,13 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     private EndlessScrollListener mScrollListener;
     private TextView mEmptyView;
 
-    public static int updatedPos = -1;
+    /**
+     * The list which hold the updated bulletin positions;
+     * Used to notify adapter about update;
+     */
+    public static ArrayList<Integer> mUpdatedPositions = new ArrayList<>();
 
+    private SessionManager mSessionManager;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -55,6 +64,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
+        mSessionManager = SessionManager.getInstance(context);
 
         getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
     }
@@ -71,22 +81,12 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         Context context = view.getContext();
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         mRecycleView.setLayoutManager(layoutManager);
-//        if (HomeActivity.mListDownloaded && null == mRecycleView.getAdapter()) // If data is already downloaded, set the list, if not it will be set in broadcast receiver
-//            mRecycleView.setAdapter(mAdapter);
         mRecycleView.setAdapter(mAdapter);
 
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                // Getting posts for the user
-//                BulletinAs bulletinsAs = new BulletinAs((HomeActivity) mContext);
-//                bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
-//                        "securePreferences.getString(uid)",
-//                        "securePreferences.getString(device_id)",
-//                        Integer.toString(DataManager.mCurrentPage),
-//                        "false");
-                // TODO - finish scroll listener
-
+                mSessionManager.getNewsFeed(mContext);
             }
         };
 
@@ -98,14 +98,15 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         super.onResume();
         Log.d("BulletinsFragment", "onResume is called.");
 
-        if (updatedPos != -1) { // If some item is updated, update UI based on position
-            mAdapter.notifyItemChanged(updatedPos);
-            updatedPos = -1;
+        // If items are updated, notify adapter
+        if (mUpdatedPositions.size() != 0) {
+            Iterator i = mUpdatedPositions.iterator();
+            while(i.hasNext()){
+                int pos = (Integer)i.next();
+                mAdapter.notifyItemChanged(pos);
+                i.remove();
+            }
         }
-
-//        // If data is already downloaded, set the list, if not it will be set in broadcast receiver
-//        if (HomeActivity.mListDownloaded && null == mRecycleView.getAdapter())
-//            mRecycleView.setAdapter(mAdapter);
 
         // Settings list scroll listener
         mRecycleView.addOnScrollListener(mScrollListener);
@@ -150,7 +151,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
                 BULLETIN_COLUMNS,
                 null,
                 null,
-                BulletinEntry.COLUMN_DATE + " DESC");
+                BulletinEntry.COLUMN_DATE + BulletinEntry.DEFAULT_SORT);
     }
 
     @Override

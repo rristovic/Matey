@@ -11,5 +11,5 @@ public interface MBaseColumns extends BaseColumns {
     /**
      * Indicates if current row is uploaded to server
      */
-    public static final String ON_SERVER = "is_on_server";
+    public static final String COLUMN_SERVER_STATUS = "is_on_server";
 }

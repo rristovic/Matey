@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
@@ -63,7 +62,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.MyApplication;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
-import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -794,7 +792,9 @@ public class MainActivity extends MotherActivity {
      */
     public void loggedIn() {
         mLoggedIn = true;
-        SessionManager.getInstance(this).setAccessToken(securePreferences.getString(KEY_ACCESS_TOKEN));
+        SessionManager manager = SessionManager.getInstance(this);
+        manager.setAccessToken(securePreferences.getString(KEY_ACCESS_TOKEN));
+        manager.startUploadService(this);
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
         startActivity(intent);
         finish();

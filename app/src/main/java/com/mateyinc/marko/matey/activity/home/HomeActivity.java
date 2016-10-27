@@ -272,7 +272,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private void getCurUser() {
 
-        if (DataManager.getCurrentUserProfile() != null) return;
+        if (DataManager.getInstance(this).getCurrentUserProfile() != null) return;
 
         // TODO - get params from prefs
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -290,7 +290,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_LAST_NAME)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_EMAIL)),
                     c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_PICTURE)));
-            DataManager.setCurrentUserProfile(preferences, userProfile);
+            DataManager.getInstance(this).setCurrentUserProfile(preferences, userProfile);
         } else {
             SessionManager.getInstance(HomeActivity.this).logout(this, securePreferences);
         }
@@ -392,6 +392,12 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         }
         return false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        SessionManager.getInstance(this).stopUploadService(this);
+        super.onDestroy();
     }
 
     //////////////////////////////////////////////////////////////////////

@@ -118,8 +118,6 @@ public class DataContract {
         public static final String COLUMN_PICTURE = "picture";
         public static final String COLUMN_IS_FRIEND = "is_friend";
         public static final String COLUMN_LAST_MSG_ID = "profile_last_msg_id";
-//        public static final String _ID = "id"
-
 
         public static Uri buildProfileUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -147,6 +145,8 @@ public class DataContract {
         public static final String COLUMN_DATE = "post_date";
         public static final String COLUMN_ATTACHMENTS = "post_attachments";
         public static final String COLUMN_NUM_OF_REPLIES = "post_replies";
+
+        public static String DEFAULT_SORT = " DESC";
 
         public static Uri buildBulletinUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
