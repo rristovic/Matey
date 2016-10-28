@@ -196,7 +196,7 @@ public class MainActivity extends MotherActivity {
                                     JSONObject object = new JSONObject(response);
                                     // TODO - rework the code, ScepticTommy must w8 for GCM registration before it can continue
                                     mServerReady = true;
-                                    securePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
+                                    mSecurePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
                                     Log.d(TAG, "Device id=" + object.getString(PREF_DEVICE_ID));
                                 } catch (JSONException e) {
                                     sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
@@ -241,7 +241,7 @@ public class MainActivity extends MotherActivity {
             if (!sentToken) {
                 // Start IntentService to register this application with GCM.
                 Intent intent = new Intent(this, RegistrationIntentService.class);
-                intent.putExtra("device_id", securePreferences.getString("device_id"));
+                intent.putExtra("device_id", mSecurePreferences.getString("device_id"));
                 startService(intent);
             }
         }
@@ -314,7 +314,7 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", "Password needs to be at least 5 characters long.");
                         showDialog(1004, bundle);
                     } else {
-                        SessionManager.getInstance(MainActivity.this).loginWithVolley(email, pass, securePreferences, MainActivity.this);
+                        SessionManager.getInstance(MainActivity.this).loginWithVolley(email, pass, mSecurePreferences, MainActivity.this);
                     }
                 }
             }
@@ -422,7 +422,7 @@ public class MainActivity extends MotherActivity {
 
                                             SessionManager.getInstance(MainActivity.this)
                                                     .loginWithFacebook(accessToken.getToken(), profile.getId(),
-                                                    email[0], securePreferences, MainActivity.this);
+                                                    email[0], mSecurePreferences, MainActivity.this);
 //
                                         } catch (JSONException e) {
                                             Log.e(TAG, e.getLocalizedMessage(), e);
@@ -440,7 +440,7 @@ public class MainActivity extends MotherActivity {
                             if (profile.getId() != null) {
                                 Log.e(TAG, accessToken.getToken());
 //                                   FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
-//                                fbLogin.execute(accessToken.getToken(), profile.getId(), securePreferences.getString("device_id"));
+//                                fbLogin.execute(accessToken.getToken(), profile.getId(), mSecurePreferences.getString("device_id"));
                             }
 
                             // When there the user is already registered with that email. Ask to merge accounts
@@ -793,8 +793,8 @@ public class MainActivity extends MotherActivity {
     public void loggedIn() {
         mLoggedIn = true;
         SessionManager manager = SessionManager.getInstance(this);
-        manager.setAccessToken(securePreferences.getString(KEY_ACCESS_TOKEN));
-        manager.startUploadService(this);
+        manager.setAccessToken(mSecurePreferences.getString(KEY_ACCESS_TOKEN));
+        manager.startUploadService();
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
         startActivity(intent);
         finish();

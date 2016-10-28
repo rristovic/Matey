@@ -39,6 +39,7 @@ public class DataContract {
     public static final String PATH_PROFILES = "profiles";
     public static final String PATH_BULLETINS = "bulletins";
     public static final String PATH_REPLIES = "replies";
+    public static final String PATH_NOT_UPLOADED = "not_uploaded";
 
 
 
@@ -177,6 +178,30 @@ public class DataContract {
         public static final String COLUMN_APPRVS = "apprvs";
 
         public static Uri buildReplyUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+    }
+
+    public static final class NotUploadedEntry implements MBaseColumns {
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_NOT_UPLOADED).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_NOT_UPLOADED;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_NOT_UPLOADED;
+
+        public static final String TABLE_NAME = "not_uploaded_items";
+
+        /**
+         * Entry type can be: {@link DataManager#CLASS_BULLETIN};
+         * {@link DataManager#CLASS_REPLY}; {@link DataManager#CLASS_USERPROFILE}
+         */
+        public static final String COLUMN_ENTRY_TYPE = "entry_type";
+
+        public static Uri buildNotUploadedUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 

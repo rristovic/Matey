@@ -69,7 +69,7 @@ public class Bulletin extends MModel {
         return mPostID;
     }
 
-    public void setPostID(int mPostID) {
+    public void setPostID(long mPostID) {
         this.mPostID = mPostID;
     }
 
@@ -77,7 +77,7 @@ public class Bulletin extends MModel {
         return mUserID;
     }
 
-    public void setUserID(int mUserID) {
+    public void setUserID(long mUserID) {
         this.mUserID = mUserID;
     }
 
@@ -272,7 +272,15 @@ public class Bulletin extends MModel {
 
     @Override
     public String toString() {
-        return "Message: " + mText.substring(0, 10)
+        String message;
+
+        try{
+            message = mText.substring(0,10);
+        }catch (Exception e){
+            message = mText;
+        }
+
+        return "Message: " + message
                 + "; From: " + mFirstName + " " + mLastName
                 + "; Date: " + mDate +
                 "UserID=" + mUserID + "; ReplyPostId=" + mPostID;
@@ -314,7 +322,7 @@ public class Bulletin extends MModel {
             replyApproves = new LinkedList<>();
         }
 
-        public boolean hasReplyApproveWithId(int id) {
+        public boolean hasReplyApproveWithId(long id) {
             for (UserProfile p :
                     replyApproves) {
                 if (p != null && p.getUserId() == id)

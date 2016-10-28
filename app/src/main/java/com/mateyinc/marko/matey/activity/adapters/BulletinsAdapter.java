@@ -273,45 +273,17 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
                 switch (bulletin.getServerStatus()) {
                     case DataManager.STATUS_UPLOADING: {
-                        holder.mView.setAlpha(0.7f);
-
-                        if(((LinearLayout)holder.mView).getChildAt(0).getTag() !=null )
-                            ((LinearLayout)holder.mView).removeViewAt(0);
+                        setViewToUploading(holder);
                         break;
                     }
 
                     case DataManager.STATUS_RETRY_UPLOAD: {
-                        // TODO - finish ui update
-                        holder.mView.setAlpha(0.3f);
-
-                        // If mView already has retry text view, don't add it again
-                        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null &&
-                                ((LinearLayout) holder.mView).getChildAt(0).getTag().equals("RetryTextView")) {
-                            break;
-                        }
-
-                        TextView textView = new TextView(mContext);
-                        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.getDp(30, mContext.getResources()));
-                        textView.setLayoutParams(params);
-                        textView.setText("Retry");
-                        textView.setTag("RetryTextView");
-
-                        textView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                SessionManager.getInstance(mContext).postNewBulletin(bulletin, mManager);
-                                mManager.updateBulletinServerStatus(bulletin.getPostID(), STATUS_UPLOADING);
-                            }
-                        });
-                        ((LinearLayout) holder.mView).addView(textView, 0);
+                        setViewToUploadFailed(holder, bulletin);
                         break;
                     }
 
                     case DataManager.STATUS_SUCCESS: {
-                        holder.mView.setAlpha(1f);
-
-                        if(((LinearLayout)holder.mView).getChildAt(0).getTag() !=null )
-                            ((LinearLayout)holder.mView).removeViewAt(0);
+                        setViewToNormal(holder);
                         break;
                     }
                 }
@@ -333,6 +305,65 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             }
             default:
                 break;
+        }
+    }
+
+    /**
+     * Setting the view to the normal mode
+     * @param holder The view holder to be changed
+     */
+    private void setViewToNormal(ViewHolder holder) {
+        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null)
+            ((LinearLayout) holder.mView).removeViewAt(0);
+
+        for (int i = 0; i < ((LinearLayout) holder.mView).getChildCount(); i++) {
+            ((LinearLayout) holder.mView).getChildAt(i).setAlpha(1f);
+        }
+
+    }
+
+    /**
+     * Setting the view to the failed upload mode
+     * @param holder   the view holder which will be changed
+     * @param bulletin the bulletin to upload it's {@link Bulletin#mServerStatus}
+     */
+    private void setViewToUploadFailed(ViewHolder holder, final Bulletin bulletin) {
+        // If mView already has retry text view, don't add it again
+        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null &&
+                ((LinearLayout) holder.mView).getChildAt(0).getTag().equals("RetryTextView")) {
+            return;
+        }
+
+        TextView textView = new TextView(mContext);
+        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.getDp(30, mContext.getResources()));
+        textView.setLayoutParams(params);
+        textView.setText("Retry");
+        textView.setTag("RetryTextView");
+
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SessionManager.getInstance(mContext).postNewBulletin(bulletin, mManager);
+                mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
+            }
+        });
+        ((LinearLayout) holder.mView).addView(textView, 0);
+
+        for (int i = 1; i < ((LinearLayout) holder.mView).getChildCount(); i++) {
+            ((LinearLayout) holder.mView).getChildAt(i).setAlpha(0.4f);
+        }
+    }
+
+    /**
+     * Setting the view to the uploading mode
+     * @param holder the view holder to be changed
+     */
+    private void setViewToUploading(ViewHolder holder) {
+        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null)
+            ((LinearLayout) holder.mView).removeViewAt(0);
+
+        for (int i = 0; i < ((LinearLayout) holder.mView).getChildCount(); i++) {
+            ((LinearLayout) holder.mView).getChildAt(i).setAlpha(0.4f);
         }
     }
 

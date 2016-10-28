@@ -162,10 +162,10 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
         }
 
 
-//        String uid = securePreferences.getString("uid");
-//        String username = securePreferences.getString("email");
-//        String firstname = securePreferences.getString("firstname");
-//        String lastname = securePreferences.getString("lastname");
+//        String uid = mSecurePreferences.getString("uid");
+//        String username = mSecurePreferences.getString("email");
+//        String firstname = mSecurePreferences.getString("firstname");
+//        String lastname = mSecurePreferences.getString("lastname");
 
 //        if (user_id == null || uid == null || username == null || firstname == null || lastname == null) {
 //            activity.clearUserCredentials();

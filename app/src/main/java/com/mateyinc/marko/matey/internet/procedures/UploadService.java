@@ -63,8 +63,16 @@ public class UploadService extends Service {
         super.onDestroy();
     }
 
+    public void uploadFailedData(){
+        SessionManager sessionManager = SessionManager.getInstance(this);
+        final DataManager dataManager = DataManager.getInstance(this);
+
+        // TODO - finish method
+    }
+
     /**
-     * method for clients
+     * Method for uploading Bulletin to the server
+     * @param b the bulletin to be uploaded
      */
     public void uploadBulletin(final Bulletin b) {
         SessionManager sessionManager = SessionManager.getInstance(this);
@@ -75,9 +83,10 @@ public class UploadService extends Service {
                     public void onResponse(String response) {
                         try {
                             JSONObject object = new JSONObject(response);
+                            dataManager.updateBulletinPostId(b.getPostID(), object.getLong(Bulletin.KEY_POST_ID));
                         } catch (JSONException e) {
                             Log.e(TAG, e.getLocalizedMessage(), e);
-                            dataManager.updateBulletinServerStatus(b.getPostID(), STATUS_RETRY_UPLOAD);
+                            dataManager.updateBulletinServerStatus(b, STATUS_RETRY_UPLOAD);
                         }
                         dataManager.updateBulletinPostId(b.getPostID(), -1);
                     }
@@ -85,7 +94,7 @@ public class UploadService extends Service {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        dataManager.updateBulletinServerStatus(b.getPostID(), STATUS_RETRY_UPLOAD);
+                        dataManager.updateBulletinServerStatus(b, STATUS_RETRY_UPLOAD);
                         Log.e(TAG, error.getLocalizedMessage(), error);
                     }
                 }
@@ -94,7 +103,7 @@ public class UploadService extends Service {
         if (accessToken != null && accessToken.length() != 0)
             uploadRequest.setAuthHeader(accessToken);
         else
-            DataManager.getInstance(this).updateBulletinServerStatus(b.getPostID(), DataManager.STATUS_RETRY_UPLOAD);
+            DataManager.getInstance(this).updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
 
         uploadRequest.addParam(UrlData.PARAM_INTEREST_ID, "1");
         uploadRequest.addParam(UrlData.PARAM_TEXT_DATA, b.getMessage());

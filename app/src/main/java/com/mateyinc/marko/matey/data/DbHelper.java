@@ -19,11 +19,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
-import com.mateyinc.marko.matey.data.DataContract.MessageEntry;
-import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
-import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.data.DataContract.*;
 
 /**
  * Manages a local database for data.
@@ -31,7 +27,7 @@ import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 public class DbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     public static final String DATABASE_NAME = "matey.db";
 
@@ -107,11 +103,16 @@ public class DbHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_POST_ID + ") REFERENCES " +
                 BulletinEntry.TABLE_NAME + " (" + BulletinEntry._ID + "));";
 
+        final String SQL_CREATE_NOT_UPLOADED_TABLE = "CREATE TABLE " + NotUploadedEntry.TABLE_NAME + " (" +
+                NotUploadedEntry._ID + " INTEGER NOT NULL, " +
+                NotUploadedEntry.COLUMN_ENTRY_TYPE + " INTEGER NOT NULL );";
+
         sqLiteDatabase.execSQL(SQL_CREATE_MSG_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PROFILE_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_NOTIF_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_BULLETIN_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_REPLY_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_NOT_UPLOADED_TABLE);
     }
 
     @Override
@@ -121,6 +122,7 @@ public class DbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ProfileEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + BulletinEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReplyEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + NotUploadedEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }

@@ -125,6 +125,8 @@ public class SessionManager {
     public static synchronized SessionManager getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new SessionManager(context);
+            Log.d(TAG, "New instance of SessionManager created.");
+
         }
 
         return mInstance;
@@ -171,26 +173,18 @@ public class SessionManager {
         return mImageLoader;
     }
 
-    /**
-     * Helper method to start {@link UploadService} used for uploading data to the server
-     *
-     * @param context the context used to start a service
-     */
-    public void startUploadService(Context context) {
-        Intent intent = new Intent(context, UploadService.class);
-        context.startService(intent);
-        mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    /** Helper method to start {@link UploadService} used for uploading data to the server */
+    public void startUploadService() {
+        Intent intent = new Intent(mAppContext, UploadService.class);
+        mAppContext.startService(intent);
+        mIsBound = mAppContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
-    /**
-     * Helper method to stop {@link UploadService}
-     *
-     * @param context the context used to stop a service
-     */
-    public void stopUploadService(Context context) {
+    /** Helper method to stop {@link UploadService} */
+    public void stopUploadService() {
 
         if (mIsBound) {
-            context.unbindService(mConnection);
+            mAppContext.unbindService(mConnection);
             mIsBound = false;
         }
     }
@@ -219,16 +213,29 @@ public class SessionManager {
     ///////////////// INTERNET METHODS ////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    /** Method for uploading failed data to the server */
+    public void uploadFailedData() {
+        Log.d(TAG, "Uploading failed data.");
+
+        if (mUploadService != null && mConnection != null)
+            mUploadService.uploadFailedData();
+        else {
+            startUploadService();
+        }
+    }
+
+
     public void postNewBulletin(Bulletin b, DataManager dataManager) {
         Log.d(TAG, "Posting new bulletin.");
 
-
+        // First add the bulletin to the database then upload it to the server
         dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
+
         if (mUploadService != null && mConnection != null)
             mUploadService.uploadBulletin(b);
         else {
-            dataManager.updateBulletinServerStatus(b.getPostID(), DataManager.STATUS_RETRY_UPLOAD);
-            startUploadService(dataManager.getContext());
+            dataManager.updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
+            startUploadService();
         }
     }
 
@@ -513,7 +520,7 @@ public class SessionManager {
                     // Setting request params and sending POST request
                     resRequest.addParam(UrlData.PARAM_EMAIL, email);
                     resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(PREF_DEVICE_ID));
-//                    resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, securePreferences.getString(KEY_ACCESS_TOKEN));
+//                    resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, mSecurePreferences.getString(KEY_ACCESS_TOKEN));
                     resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
                             String.format("Bearer %s", securePreferences.getString(KEY_ACCESS_TOKEN)));
                     mRequestQueue.add(resRequest);
@@ -627,7 +634,7 @@ public class SessionManager {
 //                        osw.flush();
 //                        osw.close();
 //
-//                        securePreferences.put("device_id", jsonObject.getString("device_id"));
+//                        mSecurePreferences.put("device_id", jsonObject.getString("device_id"));
 //                        Log.d(TAG, jsonObject.getString("device_id"));
 //
 //                        return STATUS_OK;
@@ -640,7 +647,7 @@ public class SessionManager {
 //                return STATUS_ERROR_APPID;
 //            }
 //
-//        } else securePreferences.put("device_id", device_id);
+//        } else mSecurePreferences.put("device_id", device_id);
 
         if (securePreferences.getString(SessionManager.PREF_DEVICE_ID) != null)
             return STATUS_OK;
@@ -675,6 +682,11 @@ public class SessionManager {
         ACCESS_TOKEN = string;
     }
 
+    /**
+     * Helper method for returning {@link com.mateyinc.marko.matey.internet.SessionManager#ACCESS_TOKEN};
+     *
+     * @return the access_token from this class; empty string if there is no access_token
+     */
     public String getAccessToken() {
         return ACCESS_TOKEN;
     }

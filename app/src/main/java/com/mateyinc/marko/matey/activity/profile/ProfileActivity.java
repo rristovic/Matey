@@ -87,9 +87,9 @@ public class ProfileActivity extends MotherActivity {
 
     private void downloadData() {
         // Start downloading data
-        mUserProfileAs.execute(securePreferences.getString("user_id"),
-                securePreferences.getString("uid"),
-                securePreferences.getString("device_id")
+        mUserProfileAs.execute(mSecurePreferences.getString("user_id"),
+                mSecurePreferences.getString("uid"),
+                mSecurePreferences.getString("device_id")
                 , Long.toString(mUserId));
     }
 

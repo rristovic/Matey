@@ -2,8 +2,6 @@ package com.mateyinc.marko.matey.activity.home;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -21,13 +19,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
-import com.mateyinc.marko.matey.model.UserProfile;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
 
@@ -52,12 +47,8 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private SearchView searchView;
     private ImageView logo;
 
-    /**
-     * Indicates if search view is visible or not
-     */
+    /** Indicates if search view is visible or not */
     public boolean mSearchActive;
-
-
 
     /**
      * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
@@ -76,6 +67,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         init();
         getCurUser();
         getBulletins();
+        uploadFailedData();
     }
 
     private void init() {
@@ -83,6 +75,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         ifTest();
 
         mSessionManager = SessionManager.getInstance(this);
+        mSessionManager.setAccessToken(mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN));
 
         // Settings the app bar via custom toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -255,50 +248,44 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     }
 
-    private void getBulletins() {
+    /** Helper method for getting the current user profile in {@link DataManager#mCurrentUserProfile} */
+    private void getCurUser() {
+        if (!DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this))) {
+            mSessionManager.logout(this, mSecurePreferences);
+        }
+    }
 
-        // Getting posts for the user
-//        BulletinAs bulletinsAs = new BulletinAs(this);
-//        bulletinsAs.execute(Integer.toString(DataManager.getCurrentUserProfile().getUserId()),
-//                securePreferences.getString("uid"),
-//                securePreferences.getString("device_id"),
-//                Integer.toString(DataManager.mCurrentPage),
-//                "true");
+    /** Helper method for downloading bulletin news feed */
+    private void getBulletins() {
         if (isDebug()) {
             mSessionManager.createDummyData(this);
         } else
             mSessionManager.getNewsFeed(this);
     }
 
-    private void getCurUser() {
+    /** Helper method for uploading data that has failed to upload */
+    private void uploadFailedData(){
+        mSessionManager.uploadFailedData();
+    }
 
-        if (DataManager.getInstance(this).getCurrentUserProfile() != null) return;
 
-        // TODO - get params from prefs
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int user_id = preferences.getInt(DataManager.CUR_USERPROFILE_ID, -1);
-        if (user_id == -1) {
-            Intent i = new Intent(this, MainActivity.class);
-            startActivity(i);
-            finish();
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.d(TAG, "entered onResume()");
+
+        // Settings current user profile and access token in memory
+        if (mSessionManager != null) {
+            mSessionManager.setAccessToken(mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN));
         }
-        Cursor c = getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI, null,
-                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(user_id)}, null, null);
-
-        if (c != null && c.moveToFirst()) {
-            UserProfile userProfile = new UserProfile(user_id, c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_NAME)),
-                    c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_LAST_NAME)),
-                    c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_EMAIL)),
-                    c.getString(c.getColumnIndex(DataContract.ProfileEntry.COLUMN_PICTURE)));
-            DataManager.getInstance(this).setCurrentUserProfile(preferences, userProfile);
-        } else {
-            SessionManager.getInstance(HomeActivity.this).logout(this, securePreferences);
+        else {
+            mSessionManager = SessionManager.getInstance(this);
+            mSessionManager.setAccessToken(mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN));
         }
 
-        if (c != null)
-            c.close();
-
-
+        DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this));
     }
 
     private void closeSearchView() {
@@ -396,7 +383,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     @Override
     protected void onDestroy() {
-        SessionManager.getInstance(this).stopUploadService(this);
+        SessionManager.getInstance(this).stopUploadService();
         super.onDestroy();
     }
 

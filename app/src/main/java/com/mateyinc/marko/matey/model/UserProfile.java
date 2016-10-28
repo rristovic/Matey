@@ -7,7 +7,7 @@ public class UserProfile {
     public static final String LAST_MSG_ID = "lastmsgid";
     public static final String EMAIL = "email";
 
-    private int userId;
+    private long userId;
 
     private String firstName;
     private String lastName;
@@ -27,7 +27,7 @@ public class UserProfile {
     public UserProfile() {
     }
 
-    public UserProfile(int userId, String firstName, String lastName, String email, String picture) {
+    public UserProfile(long userId, String firstName, String lastName, String email, String picture) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -43,7 +43,7 @@ public class UserProfile {
         this.email = email;
     }
 
-    public int getUserId() {
+    public long getUserId() {
         return userId;
     }
 

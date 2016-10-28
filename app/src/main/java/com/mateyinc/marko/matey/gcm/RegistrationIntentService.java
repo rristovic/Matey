@@ -91,13 +91,13 @@ public class RegistrationIntentService extends IntentService {
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
 
-//        SecurePreferences  securePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
-//        String device_id = securePreferences.getString("device_id");
+//        SecurePreferences  mSecurePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
+//        String device_id = mSecurePreferences.getString("device_id");
 //
 //        if (device_id == null) {
 //            if (!Util.isInternetConnected(this))
 //
-//            return new SessionManager().getInstallationID(this, securePreferences);
+//            return new SessionManager().getInstallationID(this, mSecurePreferences);
 //        }
 //        try {
 //            String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +

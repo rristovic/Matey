@@ -13,7 +13,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.data.DataContract.*;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -25,8 +25,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Vector;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 
 /**
  * The manager for the data entries
@@ -138,7 +141,7 @@ public class DataManager {
             if (mInstance == null) {
                 mInstance = new DataManager(context.getApplicationContext());
                 mInstance.addNullBulletin();
-                Log.d("DataManager", "New instance of manager created.");
+                Log.d(TAG, "New instance of DataManager created.");
             }
             return mInstance;
         }
@@ -152,6 +155,73 @@ public class DataManager {
         mFriendsListCount = numOfFriends;
     }
 
+
+
+
+
+    //  General methods ////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+
+    private static final int CLASS_BULLETIN = 0;
+    private static final int CLASS_USERPROFILE = 1;
+    private static final int CLASS_REPLY = 2;
+
+
+    /**
+     * Helper method for adding new activity into the database in table {@link DataContract.NotUploadedEntry} so it can be uploaded later
+     * @param activityObject the object that needs to be reuploaded
+     */
+    private void addNotUploadedActivity(Object activityObject, int objectType){
+        long id;
+
+        switch (objectType){
+            case CLASS_BULLETIN:{
+                id = ((Bulletin) activityObject).getPostID();
+                break;
+            }
+            case CLASS_USERPROFILE:{
+                id = ((UserProfile) activityObject).getUserId();
+                break;
+            }
+            case CLASS_REPLY:{
+                id = ((Bulletin.Reply) activityObject).replyId;
+                break;
+            }
+            default:
+                return;
+        }
+
+
+        // TODO - finish method later
+        ContentValues values = new ContentValues(2);
+        values.put(NotUploadedEntry._ID, id);
+        values.put(NotUploadedEntry.COLUMN_ENTRY_TYPE, objectType);
+
+        Uri uri;
+        uri = mAppContext.getContentResolver().insert(NotUploadedEntry.CONTENT_URI, values);
+
+        if (null == uri) {
+            Log.e(TAG, "Failed to insert object in NotUploaded table with id=" + id + "; object type=" + objectType);
+        }else{
+            Log.d(TAG, "Object inserted in NotUploaded table with id=" + id + "; object type=" + objectType);
+        }
+    }
+
+    /** Method for creating new activity_id, which is later replaced by the id returned from the server */
+    public long getNewActivityId() {
+        Cursor c = mAppContext.getContentResolver().query(NotUploadedEntry.CONTENT_URI, null, null, null, null);
+        long id = 0;
+
+        if (c != null) {
+            id = -(c.getCount() + 1);
+            c.close();
+        }
+
+        return id;
+    }
+    ////////////////////////////////////////////////////////////////
+
+
     // UserProfile methods /////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
@@ -161,7 +231,7 @@ public class DataManager {
     public static final String CUR_USERPROFILE_ID = "cur_userprofile_id";
 
     /**
-     * Helper method for storing current user profile in memory, and in shared prefs.
+     * Method for storing current user profile in memory, and in shared prefs.
      *
      * @param preferences the Shared Preferences object used to store user_id
      * @param userProfile the current user profile
@@ -171,17 +241,70 @@ public class DataManager {
 
         if (userProfile != null) {
             mFriendsListCount = userProfile.getNumOfFriends();
-            preferences.edit().putInt(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
-            Log.d(TAG, "Current user removed updated.");
+            preferences.edit().putLong(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
+            Log.d(TAG, "Current user updated.");
         } else {
             preferences.edit().remove(DataManager.CUR_USERPROFILE_ID).apply();
             Log.d(TAG, "Current user removed from prefs.");
         }
     }
 
-    public synchronized UserProfile getCurrentUserProfile() {
+    /**
+     * Set's the {@link #mCurrentUserProfile} from {@link SharedPreferences}
+     * @param preferences the SharedPreferences object provided to retrieve the current user profile id;
+     * NOTE: Method is synchronizes because everything needs to wait for the current user to set up
+     * @return true if settings the current user profile was successful
+     */
+    public synchronized boolean setCurrentUserProfile(SharedPreferences preferences) {
+        long id = preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1);
+
+        Cursor c = mAppContext.getContentResolver().query(ProfileEntry.CONTENT_URI, null,
+                ProfileEntry._ID + " = ?", new String[]{Long.toString(id)}, null);
+
+        if (c != null && c.moveToFirst()) {
+            UserProfile userProfile = new UserProfile(id, c.getString(c.getColumnIndex(ProfileEntry.COLUMN_NAME)),
+                    c.getString(c.getColumnIndex(ProfileEntry.COLUMN_LAST_NAME)),
+                    c.getString(c.getColumnIndex(ProfileEntry.COLUMN_EMAIL)),
+                    c.getString(c.getColumnIndex(ProfileEntry.COLUMN_PICTURE)));
+
+            mCurrentUserProfile = userProfile;
+            Log.d(TAG, "Current user profile updated with user_id=" + id);
+        } else {
+            Log.e(TAG, "Error setting current user profile from shared prefs.");
+            return false;
+        }
+
+        if(c != null)
+            c.close();
+
+        return true;
+    }
+
+    /**
+     * Sets the {@link #mCurrentUserProfile} to the user profile provided in method param
+     * @param userProfile the current user profile used in this session
+     */
+    public void setCurrentUserProfile(UserProfile userProfile) {
+        mCurrentUserProfile = userProfile;
+    }
+
+    /**
+     * Return {@link #mCurrentUserProfile}
+     * @return current {@link UserProfile} object
+     */
+    public UserProfile getCurrentUserProfile() {
         return mCurrentUserProfile;
     }
+
+    /**
+     * Gets the current user profile id from the {@link SharedPreferences}
+     * @param preferences shared preferences object used to retrieve id
+     * @return the current user id
+     */
+    public long getCurrentUserProfileIdFromPrefs(SharedPreferences preferences) {
+        return preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1);
+    }
+
 
     /**
      * Method for adding list of user profile to the database
@@ -227,7 +350,7 @@ public class DataManager {
      * @param lastMsgId    last message id that the user has sent to the current user
      * @return the row ID of the added user profile.
      */
-    public long addUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
+    public long addUserProfile(long userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.ProfileEntry.CONTENT_URI,
                 new String[]{DataContract.ProfileEntry._ID},
@@ -278,7 +401,7 @@ public class DataManager {
      * @param userLastName last name of the user
      * @param lastMsgId    last message id that the user has sent to the current user
      */
-    public void updateUserProfile(int userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
+    public void updateUserProfile(long userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
         ContentValues userValues = new ContentValues();
 
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
@@ -289,7 +412,7 @@ public class DataManager {
         userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,
-                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(userId)});
+                DataContract.ProfileEntry._ID + " = ?", new String[]{Long.toString(userId)});
 
         if (numOfUpdated != 1) {
             Log.e(TAG, "Error setting UserProfile: ID=" + userId + "; Name=" + userName + "; Last name=" + userLastName + "; Number of updated rows=" + numOfUpdated);
@@ -336,9 +459,9 @@ public class DataManager {
         return profile;
     }
 
-    public void removeUserProfile(int user_id) {
+    public void removeUserProfile(long user_id) {
         int numOfRows = mAppContext.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI,
-                DataContract.ProfileEntry._ID + " = ?", new String[]{Integer.toString(user_id)});
+                DataContract.ProfileEntry._ID + " = ?", new String[]{Long.toString(user_id)});
 
         if (numOfRows == 1) {
             Log.d(TAG, "User profile with id=" + user_id + " has been successfully removed from db.");
@@ -494,25 +617,20 @@ public class DataManager {
     public static final String BULLETIN_ORDER = DataContract.BulletinEntry.COLUMN_DATE + " DESC";
     public static final int NUM_OF_BULLETINS_TO_DOWNLOAD = 40;
 
-
     /**
-     * Method for creating new post id, which is later replaces by the id returned from the server
-     */
-    public int getNewPostID() {
-        // TODO - finish method
-        return -666;
-    }
-
-    /**
-     * Method for updating a new post_id, created with {@link DataManager#getNewPostID()}, with the new
+     * Method for updating a new post_id, created with {@link DataManager#getNewActivityId()}, with the new
      * one returned from the server;
+     *
+     * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
+     * {@link Bulletin#mServerStatus} to {@value #STATUS_SUCCESS}
      *
      * @param oldPost_id the old post_id to be updated
      * @param newPost_id the new post_id from the server
      */
     public void updateBulletinPostId(long oldPost_id, long newPost_id) {
-        ContentValues values = new ContentValues(1);
+        ContentValues values = new ContentValues(2);
         values.put(DataContract.BulletinEntry._ID, newPost_id);
+        values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, STATUS_SUCCESS);
 
         int numOfRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI,
                 values, DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(oldPost_id)});
@@ -745,21 +863,26 @@ public class DataManager {
     }
 
     /**
-     * Method for changing bulletin in db
+     * Method for changing bulletin {@link Bulletin#mServerStatus} in db
+     *
+     * @param bulletin the bulletin that needs to be updated
      */
-    public void updateBulletinServerStatus(long postId, int serverStatus) {
+    public void updateBulletinServerStatus(Bulletin bulletin, int serverStatus) {
+
+        if(STATUS_RETRY_UPLOAD == serverStatus){
+            addNotUploadedActivity(bulletin, CLASS_BULLETIN);
+        }
 
         ContentValues values = new ContentValues();
-
         values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, serverStatus);
 
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
-                DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(postId)});
+                DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(bulletin.getPostID())});
 
         if (numOfUpdatedRows != 1) {
-            Log.e(TAG, "Error updating bulletin: PostID=" + postId);
+            Log.e(TAG, "Error updating bulletin: PostID=" + bulletin.getPostID());
         } else {
-            String debugtext = "Bulletin updated: ID=" + postId;
+            String debugtext = "Bulletin updated: ID=" + bulletin.getPostID();
 
             Log.d("BulletinManager", debugtext);
             updateNullBulletin();
@@ -841,13 +964,6 @@ public class DataManager {
         }
     }
 
-    public void addReplyApprove(int mBulletinPos, int replyId) {
-        // TODO - finish method
-    }
-
-    public void removeReplyApprove(int mBulletinPos, int replyId) {
-        // TODO - finish method
-    }
 
 //    public void updateBulletinReplies(Bulletin mCurBulletin) {
 //        ContentValues values = new ContentValues();
@@ -1001,7 +1117,7 @@ public class DataManager {
                     "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
                     + "...; Date=" + date;
             debugtext += "; Num of approves=" + numOfApprvs;
-            Log.d(TAG, debugtext);
+//            Log.d(TAG, debugtext);
         }
     }
 

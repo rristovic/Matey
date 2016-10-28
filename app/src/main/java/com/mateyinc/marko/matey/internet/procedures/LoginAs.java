@@ -12,6 +12,7 @@ import com.mateyinc.marko.matey.activity.main.MainActivity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.net.URLEncoder;
 
 /**
@@ -19,11 +20,11 @@ import java.net.URLEncoder;
  */
 public class LoginAs extends AsyncTask<String, Void, String> {
 
-    MainActivity activity;
+    WeakReference<MainActivity> mActivity;
     private ProgressDialog mProgDialog;
 
     public LoginAs(MainActivity activity) {
-        this.activity = activity;
+        this.mActivity = new WeakReference<MainActivity>(activity);
     }
 
     @Override
@@ -52,7 +53,7 @@ public class LoginAs extends AsyncTask<String, Void, String> {
 
             } catch (Exception e) {
 
-                Log.e("LoginAs",e.getMessage());
+                Log.e("LoginAs", e.getMessage());
                 return null;
 
             }
@@ -78,16 +79,17 @@ public class LoginAs extends AsyncTask<String, Void, String> {
                     JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
                     JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
+                    MainActivity activity = mActivity.get();
                     // put to preferences
-                    activity.securePreferences.put("user_id", dataObj.getString("user_id"));
-                    activity.securePreferences.put("email", dataObj.getString("email"));
-                    activity.securePreferences.put("uid", dataObj.getString("uid"));
-                    activity.securePreferences.put("firstname", dataObj.getString("first_name"));
-                    activity.securePreferences.put("lastname", dataObj.getString("last_name"));
-
+                    if (activity != null) {
+                        activity.mSecurePreferences.put("user_id", dataObj.getString("user_id"));
+                        activity.mSecurePreferences.put("email", dataObj.getString("email"));
+                        activity.mSecurePreferences.put("uid", dataObj.getString("uid"));
+                        activity.mSecurePreferences.put("firstname", dataObj.getString("first_name"));
+                        activity.mSecurePreferences.put("lastname", dataObj.getString("last_name"));
+                    }
                     // notify user about successful login
-                    // here will go intent to home page
-//                   Toast.makeText(activity, "You have successfully login!", Toast.LENGTH_SHORT).show();
+//                   Toast.makeText(mActivity, "You have successfully login!", Toast.LENGTH_SHORT).show();
                     if (mProgDialog.isShowing())
                         mProgDialog.dismiss();
 
@@ -100,7 +102,9 @@ public class LoginAs extends AsyncTask<String, Void, String> {
                     bundle.putString("message", jsonObject.getString("message"));
                     if (mProgDialog.isShowing())
                         mProgDialog.dismiss();
-                    activity.showDialog(1004, bundle);
+                    MainActivity activity = mActivity.get();
+                    if (activity != null)
+                        activity.showDialog(1004, bundle);
 
                 } else throw new Exception();
 
@@ -110,7 +114,10 @@ public class LoginAs extends AsyncTask<String, Void, String> {
             // if there was an error, show corresponding alert dialog
             if (mProgDialog.isShowing())
                 mProgDialog.dismiss();
-            activity.showDialog(1000);
+
+            MainActivity activity = mActivity.get();
+            if (activity != null)
+                activity.showDialog(1000);
         }
 
 

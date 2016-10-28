@@ -13,29 +13,30 @@ import com.mateyinc.marko.matey.activity.main.MainActivity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.net.URLEncoder;
 
-public class FacebookLoginAs extends AsyncTask<String,Void,String> {
+public class FacebookLoginAs extends AsyncTask<String, Void, String> {
 
-    MainActivity activity;
+    WeakReference<MainActivity> mActivity;
     private ProgressDialog mProgDialog;
 
-    public FacebookLoginAs (MainActivity activity) {
-        this.activity = activity;
+    public FacebookLoginAs(MainActivity activity) {
+        this.mActivity = new WeakReference<>(activity);
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mProgDialog = new ProgressDialog(activity);
-        mProgDialog.setMessage(activity.getResources().getString(R.string.login_dialog_message));
+        mProgDialog = new ProgressDialog(mActivity.get());
+        mProgDialog.setMessage(mActivity.get().getResources().getString(R.string.login_dialog_message));
         mProgDialog.show();
     }
 
     @Override
     protected String doInBackground(String... params) {
 
-        if(!isCancelled()) {
+        if (!isCancelled()) {
 
             String accessToken = params[0];
             String facebook_id = params[1];
@@ -81,16 +82,18 @@ public class FacebookLoginAs extends AsyncTask<String,Void,String> {
                     JSONArray dataArr = new JSONArray(jsonObject.getString("data"));
                     JSONObject dataObj = new JSONObject(dataArr.get(0).toString());
 
+                    MainActivity activity = mActivity.get();
                     // put to preferences
-                    activity.securePreferences.put("user_id", dataObj.getString("user_id"));
-                    activity.securePreferences.put("email", dataObj.getString("email"));
-                    activity.securePreferences.put("uid", dataObj.getString("uid"));
-                    activity.securePreferences.put("firstname", dataObj.getString("first_name"));
-                    activity.securePreferences.put("lastname", dataObj.getString("last_name"));
+                    if (activity != null) {
+                        activity.mSecurePreferences.put("user_id", dataObj.getString("user_id"));
+                        activity.mSecurePreferences.put("email", dataObj.getString("email"));
+                        activity.mSecurePreferences.put("uid", dataObj.getString("uid"));
+                        activity.mSecurePreferences.put("firstname", dataObj.getString("first_name"));
+                        activity.mSecurePreferences.put("lastname", dataObj.getString("last_name"));
+                    }
 
                     // notify user about successful login
-                    // here will go intent to home page
-//                   Toast.makeText(activity, "You have successfully login!", Toast.LENGTH_SHORT).show();
+//                   Toast.makeText(mActivity, "You have successfully login!", Toast.LENGTH_SHORT).show();
                     if (mProgDialog.isShowing())
                         mProgDialog.dismiss();
 
@@ -98,18 +101,20 @@ public class FacebookLoginAs extends AsyncTask<String,Void,String> {
                     activity.startActivity(intent);
                     activity.finish();
 
-                } else if(!jsonObject.getBoolean("success")){
+                } else if (!jsonObject.getBoolean("success")) {
 
                     Bundle bundle = new Bundle();
                     bundle.putString("message", jsonObject.getString("message"));
-                    activity.showDialog(1004, bundle);
+                    if(mActivity.get() != null)
+                        mActivity.get().showDialog(1004, bundle);
 
                 } else throw new Exception();
 
             } else throw new Exception();
 
         } catch (Exception e) {
-            activity.showDialog(1000);
+            if(mActivity.get() != null)
+                mActivity.get().showDialog(1000);
         }
 
     }

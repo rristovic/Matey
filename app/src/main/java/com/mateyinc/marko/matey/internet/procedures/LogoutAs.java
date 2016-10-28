@@ -66,7 +66,7 @@ public class LogoutAs extends AsyncTask<String,Void,String> {
                 // if successful, set everything to SecurePreferences
                 if (jsonObject.getBoolean("success")) {
 
-//                    activity.clearUserCredentials();
+//                    mActivity.clearUserCredentials();
 
                     Intent intent = new Intent(activity, MainActivity.class);
                     activity.startActivity(intent);

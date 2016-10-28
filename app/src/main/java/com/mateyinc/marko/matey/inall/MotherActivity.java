@@ -18,7 +18,7 @@ abstract public class MotherActivity extends AppCompatActivity {
 
 
     protected ScepticTommy tommy;
-    public SecurePreferences securePreferences;
+    public SecurePreferences mSecurePreferences;
     public boolean mServerReady = false;
     public boolean mDeviceReady = false;
     public boolean mLoggedIn = false;
@@ -33,12 +33,12 @@ abstract public class MotherActivity extends AppCompatActivity {
     }
 
     public void setSecurePreferences(AppCompatActivity activity) {
-        if (securePreferences == null)
-            securePreferences = new SecurePreferences(activity, "credentials", "1checkMate1717", true);
+        if (mSecurePreferences == null)
+            mSecurePreferences = new SecurePreferences(activity, "credentials", "1checkMate1717", true);
     }
 
     public SecurePreferences getSecurePreferences() {
-        return securePreferences;
+        return mSecurePreferences;
     }
 
 
@@ -73,16 +73,16 @@ abstract public class MotherActivity extends AppCompatActivity {
                 return new AlertDialog.Builder(this)
                         .setIcon(R.mipmap.ic_launcher)
                         .setTitle("WOOHOO")
-                        .setMessage("You are logged in with email: " + securePreferences.getString("email") + "!")
+                        .setMessage("You are logged in with email: " + mSecurePreferences.getString("email") + "!")
                         .setPositiveButton("Log Out",
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
 
                                         LogoutAs logoutAs = new LogoutAs(MotherActivity.this);
-                                        logoutAs.execute(securePreferences.getString("email"),
-                                                securePreferences.getString("uid"),
-                                                securePreferences.getString("device_id"));
+                                        logoutAs.execute(mSecurePreferences.getString("email"),
+                                                mSecurePreferences.getString("uid"),
+                                                mSecurePreferences.getString("device_id"));
                                     }
                                 })
                         .setNegativeButton("Cancel",

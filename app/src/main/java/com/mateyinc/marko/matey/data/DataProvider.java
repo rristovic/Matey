@@ -40,6 +40,7 @@ public class DataProvider extends ContentProvider {
     static final int BULLETIN_WITH_ID = 401;
     static final int REPLIES = 500;
     static final int REPLY_WITH_ID = 501;
+    static final int NOT_UPLOADED_ITEMS = 600;
 
 
     private String sNotificationIdSelection = DataContract.NotificationEntry.TABLE_NAME +
@@ -181,6 +182,19 @@ public class DataProvider extends ContentProvider {
                 retCursor = getReplyByID(uri, projection, sortOrder);
                 break;
             }
+            // "not_uploaded_items"
+            case NOT_UPLOADED_ITEMS: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        DataContract.NotUploadedEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -261,6 +275,14 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case NOT_UPLOADED_ITEMS: {
+                long _id = db.insert(DataContract.NotUploadedEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = DataContract.NotUploadedEntry.buildNotUploadedUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
             case REPLY_WITH_ID:
             case BULLETIN_WITH_ID:
             case MESSAGE_WITH_ID: // TODO - finish insert with id
@@ -301,6 +323,10 @@ public class DataProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         DataContract.ReplyEntry.TABLE_NAME, selection, selectionArgs);
                 break;
+            case NOT_UPLOADED_ITEMS:
+                rowsDeleted = db.delete(
+                        DataContract.NotUploadedEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -336,6 +362,10 @@ public class DataProvider extends ContentProvider {
                 break;
             case REPLIES:
                 rowsUpdated = db.update(DataContract.ReplyEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case NOT_UPLOADED_ITEMS:
+                rowsUpdated = db.update(DataContract.NotUploadedEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             default:
@@ -437,6 +467,23 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
+            case NOT_UPLOADED_ITEMS: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(DataContract.NotUploadedEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
             default:
                 return super.bulkInsert(uri, values);
         }
@@ -457,6 +504,8 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_BULLETINS + "/*", BULLETIN_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_REPLIES, REPLIES);
         matcher.addURI(authority, DataContract.PATH_REPLIES + "/*", REPLY_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_NOT_UPLOADED, NOT_UPLOADED_ITEMS);
+
 
         return matcher;
     }
