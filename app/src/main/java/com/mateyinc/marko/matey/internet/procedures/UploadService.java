@@ -63,6 +63,7 @@ public class UploadService extends Service {
         super.onDestroy();
     }
 
+
     public void uploadFailedData(){
         SessionManager sessionManager = SessionManager.getInstance(this);
         final DataManager dataManager = DataManager.getInstance(this);

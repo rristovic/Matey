@@ -123,7 +123,7 @@ public class DataManager {
     public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.internet.home.bulletins_loaded_count";
 
     // Global instance fields
-    private static final Object mLock = new Object(); // for synchronised blocks
+    private  final Object mLock = new Object(); // for synchronised blocks
     private static DataManager mInstance = null;
     private final Context mAppContext;
 
@@ -136,15 +136,14 @@ public class DataManager {
      * @param context the context of calling class
      * @return the DataManager instance
      */
-    public static DataManager getInstance(Context context) {
-        synchronized (mLock) {
+    public static synchronized DataManager getInstance(Context context) {
             if (mInstance == null) {
                 mInstance = new DataManager(context.getApplicationContext());
                 mInstance.addNullBulletin();
                 Log.d(TAG, "New instance of DataManager created.");
             }
+
             return mInstance;
-        }
     }
 
     private DataManager(Context context) {

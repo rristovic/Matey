@@ -5,14 +5,19 @@ import android.accounts.AccountManager;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -22,12 +27,15 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.JSONParserAs;
+import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.internet.procedures.UploadService;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.KVPair;
@@ -40,11 +48,18 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
+import static com.mateyinc.marko.matey.activity.main.MainActivity.OLD_GCM_TOKEN;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
 import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
@@ -72,9 +87,7 @@ public class SessionManager {
     public static final String KEY_EXPIRES_IN = "expires_in";
     public static final String KEY_REFRESH_TOKEN = "refresh_token";
 
-    /**
-     * SharedPref name for data that indicates when is the ACCESS_TOKEN saved in db
-     */
+    /** SharedPref name for data that indicates when is the ACCESS_TOKEN saved in db */
     public static final String TOKEN_SAVED_TIME = "tst";
 
     // Fields downloaded from Resource Server
@@ -86,47 +99,48 @@ public class SessionManager {
     public static final String KEY_FIRST_NAME = "first_name";
     public static final String KEY_LAST_NAME = "last_name";
 
-    /**
-     * The application id is on hard drive
-     */
+    /** The application id is on hard drive SessionManager status */
     public static final int STATUS_OK = 100;
 
-    /**
-     * Something when wrong
-     */
-    public static final int STATUS_ERROR = 100;
+    /** Something when wrong SessionManager status*/
+    public static final int STATUS_ERROR = 200;
 
-    /**
-     * Error with getting the application id
-     */
+    /** Error with getting the application id SessionManager status*/
     public static final int STATUS_ERROR_APPID = 400;
 
-    /**
-     * Number of milliseconds that the app will keep connecting to the server
-     */
+    /** Number of milliseconds that the app will keep connecting to the server */
     public static final long SERVER_CONECTION_TIMEOUT = 15000;
 
-    /**
-     * ACCESS_TOKEN used to authorise with the server
-     */
+    /** ACCESS_TOKEN used to authorise with the server */
     private String ACCESS_TOKEN = "";
 
 
     private static SessionManager mInstance;
-    private static Context mAppContext;
+    private Context mAppContext;
     private ImageLoader mImageLoader;
     private RequestQueue mRequestQueue;
     private ProgressDialog mProgDialog;
     private UploadService mUploadService;
-    private final Object mLock;
     private boolean mIsBound;
 
+    private final Object mLock = new Object();
+    private final Handler mHandler;
+    private final BlockingQueue<Runnable> mDecodeWorkQueue;
+    private final ThreadPoolExecutor mExecutor;
+
+
+    // Threading constants
+    private static int NUMBER_OF_CORES =
+            Runtime.getRuntime().availableProcessors();
+    // Sets the amount of time an idle thread waits before terminating
+    private static final int KEEP_ALIVE_TIME = 1;
+    // Sets the Time Unit to seconds
+    private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
 
     public static synchronized SessionManager getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new SessionManager(context);
             Log.d(TAG, "New instance of SessionManager created.");
-
         }
 
         return mInstance;
@@ -135,7 +149,27 @@ public class SessionManager {
     private SessionManager(Context context) {
         mAppContext = context.getApplicationContext();
         mRequestQueue = getRequestQueue();
-        mLock = new Object();
+
+        mHandler = new Handler(Looper.getMainLooper()) {
+            /*
+             * handleMessage() defines the operations to perform when
+             * the Handler receives a new Message to process.
+             */
+            @Override
+            public void handleMessage(Message inputMessage) {
+                super.handleMessage(inputMessage);
+            }
+        };
+        mDecodeWorkQueue = new LinkedBlockingQueue<Runnable>();
+
+
+        // Creates a thread pool manager
+        mExecutor = new ThreadPoolExecutor(
+                NUMBER_OF_CORES,       // Initial pool size
+                NUMBER_OF_CORES,       // Max pool size
+                KEEP_ALIVE_TIME,
+                KEEP_ALIVE_TIME_UNIT,
+                mDecodeWorkQueue);
 
         mImageLoader = new ImageLoader(mRequestQueue,
                 new ImageLoader.ImageCache() {
@@ -163,6 +197,11 @@ public class SessionManager {
         return mRequestQueue;
     }
 
+    /**
+     * Method for adding new {@link Request} to the current {@link RequestQueue} in use
+     * @param req the request to be added
+     * @param <T> the type of the request
+     */
     public <T> void addToRequestQueue(Request<T> req) {
         synchronized (mLock) {
             getRequestQueue().add(req);
@@ -173,25 +212,22 @@ public class SessionManager {
         return mImageLoader;
     }
 
-    /** Helper method to start {@link UploadService} used for uploading data to the server */
+    /** Method for starting {@link UploadService} used for uploading data to the server */
     public void startUploadService() {
         Intent intent = new Intent(mAppContext, UploadService.class);
         mAppContext.startService(intent);
         mIsBound = mAppContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
-    /** Helper method to stop {@link UploadService} */
+    /** Method for stopping {@link UploadService} used for uploading data to the server */
     public void stopUploadService() {
-
         if (mIsBound) {
             mAppContext.unbindService(mConnection);
             mIsBound = false;
         }
     }
 
-    /**
-     * Defines callbacks for service binding, passed to bindService()
-     */
+    /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -206,88 +242,147 @@ public class SessionManager {
         public void onServiceDisconnected(ComponentName arg0) {
             // TODO - finish error handling
             mUploadService = null;
-            Log.e(TAG, "Service disconected");
+            Log.e(TAG, "Service disconnected");
         }
     };
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////// INTERNET METHODS ////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** Method for uploading failed data to the server */
-    public void uploadFailedData() {
-        Log.d(TAG, "Uploading failed data.");
+    /** Helper method that checks all the required parameters for starting a new session with the server */
+    public void startSession(MainActivity mainActivity){
 
-        if (mUploadService != null && mConnection != null)
-            mUploadService.uploadFailedData();
-        else {
-            startUploadService();
-        }
-    }
-
-
-    public void postNewBulletin(Bulletin b, DataManager dataManager) {
-        Log.d(TAG, "Posting new bulletin.");
-
-        // First add the bulletin to the database then upload it to the server
-        dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
-
-        if (mUploadService != null && mConnection != null)
-            mUploadService.uploadBulletin(b);
-        else {
-            dataManager.updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
-            startUploadService();
-        }
-    }
-
-    public void getNewsFeed(int start, int count, final DataManager dm) {
-
-        Log.d(TAG, "Downloading news feed. Start position=".concat(Integer.toString(start))
-                .concat("; Count=").concat(Integer.toString(count)));
-
-        Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
-        builder.appendQueryParameter(PARAM_START_POS, Integer.toString(start))
-                .appendQueryParameter(PARAM_COUNT, Integer.toString(count));
-        URL url;
-        try {
-            url = new URL(builder.build().toString());
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "Downloading failed: " + e.getLocalizedMessage(), e);
+        // If user is logged in, proceed to next activity
+        if(isUserLoggedIn(mainActivity)) {
+            mainActivity.loggedIn();
             return;
         }
 
-        MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                // Parse data in new thread
-                JSONParserAs jsonParserAS = new JSONParserAs(mAppContext);
-                jsonParserAS.execute(response);
-            }
+        final WeakReference<MainActivity> reference = new WeakReference<MainActivity>(mainActivity);
+        if (checkPlayServices(reference.get())) {
+            // Because this is the initial creation of the app, we'll want to be certain we have
+            // a token. If we do not, then we will start the IntentService that will register this
+            // application with GCM.
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity activity = reference.get();
+                    SharedPreferences sharedPreferences;
 
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
-            }
-        });
-        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", ACCESS_TOKEN));
+                    if (activity != null) {
+                        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+                    } else {
+                        // The user has exited the app
+                        return;
+                    }
 
-        mRequestQueue.add(request);
+                    boolean sentToken = sharedPreferences.getBoolean(SENT_TOKEN_TO_SERVER, false);
+
+                    // TODO - rework the code on app upgrade to get new register
+                    if (!sentToken) {
+                        // Start IntentService to register this application with GCM.
+                        Intent intent = new Intent(activity, RegistrationIntentService.class);
+                        activity.startService(intent);
+
+                    } else if (activity.mSecurePreferences.getString(PREF_DEVICE_ID) == null) {
+                        // The device has already been registered with GCM but not with the server
+                        SessionManager.this.registerDevice(activity, activity.mSecurePreferences,
+                                sharedPreferences.getString(NEW_GCM_TOKEN, ""));
+                    } else {
+                        // The device is registered both with GCM and with the server
+                        // Proceed further
+                        activity.mServerReady = true;
+                    }
+                }
+            });
+            thread.start();
+        }
     }
 
+    /** Method to check if user is logged in */
+    private boolean isUserLoggedIn(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        long accessTokenTime = preferences.getLong(TOKEN_SAVED_TIME, -1);
+
+        return  accessTokenTime != -1;
+    }
+
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+
     /**
-     * Helper method for downloading news feed from the server to the database;
-     * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server;
-     * Automatically determines from what bulletin position to download by calling {@link DataManager#getNumOfBulletinsInDb()}
-     *
-     * @param context the context of activity which is calling this method
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
      */
-    public void getNewsFeed(final Context context) {
-        int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
-        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, DataManager.getInstance(context));
+    private boolean checkPlayServices(final MainActivity activity) {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(activity);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                Log.i(TAG, "This device is not supported.");
+                new AlertDialog.Builder(activity)
+                        .setTitle(R.string.error_tittle)
+                        .setMessage(R.string.nogcm_message)
+                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                activity.finish();
+                            }
+                        }).show();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    public void registerDevice(final MainActivity activity, final SecurePreferences securePreferences, String gcmToken){
+        // TODO - new thread with threadppoolexecutioner
+        final SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(activity);
+
+        // GCM complete with success
+        if (gcmToken != null && gcmToken.length() != 0) {
+
+            // No old token found
+            if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
+
+                String url = UrlData.REGISTER_DEVICE;
+                // Request a string response from the provided URL.
+                MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject object = new JSONObject(response);
+                            // TODO - rework the code, ScepticTommy must w8 for GCM registration before it can continue
+                            activity.mServerReady = true;
+                            securePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
+                            Log.d(TAG, "Device id=" + object.getString(PREF_DEVICE_ID));
+                        } catch (JSONException e) {
+                            sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
+                            Log.e(TAG, e.getLocalizedMessage(), e);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
+                        activity.mServerReady = true;
+                        Log.e(TAG, error.getLocalizedMessage(), error);
+                        // TODO - error in response
+                    }
+                });
+                stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
+
+                // Add the request to the RequestQueue.
+                this.addToRequestQueue(stringRequest);
+            } else {
+
+            }
+        }
     }
 
     /**
-     * Helper method for user registration on to the server, also updates the UI
+     * Method for user registration on to the server, also updates the UI
      *
      * @param email user email address
      * @param pass  user password
@@ -335,10 +430,12 @@ public class SessionManager {
     }
 
     /**
-     * Helper method for user login on to the server, also updates the UI
+     * Method for user login on to the server, also updates the UI
      *
      * @param email user's email address
      * @param pass  user's password
+     * @param securePreferences the {@link SecurePreferences} instance used to store credentials
+     * @param context the {@link MainActivity} context used to show and dismiss dialogs
      */
     public void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, final MainActivity context) {
 
@@ -449,6 +546,14 @@ public class SessionManager {
         mRequestQueue.add(oauthRequest);
     }
 
+    /**
+     * Method for registering and logging a user onto the server with facebook access token
+     * @param accessToken provided facebook access token
+     * @param profileId the current user profile id
+     * @param email the current user email address
+     * @param securePreferences the {@link SecurePreferences} instance used for storing user credentials
+     * @param context the {@link MainActivity} context
+     */
     public void loginWithFacebook(final String accessToken, String profileId, final String email, final SecurePreferences securePreferences, final MainActivity context) {
         String url = UrlData.FACEBOOK_LOGIN;
 
@@ -551,7 +656,7 @@ public class SessionManager {
     /**
      * Helper method for logging out from the app
      *
-     * @param context           the HomeActivity context
+     * @param context           the {@link HomeActivity} context
      * @param securePreferences the SecuredPrefs user to clear user credentials
      */
     public void logout(HomeActivity context, SecurePreferences securePreferences) {
@@ -597,7 +702,7 @@ public class SessionManager {
      * Method for downloading application id from the server and saving it in securePrefs or reading it from file if it already exists
      *
      * @param activity a context used for opening FileOutput etc
-     * @return the status code. (STATUS_OK, STATUS_ERROR_APPID)
+     * @return the status code. (STATUS_OK: {@value #STATUS_OK}; STATUS_ERROR_APPID: {@value #STATUS_ERROR_APPID})
      */
     public int getInstallationID(Context activity, SecurePreferences securePreferences) {
 
@@ -654,8 +759,9 @@ public class SessionManager {
         else {
             return STATUS_ERROR_APPID;
         }
-
     }
+
+
 
     public String readFromFile(Context context) {
         StringBuffer datax = new StringBuffer("");
@@ -678,18 +784,109 @@ public class SessionManager {
         return datax.toString();
     }
 
+    /** Method for setting the {@link #ACCESS_TOKEN}
+     * @param string the access_token value to be set
+     */
     public void setAccessToken(String string) {
         ACCESS_TOKEN = string;
     }
 
     /**
-     * Helper method for returning {@link com.mateyinc.marko.matey.internet.SessionManager#ACCESS_TOKEN};
+     * Method for returning {@link #ACCESS_TOKEN};
      *
      * @return the access_token from this class; empty string if there is no access_token
      */
     public String getAccessToken() {
         return ACCESS_TOKEN;
     }
+
+    ///////////////// DATA INTERNET METHODS ///////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /** Method for uploading failed data to the server */
+    public void uploadFailedData() {
+        Log.d(TAG, "Uploading failed data.");
+
+        if (mUploadService != null && mConnection != null)
+            mUploadService.uploadFailedData();
+        else {
+            startUploadService();
+        }
+    }
+
+    /**
+     * Method for uploading new bulletin to the server
+     * @param b the {@link Bulletin} to be uploaded
+     * @param dataManager the {@link DataManager} instance used for adding bulletin to the database
+     */
+    public void postNewBulletin(Bulletin b, DataManager dataManager) {
+        Log.d(TAG, "Posting new bulletin.");
+
+        // First add the bulletin to the database then upload it to the server
+        dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
+
+        if (mUploadService != null && mConnection != null)
+            mUploadService.uploadBulletin(b);
+        else {
+            dataManager.updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
+            startUploadService();
+        }
+    }
+
+    /**
+     * Method for downloading news feed from the server and all data around it
+     * @param start the start position of the bulletin
+     * @param count the total bulletin count that needs to be downloaded in a single burst
+     * @param dm the {@link DataManager} instance used for adding data to the database
+     */
+    public void getNewsFeed(int start, int count, final DataManager dm) {
+
+        Log.d(TAG, "Downloading news feed. Start position=".concat(Integer.toString(start))
+                .concat("; Count=").concat(Integer.toString(count)));
+
+        Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
+        builder.appendQueryParameter(PARAM_START_POS, Integer.toString(start))
+                .appendQueryParameter(PARAM_COUNT, Integer.toString(count));
+        URL url;
+        try {
+            url = new URL(builder.build().toString());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Downloading failed: " + e.getLocalizedMessage(), e);
+            return;
+        }
+
+        MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                // Parse data in new thread
+                JSONParserAs jsonParserAS = new JSONParserAs(mAppContext);
+                jsonParserAS.execute(response);
+            }
+
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
+            }
+        });
+        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", ACCESS_TOKEN));
+
+        mRequestQueue.add(request);
+    }
+
+    /**
+     * Helper method for downloading news feed from the server to the database;
+     * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server;
+     * Automatically determines from what bulletin position to download by calling {@link DataManager#getNumOfBulletinsInDb()}
+     *
+     * @param context the context of activity which is calling this method
+     */
+    public void getNewsFeed(final Context context) {
+        int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
+        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, DataManager.getInstance(context));
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

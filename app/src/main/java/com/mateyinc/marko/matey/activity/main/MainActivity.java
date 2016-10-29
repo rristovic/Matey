@@ -59,13 +59,11 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.mateyinc.marko.matey.MyApplication;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.inall.ScepticTommy;
 import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.UrlData;
@@ -82,22 +80,22 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
 
-import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 import static com.mateyinc.marko.matey.internet.SessionManager.KEY_ACCESS_TOKEN;
-import static com.mateyinc.marko.matey.internet.SessionManager.PREF_DEVICE_ID;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
+    private static final String TAG = "com.matey.android";
 
-    // device id, user id za login; registracija gcm id, username, pass, email..
-
+    // Animation constants
     private static final int SHORT_ANIM_TIME = 150;
     private static final int MED_ANIM_TIME = 500;
     private static final int INTERMED_ANIM_TIME = 700;
     private static final int LONG_ANIM_TIME = 1000;
     private static final long SERVER_TIMER = 500;
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-    private static final String TAG = "com.matey.android";
+//    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+
+    // Request code
+    private static final int FACEBOOK_REQ_CODE = 5555;
 
     private ImageView ivLogoText, ivLoadingHead, ivLogoBubbleText, ivLogoClouds;
     private Button btnLogin, btnReg, btnFb;
@@ -117,7 +115,8 @@ public class MainActivity extends MotherActivity {
     private float mLoadingHeadIntroTransl;
 
     private Resources resources;
-    CallbackManager fbCallbackManager;
+    private CallbackManager fbCallbackManager;
+    private SessionManager mSessionManager;
 
     // GCM
     private boolean isGcmReceiverRegistered;
@@ -126,18 +125,6 @@ public class MainActivity extends MotherActivity {
     public static final String OLD_GCM_TOKEN = "old_token";
     public static final String NEW_GCM_TOKEN = "new_token";
 
-    // Constants
-    // The authority for the sync adapter's content provider
-    public static String AUTHORITY;
-    // An account type, in the form of a domain name
-    public static final String ACCOUNT_TYPE = "proba";
-    // The account name
-    public static final String ACCOUNT = "email";
-    // Instance fields
-    Account mAccount;
-
-    // Request code
-    private static final int FACEBOOK_REQ_CODE = 5555;
 
 
     @Override
@@ -147,125 +134,26 @@ public class MainActivity extends MotherActivity {
 
         FacebookSdk.sdkInitialize(getApplicationContext(), FACEBOOK_REQ_CODE);
         fbCallbackManager = CallbackManager.Factory.create();
-        facebookLogin();
-
-        //TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
-        //Log.d("pnum", tMgr.getLine1Number());
 
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         if (getSupportActionBar() != null)
             getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        initGCM();
-
-        // sceptic tommy starts checking everything
-        if (tommy == null)
-            tommy = new ScepticTommy(this);
-        tommy.execute();
+//        // sceptic tommy starts checking everything
+//        if (tommy == null)
+//            tommy = new ScepticTommy(this);
+//        tommy.execute();
 
         init();
-
-        new MyApplication().printHash(this);
+        mSessionManager.startSession(this);
     }
-
-    /**
-     * Initialize GCM broadcast receiver and register the device onto the server if it's not
-     */
-    private void initGCM() {
-        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                final SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(context);
-                String token = intent.getStringExtra(EXTRA_GCM_TOKEN);
-
-                // GCM complete with success
-                if (token != null && token.length() != 0) {
-
-                    // No old token found
-                    if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
-                        // Instantiate the RequestQueue.
-                        RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                        String url = UrlData.REGISTER_DEVICE;
-                        // Request a string response from the provided URL.
-                        MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                try {
-                                    JSONObject object = new JSONObject(response);
-                                    // TODO - rework the code, ScepticTommy must w8 for GCM registration before it can continue
-                                    mServerReady = true;
-                                    mSecurePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
-                                    Log.d(TAG, "Device id=" + object.getString(PREF_DEVICE_ID));
-                                } catch (JSONException e) {
-                                    sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
-                                    Log.e(TAG, e.getLocalizedMessage(), e);
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
-                                mServerReady = true;
-                                Log.e(TAG, error.getLocalizedMessage(), error);
-                                // TODO - error in response
-                            }
-                        });
-                        stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, token);
-
-                        // Add the request to the RequestQueue.
-                        queue.add(stringRequest);
-                    } else {
-
-                    }
-                }
-            }
-        };
-
-        registerGCMReceiver();
-        registerDevice();
-    }
-
-    private void registerDevice() {
-
-        if (checkPlayServices()) {
-            // Because this is the initial creation of the app, we'll want to be certain we have
-            // a token. If we do not, then we will start the IntentService that will register this
-            // application with GCM.
-            SharedPreferences sharedPreferences =
-                    PreferenceManager.getDefaultSharedPreferences(this);
-            boolean sentToken = sharedPreferences.getBoolean(SENT_TOKEN_TO_SERVER, false);
-
-            // TODO - rework the code on app upgrade to get new register
-            if (!sentToken) {
-                // Start IntentService to register this application with GCM.
-                Intent intent = new Intent(this, RegistrationIntentService.class);
-                intent.putExtra("device_id", mSecurePreferences.getString("device_id"));
-                startService(intent);
-            }
-        }
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Registering BroadcastReceiver
-        registerGCMReceiver();
-    }
-
-    private void registerGCMReceiver() {
-        if (!isGcmReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                    new IntentFilter(MateyGCMPreferences.REGISTRATION_COMPLETE));
-            isGcmReceiverRegistered = true;
-        }
-    }
-
 
     private void init() {
+        initGCM();
+        initFBLogin();
+
+        mSessionManager = SessionManager.getInstance(this);
         btnLogin = (ButtonLoginPage) findViewById(R.id.btnLogin);
         btnReg = (ButtonLoginPage) findViewById(R.id.btnReg);
         btnFb = (Button) findViewById(R.id.btnFacebook);
@@ -282,14 +170,104 @@ public class MainActivity extends MotherActivity {
         rlMain = (RelativeLayout) findViewById(R.id.rlMain);
         ivLogoClouds = (ImageView) findViewById(R.id.ivLoginLogoClouds);
         resources = getResources();
-        AUTHORITY = getString(R.string.content_authority);
-//        mAccount = createSyncAccount(this);
 
         startIntro();
         setOnClickListeners();
         setAutocompleteEmailValues();
+    }
+
+    /** Initialize GCM broadcast receiver and registers it with {@link LocalBroadcastManager} */
+    private void initGCM() {
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                mSessionManager.registerDevice(MainActivity.this, mSecurePreferences, intent.getStringExtra(NEW_GCM_TOKEN));
+            }
+        };
+
+        registerGCMReceiver();
+    }
+
+    /** Method for registering the {@link #mRegistrationBroadcastReceiver} with the {@link LocalBroadcastManager} */
+    private void registerGCMReceiver() {
+        if (!isGcmReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                    new IntentFilter(MateyGCMPreferences.REGISTRATION_COMPLETE));
+            isGcmReceiverRegistered = true;
+        }
+    }
+
+    /** Initialise facebook login callback */
+    protected void initFBLogin() {
+
+        LoginManager.getInstance().registerCallback(fbCallbackManager,
+                new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(final LoginResult loginResult) {
+
+                        final AccessToken accessToken = loginResult.getAccessToken();
+                        final Profile profile = Profile.getCurrentProfile();
+
+                        final String[] email = new String[1];
+                        GraphRequest request = GraphRequest.newMeRequest(
+                                loginResult.getAccessToken(),
+                                new GraphRequest.GraphJSONObjectCallback() {
+                                    @Override
+                                    public void onCompleted(JSONObject object, GraphResponse response) {
+                                        Log.v("LoginActivity", response.toString());
+
+                                        // Application code
+                                        try {
+                                            email[0] = (object.getString("email"));
+
+                                            SessionManager.getInstance(MainActivity.this)
+                                                    .loginWithFacebook(accessToken.getToken(), profile.getId(),
+                                                            email[0], mSecurePreferences, MainActivity.this);
+//
+                                        } catch (JSONException e) {
+                                            Log.e(TAG, e.getLocalizedMessage(), e);
+                                        }
+                                    }
+                                });
+                        Bundle parameters = new Bundle();
+                        parameters.putString("fields", "id,name,email,gender,birthday");
+                        request.setParameters(parameters);
+                        request.executeAsync();
+
+                        // When there's no reg user with the given email
+                        if (fbAnswerType == 0) {
+
+                            if (profile.getId() != null) {
+                                Log.e(TAG, accessToken.getToken());
+//                                   FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
+//                                fbLogin.execute(accessToken.getToken(), profile.getId(), mSecurePreferences.getString("device_id"));
+                            }
+
+                            // When there the user is already registered with that email. Ask to merge accounts
+                        } else {
+                            String emailString = etEmail.getText().toString();
+                            String pass = etPass.getText().toString();
+
+                            // start asynchronous task to handle user registration
+                            RegisterAs registerAs = new RegisterAs(MainActivity.this);
+                            registerAs.execute(emailString, pass, "yes", accessToken.getToken());
+                        }
+                    }
+
+                    @Override
+                    public void onCancel() {
+
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+
+                    }
+                });
 
     }
+
+
 
     private void setOnClickListeners() {
         btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -393,78 +371,6 @@ public class MainActivity extends MotherActivity {
 
         if (requestCode == FACEBOOK_REQ_CODE)
             fbCallbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
-
-    // when facebook login is done
-    // this method will get on work
-    protected void facebookLogin() {
-
-        LoginManager.getInstance().registerCallback(fbCallbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(final LoginResult loginResult) {
-
-                        final AccessToken accessToken = loginResult.getAccessToken();
-                        final Profile profile = Profile.getCurrentProfile();
-
-                        final String[] email = new String[1];
-                        GraphRequest request = GraphRequest.newMeRequest(
-                                loginResult.getAccessToken(),
-                                new GraphRequest.GraphJSONObjectCallback() {
-                                    @Override
-                                    public void onCompleted(JSONObject object, GraphResponse response) {
-                                        Log.v("LoginActivity", response.toString());
-
-                                        // Application code
-                                        try {
-                                            email[0] = (object.getString("email"));
-
-                                            SessionManager.getInstance(MainActivity.this)
-                                                    .loginWithFacebook(accessToken.getToken(), profile.getId(),
-                                                    email[0], mSecurePreferences, MainActivity.this);
-//
-                                        } catch (JSONException e) {
-                                            Log.e(TAG, e.getLocalizedMessage(), e);
-                                        }
-                                    }
-                                });
-                        Bundle parameters = new Bundle();
-                        parameters.putString("fields", "id,name,email,gender,birthday");
-                        request.setParameters(parameters);
-                        request.executeAsync();
-
-                        // When there's no reg user with the given email
-                        if (fbAnswerType == 0) {
-
-                            if (profile.getId() != null) {
-                                Log.e(TAG, accessToken.getToken());
-//                                   FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
-//                                fbLogin.execute(accessToken.getToken(), profile.getId(), mSecurePreferences.getString("device_id"));
-                            }
-
-                            // When there the user is already registered with that email. Ask to merge accounts
-                        } else {
-                            String emailString = etEmail.getText().toString();
-                            String pass = etPass.getText().toString();
-
-                            // start asynchronous task to handle user registration
-                            RegisterAs registerAs = new RegisterAs(MainActivity.this);
-                            registerAs.execute(emailString, pass, "yes", accessToken.getToken());
-                        }
-                    }
-
-                    @Override
-                    public void onCancel() {
-
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-
-                    }
-                });
-
     }
 
     private void showLoginForm() {
@@ -795,6 +701,7 @@ public class MainActivity extends MotherActivity {
         SessionManager manager = SessionManager.getInstance(this);
         manager.setAccessToken(mSecurePreferences.getString(KEY_ACCESS_TOKEN));
         manager.startUploadService();
+
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
         startActivity(intent);
         finish();
@@ -870,35 +777,43 @@ public class MainActivity extends MotherActivity {
     }
     //////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Check the device to make sure it has the Google Play Services APK. If
-     * it doesn't, display a dialog that allows users to download the APK from
-     * the Google Play Store or enable it in the device's system settings.
-     */
-    public boolean checkPlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
-                        .show();
-            } else {
-                Log.i(TAG, "This device is not supported.");
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(R.string.error_tittle)
-                        .setMessage(R.string.nogcm_message)
-                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                MainActivity.this.finish();
-                            }
-                        }).show();
-            }
-            return false;
-        }
-        return true;
-    }
+//    /**
+//     * Check the device to make sure it has the Google Play Services APK. If
+//     * it doesn't, display a dialog that allows users to download the APK from
+//     * the Google Play Store or enable it in the device's system settings.
+//     */
+//    public boolean checkPlayServices() {
+//        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+//        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+//        if (resultCode != ConnectionResult.SUCCESS) {
+//            if (apiAvailability.isUserResolvableError(resultCode)) {
+//                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+//                        .show();
+//            } else {
+//                Log.i(TAG, "This device is not supported.");
+//                new AlertDialog.Builder(MainActivity.this)
+//                        .setTitle(R.string.error_tittle)
+//                        .setMessage(R.string.nogcm_message)
+//                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                MainActivity.this.finish();
+//                            }
+//                        }).show();
+//            }
+//            return false;
+//        }
+//        return true;
+//    }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Registering BroadcastReceiver
+        registerGCMReceiver();
+    }
 
     @Override
     protected void onPause() {

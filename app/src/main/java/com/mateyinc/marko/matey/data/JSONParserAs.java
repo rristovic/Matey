@@ -1,5 +1,9 @@
 package com.mateyinc.marko.matey.data;
 
+/**
+ * Created by Sarma on 10/29/2016.
+ */
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -9,10 +13,6 @@ import android.util.Log;
 import org.json.JSONException;
 
 import java.text.ParseException;
-
-/**
- * Created by Sarma on 10/23/2016.
- */
 
 /**
  * AsyncTask class used for parsing downloaded data to the database

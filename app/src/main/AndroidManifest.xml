@@ -128,7 +128,9 @@
         </service>
         <service
             android:name=".internet.procedures.UploadService"
-            android:exported="false"/>
+            android:exported="false" />
+
+        <activity android:name=".activity.AddFriendsActivity"></activity>
     </application>
 
 </manifest>

@@ -36,7 +36,6 @@ public class RegistrationIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        this.device_id = intent.getStringExtra("device_id");
         String token = null;
         try {
             // [START register_for_gcm]
