@@ -192,27 +192,27 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                         ss.setSpan(clickableSpan, CHAR_LIM + 4, ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
                         // Set the message
-                        holder.mMessage.setMovementMethod(LinkMovementMethod.getInstance());
-                        holder.mMessage.setHighlightColor(Color.TRANSPARENT);
-                        holder.mMessage.setText(ss);
+                        holder.tvMessage.setMovementMethod(LinkMovementMethod.getInstance());
+                        holder.tvMessage.setHighlightColor(Color.TRANSPARENT);
+                        holder.tvMessage.setText(ss);
                     } else {
-                        holder.mMessage.setText(bulletin.getMessage());
+                        holder.tvMessage.setText(bulletin.getMessage());
                     }
                 } catch (Exception e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
-                    holder.mMessage.setText(mContext.getString(R.string.error_message));
+                    holder.tvMessage.setText(mContext.getString(R.string.error_message));
                 }
                 try {
-                    holder.mName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
+                    holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
                 } catch (Exception e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
-                    holder.mName.setText(mContext.getString(R.string.error_message));
+                    holder.tvName.setText(mContext.getString(R.string.error_message));
                 }
                 try {
-                    holder.mDate.setText(Util.getReadableDateText(bulletin.getDate()));
+                    holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
                 } catch (Exception e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
-                    holder.mDate.setText(Util.getReadableDateText(new Date()));
+                    holder.tvDate.setText(Util.getReadableDateText(new Date()));
                 }
 
                 ((ViewHolder) mHolder).rlReplies.removeAllViews(); // First reset the layout then add new views
@@ -380,9 +380,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
 
         private final View mView;
-        private final TextView mMessage;
-        private final TextView mName;
-        private final TextView mDate;
+        private final TextView tvMessage;
+        private final TextView tvName;
+        private final TextView tvDate;
         private final RelativeLayout rlReplies;
         private final LinearLayout btnReply;
         ViewHolderClickListener mListener;
@@ -390,11 +390,11 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         private ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
-            mMessage = (TextView) view.findViewById(R.id.tvMessage);
-            mMessage.setTag("msg");
-            mName = (TextView) view.findViewById(R.id.tvName);
-            mName.setTag("name");
-            mDate = (TextView) view.findViewById(R.id.tvDate);
+            tvMessage = (TextView) view.findViewById(R.id.tvMessage);
+            tvMessage.setTag("msg");
+            tvName = (TextView) view.findViewById(R.id.tvName);
+            tvName.setTag("name");
+            tvDate = (TextView) view.findViewById(R.id.tvDate);
             rlReplies = (RelativeLayout) view.findViewById(R.id.rlReplies);
             btnReply = (LinearLayout) view.findViewById(R.id.llReply);
             mListener = listener;
@@ -402,9 +402,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             rlReplies.setOnClickListener(this);
             btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
             btnReply.setOnClickListener(this);
-            mMessage.setOnClickListener(this);
-            mName.setOnClickListener(this);
-            mMessage.setOnCreateContextMenuListener(this);
+            tvMessage.setOnClickListener(this);
+            tvName.setOnClickListener(this);
+            tvMessage.setOnCreateContextMenuListener(this);
         }
 
         @Override
@@ -421,9 +421,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
             String tag = v.getTag().toString();
             if (tag.equals("msg")) {
-                mListener.onMsgClick(mMessage, mView);
+                mListener.onMsgClick(tvMessage, mView);
             } else if (tag.equals("name")) {
-                mListener.onNameClick(mName, mView);
+                mListener.onNameClick(tvName, mView);
                 Log.d(BulletinsAdapter.class.getSimpleName(), "onNameClick();");
             }
         }

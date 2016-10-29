@@ -2,7 +2,6 @@ package com.mateyinc.marko.matey.inall;
 
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -58,25 +57,25 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
     @Override
     protected void onPostExecute(Integer checkResult) {
 
-        // if some error occured with the app id
-        if (checkResult == SessionManager.STATUS_ERROR_APPID) {
-            activity.showDialog(1000);
-            activity.mDeviceReady = true;
-        }
-
-            // if there is no internet connection
-        else if (checkResult == STATUS_NO_INTERNET) {
-            Bundle bundle = new Bundle();
-            bundle.putString("message", "There is no internet connection! Please connect and try again.");
-            activity.showDialog(1004, bundle);
-        }
-        // if user isn't logged in but everything is ok
-        else if (checkResult == STATUS_NO_LOGIN) activity.mDeviceReady = true;
-            // if user is logged in
-        else if (checkResult == STATUS_LOGGED_IN) {
-//            activity.showDialog(2);
-            activity.loggedIn();
-        }
+//        // if some error occured with the app id
+//        if (checkResult == SessionManager.STATUS_ERROR_APPID) {
+//            activity.showDialog(1000);
+//            activity.mDeviceReady = true;
+//        }
+//
+//            // if there is no internet connection
+//        else if (checkResult == STATUS_NO_INTERNET) {
+//            Bundle bundle = new Bundle();
+//            bundle.putString("message", "There is no internet connection! Please connect and try again.");
+//            activity.showDialog(1004, bundle);
+//        }
+//        // if user isn't logged in but everything is ok
+//        else if (checkResult == STATUS_NO_LOGIN) activity.mDeviceReady = true;
+//            // if user is logged in
+//        else if (checkResult == STATUS_LOGGED_IN) {
+////            activity.showDialog(2);
+//            activity.loggedIn();
+//        }
 
     }
 
@@ -97,7 +96,7 @@ public class ScepticTommy extends AsyncTask<String, Void, Integer> {
 //            return SessionManager.STATUS_ERROR_APPID;
 //        if (devIdSet == STATUS_NO_INTERNET) return STATUS_NO_INTERNET;
         if(securePreferences.getString(PREF_DEVICE_ID)!=null){
-            activity.mServerReady = true;
+            activity.mDeviceReady = true;
         }
 
         // when app_id is in SecurePreferences, we go further

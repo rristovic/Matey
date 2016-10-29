@@ -19,9 +19,12 @@ abstract public class MotherActivity extends AppCompatActivity {
 
     protected ScepticTommy tommy;
     public SecurePreferences mSecurePreferences;
-    public boolean mServerReady = false;
+
+    /**
+     * True if GCM_token and device_id are present on the the device thus
+     * indicating if the device is registered on the server
+     */
     public boolean mDeviceReady = false;
-    public boolean mLoggedIn = false;
 
     public int fbAnswerType = 0;
 

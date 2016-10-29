@@ -304,6 +304,16 @@ public class DataManager {
         return preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1);
     }
 
+    private LinkedList<UserProfile> suggestedFriends;
+
+    public LinkedList<UserProfile> getSuggestedFriendsList() {
+        return suggestedFriends;
+    }
+
+    public void setSuggestedFriends(LinkedList<UserProfile> list) {
+        suggestedFriends = list;
+    }
+
 
     /**
      * Method for adding list of user profile to the database
@@ -1315,6 +1325,7 @@ public class DataManager {
         });
         thread.start();
     }
+
 
 }
 

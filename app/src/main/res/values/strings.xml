@@ -21,7 +21,10 @@
     <string name="success_reg_message">You have successfully registered!</string>
     <string name="registering_dialog_message">Registration in progress..</string>
     <string name="try_connecting_again_btn_tittle">TRY AGAIN</string>
-
+    <string name="no_internet_msg">There is no internet connection, pls try later :)</string>
+    <string name="server_not_responding_msg">The server is not responding, please try later :)</string>
+    <string name="email_error_msg">Wrong email format.</string>
+    <string name="password_error_msg">Password needs to be at least 5 characters long.</string>
 
     <!-- Database and content provider authority string -->
     <string name="content_authority" translatable="false">com.mateyinc.marko.matey</string>
@@ -68,12 +71,10 @@
     <string name="reply_approve">approves</string>
     <string name="continue_reading_message">Continue reading</string>
 
-
     <!-- Search fragment related -->
     <string name="search_posts">Posts</string>
     <string name="search_messages">Messages</string>
     <string name="search_friends">Friends</string>
-
 
     <!-- New post related -->
     <string name="post_to_matey">Post to Matey</string>
@@ -84,4 +85,7 @@
     <string name="dev_pic">https://scontent-amt2-1.xx.fbcdn.net/t31.0-8/13418666_1802825583286785_9080680072636685389_o.jpg</string>
     <string name="dev_nopic">https://www.colourbox.com/preview/3851270-no-user-profile-picture.jpg</string>
 
+    <!-- Adding friends related -->
+    <string name="add_all_btn_label">Add all</string>
+    <string name="add_btn_label">Add</string>
 </resources>

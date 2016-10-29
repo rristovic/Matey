@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
@@ -30,7 +31,11 @@ public class ProfileActivity extends MotherActivity {
     private String TAG = ProfileActivity.class.getSimpleName();
 
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
+
+    /** Intent extra param which has {@link com.mateyinc.marko.matey.model.UserProfile#userId}
+     * used to download data from the server or from database; */
     public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
+
     private TextView tvName,tvNumberOfMates;
     private ImageView ivProfilePic;
     private long mUserId;
@@ -81,6 +86,7 @@ public class ProfileActivity extends MotherActivity {
     private void setData() {
         Log.d("ProfileActivity", "Data is set.");
         //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
+        SessionManager.getInstance(this).downloadPicture(ivProfilePic, mUserProfile.getProfilePictureLink());
         tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
         tvNumberOfMates.setText(mUserProfile.getNumOfFriends());
     }

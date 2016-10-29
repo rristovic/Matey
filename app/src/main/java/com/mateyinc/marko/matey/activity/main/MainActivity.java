@@ -7,19 +7,13 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
@@ -42,11 +36,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.Volley;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -57,17 +46,12 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.AddFriendsActivity;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
-import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.SessionManager;
-import com.mateyinc.marko.matey.internet.UrlData;
-import com.mateyinc.marko.matey.internet.procedures.RegisterAs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -76,8 +60,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Pattern;
 
 import static com.mateyinc.marko.matey.internet.SessionManager.KEY_ACCESS_TOKEN;
@@ -103,7 +85,6 @@ public class MainActivity extends MotherActivity {
     private LinearLayout llEmail, llPass, line1, line2;
     public EditText etPass;
     public AutoCompleteTextView etEmail;
-    private Timer mTimer;
 
     private float mLoginBtnMoveY;
     private float mRegBtnMoveY;
@@ -139,11 +120,6 @@ public class MainActivity extends MotherActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
-
-//        // sceptic tommy starts checking everything
-//        if (tommy == null)
-//            tommy = new ScepticTommy(this);
-//        tommy.execute();
 
         init();
         mSessionManager.startSession(this);
@@ -214,7 +190,7 @@ public class MainActivity extends MotherActivity {
                                 new GraphRequest.GraphJSONObjectCallback() {
                                     @Override
                                     public void onCompleted(JSONObject object, GraphResponse response) {
-                                        Log.v("LoginActivity", response.toString());
+                                        Log.d(TAG, response.toString());
 
                                         // Application code
                                         try {
@@ -233,25 +209,6 @@ public class MainActivity extends MotherActivity {
                         parameters.putString("fields", "id,name,email,gender,birthday");
                         request.setParameters(parameters);
                         request.executeAsync();
-
-                        // When there's no reg user with the given email
-                        if (fbAnswerType == 0) {
-
-                            if (profile.getId() != null) {
-                                Log.e(TAG, accessToken.getToken());
-//                                   FacebookLoginAs fbLogin = new FacebookLoginAs(MainActivity.this);
-//                                fbLogin.execute(accessToken.getToken(), profile.getId(), mSecurePreferences.getString("device_id"));
-                            }
-
-                            // When there the user is already registered with that email. Ask to merge accounts
-                        } else {
-                            String emailString = etEmail.getText().toString();
-                            String pass = etPass.getText().toString();
-
-                            // start asynchronous task to handle user registration
-                            RegisterAs registerAs = new RegisterAs(MainActivity.this);
-                            registerAs.execute(emailString, pass, "yes", accessToken.getToken());
-                        }
                     }
 
                     @Override
@@ -264,20 +221,19 @@ public class MainActivity extends MotherActivity {
 
                     }
                 });
-
     }
-
-
 
     private void setOnClickListeners() {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (!mLoginFormVisible)
+                if (!mLoginFormVisible) {
+                    // If the device isn't ready, try registering with the server again
+                    if(!mDeviceReady)
+                        mSessionManager.startSession(MainActivity.this);
+                    // Showing login form
                     showLoginForm();
-                else {
-
+                } else {
                     String email = etEmail.getText().toString().toLowerCase();
                     email = email.trim();
                     String pass = etPass.getText().toString().toLowerCase();
@@ -286,26 +242,31 @@ public class MainActivity extends MotherActivity {
                     Bundle bundle = new Bundle();
 
                     if (!isValidEmailAddress(email)) {
-                        bundle.putString("message", "Wrong email format. fon");
+                        bundle.putString("message", "Wrong email format.");
                         showDialog(1004, bundle);
                     } else if (!isValidPassword(pass)) {
                         bundle.putString("message", "Password needs to be at least 5 characters long.");
                         showDialog(1004, bundle);
+                    } else if (!mDeviceReady){
+                            bundle.putString("message", getString(R.string.server_not_responding_msg));
+                            showDialog(1004, bundle);
                     } else {
                         SessionManager.getInstance(MainActivity.this).loginWithVolley(email, pass, mSecurePreferences, MainActivity.this);
                     }
                 }
             }
-
-
         });
 
         btnReg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mRegFormVisible)
+                if (!mRegFormVisible) {
+                    // If the device isn't ready, try registering with the server again
+                    if (!mDeviceReady)
+                        mSessionManager.startSession(MainActivity.this);
+                    // Showing reg form
                     showRegForm();
-                else {
+                } else {
                     String email = etEmail.getText().toString().toLowerCase();
                     email = email.trim();
                     String pass = etPass.getText().toString().toLowerCase();
@@ -314,10 +275,13 @@ public class MainActivity extends MotherActivity {
                     Bundle bundle = new Bundle();
 
                     if (!isValidEmailAddress(email)) {
-                        bundle.putString("message", "Wrong email format. fon");
+                        bundle.putString("message", getString(R.string.email_error_msg));
                         showDialog(1004, bundle);
                     } else if (!isValidPassword(pass)) {
-                        bundle.putString("message", "Password needs to be at least 5 characters long.");
+                        bundle.putString("message", getString(R.string.password_error_msg));
+                        showDialog(1004, bundle);
+                    } else if (!mDeviceReady){
+                        bundle.putString("message", getString(R.string.server_not_responding_msg));
                         showDialog(1004, bundle);
                     } else {
                         SessionManager.getInstance(MainActivity.this).registerWithVolley(email, pass, MainActivity.this);
@@ -329,13 +293,17 @@ public class MainActivity extends MotherActivity {
         btnFb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                fbAnswerType = 0;
-                LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile", "user_friends", "email"));
-
+                if (!mDeviceReady){
+                    Bundle bundle = new Bundle();
+                    bundle.putString("message", getString(R.string.server_not_responding_msg));
+                    showDialog(1004, bundle);
+                } else {
+                    fbAnswerType = 0;
+                    LoginManager.getInstance().logInWithReadPermissions(MainActivity.this,
+                            Arrays.asList("public_profile", "user_friends", "email", "user_friends"));
+                }
             }
         });
-
     }
 
     private void setAutocompleteEmailValues() {
@@ -564,14 +532,6 @@ public class MainActivity extends MotherActivity {
         view.setAlpha(0);
         view.setScaleX(2f);
         view.setScaleY(2f);
-//        AnimatorSet set = new AnimatorSet();
-//        set
-//                .play(ObjectAnimator.ofFloat(view, View.ALPHA, 0, 1f))
-//                .with(ObjectAnimator.ofFloat(view, View.SCALE_X, 2f, 1f))
-//                .with(ObjectAnimator.ofFloat(view, View.SCALE_Y, 2f, 1f));
-//        set.setInterpolator(new AccelerateInterpolator(2.5f));
-//        set.setDuration(time);
-//        set.start();
 
         view.animate().setDuration(time).setInterpolator(new AccelerateInterpolator(2.5f)).setListener(null)
                 .alpha(1f).scaleX(1f).scaleY(1f)
@@ -579,53 +539,9 @@ public class MainActivity extends MotherActivity {
                     @Override
                     public void run() {
                         mLoadingHeadIntroTransl = ivLoadingHead.getTop();
-
-                        final Handler mHandler = new Handler(Looper.getMainLooper());
-
-                        mTimer = new Timer();
-                        mTimer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                if(!MainActivity.this.mLoggedIn)
-                                mHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        new AlertDialog.Builder(MainActivity.this)
-                                                .setMessage("Sorry mate, the server is not responding..")
-                                                .setIcon(R.drawable.matey_logo)
-                                                .setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                        MainActivity.this.endLoadingAnim();
-                                                    }
-                                                }).setPositiveButton(getString(R.string.try_connecting_again_btn_tittle), new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                // TODO - restart connection
-                                            }
-                                        }).show();
-                                    }
-                                });
-                            }
-                        }, 5000);
                         goUpAnim(500);
                     }
                 });
-
-//        CountDownTimer mTimer = new CountDownTimer(time * 2, time) {
-//            @Override
-//            public void onTick(long millisUntilFinished) {
-//            }
-//
-//            @Override
-//            public void onFinish() {
-//                mLoadingHeadIntroTransl = ivLoadingHead.getTop();
-//                goUpAnim(500);
-//            }
-//        };
-//        mTimer.start();
-
     }
 
     private void goUpAnim(final int time) {
@@ -635,7 +551,7 @@ public class MainActivity extends MotherActivity {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         ivLoadingHead.clearAnimation();
-                        if (mServerReady && mDeviceReady) {
+                        if (mDeviceReady) {
                             endLoadingAnim();
                         } else
                             goDownAnim(700);
@@ -651,7 +567,7 @@ public class MainActivity extends MotherActivity {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         ivLoadingHead.clearAnimation();
-                        if (mServerReady && mDeviceReady) {
+                        if (mDeviceReady) {
                             endLoadingAnim();
                         } else
                             goUpAnim(700);
@@ -659,11 +575,7 @@ public class MainActivity extends MotherActivity {
                 });
     }
 
-    private void endLoadingAnim() {
-        if (mTimer != null) {
-            mTimer.cancel();
-            mTimer.purge();
-        }
+    public void endLoadingAnim() {
         // Return pic to center and  move layout
         // TODO - rework other anims via ViewPropertyAnimatior because it does not interfere with system transitions
         ivLoadingHead.animate().y(0)
@@ -693,11 +605,8 @@ public class MainActivity extends MotherActivity {
                 });
     }
 
-    /**
-     * Method to call when login process if finished
-     */
+    /** Method to call when login process is finished */
     public void loggedIn() {
-        mLoggedIn = true;
         SessionManager manager = SessionManager.getInstance(this);
         manager.setAccessToken(mSecurePreferences.getString(KEY_ACCESS_TOKEN));
         manager.startUploadService();
@@ -706,6 +615,19 @@ public class MainActivity extends MotherActivity {
         startActivity(intent);
         finish();
     }
+
+
+    /** Method to call when login process is finished and has suggested friends list*/
+    public void loggedInWithSuggestedFriends() {
+        SessionManager manager = SessionManager.getInstance(this);
+        manager.setAccessToken(mSecurePreferences.getString(KEY_ACCESS_TOKEN));
+        manager.startUploadService();
+
+        Intent intent = new Intent(MainActivity.this, AddFriendsActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     //////////////////////////////////////////////////////////////////////////
 
 

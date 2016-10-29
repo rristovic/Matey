@@ -19,6 +19,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -26,10 +27,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
@@ -42,6 +45,7 @@ import com.mateyinc.marko.matey.model.KVPair;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,6 +56,7 @@ import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -66,10 +71,6 @@ import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
 import static com.mateyinc.marko.matey.internet.UrlData.PARAM_COUNT;
 import static com.mateyinc.marko.matey.internet.UrlData.PARAM_START_POS;
 
-
-/**
- * Created by M4rk0 on 3/10/2016.
- */
 
 /**
  * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER, DOWNLOAD & UPLOAD DATA)
@@ -98,6 +99,7 @@ public class SessionManager {
     public static final String KEY_PROFILE_PICTURE = "profile_picture";
     public static final String KEY_FIRST_NAME = "first_name";
     public static final String KEY_LAST_NAME = "last_name";
+    public static final String KEY_SUGGESTED_FRIENDS = "suggested_friends";
 
     /** The application id is on hard drive SessionManager status */
     public static final int STATUS_OK = 100;
@@ -161,7 +163,6 @@ public class SessionManager {
             }
         };
         mDecodeWorkQueue = new LinkedBlockingQueue<Runnable>();
-
 
         // Creates a thread pool manager
         mExecutor = new ThreadPoolExecutor(
@@ -246,8 +247,28 @@ public class SessionManager {
         }
     };
 
+    private void showAlerDialog(Context context, String message, DialogInterface.OnClickListener listener){
+        new AlertDialog.Builder(context)
+                .setMessage(message)
+                .setIcon(R.drawable.matey_logo)
+                .setNeutralButton("OK", listener).show();
+    }
+
     /** Helper method that checks all the required parameters for starting a new session with the server */
-    public void startSession(MainActivity mainActivity){
+    public void startSession(final MainActivity mainActivity){
+
+        // If there is no internet connection, show alert dialog
+        if(!Util.isInternetConnected(mainActivity)){
+           showAlerDialog(mainActivity, mainActivity.getString(R.string.no_internet_msg),
+                   new DialogInterface.OnClickListener() {
+                       @Override
+                       public void onClick(DialogInterface dialog, int which) {
+                           mainActivity.endLoadingAnim();
+                           mainActivity.mDeviceReady = false;
+                       }
+                   });
+            return;
+        }
 
         // If user is logged in, proceed to next activity
         if(isUserLoggedIn(mainActivity)) {
@@ -260,7 +281,7 @@ public class SessionManager {
             // Because this is the initial creation of the app, we'll want to be certain we have
             // a token. If we do not, then we will start the IntentService that will register this
             // application with GCM.
-            Thread thread = new Thread(new Runnable() {
+            Runnable r = new Runnable() {
                 @Override
                 public void run() {
                     MainActivity activity = reference.get();
@@ -288,11 +309,13 @@ public class SessionManager {
                     } else {
                         // The device is registered both with GCM and with the server
                         // Proceed further
-                        activity.mServerReady = true;
+                        activity.mDeviceReady = true;
                     }
                 }
-            });
-            thread.start();
+            };
+
+            // Add runnable to the executor queue
+            mExecutor.execute(r);
         }
     }
 
@@ -336,7 +359,6 @@ public class SessionManager {
     }
 
     public void registerDevice(final MainActivity activity, final SecurePreferences securePreferences, String gcmToken){
-        // TODO - new thread with threadppoolexecutioner
         final SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(activity);
 
@@ -354,7 +376,7 @@ public class SessionManager {
                         try {
                             JSONObject object = new JSONObject(response);
                             // TODO - rework the code, ScepticTommy must w8 for GCM registration before it can continue
-                            activity.mServerReady = true;
+                            activity.mDeviceReady = true;
                             securePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
                             Log.d(TAG, "Device id=" + object.getString(PREF_DEVICE_ID));
                         } catch (JSONException e) {
@@ -366,7 +388,8 @@ public class SessionManager {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
-                        activity.mServerReady = true;
+                        activity.mDeviceReady = false;
+                        activity.endLoadingAnim();
                         Log.e(TAG, error.getLocalizedMessage(), error);
                         // TODO - error in response
                     }
@@ -447,6 +470,8 @@ public class SessionManager {
         if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
             login(securePreferences, context);
         }
+
+
 
         // First contacting OAuth2 server
         MateyRequest oauthRequest = new MateyRequest(Request.Method.POST, UrlData.OAUTH_LOGIN, new Response.Listener<String>() {
@@ -598,6 +623,29 @@ public class SessionManager {
                                 dataManager.addUserProfile(userProfile);
                                 dataManager.setCurrentUserProfile(preferences, userProfile);
 
+                                if(object.has(KEY_SUGGESTED_FRIENDS)){
+                                    LinkedList<UserProfile> list = new LinkedList<>();
+
+                                    JSONArray array = object.getJSONArray(KEY_SUGGESTED_FRIENDS);
+                                    UserProfile profile;
+                                    for(int i = 0; i < array.length(); i++){
+                                        profile = new UserProfile();
+
+                                        JSONObject profileObject = array.getJSONObject(i);
+                                        profile.setUserId(profileObject.getLong(KEY_USER_ID));
+                                        profile.setProfilePictureLink(profileObject.getString(KEY_PROFILE_PICTURE));
+                                        profile.setFirstName(profileObject.getString(KEY_FIRST_NAME));
+                                        profile.setLastName(profileObject.getString(KEY_LAST_NAME));
+
+                                        list.add(profile);
+                                    }
+
+                                    dataManager.setSuggestedFriends(list);
+
+                                    context.loggedInWithSuggestedFriends();
+                                    return;
+                                }
+
                             } catch (JSONException e) {
                                 // TODO - finish error handling
                                 Log.e(TAG, e.getLocalizedMessage(), e);
@@ -610,6 +658,7 @@ public class SessionManager {
 //                            if (mProgDialog.isShowing())
 //                                mProgDialog.dismiss();
 
+
                             // Close activity and proceed to HomeActivity
                             context.loggedIn();
                         }
@@ -617,7 +666,7 @@ public class SessionManager {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             // TODO - handle errors
-                            Log.e(TAG, error.toString());
+                            Log.e(TAG, error.getLocalizedMessage(), error);
 //                            if (mProgDialog.isShowing())
 //                                mProgDialog.dismiss();
                         }
@@ -660,9 +709,9 @@ public class SessionManager {
      * @param securePreferences the SecuredPrefs user to clear user credentials
      */
     public void logout(HomeActivity context, SecurePreferences securePreferences) {
+
         clearUserCredentials(context, securePreferences);
         clearDatabase(context);
-        context.mLoggedIn = false;
 
         if (context.isDebug()) {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -678,7 +727,7 @@ public class SessionManager {
     public static void clearUserCredentials(Context context, SecurePreferences securePreferences) {
         SharedPreferences preferences = getDefaultSharedPreferences(context);
         DataManager dataManager = DataManager.getInstance(context);
-        dataManager.removeUserProfile(preferences.getInt(DataManager.CUR_USERPROFILE_ID, -1));
+        dataManager.removeUserProfile(preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1));
         dataManager.setCurrentUserProfile(preferences, null);
 
         preferences.edit().remove(DataManager.CUR_USERPROFILE_ID).remove(TOKEN_SAVED_TIME).commit();
@@ -802,6 +851,53 @@ public class SessionManager {
 
     ///////////////// DATA INTERNET METHODS ///////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /** Used for tagging network requests */
+    private static volatile int TAG_COUNTER = 0;
+
+    private static int DEFAULT_MAX_W = 512;
+    private static int DEFAULT_MAX_H = 512;
+
+    /**
+     * Method for downloading and displaying image from provided link to the ImageView
+     * @param ivProfilePic {@link ImageView} object to display downloaded image into
+     * @param profilePictureLink the image url to download from
+     * @return the newly created {@link Request} object with the tag {@link #TAG_COUNTER} incremented by 1;
+     */
+    public Request downloadPicture(ImageView ivProfilePic, final String profilePictureLink) {
+
+        int w = DEFAULT_MAX_W, h = DEFAULT_MAX_H;
+
+        try {
+            h = ivProfilePic.getHeight();
+            w = ivProfilePic.getWidth();
+        } catch (Exception e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+        }
+
+        final WeakReference<ImageView> imageViewRef = new WeakReference<ImageView>(ivProfilePic);
+
+        ImageRequest request = new ImageRequest(profilePictureLink,
+                new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap bitmap) {
+                        ImageView imageView = imageViewRef.get();
+                        if (imageView != null)
+                            imageView.setImageBitmap(bitmap);
+                        TAG_COUNTER--;
+                    }
+                }, w, h, ImageView.ScaleType.CENTER_INSIDE, null,
+                new Response.ErrorListener() {
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "Error downloading image: " + error.getLocalizedMessage(), error);
+                        TAG_COUNTER--;
+                    }
+                });
+        addToRequestQueue(request);
+
+        return request.setTag(TAG_COUNTER++);
+    }
+
 
     /** Method for uploading failed data to the server */
     public void uploadFailedData() {
@@ -931,4 +1027,6 @@ public class SessionManager {
         DataManager dm = DataManager.getInstance(homeActivity);
         dm.createDummyData();
     }
+
+
 }
