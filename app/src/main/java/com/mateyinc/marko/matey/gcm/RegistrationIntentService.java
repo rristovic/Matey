@@ -11,14 +11,10 @@ import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
-import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.io.IOException;
 
-import static com.mateyinc.marko.matey.activity.Util.STATUS_NO_INTERNET;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.OLD_GCM_TOKEN;
 
@@ -109,26 +105,6 @@ public class RegistrationIntentService extends IntentService {
 
     }
 
-    /**
-     * Method for getting the application id
-     *
-     * @return <p> SessionManager.STATUS_OK if the app id is in SecurePrefs and on hard drive;
-     * <br> SessionManager.STATUS_ERROR_APPID if there was an error and the appid isn't saved;
-     * <br> Util.STATUS_NO_INTERNET if there is no internet connection
-     * </p>
-     */
-    private int deviceIDSet() {
-        SecurePreferences securePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
-        String device_id = securePreferences.getString("device_id");
-
-        if (device_id == null) {
-            if (!Util.isInternetConnected(this))
-                return STATUS_NO_INTERNET;
-            return SessionManager.getInstance(this).getInstallationID(this, securePreferences);
-        }
-
-        return SessionManager.STATUS_OK;
-    }
 
     /**
      * Subscribe to any GCM topics of interest, as defined by the TOPICS constant.

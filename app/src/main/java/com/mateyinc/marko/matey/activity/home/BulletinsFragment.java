@@ -38,7 +38,7 @@ import static com.mateyinc.marko.matey.data.DataManager.BULLETIN_COLUMNS;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private Context mContext;
+    private HomeActivity mContext;
     private BulletinsAdapter mAdapter;
     private BroadcastReceiver mDataDownloaded;
     private RecyclerView mRecycleView;
@@ -63,7 +63,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mContext = context;
+        mContext = (HomeActivity) context;
         mSessionManager = SessionManager.getInstance(context);
 
         getLoaderManager().initLoader(BULLETINS_LOADER, null, this);

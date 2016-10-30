@@ -1,24 +1,52 @@
 package com.mateyinc.marko.matey;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
+
+import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * Created by M4rk0 on 3/6/2016.
- */
-public class MyApplication extends AppCompatActivity {
+public class MyApplication extends Application {
 
-    public void onCreate (Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private SecurePreferences mSecurePreferences;
+    private Object mLock = new Object();
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                synchronized (mLock) {
+                    if (mSecurePreferences == null)
+                        mSecurePreferences = new SecurePreferences(MyApplication.this, "credentials", "1checkMate1717", true);
+                }
+
+                MotherActivity.access_token = mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN);
+                MotherActivity.device_id = mSecurePreferences.getString(SessionManager.KEY_DEVICE_ID);
+                MotherActivity.user_id = PreferenceManager.getDefaultSharedPreferences(MyApplication.this).getLong(DataManager.KEY_CUR_USER_ID, Long.MIN_VALUE);
+            }
+        };
+        Thread t = new Thread(r);
+        t.start();
+    }
+
+    public SecurePreferences getSecurePreferences(){
+        synchronized (mLock){
+            return  mSecurePreferences;
+        }
     }
 
     public  void printHash (Context context) {

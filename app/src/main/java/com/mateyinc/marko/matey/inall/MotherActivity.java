@@ -4,10 +4,12 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 
 import com.facebook.login.LoginManager;
+import com.mateyinc.marko.matey.MyApplication;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -16,9 +18,15 @@ import java.util.Arrays;
 
 abstract public class MotherActivity extends AppCompatActivity {
 
+    public static long user_id;
+    public static String device_id;
 
-    protected ScepticTommy tommy;
-    public SecurePreferences mSecurePreferences;
+    /** Access token used to authorise with the server */
+    public static String access_token;
+
+
+    private final Object mLock = new Object();
+    private SecurePreferences mSecurePreferences;
 
     /**
      * True if GCM_token and device_id are present on the the device thus
@@ -29,22 +37,26 @@ abstract public class MotherActivity extends AppCompatActivity {
     public int fbAnswerType = 0;
 
     @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (mSecurePreferences == null) {
+            mSecurePreferences = ((MyApplication) getApplication()).getSecurePreferences();
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
-    public void setSecurePreferences(AppCompatActivity activity) {
-        if (mSecurePreferences == null)
-            mSecurePreferences = new SecurePreferences(activity, "credentials", "1checkMate1717", true);
-    }
-
     public SecurePreferences getSecurePreferences() {
-        return mSecurePreferences;
+        synchronized (mLock) {
+            return mSecurePreferences;
+        }
     }
-
-
 
     @Override
     protected Dialog onCreateDialog(int id, Bundle bundle) {

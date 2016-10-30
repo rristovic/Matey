@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +15,7 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -37,7 +37,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
     private int ITEM = 1;
     private int FIRST_ITEM = 0;
 
-    public BulletinRepliesAdapter(Context context, RecyclerView view, LinkedList data) {
+    public BulletinRepliesAdapter(MotherActivity context, RecyclerView view, LinkedList data) {
         mContext = context;
         mRecycleView = view;
         mManager = DataManager.getInstance(context);
@@ -45,7 +45,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         init();
     }
 
-    public BulletinRepliesAdapter(Context context, RecyclerView view) {
+    public BulletinRepliesAdapter(MotherActivity context, RecyclerView view) {
         mContext = context;
         mRecycleView = view;
         mManager = DataManager.getInstance(context);

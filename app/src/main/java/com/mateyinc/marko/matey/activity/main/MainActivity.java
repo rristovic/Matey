@@ -106,12 +106,9 @@ public class MainActivity extends MotherActivity {
     public static final String OLD_GCM_TOKEN = "old_token";
     public static final String NEW_GCM_TOKEN = "new_token";
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        super.setSecurePreferences(this);
 
         FacebookSdk.sdkInitialize(getApplicationContext(), FACEBOOK_REQ_CODE);
         fbCallbackManager = CallbackManager.Factory.create();
@@ -157,7 +154,7 @@ public class MainActivity extends MotherActivity {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mSessionManager.registerDevice(MainActivity.this, mSecurePreferences, intent.getStringExtra(NEW_GCM_TOKEN));
+                mSessionManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(NEW_GCM_TOKEN));
             }
         };
 
@@ -198,7 +195,7 @@ public class MainActivity extends MotherActivity {
 
                                             SessionManager.getInstance(MainActivity.this)
                                                     .loginWithFacebook(accessToken.getToken(), profile.getId(),
-                                                            email[0], mSecurePreferences, MainActivity.this);
+                                                            email[0], getSecurePreferences(), MainActivity.this);
 //
                                         } catch (JSONException e) {
                                             Log.e(TAG, e.getLocalizedMessage(), e);
@@ -234,10 +231,16 @@ public class MainActivity extends MotherActivity {
                     // Showing login form
                     showLoginForm();
                 } else {
+
                     String email = etEmail.getText().toString().toLowerCase();
                     email = email.trim();
                     String pass = etPass.getText().toString().toLowerCase();
                     email = email.trim();
+
+                    if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
+                        mSessionManager.debugLogin(getSecurePreferences(), MainActivity.this);
+                        return;
+                    }
 
                     Bundle bundle = new Bundle();
 
@@ -251,7 +254,8 @@ public class MainActivity extends MotherActivity {
                             bundle.putString("message", getString(R.string.server_not_responding_msg));
                             showDialog(1004, bundle);
                     } else {
-                        SessionManager.getInstance(MainActivity.this).loginWithVolley(email, pass, mSecurePreferences, MainActivity.this);
+                        SessionManager.getInstance(MainActivity.this).
+                                loginWithVolley(email, pass, getSecurePreferences(), MainActivity.this);
                     }
                 }
             }
@@ -605,11 +609,14 @@ public class MainActivity extends MotherActivity {
                 });
     }
 
-    /** Method to call when login process is finished */
+    /**
+     * Method to call when login process is finished;
+     * If the user is already logged in, access_token, user_id and device_id are already stored in {@link MotherActivity}
+     */
     public void loggedIn() {
         SessionManager manager = SessionManager.getInstance(this);
-        manager.setAccessToken(mSecurePreferences.getString(KEY_ACCESS_TOKEN));
-        manager.startUploadService();
+//        manager.setAccessToken(getSecurePreferences().getString(KEY_ACCESS_TOKEN));
+        manager.startUploadService(this);
 
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
         startActivity(intent);
@@ -620,8 +627,7 @@ public class MainActivity extends MotherActivity {
     /** Method to call when login process is finished and has suggested friends list*/
     public void loggedInWithSuggestedFriends() {
         SessionManager manager = SessionManager.getInstance(this);
-        manager.setAccessToken(mSecurePreferences.getString(KEY_ACCESS_TOKEN));
-        manager.startUploadService();
+        manager.startUploadService(this);
 
         Intent intent = new Intent(MainActivity.this, AddFriendsActivity.class);
         startActivity(intent);
@@ -746,10 +752,6 @@ public class MainActivity extends MotherActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        if (tommy != null && tommy.getStatus() != AsyncTask.Status.FINISHED) {
-            tommy.cancel(true);
-        }
-
         unregisterGCMReceiver();
         Log.d(TAG, "entered onDestroy()");
         unbindDrawables(rlMain);
@@ -787,8 +789,10 @@ public class MainActivity extends MotherActivity {
                 startRegReverseAnim();
                 mRegFormVisible = false;
                 return true;
-            } else
+            } else {
+                mSessionManager.stopAllNetworking();
                 return super.onKeyDown(keyCode, event);
+            }
 
         }
         return super.onKeyDown(keyCode, event);

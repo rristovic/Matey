@@ -19,6 +19,7 @@ import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
+import com.mateyinc.marko.matey.storage.SecurePreferences;
 import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -47,7 +48,6 @@ public class ProfileActivity extends MotherActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        super.setSecurePreferences(this);
 
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         if (getSupportActionBar() != null)
@@ -93,10 +93,18 @@ public class ProfileActivity extends MotherActivity {
 
     private void downloadData() {
         // Start downloading data
-        mUserProfileAs.execute(mSecurePreferences.getString("user_id"),
-                mSecurePreferences.getString("uid"),
-                mSecurePreferences.getString("device_id")
-                , Long.toString(mUserId));
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SecurePreferences preferences = getSecurePreferences();
+                mUserProfileAs.execute(preferences.getString("user_id"),
+                        preferences.getString("uid"),
+                        preferences.getString("device_id")
+                        , Long.toString(mUserId));
+            }
+        });
+
+        t.start();
     }
 
     @Override

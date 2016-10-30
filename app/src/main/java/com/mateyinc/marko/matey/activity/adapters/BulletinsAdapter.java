@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -32,6 +31,7 @@ import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
@@ -59,7 +59,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     public static String clickedText = "";
     public static final int COPYTEXT_ID = 100;
 
-    public BulletinsAdapter(Context context, TextView emptyView) {
+    public BulletinsAdapter(HomeActivity context, TextView emptyView) {
         mContext = context;
         mManager = DataManager.getInstance(context);
         mEmptyView = emptyView;
@@ -343,7 +343,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SessionManager.getInstance(mContext).postNewBulletin(bulletin, mManager);
+                SessionManager.getInstance(mContext).postNewBulletin(bulletin, mManager, MotherActivity.access_token, mContext);
                 mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
             }
         });

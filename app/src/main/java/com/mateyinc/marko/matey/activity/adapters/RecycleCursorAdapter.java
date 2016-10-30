@@ -1,18 +1,15 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
-/**
- * Created by Sarma on 10/9/2016.
- */
 public abstract class RecycleCursorAdapter extends RecyclerView.Adapter {
     protected Cursor mCursor;
-    protected  Context mContext;
-    protected  DataManager mManager;
+    protected MotherActivity mContext;
+    protected DataManager mManager;
 
     @Override
     public int getItemCount() {

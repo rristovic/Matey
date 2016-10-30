@@ -62,7 +62,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        super.setSecurePreferences(this);
 
         init();
         getCurUser();
@@ -75,7 +74,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         ifTest();
 
         mSessionManager = SessionManager.getInstance(this);
-        mSessionManager.setAccessToken(mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN));
 
         // Settings the app bar via custom toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -251,7 +249,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     /** Helper method for getting the current user profile in {@link DataManager#mCurrentUserProfile} */
     private void getCurUser() {
         if (!DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this))) {
-            mSessionManager.logout(this, mSecurePreferences);
+            mSessionManager.logout(this, getSecurePreferences());
         }
     }
 
@@ -265,7 +263,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     /** Helper method for uploading data that has failed to upload */
     private void uploadFailedData(){
-        mSessionManager.uploadFailedData();
+        mSessionManager.uploadFailedData(HomeActivity.this);
     }
 
     @Override
@@ -273,16 +271,18 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         super.onResume();
 
         Log.d(TAG, "entered onResume()");
+        Log.d(TAG,"Access token:" + access_token);
 
         // Settings current user profile and access token in memory
         if (mSessionManager == null) {
             mSessionManager = SessionManager.getInstance(this);
-            mSessionManager.setAccessToken(mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN));
-        } else if (mSessionManager.getAccessToken().isEmpty())
-            mSessionManager.setAccessToken(mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN));
+        }
+//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
+//        } else if (mSessionManager.getAccessToken().isEmpty())
+//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
 
-
-        DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this));
+        if (!DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
+            mSessionManager.logout(this, getSecurePreferences());
     }
 
     private void closeSearchView() {
@@ -380,7 +380,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     @Override
     protected void onDestroy() {
-        SessionManager.getInstance(this).stopUploadService();
+        SessionManager.getInstance(this).stopUploadService(this);
         super.onDestroy();
     }
 

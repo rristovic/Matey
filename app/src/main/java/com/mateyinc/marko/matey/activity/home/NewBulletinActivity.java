@@ -97,7 +97,7 @@ public class NewBulletinActivity extends MotherActivity {
                 b.setLastName(profile.getLastName());
                 b.setMessage(etNewPostMsg.getText().toString());
 
-                SessionManager.getInstance(NewBulletinActivity.this).postNewBulletin(b, dataManager);
+                SessionManager.getInstance(NewBulletinActivity.this).postNewBulletin(b, dataManager, NewBulletinActivity.access_token, NewBulletinActivity.this);
 
                 finish();
             }

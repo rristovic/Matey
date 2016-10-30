@@ -14,6 +14,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.*;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -25,11 +26,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.Random;
 import java.util.Vector;
-
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 
 /**
  * The manager for the data entries
@@ -39,36 +37,23 @@ public class DataManager {
 
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
 
-    /**
-     * Number of bulletins to download from the server
-     */
-    public static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
+    /** Number of bulletins to download from the server */
+    private static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
 
-    /**
-     * the current count of the friends list in the database
-     */
-    public static int mFriendsListCount = 0; // for dummy data is 120
-
-    /**
-     * The current page of bulletins in the database
-     */
+    /** The current page of bulletins in the database */
     public static int mCurrentPage = 0;
 
     // One day in milliseconds
-    public static final int ONE_DAY = 86400000;
+    private static final int ONE_DAY = 86400000;
     // One minute in milliseconds
     public static final int ONE_MIN = 60000;
 
-    /**
-     * Loader identifiers for data
-     */
+    /** Loader identifiers for data */
     public static final int BULLETINS_LOADER = 100;
     public static final int BULLETIN_LOADER = 101;
     public static final int REPLIES_LOADER = 200;
 
-    /**
-     * Columns that bulletin cursor loaders will load up
-     */
+    /** Columns that bulletin cursor loaders will load up */
     public static final String[] BULLETIN_COLUMNS = {
             DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID,
             DataContract.BulletinEntry.COLUMN_USER_ID,
@@ -93,13 +78,9 @@ public class DataManager {
     public static final int COL_ON_SERVER = 7;
     public static final int COL_ATTCHS = 8;
 
-    /**
-     * Activity upload status that is saved in database, and used for UI control
-     */
+    /** Activity upload status that is saved in database, and used for UI control */
     public static final int STATUS_RETRY_UPLOAD = -1;
-    /**
-     * @see #STATUS_RETRY_UPLOAD
-     */
+    /** @see #STATUS_RETRY_UPLOAD */
     public static final int STATUS_UPLOADING = 0;
     /**
      * Activity upload status that is saved in database, and used for UI control;
@@ -107,9 +88,7 @@ public class DataManager {
      */
     public static final int STATUS_SUCCESS = 1;
 
-    /**
-     * Used for new post that doesn't yet have the post_id
-     */
+    /** Used for new post that doesn't yet have the post_id */
     public static final int NO_POST_ID = -1;
 
 
@@ -124,8 +103,8 @@ public class DataManager {
 
     // Global instance fields
     private  final Object mLock = new Object(); // for synchronised blocks
-    private static DataManager mInstance = null;
-    private final Context mAppContext;
+    private static DataManager mInstance ;
+    private Context mAppContext;
 
     private UserProfile mCurrentUserProfile;
     private int newPostID;
@@ -149,13 +128,6 @@ public class DataManager {
     private DataManager(Context context) {
         mAppContext = context;
     }
-
-    public static void setFriendsListCount(int numOfFriends) {
-        mFriendsListCount = numOfFriends;
-    }
-
-
-
 
 
     //  General methods ////////////////////////////////////////////
@@ -224,10 +196,8 @@ public class DataManager {
     // UserProfile methods /////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
-    /**
-     * Key for storing user prfile id in shared prefs
-     */
-    public static final String CUR_USERPROFILE_ID = "cur_userprofile_id";
+    /** Key for storing user pref file id in shared prefs */
+    public static final String KEY_CUR_USER_ID = "cur_userprofile_id";
 
     /**
      * Method for storing current user profile in memory, and in shared prefs.
@@ -239,11 +209,11 @@ public class DataManager {
         mCurrentUserProfile = userProfile;
 
         if (userProfile != null) {
-            mFriendsListCount = userProfile.getNumOfFriends();
-            preferences.edit().putLong(DataManager.CUR_USERPROFILE_ID, userProfile.getUserId()).apply();
+            preferences.edit().putLong(DataManager.KEY_CUR_USER_ID, userProfile.getUserId()).apply();
+            MotherActivity.user_id = mCurrentUserProfile.getUserId();
             Log.d(TAG, "Current user updated.");
         } else {
-            preferences.edit().remove(DataManager.CUR_USERPROFILE_ID).apply();
+            preferences.edit().remove(DataManager.KEY_CUR_USER_ID).commit();
             Log.d(TAG, "Current user removed from prefs.");
         }
     }
@@ -255,26 +225,29 @@ public class DataManager {
      * @return true if settings the current user profile was successful
      */
     public synchronized boolean setCurrentUserProfile(SharedPreferences preferences) {
-        long id = preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1);
+        if  (mCurrentUserProfile != null)
+            return true;
+
+        long id = preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
 
         Cursor c = mAppContext.getContentResolver().query(ProfileEntry.CONTENT_URI, null,
                 ProfileEntry._ID + " = ?", new String[]{Long.toString(id)}, null);
 
-        if (c != null && c.moveToFirst()) {
-            UserProfile userProfile = new UserProfile(id, c.getString(c.getColumnIndex(ProfileEntry.COLUMN_NAME)),
-                    c.getString(c.getColumnIndex(ProfileEntry.COLUMN_LAST_NAME)),
-                    c.getString(c.getColumnIndex(ProfileEntry.COLUMN_EMAIL)),
-                    c.getString(c.getColumnIndex(ProfileEntry.COLUMN_PICTURE)));
+        if (c != null)
+            if (c.moveToFirst()) {
+                mCurrentUserProfile = new UserProfile(id, c.getString(c.getColumnIndex(ProfileEntry.COLUMN_NAME)),
+                        c.getString(c.getColumnIndex(ProfileEntry.COLUMN_LAST_NAME)),
+                        c.getString(c.getColumnIndex(ProfileEntry.COLUMN_EMAIL)),
+                        c.getString(c.getColumnIndex(ProfileEntry.COLUMN_PICTURE)));
 
-            mCurrentUserProfile = userProfile;
-            Log.d(TAG, "Current user profile updated with user_id=" + id);
-        } else {
-            Log.e(TAG, "Error setting current user profile from shared prefs.");
+                Log.d(TAG, "Current user profile updated with user_id=" + id);
+                c.close();
+            } else {
+                Log.e(TAG, "Error setting current user profile from shared prefs.");
+                c.close();
+                return false;
+        } else
             return false;
-        }
-
-        if(c != null)
-            c.close();
 
         return true;
     }
@@ -301,7 +274,7 @@ public class DataManager {
      * @return the current user id
      */
     public long getCurrentUserProfileIdFromPrefs(SharedPreferences preferences) {
-        return preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1);
+        return preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
     }
 
     private LinkedList<UserProfile> suggestedFriends;

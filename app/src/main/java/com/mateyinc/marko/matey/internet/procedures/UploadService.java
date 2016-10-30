@@ -75,7 +75,7 @@ public class UploadService extends Service {
      * Method for uploading Bulletin to the server
      * @param b the bulletin to be uploaded
      */
-    public void uploadBulletin(final Bulletin b) {
+    public void uploadBulletin(final Bulletin b, String accessToken) {
         SessionManager sessionManager = SessionManager.getInstance(this);
         final DataManager dataManager = DataManager.getInstance(this);
         MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_BULLETIN_ROUTE,
@@ -100,7 +100,7 @@ public class UploadService extends Service {
                     }
                 }
         );
-        String accessToken = sessionManager.getAccessToken();
+
         if (accessToken != null && accessToken.length() != 0)
             uploadRequest.setAuthHeader(accessToken);
         else

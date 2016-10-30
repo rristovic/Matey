@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -82,11 +83,12 @@ public class LoginAs extends AsyncTask<String, Void, String> {
                     MainActivity activity = mActivity.get();
                     // put to preferences
                     if (activity != null) {
-                        activity.mSecurePreferences.put("user_id", dataObj.getString("user_id"));
-                        activity.mSecurePreferences.put("email", dataObj.getString("email"));
-                        activity.mSecurePreferences.put("uid", dataObj.getString("uid"));
-                        activity.mSecurePreferences.put("firstname", dataObj.getString("first_name"));
-                        activity.mSecurePreferences.put("lastname", dataObj.getString("last_name"));
+                        SecurePreferences preferences = activity.getSecurePreferences();
+                        preferences.put("user_id", dataObj.getString("user_id"));
+                        preferences.put("email", dataObj.getString("email"));
+                        preferences.put("uid", dataObj.getString("uid"));
+                        preferences.put("firstname", dataObj.getString("first_name"));
+                        preferences.put("lastname", dataObj.getString("last_name"));
                     }
                     // notify user about successful login
 //                   Toast.makeText(mActivity, "You have successfully login!", Toast.LENGTH_SHORT).show();

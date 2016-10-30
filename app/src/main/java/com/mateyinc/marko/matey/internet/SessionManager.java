@@ -11,10 +11,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
 import android.support.v7.app.AlertDialog;
@@ -39,6 +36,7 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.JSONParserAs;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.UploadService;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.KVPair;
@@ -49,9 +47,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -66,6 +61,7 @@ import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.OLD_GCM_TOKEN;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
+import static com.mateyinc.marko.matey.inall.MotherActivity.access_token;
 import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
 import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
 import static com.mateyinc.marko.matey.internet.UrlData.PARAM_COUNT;
@@ -77,10 +73,9 @@ import static com.mateyinc.marko.matey.internet.UrlData.PARAM_START_POS;
  */
 public class SessionManager {
     private static final String TAG = SessionManager.class.getSimpleName();
-    public static final String APPID_FILE_NAME = "did.dat";
 
     // Key for securePreference to store the device_id
-    public static final String PREF_DEVICE_ID = "device_id";
+    public static final String KEY_DEVICE_ID = "device_id";
 
     // Fields downloaded from OAuth2 Server
     public static final String KEY_ACCESS_TOKEN = "access_token";
@@ -92,14 +87,12 @@ public class SessionManager {
     public static final String TOKEN_SAVED_TIME = "tst";
 
     // Fields downloaded from Resource Server
-    public static final String KEY_USER_ID = "user_id";
-    public static final String KEY_EMAIL = "email";
-    public static final String KEY_VERIFIED = "verified";
-    public static final String KEY_IS_ACTIVE = "is_active";
-    public static final String KEY_PROFILE_PICTURE = "profile_picture";
-    public static final String KEY_FIRST_NAME = "first_name";
-    public static final String KEY_LAST_NAME = "last_name";
-    public static final String KEY_SUGGESTED_FRIENDS = "suggested_friends";
+    private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_PROFILE_PICTURE = "profile_picture";
+    private static final String KEY_FIRST_NAME = "first_name";
+    private static final String KEY_LAST_NAME = "last_name";
+    private static final String KEY_SUGGESTED_FRIENDS = "suggested_friends";
 
     /** The application id is on hard drive SessionManager status */
     public static final int STATUS_OK = 100;
@@ -108,17 +101,11 @@ public class SessionManager {
     public static final int STATUS_ERROR = 200;
 
     /** Error with getting the application id SessionManager status*/
-    public static final int STATUS_ERROR_APPID = 400;
-
-    /** Number of milliseconds that the app will keep connecting to the server */
-    public static final long SERVER_CONECTION_TIMEOUT = 15000;
-
-    /** ACCESS_TOKEN used to authorise with the server */
-    private String ACCESS_TOKEN = "";
+    private static final int STATUS_ERROR_APPID = 400;
 
 
     private static SessionManager mInstance;
-    private Context mAppContext;
+//    private Context mAppContext;
     private ImageLoader mImageLoader;
     private RequestQueue mRequestQueue;
     private ProgressDialog mProgDialog;
@@ -126,7 +113,6 @@ public class SessionManager {
     private boolean mIsBound;
 
     private final Object mLock = new Object();
-    private final Handler mHandler;
     private final BlockingQueue<Runnable> mDecodeWorkQueue;
     private final ThreadPoolExecutor mExecutor;
 
@@ -135,13 +121,13 @@ public class SessionManager {
     private static int NUMBER_OF_CORES =
             Runtime.getRuntime().availableProcessors();
     // Sets the amount of time an idle thread waits before terminating
-    private static final int KEEP_ALIVE_TIME = 1;
+    private static final int KEEP_ALIVE_TIME = 10;
     // Sets the Time Unit to seconds
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
 
     public static synchronized SessionManager getInstance(Context context) {
         if (mInstance == null) {
-            mInstance = new SessionManager(context);
+            mInstance = new SessionManager(context.getApplicationContext());
             Log.d(TAG, "New instance of SessionManager created.");
         }
 
@@ -149,19 +135,9 @@ public class SessionManager {
     }
 
     private SessionManager(Context context) {
-        mAppContext = context.getApplicationContext();
-        mRequestQueue = getRequestQueue();
+//        mAppContext = context.getApplicationContext();
 
-        mHandler = new Handler(Looper.getMainLooper()) {
-            /*
-             * handleMessage() defines the operations to perform when
-             * the Handler receives a new Message to process.
-             */
-            @Override
-            public void handleMessage(Message inputMessage) {
-                super.handleMessage(inputMessage);
-            }
-        };
+        mRequestQueue = Volley.newRequestQueue(context);
         mDecodeWorkQueue = new LinkedBlockingQueue<Runnable>();
 
         // Creates a thread pool manager
@@ -187,45 +163,52 @@ public class SessionManager {
                         cache.put(url, bitmap);
                     }
                 });
-
     }
 
-    private RequestQueue getRequestQueue() {
-        if (mRequestQueue == null) {
-            mRequestQueue = Volley.newRequestQueue(mAppContext);
-            Log.e(TAG, "New requestQueue has been created!");
-        }
-        return mRequestQueue;
-    }
 
     /**
      * Method for adding new {@link Request} to the current {@link RequestQueue} in use
      * @param req the request to be added
-     * @param <T> the type of the request
      */
-    public <T> void addToRequestQueue(Request<T> req) {
-        synchronized (mLock) {
-            getRequestQueue().add(req);
-        }
+    public void addToRequestQueue(Request req) {
+        req.setTag("");
+        mRequestQueue.add(req);
     }
 
     public ImageLoader getImageLoader() {
         return mImageLoader;
     }
 
-    /** Method for starting {@link UploadService} used for uploading data to the server */
-    public void startUploadService() {
-        Intent intent = new Intent(mAppContext, UploadService.class);
-        mAppContext.startService(intent);
-        mIsBound = mAppContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    /** Method for starting {@link UploadService} used for uploading data to the server
+     *
+     * @param c used to start the service
+     */
+    public void startUploadService(Context c) {
+        if(!mIsBound) {
+            Context context = c.getApplicationContext();
+            Intent intent = new Intent(context, UploadService.class);
+            context.startService(intent);
+            mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
-    /** Method for stopping {@link UploadService} used for uploading data to the server */
-    public void stopUploadService() {
+    /** Method for stopping {@link UploadService} used for uploading data to the server
+     *
+     * @param c used to stop the service
+     */
+    public void stopUploadService(Context c) {
         if (mIsBound) {
-            mAppContext.unbindService(mConnection);
+            Context context = c.getApplicationContext();
+            context.unbindService(mConnection);
+            Intent intent = new Intent(context, UploadService.class);
+            context.stopService(intent);
             mIsBound = false;
         }
+    }
+
+    /** Method for stopping all pending and running downloads */
+    public void stopAllNetworking(){
+        mRequestQueue.cancelAll("");
     }
 
     /** Defines callbacks for service binding, passed to bindService() */
@@ -247,7 +230,7 @@ public class SessionManager {
         }
     };
 
-    private void showAlerDialog(Context context, String message, DialogInterface.OnClickListener listener){
+    private void showAlertDialog(Context context, String message, DialogInterface.OnClickListener listener){
         new AlertDialog.Builder(context)
                 .setMessage(message)
                 .setIcon(R.drawable.matey_logo)
@@ -259,7 +242,7 @@ public class SessionManager {
 
         // If there is no internet connection, show alert dialog
         if(!Util.isInternetConnected(mainActivity)){
-           showAlerDialog(mainActivity, mainActivity.getString(R.string.no_internet_msg),
+           showAlertDialog(mainActivity, mainActivity.getString(R.string.no_internet_msg),
                    new DialogInterface.OnClickListener() {
                        @Override
                        public void onClick(DialogInterface dialog, int which) {
@@ -302,9 +285,9 @@ public class SessionManager {
                         Intent intent = new Intent(activity, RegistrationIntentService.class);
                         activity.startService(intent);
 
-                    } else if (activity.mSecurePreferences.getString(PREF_DEVICE_ID) == null) {
+                    } else if (activity.getSecurePreferences().getString(KEY_DEVICE_ID) == null) {
                         // The device has already been registered with GCM but not with the server
-                        SessionManager.this.registerDevice(activity, activity.mSecurePreferences,
+                        SessionManager.this.registerDevice(activity, activity.getSecurePreferences(),
                                 sharedPreferences.getString(NEW_GCM_TOKEN, ""));
                     } else {
                         // The device is registered both with GCM and with the server
@@ -322,9 +305,11 @@ public class SessionManager {
     /** Method to check if user is logged in */
     private boolean isUserLoggedIn(Context context) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        long accessTokenTime = preferences.getLong(TOKEN_SAVED_TIME, -1);
 
-        return  accessTokenTime != -1;
+        // Only check if the id exists because on logout it gets deleted
+        long user_id = preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
+
+        return  user_id != -1;
     }
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
@@ -358,50 +343,72 @@ public class SessionManager {
         return true;
     }
 
-    public void registerDevice(final MainActivity activity, final SecurePreferences securePreferences, String gcmToken){
-        final SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(activity);
+    public void registerDevice( MainActivity activity, SecurePreferences securePreferences, final String gcmToken){
+        final WeakReference<MainActivity> reference = new WeakReference<>(activity);
+        final WeakReference<SecurePreferences> prefRef = new WeakReference<SecurePreferences>(securePreferences);
 
-        // GCM complete with success
-        if (gcmToken != null && gcmToken.length() != 0) {
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                MainActivity activity = reference.get();
 
-            // No old token found
-            if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
+                final SharedPreferences sharedPreferences;
 
-                String url = UrlData.REGISTER_DEVICE;
-                // Request a string response from the provided URL.
-                MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject object = new JSONObject(response);
-                            // TODO - rework the code, ScepticTommy must w8 for GCM registration before it can continue
-                            activity.mDeviceReady = true;
-                            securePreferences.put(PREF_DEVICE_ID, object.getString(PREF_DEVICE_ID));
-                            Log.d(TAG, "Device id=" + object.getString(PREF_DEVICE_ID));
-                        } catch (JSONException e) {
-                            sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
-                            Log.e(TAG, e.getLocalizedMessage(), e);
-                        }
+                if (activity != null)
+                    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+                else
+                    return;
+
+                // GCM complete with success
+                if (gcmToken != null && gcmToken.length() != 0) {
+
+                    // No old token found
+                    if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
+
+                        String url = UrlData.REGISTER_DEVICE;
+                        // Request a string response from the provided URL.
+                        MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                MainActivity activity = reference.get();
+                                SecurePreferences securePreferences = prefRef.get();
+                                try {
+                                    JSONObject object = new JSONObject(response);
+                                    String device_id = object.getString(KEY_DEVICE_ID);
+                                    securePreferences.put(KEY_DEVICE_ID, device_id);
+                                    MotherActivity.device_id = device_id;
+                                    activity.mDeviceReady = true;
+                                    Log.d(TAG, "Device id=" + object.getString(KEY_DEVICE_ID));
+                                } catch (JSONException e) {
+                                    Log.e(TAG, e.getLocalizedMessage(), e);
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                MainActivity activity = reference.get();
+
+                                if (activity != null) {
+                                    activity.mDeviceReady = false;
+                                    activity.endLoadingAnim();
+                                }
+                                Log.e(TAG, error.getLocalizedMessage(), error);
+                                // TODO - error in response
+                            }
+                        });
+                        stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
+
+                        // Add the request to the RequestQueue.
+                        mInstance.addToRequestQueue(stringRequest);
+                        activity = null;
+                    } else {
+                        // TODO - finish
                     }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
-                        activity.mDeviceReady = false;
-                        activity.endLoadingAnim();
-                        Log.e(TAG, error.getLocalizedMessage(), error);
-                        // TODO - error in response
-                    }
-                });
-                stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
-
-                // Add the request to the RequestQueue.
-                this.addToRequestQueue(stringRequest);
-            } else {
-
+                }
             }
-        }
+        };
+
+        mExecutor.execute(r);
     }
 
     /**
@@ -410,17 +417,24 @@ public class SessionManager {
      * @param email user email address
      * @param pass  user password
      */
-    public void registerWithVolley(final String email, String pass, final MainActivity context) {
+    public void registerWithVolley(final String email, String pass, MainActivity context) {
         // Showing progress dialog
         mProgDialog = new ProgressDialog(context);
         mProgDialog.setMessage(context.getResources().getString(R.string.registering_dialog_message));
         mProgDialog.show();
 
+        final WeakReference<MainActivity> activity = new WeakReference<MainActivity>(context);
         // Making new request and contacting the server
         MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Toast.makeText(context, R.string.success_reg_message, Toast.LENGTH_SHORT).show();
+
+                MainActivity context = activity.get();
+
+                if (context != null)
+                    Toast.makeText(context, R.string.success_reg_message, Toast.LENGTH_SHORT).show();
+                else
+                    return;
 
                 if (mProgDialog.isShowing())
                     mProgDialog.dismiss();
@@ -440,6 +454,8 @@ public class SessionManager {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, "Error while registering user.");
+                if (mProgDialog.isShowing())
+                    mProgDialog.dismiss();
                 // TODO - finish method
             }
         });
@@ -460,19 +476,14 @@ public class SessionManager {
      * @param securePreferences the {@link SecurePreferences} instance used to store credentials
      * @param context the {@link MainActivity} context used to show and dismiss dialogs
      */
-    public void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, final MainActivity context) {
+    public void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, MainActivity context) {
 
         // Showing progress dialog
         mProgDialog = new ProgressDialog(context);
         mProgDialog.setMessage(context.getResources().getString(R.string.login_dialog_message));
         mProgDialog.show();
 
-        if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
-            login(securePreferences, context);
-        }
-
-
-
+        final WeakReference<MainActivity> activity = new WeakReference<MainActivity>(context);
         // First contacting OAuth2 server
         MateyRequest oauthRequest = new MateyRequest(Request.Method.POST, UrlData.OAUTH_LOGIN, new Response.Listener<String>() {
             @Override
@@ -480,19 +491,28 @@ public class SessionManager {
 
                 // Parsing response.data
                 try {
+                    MainActivity context = activity.get();
+
+                    if (context == null)
+                        return; // TODO - finish logout
+
                     JSONObject dataObj = new JSONObject(response);
 
-                    // Add data to secure prefs TODO - rework secure prefs Editor()
+                    // Add data to secure prefs
                     ArrayList<KVPair> list = new ArrayList<KVPair>();
-                    list.add(new KVPair(KEY_ACCESS_TOKEN, dataObj.getString(KEY_ACCESS_TOKEN)));
-                    list.add(new KVPair(KEY_EXPIRES_IN, dataObj.getString(KEY_EXPIRES_IN)));
-                    list.add(new KVPair(KEY_REFRESH_TOKEN, dataObj.getString(KEY_REFRESH_TOKEN)));
+                    String accessToken = dataObj.getString(KEY_ACCESS_TOKEN);
+                    list.add(new KVPair(KEY_ACCESS_TOKEN, access_token));
+//                    list.add(new KVPair(KEY_EXPIRES_IN, dataObj.getString(KEY_EXPIRES_IN)));
+//                    list.add(new KVPair(KEY_REFRESH_TOKEN, dataObj.getString(KEY_REFRESH_TOKEN)));
                     list.add(new KVPair(KEY_TOKEN_TYPE, dataObj.getString(KEY_TOKEN_TYPE)));
                     securePreferences.putValues(list);
+                    MotherActivity.access_token = accessToken;
 
+                    context = null;
+                    final WeakReference<MainActivity> newActivity = new WeakReference<MainActivity>(activity.get());
                     // Saves the time when token is created
                     final SharedPreferences preferences = getDefaultSharedPreferences(context);
-                    preferences.edit().putLong(TOKEN_SAVED_TIME, System.currentTimeMillis()).apply();
+//                    preferences.edit().putLong(TOKEN_SAVED_TIME, System.currentTimeMillis()).apply();
 
                     // Immediately after contacting OAuth2 Server proceed to resource server for login
                     // Creating new request for the resource server
@@ -500,6 +520,10 @@ public class SessionManager {
                         @Override
                         public void onResponse(String response) {
                             JSONObject object;
+                            MainActivity context = newActivity.get();
+
+                            if (context == null)
+                                return; // TODO - finish logout
 
                             // Parsing response.data
                             try {
@@ -542,7 +566,7 @@ public class SessionManager {
                     });
                     // Setting request params and sending POST request
                     resRequest.addParam(UrlData.PARAM_EMAIL, email);
-                    resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(PREF_DEVICE_ID));
+                    resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(KEY_DEVICE_ID));
                     resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
                             String.format("Bearer %s", securePreferences.getString(KEY_ACCESS_TOKEN)));
                     mRequestQueue.add(resRequest);
@@ -558,6 +582,8 @@ public class SessionManager {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, "Error while authenticating user.", error.getCause());
+                if (mProgDialog.isShowing())
+                    mProgDialog.dismiss();
                 // TODO - finish method
             }
         });
@@ -593,14 +619,15 @@ public class SessionManager {
                     // Add data to secure prefs TODO - rework secure prefs Editor()
                     ArrayList<KVPair> list = new ArrayList<KVPair>();
                     list.add(new KVPair(KEY_ACCESS_TOKEN, dataObj.getString(KEY_ACCESS_TOKEN)));
-                    list.add(new KVPair(KEY_EXPIRES_IN, dataObj.getString(KEY_EXPIRES_IN)));
-                    list.add(new KVPair(KEY_REFRESH_TOKEN, dataObj.getString(KEY_REFRESH_TOKEN)));
+//                    list.add(new KVPair(KEY_EXPIRES_IN, dataObj.getString(KEY_EXPIRES_IN)));
+//                    list.add(new KVPair(KEY_REFRESH_TOKEN, dataObj.getString(KEY_REFRESH_TOKEN)));
                     list.add(new KVPair(KEY_TOKEN_TYPE, dataObj.getString(KEY_TOKEN_TYPE)));
                     securePreferences.putValues(list);
 
+                    MotherActivity.access_token = dataObj.getString(KEY_ACCESS_TOKEN);
                     // Saves the time when token is created
                     final SharedPreferences preferences = getDefaultSharedPreferences(context);
-                    preferences.edit().putLong(TOKEN_SAVED_TIME, System.currentTimeMillis()).apply();
+//                    preferences.edit().putLong(TOKEN_SAVED_TIME, System.currentTimeMillis()).apply();
 
                     // Immediately after contacting OAuth2 Server proceed to resource server for login
                     // Creating new request for the resource server
@@ -615,7 +642,7 @@ public class SessionManager {
 
                                 // Adding current user to the database
                                 DataManager dataManager = DataManager.getInstance(context);
-                                UserProfile userProfile = new UserProfile(object.getInt(KEY_USER_ID),
+                                UserProfile userProfile = new UserProfile(object.getLong(KEY_USER_ID),
                                         object.getString(KEY_FIRST_NAME),
                                         object.getString(KEY_LAST_NAME),
                                         object.getString(KEY_EMAIL),
@@ -673,7 +700,7 @@ public class SessionManager {
                     });
                     // Setting request params and sending POST request
                     resRequest.addParam(UrlData.PARAM_EMAIL, email);
-                    resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(PREF_DEVICE_ID));
+                    resRequest.addParam(UrlData.PARAM_DEVICE_ID, securePreferences.getString(KEY_DEVICE_ID));
 //                    resRequest.addParam(UrlData.PARAM_ACCESS_TOKEN, mSecurePreferences.getString(KEY_ACCESS_TOKEN));
                     resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
                             String.format("Bearer %s", securePreferences.getString(KEY_ACCESS_TOKEN)));
@@ -689,7 +716,6 @@ public class SessionManager {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                getDefaultSharedPreferences(context).edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
                 Log.e(TAG, error.getLocalizedMessage(), error);
                 // TODO - error in response
             }
@@ -727,10 +753,13 @@ public class SessionManager {
     public static void clearUserCredentials(Context context, SecurePreferences securePreferences) {
         SharedPreferences preferences = getDefaultSharedPreferences(context);
         DataManager dataManager = DataManager.getInstance(context);
-        dataManager.removeUserProfile(preferences.getLong(DataManager.CUR_USERPROFILE_ID, -1));
+
+        // Removing current user profile from db
+        dataManager.removeUserProfile(preferences.getLong(DataManager.KEY_CUR_USER_ID, -1));
+
+        // Removing current user  profile from prefs
         dataManager.setCurrentUserProfile(preferences, null);
 
-        preferences.edit().remove(DataManager.CUR_USERPROFILE_ID).remove(TOKEN_SAVED_TIME).commit();
 
         // Clearing user credentials
         securePreferences.removeValue(KEY_ACCESS_TOKEN);
@@ -745,108 +774,7 @@ public class SessionManager {
         context.getContentResolver().delete(DataContract.BulletinEntry.CONTENT_URI, null, null);
         context.getContentResolver().delete(DataContract.MessageEntry.CONTENT_URI, null, null);
         context.getContentResolver().delete(DataContract.NotificationEntry.CONTENT_URI, null, null);
-    }
-
-    /**
-     * Method for downloading application id from the server and saving it in securePrefs or reading it from file if it already exists
-     *
-     * @param activity a context used for opening FileOutput etc
-     * @return the status code. (STATUS_OK: {@value #STATUS_OK}; STATUS_ERROR_APPID: {@value #STATUS_ERROR_APPID})
-     */
-    public int getInstallationID(Context activity, SecurePreferences securePreferences) {
-
-//        // try to read from file
-//        String device_id = readFromFile(activity);
-//
-//        // if nothing was red it means that this is the first launch
-//        // of the application
-//        // so request device id from the server
-//        if (device_id.equals("")) {
-//
-//            try {
-//
-//                // TODO - use volley
-//                // http things, get device_id
-//                String result = null;
-////                HTTP http = new HTTP(UrlData.FIRST_RUN_URL, "GET");
-////                result = http.getData();
-//
-//                // if returned null
-//                if (result == null) throw new Exception();
-//
-//                else {
-//                    // if data is here, see if it was successful
-//                    // if not show error screen
-//                    // else write it to file
-//                    JSONObject jsonObject = new JSONObject(result);
-//
-//                    if (jsonObject.getBoolean("success")) {
-//
-//                        FileOutputStream fOut = activity.openFileOutput(APPID_FILE_NAME, Context.MODE_PRIVATE);
-//                        OutputStreamWriter osw = new OutputStreamWriter(fOut);
-//                        osw.write(jsonObject.getString("device_id"));
-//                        osw.flush();
-//                        osw.close();
-//
-//                        mSecurePreferences.put("device_id", jsonObject.getString("device_id"));
-//                        Log.d(TAG, jsonObject.getString("device_id"));
-//
-//                        return STATUS_OK;
-//
-//                    } else throw new Exception();
-//
-//                }
-//
-//            } catch (Exception e) {
-//                return STATUS_ERROR_APPID;
-//            }
-//
-//        } else mSecurePreferences.put("device_id", device_id);
-
-        if (securePreferences.getString(SessionManager.PREF_DEVICE_ID) != null)
-            return STATUS_OK;
-        else {
-            return STATUS_ERROR_APPID;
-        }
-    }
-
-
-
-    public String readFromFile(Context context) {
-        StringBuffer datax = new StringBuffer("");
-
-        try {
-            FileInputStream fIn = context.openFileInput(APPID_FILE_NAME);
-            InputStreamReader isr = new InputStreamReader(fIn);
-            BufferedReader buffreader = new BufferedReader(isr);
-
-            String readString = buffreader.readLine();
-            while (readString != null) {
-                datax.append(readString);
-                readString = buffreader.readLine();
-            }
-
-            isr.close();
-        } catch (Exception e) {
-        }
-
-        return datax.toString();
-    }
-
-    /** Method for setting the {@link #ACCESS_TOKEN}
-     * @param string the access_token value to be set
-     */
-    public void setAccessToken(String string) {
-        ACCESS_TOKEN = string;
-    }
-
-    /**
-     * Method for returning {@link #ACCESS_TOKEN};
-     *
-     * @return the access_token from this class; empty string if there is no access_token
-     */
-    public String getAccessToken() {
-        return ACCESS_TOKEN;
+        context.getContentResolver().delete(DataContract.NotUploadedEntry.CONTENT_URI, null, null);
     }
 
     ///////////////// DATA INTERNET METHODS ///////////////////////////////////////////////////////
@@ -899,14 +827,17 @@ public class SessionManager {
     }
 
 
-    /** Method for uploading failed data to the server */
-    public void uploadFailedData() {
+    /** Method for uploading failed data to the server
+     *
+     * @param context used to start the upload service if it isn't started
+     */
+    public void uploadFailedData(Context context) {
         Log.d(TAG, "Uploading failed data.");
 
         if (mUploadService != null && mConnection != null)
             mUploadService.uploadFailedData();
         else {
-            startUploadService();
+            startUploadService(context);
         }
     }
 
@@ -914,28 +845,30 @@ public class SessionManager {
      * Method for uploading new bulletin to the server
      * @param b the {@link Bulletin} to be uploaded
      * @param dataManager the {@link DataManager} instance used for adding bulletin to the database
+     * @param context used to start the upload service if it isn't started
+     * @param accessToken access token used to authorize with the server
      */
-    public void postNewBulletin(Bulletin b, DataManager dataManager) {
+    public void postNewBulletin(Bulletin b, DataManager dataManager, String accessToken, Context context) {
         Log.d(TAG, "Posting new bulletin.");
 
         // First add the bulletin to the database then upload it to the server
         dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
 
         if (mUploadService != null && mConnection != null)
-            mUploadService.uploadBulletin(b);
+            mUploadService.uploadBulletin(b, accessToken);
         else {
             dataManager.updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
-            startUploadService();
+            startUploadService(context);
         }
     }
 
     /**
-     * Method for downloading news feed from the server and all data around it
+     * Method for downloading and parsing news feed from the server, and all data around it
      * @param start the start position of the bulletin
      * @param count the total bulletin count that needs to be downloaded in a single burst
-     * @param dm the {@link DataManager} instance used for adding data to the database
+     * @param context the Context used for notifying when the parsing result is complete
      */
-    public void getNewsFeed(int start, int count, final DataManager dm) {
+    public void getNewsFeed(int start, int count, Context context) {
 
         Log.d(TAG, "Downloading news feed. Start position=".concat(Integer.toString(start))
                 .concat("; Count=").concat(Integer.toString(count)));
@@ -951,12 +884,13 @@ public class SessionManager {
             return;
         }
 
+        final WeakReference<Context> ref = new WeakReference<Context>(context);
         MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                // Parse data in new thread
-                JSONParserAs jsonParserAS = new JSONParserAs(mAppContext);
-                jsonParserAS.execute(response);
+                if (ref.get() != null) {
+                     new JSONParserAs(ref.get()).execute(response);
+                }
             }
 
         }, new Response.ErrorListener() {
@@ -965,7 +899,7 @@ public class SessionManager {
                 Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
             }
         });
-        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", ACCESS_TOKEN));
+        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", MotherActivity.access_token));
 
         mRequestQueue.add(request);
     }
@@ -979,7 +913,7 @@ public class SessionManager {
      */
     public void getNewsFeed(final Context context) {
         int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
-        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, DataManager.getInstance(context));
+        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -989,7 +923,7 @@ public class SessionManager {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////// DEBUG/TEST //////////////////////////////////////////////////////////////////////////////////////
 
-    private void login(SecurePreferences securePreferences, MainActivity context) {
+    public void debugLogin(SecurePreferences securePreferences, MainActivity context) {
         ArrayList<KVPair> list = new ArrayList<KVPair>();
         list.add(new KVPair(KEY_ACCESS_TOKEN, "radovan"));
         list.add(new KVPair(KEY_EXPIRES_IN, "100000000000"));
