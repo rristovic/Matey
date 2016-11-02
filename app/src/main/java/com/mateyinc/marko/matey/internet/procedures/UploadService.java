@@ -14,9 +14,12 @@ import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 import static com.mateyinc.marko.matey.data.DataManager.STATUS_RETRY_UPLOAD;
 
@@ -75,10 +78,10 @@ public class UploadService extends Service {
      * Method for uploading Bulletin to the server
      * @param b the bulletin to be uploaded
      */
-    public void uploadBulletin(final Bulletin b, String accessToken) {
+    public void uploadBulletins(final Bulletin b, String accessToken) {
         SessionManager sessionManager = SessionManager.getInstance(this);
         final DataManager dataManager = DataManager.getInstance(this);
-        MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_BULLETIN_ROUTE,
+        MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_BULLETINS_ROUTE,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -101,13 +104,37 @@ public class UploadService extends Service {
                 }
         );
 
-        if (accessToken != null && accessToken.length() != 0)
-            uploadRequest.setAuthHeader(accessToken);
-        else
-            DataManager.getInstance(this).updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
-
+        uploadRequest.setAuthHeader(accessToken);
         uploadRequest.addParam(UrlData.PARAM_INTEREST_ID, "1");
         uploadRequest.addParam(UrlData.PARAM_TEXT_DATA, b.getMessage());
+
+        sessionManager.addToRequestQueue(uploadRequest);
+    }
+
+    /**
+     * Method for uploading profiles that are followed by the current user to the server
+     * @param profileList the list of profiles to be uploaded
+     */
+    public void uploadFollowedFriends(final ArrayList<UserProfile> profileList, String accessToken) {
+        SessionManager sessionManager = SessionManager.getInstance(this);
+        MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_FOLLOWED_FRIENDS,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+//                        dataManager.updateBulletinServerStatus(b, STATUS_RETRY_UPLOAD);
+                        Log.e(TAG, error.getLocalizedMessage(), error);
+                        // TODO - finish error handling
+                    }
+                }
+        );
+        uploadRequest.setAuthHeader(accessToken);
+        uploadRequest.setBodyFromFollowedProfiles(profileList);
 
         sessionManager.addToRequestQueue(uploadRequest);
     }

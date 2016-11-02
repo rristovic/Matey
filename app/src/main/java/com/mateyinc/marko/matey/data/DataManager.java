@@ -292,8 +292,9 @@ public class DataManager {
      * Method for adding list of user profile to the database
      *
      * @param list the list of user profiles ready for the database
+     * @param areFollowed indicates if these profiles are followed by the current user
      */
-    public void addUserProfiles(ArrayList<UserProfile> list) {
+    public void addUserProfiles(ArrayList<UserProfile> list, boolean areFollowed) {
         Vector<ContentValues> cVVector = new Vector<ContentValues>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
 
         for (UserProfile profile : list) {
@@ -306,6 +307,8 @@ public class DataManager {
             userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, profile.getProfilePictureLink());
             userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, profile.isFriend() ? 1 : 0);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
+            if(areFollowed)
+                userValues.put(ProfileEntry.COLUMN_IS_FRIEND, true);
 
             cVVector.add(userValues);
             Log.d(TAG, "Bulletin added: " + userValues.toString());
@@ -350,7 +353,7 @@ public class DataManager {
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
             userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
-            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend ? 1 : 0);
+            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
 
             Uri insertedUri = mAppContext.getContentResolver().insert(
@@ -390,7 +393,7 @@ public class DataManager {
         userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend ? 1 : 0);
+        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend);
         userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,
@@ -454,6 +457,25 @@ public class DataManager {
 
     public void removeUserProfile(UserProfile userProfile) {
         removeUserProfile(userProfile.getUserId());
+    }
+
+    public void updateProfileServerStatus(UserProfile userProfile, int serverStatus){
+        if(STATUS_RETRY_UPLOAD == serverStatus){
+            addNotUploadedActivity(userProfile, CLASS_USERPROFILE);
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(ProfileEntry.COLUMN_SERVER_STATUS, serverStatus);
+
+        int numOfUpdatedRows = mAppContext.getContentResolver().update(ProfileEntry.CONTENT_URI, values,
+                ProfileEntry._ID + " = ?", new String[]{Long.toString(userProfile.getUserId())});
+
+        if (numOfUpdatedRows != 1) {
+            Log.e(TAG, "Error updating bulletin: PostID=" + userProfile.getUserId());
+        } else {
+            String debugtext = "Bulletin updated: ID=" + userProfile.getUserId();
+            Log.d("BulletinManager", debugtext);
+        }
     }
 
 
@@ -774,7 +796,7 @@ public class DataManager {
                 BULLETIN_ORDER);
 
         if (msgCursor != null && msgCursor.moveToFirst()) {
-            updateBulletin(postId, userId, userName, userLastName, text, date, numOfReplies, attachments);
+            updateBulletin(postId, userId, userName, userLastName, text, date, numOfReplies, attachments, serverStatus);
         } else {
             ContentValues values = new ContentValues();
 
@@ -814,7 +836,7 @@ public class DataManager {
      * Method for updating bulletin in db
      */
     public void updateBulletin(long postId, long userId, String userName, String userLastName, String text, Date date,
-                               int numOfReplies, LinkedList<Bulletin.Attachment> attachments) {
+                               int numOfReplies, LinkedList<Bulletin.Attachment> attachments, int serverStatus) {
 
         ContentValues values = new ContentValues();
 
@@ -825,6 +847,7 @@ public class DataManager {
         values.put(DataContract.BulletinEntry.COLUMN_DATE, date.getTime());
         values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, numOfReplies);
         values.put(DataContract.BulletinEntry.COLUMN_ATTACHMENTS, parseAttachmentsToJSON(attachments));
+        values.put(BulletinEntry.COLUMN_SERVER_STATUS, serverStatus);
 
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
                 DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(postId)});

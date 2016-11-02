@@ -343,7 +343,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SessionManager.getInstance(mContext).postNewBulletin(bulletin, mManager, MotherActivity.access_token, mContext);
+                SessionManager.getInstance(mContext).uploadNewBulletin(bulletin, mManager, MotherActivity.access_token, mContext);
                 mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
             }
         });

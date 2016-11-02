@@ -40,6 +40,10 @@ public class AddFriendsAdapter extends RecycleCursorAdapter {
         return mFriendsAdded;
     }
 
+    public LinkedList<UserProfile> getAllFriends(){
+        return new LinkedList<UserProfile>(mSuggestedFriends);
+    }
+
     @Override
     public int getItemCount() {
         return mSuggestedFriends.size();
@@ -62,7 +66,6 @@ public class AddFriendsAdapter extends RecycleCursorAdapter {
 
             @Override
             public void onAddFriendClicked(Button caller, View rootView) {
-                // TODO - finish
                 int pos = mRecycleView.getChildAdapterPosition(rootView);
                 UserProfile profile = mSuggestedFriends.get(pos);
                 mFriendsAdded.add(profile);

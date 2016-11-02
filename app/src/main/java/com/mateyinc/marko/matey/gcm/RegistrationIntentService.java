@@ -22,7 +22,6 @@ public class RegistrationIntentService extends IntentService {
 
     private static final String TAG = RegistrationIntentService.class.getSimpleName();
     private static final String[] TOPICS = {"global"};
-    private String device_id;
 
     public RegistrationIntentService() {
         super(TAG);
@@ -48,6 +47,7 @@ public class RegistrationIntentService extends IntentService {
 
 //            sendRegistrationToServer(token);
             // Saving tokens
+
             if (sharedPreferences.getString(NEW_GCM_TOKEN, null) == null)
                 sharedPreferences.edit().putString(NEW_GCM_TOKEN, token).commit();
             else {
@@ -61,7 +61,7 @@ public class RegistrationIntentService extends IntentService {
             // You should store a boolean that indicates whether the generated token has been
             // sent to your server. If the boolean is false, send the token to your server,
             // otherwise your server should have already received the token.
-            sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+//            sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, true).apply();
             // [END register_for_gcm]
         } catch (Exception e) {
             Log.d(TAG, "Failed to complete token refresh", e);

@@ -44,13 +44,16 @@ public class UrlData {
     // Data upload params and urls //////////////////////////////////////////////////////
 
     /** Url for uploading new post to the server. */
-    public static final String POST_NEW_BULLETIN_ROUTE = ACCESS_BASE_URL.concat("/post/add");
-
+    public static final String POST_NEW_BULLETINS_ROUTE = ACCESS_BASE_URL.concat("/post/add");
     /** Interest_id parameter of the selected interest in new post */
     public static final String PARAM_INTEREST_ID = "interest_id";
-
     /** Text param of new post */
     public static final String PARAM_TEXT_DATA = "text";
+
+    /** Url for uploading new followed friends list to the server. */
+    public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
+    /** User_id param of the followed user */
+    public static final String PARAM_FOLLOWED_USER_ID = "to_user";
     /////////////////////////////////////////////////////////////////////////////////////
 
     // Register new user

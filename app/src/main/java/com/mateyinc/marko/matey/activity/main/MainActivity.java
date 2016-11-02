@@ -154,7 +154,7 @@ public class MainActivity extends MotherActivity {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mSessionManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(NEW_GCM_TOKEN));
+                mSessionManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(EXTRA_GCM_TOKEN));
             }
         };
 
@@ -228,10 +228,10 @@ public class MainActivity extends MotherActivity {
                     // If the device isn't ready, try registering with the server again
                     if(!mDeviceReady)
                         mSessionManager.startSession(MainActivity.this);
+
                     // Showing login form
                     showLoginForm();
                 } else {
-
                     String email = etEmail.getText().toString().toLowerCase();
                     email = email.trim();
                     String pass = etPass.getText().toString().toLowerCase();
@@ -245,10 +245,10 @@ public class MainActivity extends MotherActivity {
                     Bundle bundle = new Bundle();
 
                     if (!isValidEmailAddress(email)) {
-                        bundle.putString("message", "Wrong email format.");
+                        bundle.putString("message", getString(R.string.email_error_msg));
                         showDialog(1004, bundle);
                     } else if (!isValidPassword(pass)) {
-                        bundle.putString("message", "Password needs to be at least 5 characters long.");
+                        bundle.putString("message", getString(R.string.password_error_msg));
                         showDialog(1004, bundle);
                     } else if (!mDeviceReady){
                             bundle.putString("message", getString(R.string.server_not_responding_msg));
@@ -301,6 +301,7 @@ public class MainActivity extends MotherActivity {
                     Bundle bundle = new Bundle();
                     bundle.putString("message", getString(R.string.server_not_responding_msg));
                     showDialog(1004, bundle);
+                    mSessionManager.startSession(MainActivity.this);
                 } else {
                     fbAnswerType = 0;
                     LoginManager.getInstance().logInWithReadPermissions(MainActivity.this,
@@ -614,9 +615,7 @@ public class MainActivity extends MotherActivity {
      * If the user is already logged in, access_token, user_id and device_id are already stored in {@link MotherActivity}
      */
     public void loggedIn() {
-        SessionManager manager = SessionManager.getInstance(this);
-//        manager.setAccessToken(getSecurePreferences().getString(KEY_ACCESS_TOKEN));
-        manager.startUploadService(this);
+        mSessionManager.startUploadService(this);
 
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
         startActivity(intent);
@@ -626,8 +625,7 @@ public class MainActivity extends MotherActivity {
 
     /** Method to call when login process is finished and has suggested friends list*/
     public void loggedInWithSuggestedFriends() {
-        SessionManager manager = SessionManager.getInstance(this);
-        manager.startUploadService(this);
+        mSessionManager.startUploadService(this);
 
         Intent intent = new Intent(MainActivity.this, AddFriendsActivity.class);
         startActivity(intent);
@@ -790,7 +788,7 @@ public class MainActivity extends MotherActivity {
                 mRegFormVisible = false;
                 return true;
             } else {
-                mSessionManager.stopAllNetworking();
+//                mSessionManager.stopAllNetworking();
                 return super.onKeyDown(keyCode, event);
             }
 

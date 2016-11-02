@@ -7,18 +7,26 @@
     android:layout_height="match_parent"
     tools:context="com.mateyinc.marko.matey.activity.AddFriendsActivity">
 
+
+    <Button
+        android:id="@+id/btnFinish"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:text="@string/finish_btn_label" />
+
+    <Button
+        android:id="@+id/btnAddAllFriends"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_above="@+id/btnFinish"
+        android:text="@string/add_all_btn_label" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvSuggestedFriends"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/btnAddAllFriends"
         app:layoutManager="LinearLayoutManager" />
-
-    <Button
-        android:id="@+id/btnAddAllFriends"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_alignParentBottom="true"
-        android:text="@string/add_all_btn_label" />
 
 </RelativeLayout>

@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -35,6 +34,7 @@ import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.JSONParserAs;
+import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.UploadService;
@@ -59,7 +59,6 @@ import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
-import static com.mateyinc.marko.matey.activity.main.MainActivity.OLD_GCM_TOKEN;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 import static com.mateyinc.marko.matey.inall.MotherActivity.access_token;
 import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
@@ -189,6 +188,11 @@ public class SessionManager {
             Intent intent = new Intent(context, UploadService.class);
             context.startService(intent);
             mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        } else if (mUploadService == null){
+            // If service gets destroyed in unusual way, just restart it
+            Context context = c.getApplicationContext();
+            Intent intent = new Intent(context, UploadService.class);
+            context.startService(intent);
         }
     }
 
@@ -206,11 +210,6 @@ public class SessionManager {
         }
     }
 
-    /** Method for stopping all pending and running downloads */
-    public void stopAllNetworking(){
-        mRequestQueue.cancelAll("");
-    }
-
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -224,81 +223,59 @@ public class SessionManager {
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-            // TODO - finish error handling
+            // Before uploading anything, checking for mUploadService is needed;
             mUploadService = null;
-            Log.e(TAG, "Service disconnected");
+            Log.e(TAG, "Service: " + arg0 + " - has been disconected");
         }
     };
 
-    private void showAlertDialog(Context context, String message, DialogInterface.OnClickListener listener){
-        new AlertDialog.Builder(context)
-                .setMessage(message)
-                .setIcon(R.drawable.matey_logo)
-                .setNeutralButton("OK", listener).show();
+    /** Method for stopping all pending and running downloads */
+    public void stopAllNetworking(){
+        mRequestQueue.cancelAll("");
     }
 
     /** Helper method that checks all the required parameters for starting a new session with the server */
-    public void startSession(final MainActivity mainActivity){
-
+    public void startSession(final MainActivity activity){
         // If there is no internet connection, show alert dialog
-        if(!Util.isInternetConnected(mainActivity)){
-           showAlertDialog(mainActivity, mainActivity.getString(R.string.no_internet_msg),
-                   new DialogInterface.OnClickListener() {
+        if(!Util.isInternetConnected(activity)){
+           Util.showAlertDialog(activity, activity.getString(R.string.no_internet_msg)
+                   , null, new DialogInterface.OnClickListener() {
                        @Override
                        public void onClick(DialogInterface dialog, int which) {
-                           mainActivity.endLoadingAnim();
-                           mainActivity.mDeviceReady = false;
+                           activity.endLoadingAnim();
+                           activity.mDeviceReady = false;
+                           dialog.dismiss();
                        }
                    });
             return;
         }
 
         // If user is logged in, proceed to next activity
-        if(isUserLoggedIn(mainActivity)) {
-            mainActivity.loggedIn();
+        if(isUserLoggedIn(activity)) {
+            activity.loggedIn();
             return;
         }
 
-        final WeakReference<MainActivity> reference = new WeakReference<MainActivity>(mainActivity);
-        if (checkPlayServices(reference.get())) {
+        if (checkPlayServices(activity)) {
             // Because this is the initial creation of the app, we'll want to be certain we have
             // a token. If we do not, then we will start the IntentService that will register this
             // application with GCM.
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    MainActivity activity = reference.get();
-                    SharedPreferences sharedPreferences;
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+            boolean sentToken = sharedPreferences.getBoolean(SENT_TOKEN_TO_SERVER, false);
 
-                    if (activity != null) {
-                        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
-                    } else {
-                        // The user has exited the app
-                        return;
-                    }
-
-                    boolean sentToken = sharedPreferences.getBoolean(SENT_TOKEN_TO_SERVER, false);
-
-                    // TODO - rework the code on app upgrade to get new register
-                    if (!sentToken) {
-                        // Start IntentService to register this application with GCM.
-                        Intent intent = new Intent(activity, RegistrationIntentService.class);
-                        activity.startService(intent);
-
-                    } else if (activity.getSecurePreferences().getString(KEY_DEVICE_ID) == null) {
-                        // The device has already been registered with GCM but not with the server
-                        SessionManager.this.registerDevice(activity, activity.getSecurePreferences(),
-                                sharedPreferences.getString(NEW_GCM_TOKEN, ""));
-                    } else {
-                        // The device is registered both with GCM and with the server
-                        // Proceed further
-                        activity.mDeviceReady = true;
-                    }
-                }
-            };
-
-            // Add runnable to the executor queue
-            mExecutor.execute(r);
+            if (!sentToken) {
+                // Start IntentService to register this application with GCM.
+                Intent intent = new Intent(activity, RegistrationIntentService.class);
+                activity.startService(intent);
+            } else if (activity.getSecurePreferences().getString(KEY_DEVICE_ID) == null) {
+                // The device has already been registered with GCM but not with the server
+                SessionManager.this.registerDevice(activity, activity.getSecurePreferences(),
+                        sharedPreferences.getString(NEW_GCM_TOKEN, ""));
+            } else {
+                // The device is registered both with GCM and with the server
+                // Proceed further
+                activity.mDeviceReady = true;
+            }
         }
     }
 
@@ -312,8 +289,6 @@ public class SessionManager {
         return  user_id != -1;
     }
 
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-
     /**
      * Check the device to make sure it has the Google Play Services APK. If
      * it doesn't, display a dialog that allows users to download the APK from
@@ -324,91 +299,80 @@ public class SessionManager {
         int resultCode = apiAvailability.isGooglePlayServicesAvailable(activity);
         if (resultCode != ConnectionResult.SUCCESS) {
             if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                apiAvailability.getErrorDialog(activity, resultCode, 1000)
                         .show();
             } else {
                 Log.i(TAG, "This device is not supported.");
-                new AlertDialog.Builder(activity)
-                        .setTitle(R.string.error_tittle)
-                        .setMessage(R.string.nogcm_message)
-                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                Util.showAlertDialog(activity, activity.getString(R.string.error_tittle),
+                        activity.getString(R.string.nogcm_message), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 activity.finish();
                             }
-                        }).show();
-            }
+
+                        });
+                }
             return false;
         }
         return true;
     }
 
-    public void registerDevice( MainActivity activity, SecurePreferences securePreferences, final String gcmToken){
+    public void registerDevice(MainActivity activity, SecurePreferences securePreferences, final String gcmToken){
         final WeakReference<MainActivity> reference = new WeakReference<>(activity);
         final WeakReference<SecurePreferences> prefRef = new WeakReference<SecurePreferences>(securePreferences);
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
 
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                MainActivity activity = reference.get();
+        // GCM complete with success
+        if (gcmToken != null && gcmToken.length() != 0) {
 
-                final SharedPreferences sharedPreferences;
+            // No old token found
+//            if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
+                String url = UrlData.REGISTER_DEVICE;
+                // Request a string response from the provided URL.
+                MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        MainActivity activity = reference.get();
+                        SecurePreferences securePreferences = prefRef.get();
+                        try {
+                            JSONObject object = new JSONObject(response);
+                            String device_id = object.getString(KEY_DEVICE_ID);
 
-                if (activity != null)
-                    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
-                else
-                    return;
+                            securePreferences.put(KEY_DEVICE_ID, device_id);
+                            MotherActivity.device_id = device_id;
 
-                // GCM complete with success
-                if (gcmToken != null && gcmToken.length() != 0) {
+                            activity.mDeviceReady = true;
+                            sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, true).apply();
 
-                    // No old token found
-                    if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
-
-                        String url = UrlData.REGISTER_DEVICE;
-                        // Request a string response from the provided URL.
-                        MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                MainActivity activity = reference.get();
-                                SecurePreferences securePreferences = prefRef.get();
-                                try {
-                                    JSONObject object = new JSONObject(response);
-                                    String device_id = object.getString(KEY_DEVICE_ID);
-                                    securePreferences.put(KEY_DEVICE_ID, device_id);
-                                    MotherActivity.device_id = device_id;
-                                    activity.mDeviceReady = true;
-                                    Log.d(TAG, "Device id=" + object.getString(KEY_DEVICE_ID));
-                                } catch (JSONException e) {
-                                    Log.e(TAG, e.getLocalizedMessage(), e);
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                MainActivity activity = reference.get();
-
-                                if (activity != null) {
-                                    activity.mDeviceReady = false;
-                                    activity.endLoadingAnim();
-                                }
-                                Log.e(TAG, error.getLocalizedMessage(), error);
-                                // TODO - error in response
-                            }
-                        });
-                        stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
-
-                        // Add the request to the RequestQueue.
-                        mInstance.addToRequestQueue(stringRequest);
-                        activity = null;
-                    } else {
-                        // TODO - finish
+                            Log.d(TAG, "Device id=" + object.getString(KEY_DEVICE_ID));
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getLocalizedMessage(), e);
+                        }
                     }
-                }
-            }
-        };
-
-        mExecutor.execute(r);
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        MainActivity activity = reference.get();
+                        if (activity != null) {
+                            activity.mDeviceReady = false;
+                            activity.endLoadingAnim();
+                        }
+                        Log.e(TAG, error.getLocalizedMessage(), error);
+                        // TODO - error in response
+                    }
+                });
+                stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
+                // Add the request to the RequestQueue.
+                mInstance.addToRequestQueue(stringRequest);
+                activity = null;
+//            } else {
+                // TODO - finish
+//            }
+        } else {
+            activity.mDeviceReady = false;
+            activity.endLoadingAnim();
+            sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
+        }
     }
 
     /**
@@ -667,6 +631,7 @@ public class SessionManager {
                                         list.add(profile);
                                     }
 
+                                    // Add suggested friends list only in memory, not in db
                                     dataManager.setSuggestedFriends(list);
 
                                     context.loggedInWithSuggestedFriends();
@@ -842,20 +807,20 @@ public class SessionManager {
     }
 
     /**
-     * Method for uploading new bulletin to the server
+     * Helper method for uploading new bulletin to the server, also adds it to the database using dataManager
      * @param b the {@link Bulletin} to be uploaded
      * @param dataManager the {@link DataManager} instance used for adding bulletin to the database
      * @param context used to start the upload service if it isn't started
      * @param accessToken access token used to authorize with the server
      */
-    public void postNewBulletin(Bulletin b, DataManager dataManager, String accessToken, Context context) {
+    public void uploadNewBulletin(Bulletin b, DataManager dataManager, String accessToken, Context context) {
         Log.d(TAG, "Posting new bulletin.");
 
         // First add the bulletin to the database then upload it to the server
         dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
 
         if (mUploadService != null && mConnection != null)
-            mUploadService.uploadBulletin(b, accessToken);
+            mUploadService.uploadBulletins(b, accessToken);
         else {
             dataManager.updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
             startUploadService(context);
@@ -914,6 +879,23 @@ public class SessionManager {
     public void getNewsFeed(final Context context) {
         int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
         getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
+    }
+
+    /**
+     * Method used to upload followed friends list, by the current user, to the server;
+     * @param addedFriends list of friends to be uploaded
+     * @param accessToken access token used to authorise with the server
+     * @param context used to start upload service if it isn't started
+     */
+    public void uploadFollowedFriends(ArrayList<UserProfile> addedFriends, String accessToken, Context context){
+        Log.d(TAG, "Uploading added friends.");
+
+        if (mUploadService != null && mConnection != null)
+            mUploadService.uploadFollowedFriends(addedFriends, accessToken);
+        else {
+            // TODO - finish error nadling
+            startUploadService(context);
+        }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////

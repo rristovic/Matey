@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey;
+package com.mateyinc.marko.matey.inall;
 
 import android.app.Application;
 import android.content.Context;
@@ -10,7 +10,6 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
