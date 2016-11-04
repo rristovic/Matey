@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.content.LocalBroadcastManager;
@@ -43,12 +42,9 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.AddFriendsActivity;
-import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.SessionManager;
@@ -61,8 +57,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import static com.mateyinc.marko.matey.internet.SessionManager.KEY_ACCESS_TOKEN;
 
 @SuppressLint("NewApi")
 public class MainActivity extends MotherActivity {
@@ -179,8 +173,6 @@ public class MainActivity extends MotherActivity {
                     public void onSuccess(final LoginResult loginResult) {
 
                         final AccessToken accessToken = loginResult.getAccessToken();
-                        final Profile profile = Profile.getCurrentProfile();
-
                         final String[] email = new String[1];
                         GraphRequest request = GraphRequest.newMeRequest(
                                 loginResult.getAccessToken(),
@@ -194,9 +186,8 @@ public class MainActivity extends MotherActivity {
                                             email[0] = (object.getString("email"));
 
                                             SessionManager.getInstance(MainActivity.this)
-                                                    .loginWithFacebook(accessToken.getToken(), profile.getId(),
+                                                    .loginWithFacebook(accessToken.getToken(),
                                                             email[0], getSecurePreferences(), MainActivity.this);
-//
                                         } catch (JSONException e) {
                                             Log.e(TAG, e.getLocalizedMessage(), e);
                                         }
@@ -268,6 +259,7 @@ public class MainActivity extends MotherActivity {
                     // If the device isn't ready, try registering with the server again
                     if (!mDeviceReady)
                         mSessionManager.startSession(MainActivity.this);
+                    
                     // Showing reg form
                     showRegForm();
                 } else {
@@ -288,7 +280,7 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", getString(R.string.server_not_responding_msg));
                         showDialog(1004, bundle);
                     } else {
-                        SessionManager.getInstance(MainActivity.this).registerWithVolley(email, pass, MainActivity.this);
+                        SessionManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, email, pass);
                     }
                 }
             }
@@ -313,7 +305,13 @@ public class MainActivity extends MotherActivity {
 
     private void setAutocompleteEmailValues() {
         Pattern emailPattern = Patterns.EMAIL_ADDRESS;
-        Account[] accounts = AccountManager.get(this).getAccounts();
+        Account[] accounts;
+        try {
+            accounts = AccountManager.get(this).getAccounts();
+        } catch (SecurityException e){
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return;
+        }
 
         Set<String> suggestedEmails = new HashSet<String>();
 
@@ -610,26 +608,15 @@ public class MainActivity extends MotherActivity {
                 });
     }
 
-    /**
-     * Method to call when login process is finished;
-     * If the user is already logged in, access_token, user_id and device_id are already stored in {@link MotherActivity}
-     */
-    public void loggedIn() {
-        mSessionManager.startUploadService(this);
-
-        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-        startActivity(intent);
-        finish();
-    }
 
 
     /** Method to call when login process is finished and has suggested friends list*/
     public void loggedInWithSuggestedFriends() {
-        mSessionManager.startUploadService(this);
 
-        Intent intent = new Intent(MainActivity.this, AddFriendsActivity.class);
-        startActivity(intent);
-        finish();
+    }
+
+    public void loggedIn() {
+
     }
 
     //////////////////////////////////////////////////////////////////////////

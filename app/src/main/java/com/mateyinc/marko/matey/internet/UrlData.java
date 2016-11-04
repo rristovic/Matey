@@ -82,6 +82,10 @@ public class UrlData {
     // Facebook login
     public final static String FACEBOOK_LOGIN = OAUTH_LOGIN;
     public static final  String PARAM_GRANT_TYPE_SOCIAL = "social_exchange";
+    // Path for merging standard account with facebook account
+    public final static String FACEBOOK_MERGE = LOGIN_USER.concat("/merge/facebook");
+    // Path for merging facebook account with newly created standard account
+    public final static String STD_EMAIL_MERGE = LOGIN_USER.concat("/merge/standard");
 
 
 

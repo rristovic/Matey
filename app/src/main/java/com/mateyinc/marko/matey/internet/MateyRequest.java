@@ -21,6 +21,19 @@ import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
 public class MateyRequest extends StringRequest {
     protected static final String TAG = MateyRequest.class.getSimpleName();
 
+    /** Key for error description object in JSON retrieved from the server */
+    public static final String KEY_ERROR_DESC = "error_description";
+    /** Key for error type object in JSON retrieved from the server */
+    public static final String KEY_ERROR_TYPE = "error";
+    /** Key for email object in JSON retrieved from the server */
+    public static final String KEY_ERROR_EMAIL = "email";
+
+    /** The types of error retrieved from the server */
+    public interface ErrorType {
+        /** Error type: merge_offer; when the account has already been created, merge proposition is presented */
+        String MERGE = "merge_offer";
+    }
+
     private Map<String, String> mParams;
     private Map<String, String> authHeader = new LinkedHashMap<>();
     private String mBody;

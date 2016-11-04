@@ -139,6 +139,30 @@ public class Util {
                 .show();
     }
 
+    /**
+     * Helper method to build an {@link AlertDialog} and show it in the provided context
+     *
+     * @param context the {@link Context} in which to show the dialog
+     * @param message the message string for the dialog
+     * @param title the dialog title
+     * @param firstListener the first button callback listener
+     * @param firstBtnTitle the first button tittle
+     * @param secondListener the second button callback listener
+     * @param secondBtnTittle the second button title
+     */
+    public static void showTwoBtnAlertDialog(Context context, String message, String title, DialogInterface.OnClickListener firstListener, String firstBtnTitle, DialogInterface.OnClickListener secondListener, String secondBtnTittle){
+        new AlertDialog.Builder(context)
+                .setMessage(message)
+                .setIcon(R.drawable.matey_logo)
+                .setPositiveButton(firstBtnTitle, firstListener)
+                .setNegativeButton(secondBtnTittle, secondListener)
+                .setCancelable(false)
+                .setTitle(title)
+                .show();
+    }
+
+
+
     public static final int ONE_DAY = 86400000;
     public static final int ONE_MIN = 60000;
 

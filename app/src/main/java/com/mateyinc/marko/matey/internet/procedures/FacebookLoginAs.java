@@ -30,7 +30,7 @@ public class FacebookLoginAs extends AsyncTask<String, Void, String> {
     protected void onPreExecute() {
         super.onPreExecute();
         mProgDialog = new ProgressDialog(mActivity.get());
-        mProgDialog.setMessage(mActivity.get().getResources().getString(R.string.login_dialog_message));
+        mProgDialog.setMessage(mActivity.get().getResources().getString(R.string.gettingIn_dialog_message));
         mProgDialog.show();
     }
 
