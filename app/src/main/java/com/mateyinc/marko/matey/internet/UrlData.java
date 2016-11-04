@@ -53,7 +53,7 @@ public class UrlData {
     /** Url for uploading new followed friends list to the server. */
     public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
     /** User_id param of the followed user */
-    public static final String PARAM_FOLLOWED_USER_ID = "to_user";
+    public static final String PARAM_FOLLOWED_USER_ID = "user_id";
     /////////////////////////////////////////////////////////////////////////////////////
 
     // Register new user

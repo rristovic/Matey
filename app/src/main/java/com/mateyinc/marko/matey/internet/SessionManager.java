@@ -20,6 +20,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -399,6 +400,8 @@ public class SessionManager {
         MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+                Toast.makeText(context, context.getString(R.string.success_reg_message), Toast.LENGTH_LONG).show();
+
                 // Adding new account to AM
                 AccountManager am = AccountManager.get(context);
                 Account account = new Account(email, context.getString(R.string.account_type));
@@ -436,6 +439,7 @@ public class SessionManager {
      * @param context the {@link MainActivity} context used to show and dismiss dialogs
      */
     public void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, final MainActivity context) {
+        // Send access token request with default response listener
         sendAccessTokenReq(context, securePreferences, pass, email, "");
     }
 
@@ -447,10 +451,6 @@ public class SessionManager {
      * @param context the {@link MainActivity} context
      */
     public void loginWithFacebook(final String fbAccessToken, final String email, final SecurePreferences securePreferences, final MainActivity context) {
-        // Showing progress dialog
-//        mProgDialog = new ProgressDialog(context);
-//        mProgDialog.setMessage(context.getResources().getString(R.string.gettingIn_dialog_message));
-//        mProgDialog.show();
 
         sendAccessTokenReq(context, "", "", fbAccessToken,
                 new Response.Listener<String>() {
@@ -465,39 +465,41 @@ public class SessionManager {
                             return;
                         }
 
-                        final SharedPreferences preferences = getDefaultSharedPreferences(context);
-                        // Immediately after contacting OAuth2 Server proceed to resource server for login
-                        // Creating new request for the resource server
-                        MateyRequest resRequest = new MateyRequest(Request.Method.POST, UrlData.LOGIN_USER
-                                ,new Response.Listener<String>() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        // Parsing response.data
-                                        try {
-                                            JSONObject object = new JSONObject(response);
-                                            DataManager dataManager = DataManager.getInstance(context);
-                                            parseUserDataAndLogin(context, dataManager, preferences, object);
-                                        } catch (JSONException e) {
-                                            Log.e(TAG, e.getLocalizedMessage(), e);
-                                        }
-                                    }
-                                }
-                                ,new Response.ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(VolleyError error) {
-                                        // only when cant connect to the server
-                                        Log.e(TAG, error.getLocalizedMessage(), error);
-                                        dismissProgressAndShowAlert(context);
-                                    }
-                        }
-                        );
-
-                        // Setting request params and sending POST request
-                        resRequest.addParam(UrlData.PARAM_EMAIL, email);
-                        resRequest.addParam(UrlData.PARAM_DEVICE_ID, MotherActivity.device_id);
-                        resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
-                                String.format("Bearer %s", MotherActivity.access_token));
-                        mRequestQueue.add(resRequest);
+                        sendLoginReq(context, email, MotherActivity.device_id, MotherActivity.access_token);
+//                        final SharedPreferences preferences = getDefaultSharedPreferences(context);
+//                        // Immediately after contacting OAuth2 Server proceed to resource server for login
+//                        // Creating new request for the resource server
+//                        MateyRequest resRequest = new MateyRequest(Request.Method.POST, UrlData.LOGIN_USER
+//                                ,new Response.Listener<String>() {
+//                                    @Override
+//                                    public void onResponse(String response) {
+//                                        // Parsing response.data
+//                                        try {
+//                                            JSONObject object = new JSONObject(response);
+//                                            DataManager dataManager = DataManager.getInstance(context);
+//                                            parseUserDataAndLogin(context, dataManager, preferences, object);
+//                                            dismissProgressDialog(mProgDialog);
+//                                        } catch (JSONException e) {
+//                                            Log.e(TAG, e.getLocalizedMessage(), e);
+//                                        }
+//                                    }
+//                                }
+//                                ,new Response.ErrorListener() {
+//                                    @Override
+//                                    public void onErrorResponse(VolleyError error) {
+//                                        // only when cant connect to the server
+//                                        Log.e(TAG, error.getLocalizedMessage(), error);
+//                                        dismissProgressAndShowAlert(context);
+//                                    }
+//                        }
+//                        );
+//
+//                        // Setting request params and sending POST request
+//                        resRequest.addParam(UrlData.PARAM_EMAIL, email);
+//                        resRequest.addParam(UrlData.PARAM_DEVICE_ID, MotherActivity.device_id);
+//                        resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
+//                                String.format("Bearer %s", MotherActivity.access_token));
+//                        mRequestQueue.add(resRequest);
                     }
                 },
                 // An error can be received if there's no connection to the server,
@@ -619,8 +621,9 @@ public class SessionManager {
                     parseOAuthResponse(response, securePreferences);
 
                     // Proceeding further with login
+                    // If there is fb access token, proceed with fb merge
                     if (fbAccessToken.length() != 0)
-                        sendFBLoginMergeRequest(context, fbAccessToken, email, MotherActivity.device_id, MotherActivity.access_token);
+                        sendLoginReq(context, email, MotherActivity.device_id, MotherActivity.access_token, fbAccessToken);
                     else
                         sendLoginReq(context, email, MotherActivity.device_id, MotherActivity.access_token);
                 } catch (JSONException e) {
@@ -642,7 +645,61 @@ public class SessionManager {
     }
 
     /**
-     * Method for contacting OAuth2 server for access token request
+     * Method for sending login request to the server
+     * @param context MainActivity context for UI control
+     * @param email email string
+     * @param deviceId deviceId retrieved from the server
+     * @param accessToken accessToken retrieved from the server
+     */
+    private void sendLoginReq(final MainActivity context, String email, String deviceId, String accessToken) {
+        sendLoginReq(context, email, deviceId, accessToken, "");
+    }
+
+    /**
+     * Method for sending login request to the server
+     * @param context MainActivity context for UI control
+     * @param email email string
+     * @param deviceId deviceId retrieved from the server
+     * @param accessToken accessToken retrieved from the server
+     */
+    private void sendLoginReq(final MainActivity context, String email, String deviceId, String accessToken,@NonNull String fbAccessToken) {
+        final SharedPreferences preferences = getDefaultSharedPreferences(context);
+        // Immediately after contacting OAuth2 Server proceed to resource server for login
+        // Creating new request for the resource server
+        MateyRequest resRequest = new MateyRequest(Request.Method.POST, UrlData.LOGIN_USER, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                // Parsing response.data
+                try {
+                    JSONObject object = new JSONObject(response);
+                    parseUserDataAndLogin(context, DataManager.getInstance(context), preferences, object);
+                    dismissProgressDialog(mProgDialog);
+                } catch (JSONException e) {
+                    Log.e(TAG, e.getLocalizedMessage(), e);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // TODO - handle errors
+                Log.e(TAG, error.getLocalizedMessage(), error);
+                dismissProgressAndShowAlert(context);
+            }
+        });
+        // Setting request params and sending POST request
+        resRequest.addParam(UrlData.PARAM_EMAIL, email);
+        resRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
+        resRequest.setAuthHeader(accessToken);
+        if (!fbAccessToken.isEmpty())
+            resRequest.addParam("fb_token", fbAccessToken);
+
+        // Send to network
+        mRequestQueue.add(resRequest);
+    }
+
+    /**
+     * Method for contacting OAuth2 server for access token request;
+     * NOTE: Shows progress dialog
      *
      * @param context MainActivity context used for dialog control and data entries of tokens, ids..
 //     * @param securePreferences {@link SecurePreferences} object used for storing ACCESS_TOKEN
@@ -679,90 +736,43 @@ public class SessionManager {
         mRequestQueue.add(oauthRequest);
     }
 
-    /**
-     * Method for sending login request to the server
-     * @param context MainActivity context for UI control
-     * @param email email string
-     * @param deviceId deviceId retrieved from the server
-     * @param accessToken accessToken retrieved from the server
-     */
-    private void sendLoginReq(final MainActivity context, String email, String deviceId, String accessToken) {
-        final SharedPreferences preferences = getDefaultSharedPreferences(context);
-        // Immediately after contacting OAuth2 Server proceed to resource server for login
-        // Creating new request for the resource server
-        MateyRequest resRequest = new MateyRequest(Request.Method.POST, UrlData.LOGIN_USER, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                // Parsing response.data
-                try {
-                    JSONObject object = new JSONObject(response);
-                    parseUserDataAndLogin(context, DataManager.getInstance(context), preferences, object);
-                    dismissProgressDialog(mProgDialog);
-                } catch (JSONException e) {
-                    Log.e(TAG, e.getLocalizedMessage(), e);
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // TODO - handle errors
-                Log.e(TAG, error.getLocalizedMessage(), error);
-                dismissProgressAndShowAlert(context);
-            }
-        });
-        // Setting request params and sending POST request
-        resRequest.addParam(UrlData.PARAM_EMAIL, email);
-        resRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
-        resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE, accessToken);
-
-        // Send to network
-        mRequestQueue.add(resRequest);
-    }
-
-    /** Method for sending a facebook merge request with std user to the server
-     *
-     * @param context MainActivity context
-     * @param fbAccessToken facebook access token
-     * @param email email to merge with
-     * @param deviceId the device id retrieved from the server
-     * @param accessToken access token retrieved from the server
-     */
-    private void sendFBLoginMergeRequest(final MainActivity context, final String fbAccessToken, final String email, String deviceId, String accessToken){
-        MateyRequest mergeRequest = new MateyRequest(Request.Method.POST, UrlData.FACEBOOK_MERGE,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject object = new JSONObject(response);
-                            dismissProgressDialog(mProgDialog);
-                            parseUserDataAndLogin(context, DataManager.getInstance(context), PreferenceManager.getDefaultSharedPreferences(context), object);
-                        } catch (JSONException e) {
-                            Log.e(TAG, e.getLocalizedMessage(), e);
-                            return;
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        dismissProgressAndShowAlert(context, context.getString(R.string.merge_acc_failed_msg));
-                        String errorString;
-                        try {
-                            errorString = new String(error.networkResponse.data);
-                        } catch (Exception e){
-                            Log.e(TAG, e.getLocalizedMessage(), e);
-                        }
-                        Log.e(TAG, error.getLocalizedMessage(), error);
-                    }
-                }
-        );
-        mergeRequest.addParam("fb_token", fbAccessToken);
-        mergeRequest.addParam(UrlData.PARAM_EMAIL, email);
-        mergeRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
-        mergeRequest.setAuthHeader(accessToken);
-
-        mRequestQueue.add(mergeRequest);
-    }
+//    /** Method for sending a facebook merge request with std user to the server
+//     *
+//     * @param context MainActivity context
+//     * @param fbAccessToken facebook access token
+//     * @param email email to merge with
+//     * @param deviceId the device id retrieved from the server
+//     * @param accessToken access token retrieved from the server
+//     */
+//    private void sendFBLoginMergeRequest(final MainActivity context, final String fbAccessToken, final String email, String deviceId, String accessToken){
+//        MateyRequest mergeRequest = new MateyRequest(Request.Method.POST, UrlData.FACEBOOK_MERGE,
+//                new Response.Listener<String>() {
+//                    @Override
+//                    public void onResponse(String response) {
+//                        try {
+//                            JSONObject object = new JSONObject(response);
+//                            dismissProgressDialog(mProgDialog);
+//                            parseUserDataAndLogin(context, DataManager.getInstance(context), PreferenceManager.getDefaultSharedPreferences(context), object);
+//                        } catch (JSONException e) {
+//                            Log.e(TAG, e.getLocalizedMessage(), e);
+//                        }
+//                    }
+//                },
+//                new Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                        dismissProgressAndShowAlert(context, context.getString(R.string.merge_acc_failed_msg));
+//                        Log.e(TAG, error.getLocalizedMessage(), error);
+//                    }
+//                }
+//        );
+//        mergeRequest.addParam("fb_token", fbAccessToken);
+//        mergeRequest.addParam(UrlData.PARAM_EMAIL, email);
+//        mergeRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
+//        mergeRequest.setAuthHeader(accessToken);
+//
+//        mRequestQueue.add(mergeRequest);
+//    }
 
     /**
      * Parsing data and calling login process {@link #loggedIn(MainActivity)}
