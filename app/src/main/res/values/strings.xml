@@ -94,4 +94,5 @@
     <string name="add_all_btn_label">Add all</string>
     <string name="add_btn_label">Add</string>
     <string name="finish_btn_label">finish</string>
+    <string name="conToServer_msg">Connecting to the server, please wait..</string>
 </resources>

@@ -33,8 +33,6 @@ abstract public class MotherActivity extends AppCompatActivity {
      */
     public boolean mDeviceReady = false;
 
-    public int fbAnswerType = 0;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,7 +116,7 @@ abstract public class MotherActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
 
-                                        fbAnswerType = 1;
+//                                        FB_REQUEST = 1;
                                         LoginManager.getInstance().logInWithReadPermissions(MotherActivity.this, Arrays.asList("public_profile"));
 
                                     }

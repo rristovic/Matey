@@ -23,15 +23,20 @@ public class RegistrationIntentService extends IntentService {
     private static final String TAG = RegistrationIntentService.class.getSimpleName();
     private static final String[] TOPICS = {"global"};
 
+    // Indicates if service is running or not
+    public static boolean isRunning = false;
+
     public RegistrationIntentService() {
         super(TAG);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        isRunning = true;
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String token = null;
+
         try {
             // [START register_for_gcm]
             // Initially this call goes out to the network to retrieve the token, subsequent calls
@@ -73,6 +78,8 @@ public class RegistrationIntentService extends IntentService {
         Intent registrationComplete = new Intent(MateyGCMPreferences.REGISTRATION_COMPLETE);
         registrationComplete.putExtra(MainActivity.EXTRA_GCM_TOKEN, token);
         LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
+
+        isRunning = false;
     }
 
     /**
@@ -84,25 +91,63 @@ public class RegistrationIntentService extends IntentService {
      * @param token The new token.
      */
     private void sendRegistrationToServer(String token) {
-        // Add custom implementation, as needed.
-
-//        SecurePreferences  mSecurePreferences = new SecurePreferences(this, "credentials", "1checkMate1717", true);
-//        String device_id = mSecurePreferences.getString("device_id");
+//        final WeakReference<MainActivity> reference = new WeakReference<>(activity);
+//        final WeakReference<SecurePreferences> prefRef = new WeakReference<SecurePreferences>(securePreferences);
+//        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
 //
-//        if (device_id == null) {
-//            if (!Util.isInternetConnected(this))
+//        // GCM complete with success
+//        if (gcmToken != null && gcmToken.length() != 0) {
 //
-//            return new SessionManager().getInstallationID(this, mSecurePreferences);
+//            // No old token found
+////            if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
+//            // Request a string response from the provided URL.
+//            MateyRequest stringRequest = new MateyRequest(Request.Method.POST, UrlData.REGISTER_DEVICE, new Response.Listener<String>() {
+//                @Override
+//                public void onResponse(String response) {
+//                    MainActivity activity = reference.get();
+//                    SecurePreferences securePreferences = prefRef.get();
+//                    try {
+//                        // Parse data
+//                        JSONObject object = new JSONObject(response);
+//                        String device_id = object.getString(KEY_DEVICE_ID);
+//
+//                        // Save data
+//                        securePreferences.put(KEY_DEVICE_ID, device_id);
+//                        MotherActivity.device_id = device_id;
+//                        // Save prefs that token has been sent to the server
+//                        sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+//
+//                        // Notify UI
+//                        activity.mDeviceReady = true;
+//                        Log.d(TAG, "Device id=" + device_id);
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, e.getLocalizedMessage(), e);
+//                    }
+//                }
+//            }, new Response.ErrorListener() {
+//                @Override
+//                public void onErrorResponse(VolleyError error) {
+//                    MainActivity activity = reference.get();
+//                    if (activity != null) {
+//                        activity.mDeviceReady = false;
+//                        activity.endLoadingAnim();
+//                    }
+//                    Log.e(TAG, error.getLocalizedMessage(), error);
+//                }
+//            });
+//            stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
+//
+//            // Add the request to the RequestQueue.
+//            mInstance.addToRequestQueue(stringRequest);
+//            activity = null;
+////            } else {
+//            // TODO - finish
+////            }
+//        } else {
+//            activity.mDeviceReady = false;
+//            activity.endLoadingAnim();
+//            sharedPreferences.edit().putBoolean(SENT_TOKEN_TO_SERVER, false).apply();
 //        }
-//        try {
-//            String data = URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8") + "&" +
-//                    URLEncoder.encode("device_id", "UTF-8") + "=" + URLEncoder.encode(this.device_id, "UTF-8");
-//            HTTP http = new HTTP(UrlData.GCM_REGISTRATION, "POST");
-//
-//            String result = null;
-//            if (http.sendPost(data)) result = http.getData();
-//        } catch (Exception e) {}
-
     }
 
 

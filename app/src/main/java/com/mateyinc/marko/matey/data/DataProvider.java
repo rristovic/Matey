@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
@@ -40,13 +41,24 @@ public class DataProvider extends ContentProvider {
     static final int BULLETIN_WITH_ID = 401;
     static final int REPLIES = 500;
     static final int REPLY_WITH_ID = 501;
-    static final int NOT_UPLOADED_ITEMS = 600;
+    static final int APPROVES = 600;
+    static final int APPROVE_WITH_ID = 601;
+    static final int NOT_UPLOADED_ITEMS = 700;
 
+    private static final SQLiteQueryBuilder sRepliesWithApproves;
 
-    private String sNotificationIdSelection = DataContract.NotificationEntry.TABLE_NAME +
-            '.' + DataContract.NotificationEntry._ID + " = ? ";
-    private String sMessageIdSelection = DataContract.MessageEntry.TABLE_NAME +
-            '.' + DataContract.MessageEntry._ID + " = ? ";
+    static{
+        sRepliesWithApproves = new SQLiteQueryBuilder();
+
+        //  This is an inner join which looks like
+        //  approves INNER JOIN bulletins ON approves.post_id = bulletins._id
+        sRepliesWithApproves.setTables(
+                DataContract.ReplyEntry.TABLE_NAME + " LEFT OUTER JOIN " + DataContract.ApproveEntry.TABLE_NAME +
+                        " ON " + DataContract.ReplyEntry.TABLE_NAME +
+                        "." + DataContract.ReplyEntry._ID +
+                        " = " + DataContract.ApproveEntry.TABLE_NAME +
+                        "." + DataContract.ApproveEntry.COLUMN_REPLY_ID);
+    }
 
 
     @Override
@@ -82,6 +94,8 @@ public class DataProvider extends ContentProvider {
                 return DataContract.ReplyEntry.CONTENT_TYPE;
             case REPLY_WITH_ID:
                 return DataContract.ReplyEntry.CONTENT_ITEM_TYPE;
+            case APPROVES:
+                return DataContract.ApproveEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -149,6 +163,14 @@ public class DataProvider extends ContentProvider {
                 break;
             } // "bulletins"
             case BULLETINS: {
+//                retCursor = sRepliesWithApproves.query(mOpenHelper.getReadableDatabase(),
+//                        projection,
+//                        selection,
+//                        selectionArgs,
+//                        null,
+//                        null,
+//                        sortOrder
+//                );
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         DataContract.BulletinEntry.TABLE_NAME,
                         projection,
@@ -162,13 +184,8 @@ public class DataProvider extends ContentProvider {
             }
             // "bulletins/*"
             case BULLETIN_WITH_ID: {
-                retCursor = getBulletinByID(uri, projection, sortOrder);
-                break;
-            }
-            // "replies"
-            case REPLIES: {
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        DataContract.ReplyEntry.TABLE_NAME,
+//                retCursor = getBulletinByID(uri, projection, sortOrder);
+                retCursor = sRepliesWithApproves.query(mOpenHelper.getReadableDatabase(),
                         projection,
                         selection,
                         selectionArgs,
@@ -178,8 +195,40 @@ public class DataProvider extends ContentProvider {
                 );
                 break;
             }
+            // "replies"
+            case REPLIES: {
+//                retCursor = mOpenHelper.getReadableDatabase().query(
+//                        DataContract.ReplyEntry.TABLE_NAME,
+//                        projection,
+//                        selection,
+//                        selectionArgs,
+//                        null,
+//                        null,
+//                        sortOrder
+//                );
+                retCursor = sRepliesWithApproves.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        selection,
+                        selectionArgs,
+                        DataContract.ReplyEntry.TABLE_NAME.concat(".").concat(DataContract.ReplyEntry._ID),
+                        null,
+                        sortOrder);
+                break;
+            }
             case REPLY_WITH_ID: {
                 retCursor = getReplyByID(uri, projection, sortOrder);
+                break;
+            }
+            case APPROVES: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        DataContract.ApproveEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
                 break;
             }
             // "not_uploaded_items"
@@ -275,6 +324,14 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case APPROVES: {
+                long _id = db.insert(DataContract.ApproveEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = DataContract.ApproveEntry.buildApproveUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
             case NOT_UPLOADED_ITEMS: {
                 long _id = db.insert(DataContract.NotUploadedEntry.TABLE_NAME, null, values);
                 if (_id > 0)
@@ -283,11 +340,6 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case REPLY_WITH_ID:
-            case BULLETIN_WITH_ID:
-            case MESSAGE_WITH_ID: // TODO - finish insert with id
-            case NOTIFICATION_WITH_ID:
-            case PROFILE_WITH_ID:
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -322,6 +374,10 @@ public class DataProvider extends ContentProvider {
             case REPLIES:
                 rowsDeleted = db.delete(
                         DataContract.ReplyEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case APPROVES:
+                rowsDeleted = db.delete(
+                        DataContract.ApproveEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             case NOT_UPLOADED_ITEMS:
                 rowsDeleted = db.delete(
@@ -362,6 +418,10 @@ public class DataProvider extends ContentProvider {
                 break;
             case REPLIES:
                 rowsUpdated = db.update(DataContract.ReplyEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case APPROVES:
+                rowsUpdated = db.update(DataContract.ApproveEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             case NOT_UPLOADED_ITEMS:
@@ -467,6 +527,23 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
+            case APPROVES: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(DataContract.ApproveEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
             case NOT_UPLOADED_ITEMS: {
                 db.beginTransaction();
                 int returnCount = 0;
@@ -495,15 +572,18 @@ public class DataProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, DataContract.PATH_MESSAGES, MESSAGES);
-        matcher.addURI(authority, DataContract.PATH_MESSAGES + "/*", MESSAGE_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_MESSAGES + "/#", MESSAGE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS, NOTIFICATIONS);
-        matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS + "/*", NOTIFICATION_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS + "/#", NOTIFICATION_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_PROFILES, PROFILES);
-        matcher.addURI(authority, DataContract.PATH_PROFILES + "/*", PROFILE_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_PROFILES + "/#", PROFILE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_BULLETINS, BULLETINS);
-        matcher.addURI(authority, DataContract.PATH_BULLETINS + "/*", BULLETIN_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_BULLETINS + "/both", BULLETIN_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_REPLIES, REPLIES);
-        matcher.addURI(authority, DataContract.PATH_REPLIES + "/*", REPLY_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_REPLIES + "/#", REPLY_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_APPROVES, APPROVES);
+        matcher.addURI(authority, DataContract.PATH_APPROVES + "/#", APPROVE_WITH_ID);
+
         matcher.addURI(authority, DataContract.PATH_NOT_UPLOADED, NOT_UPLOADED_ITEMS);
 
 

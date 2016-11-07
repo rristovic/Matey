@@ -11,17 +11,20 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.internet.MateyRequest;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 
-import static com.mateyinc.marko.matey.data.DataManager.STATUS_RETRY_UPLOAD;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.*;
+
 
 public class UploadService extends Service {
 
@@ -68,7 +71,7 @@ public class UploadService extends Service {
 
 
     public void uploadFailedData(){
-        SessionManager sessionManager = SessionManager.getInstance(this);
+        NetworkManager networkManager = NetworkManager.getInstance(this);
         final DataManager dataManager = DataManager.getInstance(this);
 
         // TODO - finish method
@@ -77,9 +80,10 @@ public class UploadService extends Service {
     /**
      * Method for uploading Bulletin to the server
      * @param b the bulletin to be uploaded
+     * @param accessToken access token string used to access the server
      */
-    public void uploadBulletins(final Bulletin b, String accessToken) {
-        SessionManager sessionManager = SessionManager.getInstance(this);
+    public void uploadBulletin(final Bulletin b, String accessToken) {
+        NetworkManager networkManager = NetworkManager.getInstance(this);
         final DataManager dataManager = DataManager.getInstance(this);
         MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_BULLETINS_ROUTE,
                 new Response.Listener<String>() {
@@ -92,7 +96,7 @@ public class UploadService extends Service {
                             Log.e(TAG, e.getLocalizedMessage(), e);
                             dataManager.updateBulletinServerStatus(b, STATUS_RETRY_UPLOAD);
                         }
-                        dataManager.updateBulletinPostId(b.getPostID(), -1);
+//                        dataManager.updateBulletinPostId(b.getPostID(), -1);
                     }
                 },
                 new Response.ErrorListener() {
@@ -103,12 +107,114 @@ public class UploadService extends Service {
                     }
                 }
         );
-
         uploadRequest.setAuthHeader(accessToken);
-        uploadRequest.addParam(UrlData.PARAM_INTEREST_ID, "1");
+//        uploadRequest.addParam(UrlData.PARAM_INTEREST_ID, "1");
         uploadRequest.addParam(UrlData.PARAM_TEXT_DATA, b.getMessage());
 
-        sessionManager.addToRequestQueue(uploadRequest);
+        networkManager.addToRequestQueue(uploadRequest);
+    }
+
+    /**
+     * Method for uploading Reply to the server
+     * @param reply the reply to be uploaded
+     * @param accessToken access token string used to access the server
+     */
+    public void uploadReply(final Reply reply, String accessToken) {
+        NetworkManager networkManager = NetworkManager.getInstance(this);
+        final DataManager dataManager = DataManager.getInstance(this);
+        MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_REPLY_ROUTE,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(final String response) {
+                        Runnable r = new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONObject object = new JSONObject(response);
+                                    dataManager.updateReplyId(reply.replyId, object.getLong(Reply.REPLY_ID));
+                                    dataManager.updateReplyDate(reply, new Date(object.getString(Reply.DATE)));
+                                } catch (JSONException e) {
+                                    Log.e(TAG, e.getLocalizedMessage(), e);
+                                    // Update reply server status and bulletin replies count
+                                    dataManager.updateReplyServerStatus(reply, STATUS_RETRY_UPLOAD);
+                                    dataManager.decrementBulletinRepliesCount(reply.postId);
+                                }
+                            }
+                        };
+
+                        Thread t = new Thread(r);
+                        t.start();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        dataManager.updateReplyServerStatus(reply, STATUS_RETRY_UPLOAD);
+//                        dataManager.decrementBulletinRepliesCount(reply.postId);
+                        Log.e(TAG, error.getLocalizedMessage(), error);
+                    }
+                }
+        );
+
+        uploadRequest.setAuthHeader(accessToken);
+        uploadRequest.addParam(UrlData.PARAM_REPLY_POST_ID, Long.toString(reply.postId));
+        uploadRequest.addParam(UrlData.PARAM_REPLY_TEXT_DATA, reply.replyText);
+
+        networkManager.addToRequestQueue(uploadRequest);
+    }
+
+    /**
+     * Uploading multiple replies to the server
+     *  @see #uploadReply(Reply, String)
+     */
+    public void uploadReplies(ArrayList<Reply> list, String accessToken){
+        for (Reply r : list) {
+            uploadReply(r, accessToken);
+        }
+    }
+
+    /**
+     * Method for uploading Approve to the server
+     * @param postId id of the post that contains approved reply
+     * @param replyId id of the reply that has been approved;
+     */
+    public void uploadApprove(long postId, long replyId, String accessToken) {
+        NetworkManager networkManager = NetworkManager.getInstance(this);
+        final DataManager dataManager = DataManager.getInstance(this);
+        MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_LIKE_ROUTE,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+//                        try {
+//                        } catch (JSONException e) {
+//                            Log.e(TAG, e.getLocalizedMessage(), e);
+////                            dataManager.updateReplyServerStatus(reply, STATUS_RETRY_UPLOAD);
+//                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+//                        dataManager.updateReplyServerStatus(reply, STATUS_RETRY_UPLOAD);
+                        Log.e(TAG, error.getLocalizedMessage(), error);
+                    }
+                }
+        );
+
+        uploadRequest.setAuthHeader(accessToken);
+        uploadRequest.addParam(UrlData.PARAM_LIKED_POST_ID, Long.toString(postId));
+        if (replyId != 0)
+            uploadRequest.addParam(UrlData.PARAM_LIKED_REPLY_ID, Long.toString(replyId));
+
+        networkManager.addToRequestQueue(uploadRequest);
+    }
+
+    /**
+     * Method for uploading Approve to the server
+     * @param postId id of the post that has been approved
+     */
+    public void uploadApprove(long postId, String accessToken) {
+        uploadApprove(postId, 0, accessToken);
     }
 
     /**
@@ -116,12 +222,12 @@ public class UploadService extends Service {
      * @param profileList the list of profiles to be uploaded
      */
     public void uploadFollowedFriends(final ArrayList<UserProfile> profileList, String accessToken) {
-        SessionManager sessionManager = SessionManager.getInstance(this);
+        NetworkManager networkManager = NetworkManager.getInstance(this);
         MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_FOLLOWED_FRIENDS,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-
+                        // TODO - finish
                     }
                 },
                 new Response.ErrorListener() {
@@ -136,6 +242,6 @@ public class UploadService extends Service {
         uploadRequest.setAuthHeader(accessToken);
         uploadRequest.setBodyFromFollowedProfiles(profileList);
 
-        sessionManager.addToRequestQueue(uploadRequest);
+        networkManager.addToRequestQueue(uploadRequest);
     }
 }

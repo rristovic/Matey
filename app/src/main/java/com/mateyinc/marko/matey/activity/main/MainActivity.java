@@ -47,7 +47,7 @@ import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -88,10 +88,17 @@ public class MainActivity extends MotherActivity {
     private int mRegBtnBotMargin;
     private float mLogoMoveOnRegBtn;
     private float mLoadingHeadIntroTransl;
+    public boolean isAnimRunning = false;
 
     private Resources resources;
-    private CallbackManager fbCallbackManager;
-    private SessionManager mSessionManager;
+    private NetworkManager mNetworkManager;
+
+    // FB
+    public CallbackManager fbCallbackManager;
+    /** Used for different fb requests, determinates which one is it; */
+    private int mFbRequest;
+    public static final int LOGIN_REQ = 1;
+    public static final int ACCESSTOKEN_REQ = 2;
 
     // GCM
     private boolean isGcmReceiverRegistered;
@@ -113,14 +120,14 @@ public class MainActivity extends MotherActivity {
         setContentView(R.layout.activity_main);
 
         init();
-        mSessionManager.startSession(this);
+        mNetworkManager.startSession(this);
     }
 
     private void init() {
         initGCM();
         initFBLogin();
 
-        mSessionManager = SessionManager.getInstance(this);
+        mNetworkManager = NetworkManager.getInstance(this);
         btnLogin = (ButtonLoginPage) findViewById(R.id.btnLogin);
         btnReg = (ButtonLoginPage) findViewById(R.id.btnReg);
         btnFb = (Button) findViewById(R.id.btnFacebook);
@@ -148,7 +155,7 @@ public class MainActivity extends MotherActivity {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mSessionManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(EXTRA_GCM_TOKEN));
+                mNetworkManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(EXTRA_GCM_TOKEN));
             }
         };
 
@@ -185,7 +192,7 @@ public class MainActivity extends MotherActivity {
                                         try {
                                             email[0] = (object.getString("email"));
 
-                                            SessionManager.getInstance(MainActivity.this)
+                                            NetworkManager.getInstance(MainActivity.this)
                                                     .loginWithFacebook(accessToken.getToken(),
                                                             email[0], getSecurePreferences(), MainActivity.this);
                                         } catch (JSONException e) {
@@ -216,10 +223,12 @@ public class MainActivity extends MotherActivity {
             @Override
             public void onClick(View v) {
                 if (!mLoginFormVisible) {
-                    // If the device isn't ready, try registering with the server again
-                    if(!mDeviceReady)
-                        mSessionManager.startSession(MainActivity.this);
-
+                     if (!mDeviceReady) {
+                         // If the device isn't ready, try registering with the server again
+                         mNetworkManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
+                         mNetworkManager.startSession(MainActivity.this);
+                         return;
+                    }
                     // Showing login form
                     showLoginForm();
                 } else {
@@ -229,7 +238,7 @@ public class MainActivity extends MotherActivity {
                     email = email.trim();
 
                     if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
-                        mSessionManager.debugLogin(getSecurePreferences(), MainActivity.this);
+                        mNetworkManager.debugLogin(getSecurePreferences(), MainActivity.this);
                         return;
                     }
 
@@ -241,11 +250,8 @@ public class MainActivity extends MotherActivity {
                     } else if (!isValidPassword(pass)) {
                         bundle.putString("message", getString(R.string.password_error_msg));
                         showDialog(1004, bundle);
-                    } else if (!mDeviceReady){
-                            bundle.putString("message", getString(R.string.server_not_responding_msg));
-                            showDialog(1004, bundle);
                     } else {
-                        SessionManager.getInstance(MainActivity.this).
+                        NetworkManager.getInstance(MainActivity.this).
                                 loginWithVolley(email, pass, getSecurePreferences(), MainActivity.this);
                     }
                 }
@@ -256,10 +262,12 @@ public class MainActivity extends MotherActivity {
             @Override
             public void onClick(View v) {
                 if (!mRegFormVisible) {
-                    // If the device isn't ready, try registering with the server again
-                    if (!mDeviceReady)
-                        mSessionManager.startSession(MainActivity.this);
-                    
+                    if (!mDeviceReady) {
+                        // If the device isn't ready, try registering with the server again
+                        mNetworkManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
+                        mNetworkManager.startSession(MainActivity.this);
+                        return;
+                    }
                     // Showing reg form
                     showRegForm();
                 } else {
@@ -276,11 +284,8 @@ public class MainActivity extends MotherActivity {
                     } else if (!isValidPassword(pass)) {
                         bundle.putString("message", getString(R.string.password_error_msg));
                         showDialog(1004, bundle);
-                    } else if (!mDeviceReady){
-                        bundle.putString("message", getString(R.string.server_not_responding_msg));
-                        showDialog(1004, bundle);
                     } else {
-                        SessionManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, email, pass);
+                        NetworkManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, "Lorem Ipsum", "Lorem Ipsum", email, pass);
                     }
                 }
             }
@@ -289,15 +294,14 @@ public class MainActivity extends MotherActivity {
         btnFb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mDeviceReady){
-                    Bundle bundle = new Bundle();
-                    bundle.putString("message", getString(R.string.server_not_responding_msg));
-                    showDialog(1004, bundle);
-                    mSessionManager.startSession(MainActivity.this);
+                 if (!mDeviceReady) {
+                    // If the device isn't ready, try registering with the server again
+                    mNetworkManager.showProgressDialog(MainActivity.this, getString(R.string.gettingIn_dialog_message));
+                    mNetworkManager.startSession(MainActivity.this);
                 } else {
-                    fbAnswerType = 0;
                     LoginManager.getInstance().logInWithReadPermissions(MainActivity.this,
                             Arrays.asList("public_profile", "user_friends", "email", "user_friends"));
+                    mFbRequest = LOGIN_REQ;
                 }
             }
         });
@@ -545,6 +549,8 @@ public class MainActivity extends MotherActivity {
                         goUpAnim(500);
                     }
                 });
+
+        isAnimRunning = true;
     }
 
     private void goUpAnim(final int time) {
@@ -579,6 +585,12 @@ public class MainActivity extends MotherActivity {
     }
 
     public void endLoadingAnim() {
+
+        if (!isAnimRunning)
+            return;
+        else
+            isAnimRunning = false;
+
         // Return pic to center and  move layout
         // TODO - rework other anims via ViewPropertyAnimatior because it does not interfere with system transitions
         ivLoadingHead.animate().y(0)
@@ -775,7 +787,7 @@ public class MainActivity extends MotherActivity {
                 mRegFormVisible = false;
                 return true;
             } else {
-//                mSessionManager.stopAllNetworking();
+//                mNetworkManager.stopAllNetworking();
                 return super.onKeyDown(keyCode, event);
             }
 

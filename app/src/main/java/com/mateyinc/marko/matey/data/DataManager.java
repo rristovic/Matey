@@ -7,27 +7,39 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataContract.*;
+import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
+import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
+import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
+import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
+import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.model.Approve;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.Vector;
+
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
 
 /**
  * The manager for the data entries
@@ -78,15 +90,17 @@ public class DataManager {
     public static final int COL_ON_SERVER = 7;
     public static final int COL_ATTCHS = 8;
 
-    /** Activity upload status that is saved in database, and used for UI control */
-    public static final int STATUS_RETRY_UPLOAD = -1;
-    /** @see #STATUS_RETRY_UPLOAD */
-    public static final int STATUS_UPLOADING = 0;
-    /**
-     * Activity upload status that is saved in database, and used for UI control;
-     * If data is downloaded from the server, this is the status that gets saved
-     */
-    public static final int STATUS_SUCCESS = 1;
+    public interface ServerStatus {
+        /** Activity upload status that is saved in database, and used for UI control */
+        int STATUS_RETRY_UPLOAD = -1;
+        /** @see #STATUS_RETRY_UPLOAD */
+        int STATUS_UPLOADING = 0;
+        /**
+         * Activity upload status that is saved in database, and used for UI control;
+         * If data is downloaded from the server, this is the status that gets saved
+         */
+        int STATUS_SUCCESS = 1;
+    }
 
     /** Used for new post that doesn't yet have the post_id */
     public static final int NO_POST_ID = -1;
@@ -133,9 +147,11 @@ public class DataManager {
     //  General methods ////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
+
     private static final int CLASS_BULLETIN = 0;
     private static final int CLASS_USERPROFILE = 1;
     private static final int CLASS_REPLY = 2;
+    private static final int CLASS_APPROVE = 3;
 
 
     /**
@@ -155,8 +171,11 @@ public class DataManager {
                 break;
             }
             case CLASS_REPLY:{
-                id = ((Bulletin.Reply) activityObject).replyId;
+                id = ((Reply) activityObject).replyId;
                 break;
+            }
+            case CLASS_APPROVE:{
+                id = ((Approve) activityObject)._id;
             }
             default:
                 return;
@@ -178,7 +197,10 @@ public class DataManager {
         }
     }
 
-    /** Method for creating new activity_id, which is later replaced by the id returned from the server */
+    /**
+     * Method for creating new activity_id, which is later replaced by the id returned from the server;
+     * Newly created ids are starting from -1 to {@value Integer#MIN_VALUE}
+     */
     public long getNewActivityId() {
         Cursor c = mAppContext.getContentResolver().query(NotUploadedEntry.CONTENT_URI, null, null, null, null);
         long id = 0;
@@ -626,7 +648,7 @@ public class DataManager {
      * one returned from the server;
      *
      * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
-     * {@link Bulletin#mServerStatus} to {@value #STATUS_SUCCESS}
+     * {@link Bulletin#mServerStatus} to {@value ServerStatus#STATUS_SUCCESS}
      *
      * @param oldPost_id the old post_id to be updated
      * @param newPost_id the new post_id from the server
@@ -670,8 +692,8 @@ public class DataManager {
     private void addNullBulletin() {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.BulletinEntry.CONTENT_URI,
-                new String[]{DataContract.BulletinEntry._ID},
-                DataContract.BulletinEntry._ID + " = ?",
+                new String[]{BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID},
+                BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID + " = ?",
                 new String[]{"-1"},
                 null);
 
@@ -720,7 +742,7 @@ public class DataManager {
      * @param list to be added
      */
     public void addBulletins(ArrayList<Bulletin> list) {
-        Vector<ContentValues> cVVector = new Vector<ContentValues>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
 
         for (Bulletin b : list) {
             ContentValues values = new ContentValues();
@@ -953,6 +975,28 @@ public class DataManager {
         return bulletin;
     }
 
+    public void updateBulletinRepliesCount(long postId, int repliesCount){
+        ContentValues values = new ContentValues(1);
+        values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, repliesCount);
+        mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = " + postId, null);
+    }
+
+    public void decrementBulletinRepliesCount(long postId){
+        Cursor c = mAppContext.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI,
+                new String[]{BulletinEntry.COLUMN_NUM_OF_REPLIES}, DataContract.BulletinEntry._ID + " = " + postId, null,null,null);
+
+        if (c != null && c.moveToFirst()) {
+            ContentValues values = new ContentValues(1);
+            values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, c.getInt(0)-1);
+            mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = " + postId, null);
+
+          Log.d(TAG,String.format("Bulletin (_ID = %s) replies count decremented.",postId));
+            c.close();
+
+        }
+
+    }
+
     /**
      * Returns the number of bulletins in the database
      */
@@ -1031,18 +1075,18 @@ public class DataManager {
     /**
      * Cursor sort order
      */
-    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " DESC";
+    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " ASC";
 
     /**
      * Method for adding list of Replies to the database
      *
      * @param list the list to be added to the db
      */
-    public void addReplies(LinkedList<Bulletin.Reply> list) {
+    public void addReplies(LinkedList<Reply> list) {
         Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
 
         int numReplies = 0;
-        for (Bulletin.Reply r : list) {
+        for (Reply r : list) {
             ContentValues values = new ContentValues();
 
             values.put(DataContract.ReplyEntry._ID, r.replyId);
@@ -1052,7 +1096,6 @@ public class DataManager {
             values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, r.userLastName);
             values.put(DataContract.ReplyEntry.COLUMN_TEXT, r.replyText);
             values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate.getTime());
-            values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(r.replyApproves));
             values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, r.numOfApprvs);
 
             cVVector.add(values);
@@ -1078,9 +1121,9 @@ public class DataManager {
      *
      * @param reply the reply to be inserted into the database
      */
-    public void addReply(Bulletin.Reply reply) {
+    public void addReply(Reply reply, Bulletin bulletin, int serverStatus) {
         addReply(reply.replyId, reply.userId, reply.postId, reply.userFirstName, reply.userLastName, reply.replyText, reply.replyDate
-                , reply.replyApproves.size(), reply.replyApproves);
+                , reply.replyApproves.size(), serverStatus, bulletin);
     }
 
     /**
@@ -1094,10 +1137,9 @@ public class DataManager {
      * @param text        the message of the reply
      * @param date        the date of the reply in UTC
      * @param numOfApprvs the number of the reply approves
-     * @param approves    the list of approves
      */
     public void addReply(long replyId, long userId, long postId, String firstName, String lastName, String text, Date date,
-                         int numOfApprvs, LinkedList<UserProfile> approves) {
+                         int numOfApprvs, int serverStatus, Bulletin bulletin) {
         ContentValues values = new ContentValues();
 
         values.put(DataContract.ReplyEntry._ID, replyId);
@@ -1108,7 +1150,7 @@ public class DataManager {
         values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
         values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
         values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
-        values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
+        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
 
         Uri insertedUri = mAppContext.getContentResolver().insert(
                 DataContract.ReplyEntry.CONTENT_URI,
@@ -1118,15 +1160,16 @@ public class DataManager {
         if (insertedUri == null) {
             Log.e(TAG, "Error inserting reply: ID=" + replyId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
         } else {
+            updateBulletinRepliesCount(bulletin.getPostID(), bulletin.getNumOfReplies() + 1);
             String debugtext = "Reply added: ID=" + replyId +
                     "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
                     + "...; Date=" + date;
             debugtext += "; Num of approves=" + numOfApprvs;
-//            Log.d(TAG, debugtext);
+            Log.d(TAG, debugtext);
         }
     }
 
-    private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, LinkedList<UserProfile> approves) {
+    private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, int serverStatus) {
         ContentValues values = new ContentValues();
 
         values.put(DataContract.ReplyEntry._ID, replyId);
@@ -1137,7 +1180,7 @@ public class DataManager {
         values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
         values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
         values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
-        values.put(DataContract.ReplyEntry.COLUMN_APPRVS, parseApprovesToJSON(approves));
+        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
 
 
         int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.ReplyEntry.CONTENT_URI, values,
@@ -1160,14 +1203,84 @@ public class DataManager {
     }
 
     /**
+     * Method for updating reply's {@link Reply#mServerStatus} in db
+     *
+     * @param reply the reply that needs to be updated
+     */
+    public void updateReplyServerStatus(Reply reply, int serverStatus) {
+
+        if(STATUS_RETRY_UPLOAD == serverStatus){
+            addNotUploadedActivity(reply, CLASS_REPLY);
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
+
+        int numOfUpdatedRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
+                ReplyEntry._ID + " = ?", new String[]{Long.toString(reply.replyId)});
+
+        if (numOfUpdatedRows != 1) {
+            Log.e(TAG, "Error updating reply server status: ReplyID =" + reply.replyId);
+        } else {
+            String debugtext = "Reply server status updated: ReplyID =" + reply.replyId;
+
+            Log.d("BulletinManager", debugtext);
+            updateNullBulletin();
+        }
+    }
+
+    /**
+     * Method for updating a new reply_id, created with {@link DataManager#getNewActivityId()}, with the new
+     * one returned from the server;
+     *
+     * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
+     * {@link Reply#mServerStatus} to {@value ServerStatus#STATUS_SUCCESS}
+     *
+     * Method for updating reply's id
+     * @param oldReplyId reply's old id
+     * @param newReplyId reply's new id
+     */
+    public void updateReplyId(long oldReplyId, long newReplyId){
+        ContentValues values = new ContentValues(2);
+        values.put(ReplyEntry._ID, newReplyId);
+        values.put(ReplyEntry.COLUMN_SERVER_STATUS, STATUS_SUCCESS);
+
+        int numOfRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI,
+                values, ReplyEntry._ID + " = ?", new String[]{Long.toString(oldReplyId)});
+
+        if (numOfRows == 1) {
+            Log.d(TAG, "Reply update with new replyId =" + newReplyId);
+        } else {
+            Log.e(TAG, "Failed to update the reply with old replyId=" + oldReplyId);
+        }
+    }
+
+    /**
+     * Method for updating reply's {@link Reply#replyDate}
+     */
+    public void updateReplyDate(Reply reply, Date date){
+        ContentValues values = new ContentValues(2);
+        values.put(ReplyEntry.COLUMN_DATE, date.toString());
+
+        int numOfRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI,
+                values, ReplyEntry._ID + " = ?", new String[]{Long.toString(reply.replyId)});
+
+        if (numOfRows == 1) {
+            Log.d(TAG, "Reply updated: ReplyID=" + reply.replyId);
+        } else {
+            Log.e(TAG, "Error updating reply: ReplyID=" + reply.replyId);
+        }
+    }
+
+    /**
      * Method for getting the reply from the database
      *
      * @param index  the position of the bulletin in the database
      * @param cursor the provided cursor for the database
      * @return the new instance of Bulletin from the database
      */
-    public Bulletin.Reply getReply(int index, Cursor cursor) {
-        Bulletin.Reply reply = new Bulletin().getReplyInstance();
+    public Reply getReply(int index, Cursor cursor) {
+        Reply reply = new Bulletin().getReplyInstance();
 
         try {
             cursor.moveToPosition(index);
@@ -1180,7 +1293,6 @@ public class DataManager {
             reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
             reply.replyText = cursor.getString(BulletinViewActivity.COL_TEXT);
             reply.numOfApprvs = cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS);
-            reply.replyApproves = reply.setApprovesFromJSON(cursor.getString(BulletinViewActivity.COL_APPRVS));
 
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
@@ -1195,7 +1307,7 @@ public class DataManager {
      * @param index the position of the bulletin in the database
      * @return the new instance of Bulletin from the database
      */
-    public Bulletin.Reply getReply(int index) {
+    public Reply getReply(int index) {
         Cursor cursor = mAppContext.getContentResolver().query(
                 DataContract.ReplyEntry.CONTENT_URI,
                 BulletinViewActivity.REPLIES_COLUMNS,
@@ -1203,7 +1315,7 @@ public class DataManager {
                 null,
                 REPLIES_ORDER_BY);
 
-        Bulletin.Reply reply;
+        Reply reply;
         try {
             reply = getReply(index, cursor);
         } catch (NullPointerException e) {
@@ -1217,27 +1329,6 @@ public class DataManager {
         return reply;
     }
 
-    private String parseApprovesToJSON(LinkedList<UserProfile> replyApproves) {
-        if (replyApproves == null || replyApproves.size() == 0)
-            return "";
-
-        JSONObject jObject = new JSONObject();
-        try {
-            JSONArray replyApprvs = new JSONArray();
-            for (UserProfile profile : replyApproves) {
-                JSONObject apprvJson = new JSONObject();
-                apprvJson.put(UserProfile.USER_ID, profile.getUserId());
-
-                replyApprvs.put(apprvJson);
-            }
-            jObject.put(REPLY_APPRVS, replyApprvs);
-        } catch (JSONException jse) {
-            Log.e(TAG, jse.getLocalizedMessage(), jse);
-        }
-
-        return jObject.toString();
-    }
-
     public Context getContext() {
         return mAppContext;
     }
@@ -1245,10 +1336,111 @@ public class DataManager {
     ///////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////
 
+
+    //// APPROVES METHODS ///////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Method for adding new approve to the database
+     * @param userId the id of the user who approved the post
+     * @param replyId the id of the reply that user has approved
+     * @param postId the id of the post that user has approved
+     * @param serverStatus the upload status
+     */
+    public void addApprove( long userId, long replyId, long postId, int serverStatus) {
+        ContentValues values = new ContentValues();
+        values.put(ApproveEntry.COLUMN_USER_ID, userId);
+        values.put(ApproveEntry.COLUMN_POST_ID, postId);
+        values.put(ApproveEntry.COLUMN_REPLY_ID, replyId);
+        values.put(ApproveEntry.COLUMN_SERVER_STATUS, serverStatus);
+
+        Uri insertedUri = mAppContext.getContentResolver().insert(
+                DataContract.ReplyEntry.CONTENT_URI,
+                values
+        );
+
+        if (insertedUri == null) {
+            Log.e(TAG, "Error inserting approve: ReplyID=" + replyId + "; UserID=" + userId );
+        } else {
+            Log.d(TAG, "Approve added: ReplyId=" + replyId + "; UsedID=" + userId);
+        }
+    }
+
+    /**
+     * Method for adding new approve to the database
+     * @param approve the {@link Approve} object to be added
+     */
+    public void addApprove(Approve approve){
+        addApprove(approve.userId, approve.replyId, approve.postId, approve.getServerStatus());
+    }
+
+    /**
+     * method for adding new approves to the database
+     * @param list list of {@link Approve} objects
+     */
+    public void addApproves(List<Approve> list) {
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
+
+        for (Approve approve : list) {
+            ContentValues values = new ContentValues();
+
+            values.put(ApproveEntry.COLUMN_REPLY_ID, approve.replyId);
+            values.put(ApproveEntry.COLUMN_USER_ID, approve.userId);
+            values.put(ApproveEntry.COLUMN_POST_ID, approve.postId);
+            values.put(ApproveEntry.COLUMN_SERVER_STATUS, approve.getServerStatus());
+            cVVector.add(values);
+            Log.d(TAG, "Approves added: " + approve.toString());
+        }
+
+        int inserted = 0;
+        // add to database
+        if (cVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            cVVector.toArray(cvArray);
+
+            inserted = mAppContext.getContentResolver().bulkInsert(ApproveEntry.CONTENT_URI, cvArray);
+            // TODO - delete old data
+        }
+        Log.d(TAG, inserted + " approves added.");
+    }
+
+    /**
+     * Method for updating approve's {@link ApproveEntry#COLUMN_SERVER_STATUS} in db
+     *
+     * @param approve the approve that needs to be updated
+     */
+    public void updateApproveServerStatus(Approve approve, int serverStatus) {
+
+        if(STATUS_RETRY_UPLOAD == serverStatus){
+            addNotUploadedActivity(approve, CLASS_APPROVE);
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(ApproveEntry.COLUMN_SERVER_STATUS, serverStatus);
+
+        int numOfUpdatedRows = mAppContext.getContentResolver().update(ApproveEntry.CONTENT_URI, values,
+                ApproveEntry._ID + " = ?", new String[]{Long.toString(approve._id)});
+
+        if (numOfUpdatedRows != 1) {
+            Log.e(TAG, "Error updating approve: ID =" + approve._id);
+        } else {
+            String debugtext = "Approve updated: ID =" + approve._id;
+
+            Log.d(TAG, debugtext);
+            updateNullBulletin();
+        }
+    }
+
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////
     public void createDummyData() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mAppContext);
+                preferences.edit().putBoolean("DATA_CREATED",true).apply();
                 Random r = new Random();
                 int namesSize = Util.names.length;
                 int lNamesSize = Util.lastNames.length;
@@ -1262,7 +1454,8 @@ public class DataManager {
                 int itemDownloaded = 0;
 
                 ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
-                LinkedList<Bulletin.Reply> repliesList = new LinkedList<>();
+                LinkedList<Reply> repliesList = new LinkedList<>();
+                ArrayList<Approve> approveList = new ArrayList<>();
                 Cursor c = mAppContext.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI,
                         null, null, null, null);
                 int count = c.getCount();
@@ -1287,7 +1480,7 @@ public class DataManager {
                     for (int j = 0; j < bulletin.getNumOfReplies(); j++) {
 
                         UserProfile friendReplied = getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends()));
-                        Bulletin.Reply reply = bulletin.getReplyInstance();
+                        Reply reply = bulletin.getReplyInstance();
 
                         reply.replyId = Integer.parseInt(Long.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
                         reply.userId = friendReplied.getUserId();
@@ -1298,7 +1491,9 @@ public class DataManager {
                         reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage);
 
                         for (int k = 0; k < r.nextInt(5); k++) {
-                            reply.replyApproves.add(getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends())));
+                            UserProfile profile = getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends()));
+                            reply.replyApproves.add(profile);
+                            approveList.add(new Approve(profile.getUserId(), bulletin.getPostID(), reply.replyId));
                             reply.numOfApprvs++;
                         }
 
@@ -1310,6 +1505,7 @@ public class DataManager {
                 }
                 addBulletins(list);
                 addReplies(repliesList);
+                addApproves(approveList);
 
                 LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mAppContext);
                 Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
@@ -1321,6 +1517,9 @@ public class DataManager {
         });
         thread.start();
     }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 }

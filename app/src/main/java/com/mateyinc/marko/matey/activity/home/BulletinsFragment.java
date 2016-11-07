@@ -25,10 +25,9 @@ import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,7 +50,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
      */
     public static ArrayList<Integer> mUpdatedPositions = new ArrayList<>();
 
-    private SessionManager mSessionManager;
+    private NetworkManager mNetworkManager;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -64,7 +63,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = (HomeActivity) context;
-        mSessionManager = SessionManager.getInstance(context);
+        mNetworkManager = NetworkManager.getInstance(context);
 
         getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
     }
@@ -86,7 +85,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                mSessionManager.getNewsFeed(mContext);
+                mNetworkManager.downloadNewsFeed(mContext);
             }
         };
 
@@ -147,7 +146,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(getActivity(),
-                DataContract.BulletinEntry.CONTENT_URI,
+                BulletinEntry.CONTENT_URI,
                 BULLETIN_COLUMNS,
                 null,
                 null,

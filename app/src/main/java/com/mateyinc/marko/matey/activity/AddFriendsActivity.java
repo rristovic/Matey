@@ -11,7 +11,7 @@ import com.mateyinc.marko.matey.activity.adapters.AddFriendsAdapter;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class AddFriendsActivity extends MotherActivity {
                 // Add friends to database and to the server
                 DataManager.getInstance(AddFriendsActivity.this).
                         addUserProfiles(new ArrayList<UserProfile>(list), true);
-                SessionManager.getInstance(AddFriendsActivity.this)
+                NetworkManager.getInstance(AddFriendsActivity.this)
                         .uploadFollowedFriends(new ArrayList<UserProfile>(list), MotherActivity.access_token, AddFriendsActivity.this);
 
                 Intent i = new Intent(AddFriendsActivity.this, HomeActivity.class);
@@ -69,7 +69,7 @@ public class AddFriendsActivity extends MotherActivity {
                 if (list.size() != 0) {
                     DataManager.getInstance(AddFriendsActivity.this).
                             addUserProfiles(new ArrayList<UserProfile>(list), true);
-                    SessionManager.getInstance(AddFriendsActivity.this)
+                    NetworkManager.getInstance(AddFriendsActivity.this)
                             .uploadFollowedFriends(new ArrayList<UserProfile>(list), MotherActivity.access_token, AddFriendsActivity.this);
                 }
 

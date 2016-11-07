@@ -12,7 +12,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -97,7 +97,7 @@ public class NewBulletinActivity extends MotherActivity {
                 b.setLastName(profile.getLastName());
                 b.setMessage(etNewPostMsg.getText().toString());
 
-                SessionManager.getInstance(NewBulletinActivity.this).uploadNewBulletin(b, dataManager, NewBulletinActivity.access_token, NewBulletinActivity.this);
+                NetworkManager.getInstance(NewBulletinActivity.this).uploadNewBulletin(b, dataManager, NewBulletinActivity.access_token, NewBulletinActivity.this);
 
                 finish();
             }

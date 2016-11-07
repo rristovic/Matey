@@ -32,13 +32,13 @@ import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
 import static com.mateyinc.marko.matey.data.DataManager.COL_POST_ID;
-import static com.mateyinc.marko.matey.data.DataManager.STATUS_UPLOADING;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.*;
 
 public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
@@ -78,7 +78,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                             .inflate(R.layout.bulletin_list_item, parent, false);
 
 //                    LinearLayout retryView = new LinearLayout(mContext);
-//                    LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,Util.getDp(30,mContext.getResources()));
+//                    LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,Util.parseDp(30,mContext.getResources()));
 //                    retryView.setLayoutParams(retryParams);
 //                    retryView.setOnClickListener(new View.OnClickListener() {
 //                        @Override
@@ -222,8 +222,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     Resources resources = mContext.getResources();
                     int repliesCount = bulletin.getNumOfReplies();
                     int margin = 0;
-                    int marginIncrease = Util.getDp(15, resources);
-                    int height = Util.getDp(24, resources);
+                    int marginIncrease = Util.parseDp(15, resources);
+                    int height = Util.parseDp(24, resources);
 
                     // Adding image view
                     RoundedImageView imageView = null;
@@ -256,7 +256,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
                         layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
                         layoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
-                        layoutParams.leftMargin = Util.getDp(2, mContext.getResources());
+                        layoutParams.leftMargin = Util.parseDp(2, mContext.getResources());
                         textView.setLayoutParams(layoutParams);
 
                         textView.setGravity(Gravity.CENTER_VERTICAL);
@@ -272,17 +272,17 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 }
 
                 switch (bulletin.getServerStatus()) {
-                    case DataManager.STATUS_UPLOADING: {
+                    case STATUS_UPLOADING: {
                         setViewToUploading(holder);
                         break;
                     }
 
-                    case DataManager.STATUS_RETRY_UPLOAD: {
+                    case STATUS_RETRY_UPLOAD: {
                         setViewToUploadFailed(holder, bulletin);
                         break;
                     }
 
-                    case DataManager.STATUS_SUCCESS: {
+                    case STATUS_SUCCESS: {
                         setViewToNormal(holder);
                         break;
                     }
@@ -335,7 +335,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         }
 
         TextView textView = new TextView(mContext);
-        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.getDp(30, mContext.getResources()));
+        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.parseDp(30, mContext.getResources()));
         textView.setLayoutParams(params);
         textView.setText("Retry");
         textView.setTag("RetryTextView");
@@ -343,7 +343,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SessionManager.getInstance(mContext).uploadNewBulletin(bulletin, mManager, MotherActivity.access_token, mContext);
+                NetworkManager.getInstance(mContext).uploadNewBulletin(bulletin, mManager, MotherActivity.access_token, mContext);
                 mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
             }
         });

@@ -18,8 +18,10 @@ import android.support.v4.util.LruCache;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.NetworkResponse;
@@ -30,6 +32,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
@@ -46,6 +54,7 @@ import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.procedures.UploadService;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.KVPair;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -58,8 +67,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -67,6 +76,8 @@ import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 import static com.mateyinc.marko.matey.inall.MotherActivity.access_token;
 import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
@@ -78,8 +89,8 @@ import static com.mateyinc.marko.matey.internet.UrlData.PARAM_START_POS;
 /**
  * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER, DOWNLOAD & UPLOAD DATA)
  */
-public class SessionManager {
-    private static final String TAG = SessionManager.class.getSimpleName();
+public class NetworkManager {
+    private static final String TAG = NetworkManager.class.getSimpleName();
 
     // Key for securePreference to store the device_id
     public static final String KEY_DEVICE_ID = "device_id";
@@ -101,18 +112,19 @@ public class SessionManager {
     private static final String KEY_LAST_NAME = "last_name";
     private static final String KEY_SUGGESTED_FRIENDS = "suggested_friends";
 
-    /** The application id is on hard drive SessionManager status */
+    /** The application id is on hard drive NetworkManager status */
     public static final int STATUS_OK = 100;
 
-    /** Something when wrong SessionManager status*/
+    /** Something when wrong NetworkManager status*/
     public static final int STATUS_ERROR = 200;
 
-    /** Error with getting the application id SessionManager status*/
+    /** Error with getting the application id NetworkManager status*/
     private static final int STATUS_ERROR_APPID = 400;
 
+    private static NetworkManager mInstance;
+    private static final Object mInstanceLock = new Object();
 
-    private static SessionManager mInstance;
-//    private Context mAppContext;
+    //    private Context mAppContext;
     private ImageLoader mImageLoader;
     private RequestQueue mRequestQueue;
     private ProgressDialog mProgDialog;
@@ -123,7 +135,6 @@ public class SessionManager {
     private final BlockingQueue<Runnable> mDecodeWorkQueue;
     private final ThreadPoolExecutor mExecutor;
 
-
     // Threading constants
     private static int NUMBER_OF_CORES =
             Runtime.getRuntime().availableProcessors();
@@ -131,18 +142,20 @@ public class SessionManager {
     private static final int KEEP_ALIVE_TIME = 10;
     // Sets the Time Unit to seconds
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
+    private CallbackManager mFbCallback;
 
-    public static synchronized SessionManager getInstance(Context context) {
-        if (mInstance == null) {
-            mInstance = new SessionManager(context.getApplicationContext());
-            Log.d(TAG, "New instance of SessionManager created.");
+    public static NetworkManager getInstance(Context context) {
+        synchronized (mInstanceLock) {
+            if (mInstance == null) {
+                mInstance = new NetworkManager(context.getApplicationContext());
+                Log.d(TAG, "New instance of NetworkManager created.");
+            }
         }
 
         return mInstance;
     }
 
-    private SessionManager(Context context) {
-//        mAppContext = context.getApplicationContext();
+    private NetworkManager(Context context) {
 
         mRequestQueue = Volley.newRequestQueue(context);
         mDecodeWorkQueue = new LinkedBlockingQueue<Runnable>();
@@ -172,103 +185,33 @@ public class SessionManager {
                 });
     }
 
-
-    /**
-     * Method for adding new {@link Request} to the current {@link RequestQueue} in use
-     * @param req the request to be added
-     */
-    public void addToRequestQueue(Request req) {
-        req.setTag("");
-        mRequestQueue.add(req);
-    }
-
-    public ImageLoader getImageLoader() {
-        return mImageLoader;
-    }
-
-    /** Method for starting {@link UploadService} used for uploading data to the server
-     *
-     * @param c used to start the service
-     */
-    public void startUploadService(Context c) {
-        if(!mIsBound) {
-            Context context = c.getApplicationContext();
-            Intent intent = new Intent(context, UploadService.class);
-            context.startService(intent);
-            mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        } else if (mUploadService == null){
-            // If service gets destroyed in unusual way, just restart it
-            Context context = c.getApplicationContext();
-            Intent intent = new Intent(context, UploadService.class);
-            context.startService(intent);
-        }
-    }
-
-    /** Method for stopping {@link UploadService} used for uploading data to the server
-     *
-     * @param c used to stop the service
-     */
-    public void stopUploadService(Context c) {
-        if (mIsBound) {
-            Context context = c.getApplicationContext();
-            context.unbindService(mConnection);
-            Intent intent = new Intent(context, UploadService.class);
-            context.stopService(intent);
-            mIsBound = false;
-        }
-    }
-
-    /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            UploadService.LocalBinder binder = (UploadService.LocalBinder) service;
-            mUploadService = binder.getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            // Before uploading anything, checking for mUploadService is needed;
-            mUploadService = null;
-            Log.e(TAG, "Service: " + arg0 + " - has been disconected");
-        }
-    };
-
-    /** Method for stopping all pending and running downloads */
-    public void stopAllNetworking(){
-        mRequestQueue.cancelAll("");
-    }
-
     /** Helper method that checks all the required parameters for starting a new session with the server */
     public void startSession(final MainActivity activity){
         // If there is no internet connection, show alert dialog
         if(!Util.isInternetConnected(activity)){
-           Util.showAlertDialog(activity, activity.getString(R.string.no_internet_msg)
-                   , null, new DialogInterface.OnClickListener() {
-                       @Override
-                       public void onClick(DialogInterface dialog, int which) {
-                           activity.endLoadingAnim();
-                           activity.mDeviceReady = false;
-                           dialog.dismiss();
-                       }
-                   });
+            Util.showAlertDialog(activity, activity.getString(R.string.no_internet_msg)
+                    , null, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            activity.endLoadingAnim();
+                            activity.mDeviceReady = false;
+                            dialog.dismiss();
+                        }
+                    });
             return;
         }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
 
         // If user is logged in, proceed to next activity
-        if(isUserLoggedIn(activity)) {
+        if(isUserLoggedIn(sharedPreferences)) {
             loggedIn(activity);
             return;
         }
 
-        if (checkPlayServices(activity)) {
+        if (!RegistrationIntentService.isRunning && checkPlayServices(activity)) {
             // Because this is the initial creation of the app, we'll want to be certain we have
             // a token. If we do not, then we will start the IntentService that will register this
             // application with GCM.
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
             boolean sentToken = sharedPreferences.getBoolean(SENT_TOKEN_TO_SERVER, false);
 
             if (!sentToken) {
@@ -277,7 +220,7 @@ public class SessionManager {
                 activity.startService(intent);
             } else if (activity.getSecurePreferences().getString(KEY_DEVICE_ID) == null) {
                 // The device has already been registered with GCM but not with the server
-                SessionManager.this.registerDevice(activity, activity.getSecurePreferences(),
+                registerDevice(activity, activity.getSecurePreferences(),
                         sharedPreferences.getString(NEW_GCM_TOKEN, ""));
             } else {
                 // The device is registered both with GCM and with the server
@@ -288,9 +231,7 @@ public class SessionManager {
     }
 
     /** Method to check if user is logged in */
-    private boolean isUserLoggedIn(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
+    private boolean isUserLoggedIn(SharedPreferences preferences) {
         // Only check if the id exists because on logout it gets deleted
         long user_id = preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
 
@@ -319,7 +260,7 @@ public class SessionManager {
                             }
 
                         });
-                }
+            }
             return false;
         }
         return true;
@@ -335,24 +276,28 @@ public class SessionManager {
 
             // No old token found
 //            if (sharedPreferences.getString(OLD_GCM_TOKEN, null) == null) {
-                String url = UrlData.REGISTER_DEVICE;
                 // Request a string response from the provided URL.
-                MateyRequest stringRequest = new MateyRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                MateyRequest stringRequest = new MateyRequest(Request.Method.POST, UrlData.REGISTER_DEVICE, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        if (mProgDialog != null)
+                            dismissProgressDialog(mProgDialog);
                         MainActivity activity = reference.get();
                         SecurePreferences securePreferences = prefRef.get();
                         try {
+                            // Parse data
                             JSONObject object = new JSONObject(response);
                             String device_id = object.getString(KEY_DEVICE_ID);
 
+                            // Save data
                             securePreferences.put(KEY_DEVICE_ID, device_id);
                             MotherActivity.device_id = device_id;
-
-                            activity.mDeviceReady = true;
+                            // Save prefs that token has been sent to the server
                             sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, true).apply();
 
-                            Log.d(TAG, "Device id=" + object.getString(KEY_DEVICE_ID));
+                            // Notify UI
+                            activity.mDeviceReady = true;
+                            Log.d(TAG, "Device id=" + device_id);
                         } catch (JSONException e) {
                             Log.e(TAG, e.getLocalizedMessage(), e);
                         }
@@ -362,14 +307,18 @@ public class SessionManager {
                     public void onErrorResponse(VolleyError error) {
                         MainActivity activity = reference.get();
                         if (activity != null) {
+                            if (mProgDialog != null)
+                                dismissProgressAndShowAlert(activity);
+                            else
+                                showServerAlert(activity);
                             activity.mDeviceReady = false;
                             activity.endLoadingAnim();
                         }
                         Log.e(TAG, error.getLocalizedMessage(), error);
-                        // TODO - error in response
                     }
                 });
                 stringRequest.addParam(UrlData.PARAM_NEW_GCM_ID, gcmToken);
+
                 // Add the request to the RequestQueue.
                 mInstance.addToRequestQueue(stringRequest);
                 activity = null;
@@ -387,51 +336,127 @@ public class SessionManager {
      * Method for user registration on to the server, also updates the UI
      *
      * @param context the MainActivity context used for UI control
+     * @param firstName user's first name
+     * @param lastName user's last name
      * @param email user email address
      * @param pass  user password
      */
-    public void registerWithVolley(final MainActivity context, final String email, String pass) {
+    public void registerWithVolley(final MainActivity context, String firstName, String lastName, final String email, String pass) {
         // Showing progress dialog
         mProgDialog = new ProgressDialog(context);
         mProgDialog.setMessage(context.getResources().getString(R.string.registering_dialog_message));
         mProgDialog.show();
 
         // Making new request and contacting the server
-        MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Toast.makeText(context, context.getString(R.string.success_reg_message), Toast.LENGTH_LONG).show();
+        MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Toast.makeText(context, context.getString(R.string.success_reg_message), Toast.LENGTH_LONG).show();
 
-                // Adding new account to AM
-                AccountManager am = AccountManager.get(context);
-                Account account = new Account(email, context.getString(R.string.account_type));
-                am.addAccountExplicitly(account, null, null);
+                        // Adding new account to AM
+                        AccountManager am = AccountManager.get(context);
+                        Account account = new Account(email, context.getString(R.string.account_type));
+                        am.addAccountExplicitly(account, null, null);
 
-                // Updating UI
-                dismissProgressDialog(mProgDialog);
-                context.startRegReverseAnim();
-                context.mRegFormVisible = false;
-                context.etEmail.setText("");
-                context.etPass.setText("");
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Error while registering user.");
-                dismissProgressAndShowAlert(context);
-            }
-        });
+                        // Updating UI
+                        dismissProgressDialog(mProgDialog);
+                        context.startRegReverseAnim();
+                        context.mRegFormVisible = false;
+                        context.etEmail.setText("");
+                        context.etPass.setText("");
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "Error while registering user.");
 
-        // TODO - finish params in UI
-        request.addParam(UrlData.PARAM_USER_FIRST_NAME, "KURAC");
-        request.addParam(UrlData.PARAM_USER_LAST_NAME, "KURAC");
+                        // Parsing an error
+                        NetworkResponse response = error.networkResponse;
+                        String errorData = new String(response.data);
+                        int statusCode = response.statusCode;
+
+                        if (statusCode == HttpURLConnection.HTTP_CONFLICT) {
+                            try {
+                                // See if this is an expected error from server, if not, use def action
+                                String[] errorDesc = parseJsonError(errorData);
+                                if (errorDesc[0].equals(MateyRequest.ErrorType.MERGE)) {
+                                    dismissProgressDialog(mProgDialog);
+                                    requestFbToken(context, context.getSecurePreferences(), errorDesc, context.etPass.getText().toString());
+                                } else
+                                    dismissProgressAndShowAlert(context, errorDesc[1]);
+                            } catch (JSONException e) {
+                                dismissProgressAndShowAlert(context);
+                            }
+                        } else
+                            dismissProgressAndShowAlert(context);
+                    }
+                }
+        );
+
+        request.addParam(UrlData.PARAM_USER_FIRST_NAME, firstName);
+        request.addParam(UrlData.PARAM_USER_LAST_NAME, lastName);
         request.addParam(UrlData.PARAM_EMAIL, email);
         request.addParam(UrlData.PARAM_PASSWORD, pass);
         mRequestQueue.add(request);
     }
 
     /**
-     * Helper method for user login on to the server, also updates the UI
+     * Helper method for requesting fb access token and proceeding with the merge
+     * @param context MainActivity context
+     * @param securePreferences SecurePrefs object
+     * @param errorDesc error object as string retrieved from the server
+     * @param password user's password
+     */
+    private void requestFbToken(final MainActivity context, final SecurePreferences securePreferences, final String[] errorDesc, final String password) {
+        Util.showTwoBtnAlertDialog(context, errorDesc[1], null,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        LoginManager.getInstance().logInWithReadPermissions(context,
+                                Arrays.asList("public_profile"));
+                        dialogInterface.dismiss();
+                    }
+                }, context.getString(R.string.positive_dialog_answer),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }, context.getString(R.string.negative_dialog_answer));
+
+
+        LoginManager.getInstance().registerCallback(context.fbCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                final AccessToken accessToken = loginResult.getAccessToken();
+                // Send access token req with default listeners
+                showProgressDialog(context, context.getString(R.string.gettingIn_dialog_message));
+                sendAccessTokenReq(context, "", "", accessToken.getToken(),
+                        createDefaultResponseListener(context, securePreferences, accessToken.getToken(), context.etEmail.getText().toString()),
+                        createDefaultErrorListener(context));
+            }
+
+            @Override
+            public void onCancel() {
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                dismissProgressDialog(mProgDialog);
+                Log.e(TAG, error.getLocalizedMessage(), error);
+            }
+        });
+    }
+
+    public void showProgressDialog(Context context, String message) {
+        mProgDialog = new ProgressDialog(context);
+        mProgDialog.setMessage(message);
+        mProgDialog.show();
+    }
+
+    /**
+     * Helper method for user login onto the server, also updates the UI
      *
      * @param email user's email address
      * @param pass  user's password
@@ -440,6 +465,7 @@ public class SessionManager {
      */
     public void loginWithVolley(final String email, String pass, final SecurePreferences securePreferences, final MainActivity context) {
         // Send access token request with default response listener
+        showProgressDialog(context, context.getString(R.string.gettingIn_dialog_message));
         sendAccessTokenReq(context, securePreferences, pass, email, "");
     }
 
@@ -452,6 +478,7 @@ public class SessionManager {
      */
     public void loginWithFacebook(final String fbAccessToken, final String email, final SecurePreferences securePreferences, final MainActivity context) {
 
+        showProgressDialog(context, context.getString(R.string.gettingIn_dialog_message));
         sendAccessTokenReq(context, "", "", fbAccessToken,
                 new Response.Listener<String>() {
                     @Override
@@ -464,42 +491,7 @@ public class SessionManager {
                             dismissProgressAndShowAlert(context);
                             return;
                         }
-
                         sendLoginReq(context, email, MotherActivity.device_id, MotherActivity.access_token);
-//                        final SharedPreferences preferences = getDefaultSharedPreferences(context);
-//                        // Immediately after contacting OAuth2 Server proceed to resource server for login
-//                        // Creating new request for the resource server
-//                        MateyRequest resRequest = new MateyRequest(Request.Method.POST, UrlData.LOGIN_USER
-//                                ,new Response.Listener<String>() {
-//                                    @Override
-//                                    public void onResponse(String response) {
-//                                        // Parsing response.data
-//                                        try {
-//                                            JSONObject object = new JSONObject(response);
-//                                            DataManager dataManager = DataManager.getInstance(context);
-//                                            parseUserDataAndLogin(context, dataManager, preferences, object);
-//                                            dismissProgressDialog(mProgDialog);
-//                                        } catch (JSONException e) {
-//                                            Log.e(TAG, e.getLocalizedMessage(), e);
-//                                        }
-//                                    }
-//                                }
-//                                ,new Response.ErrorListener() {
-//                                    @Override
-//                                    public void onErrorResponse(VolleyError error) {
-//                                        // only when cant connect to the server
-//                                        Log.e(TAG, error.getLocalizedMessage(), error);
-//                                        dismissProgressAndShowAlert(context);
-//                                    }
-//                        }
-//                        );
-//
-//                        // Setting request params and sending POST request
-//                        resRequest.addParam(UrlData.PARAM_EMAIL, email);
-//                        resRequest.addParam(UrlData.PARAM_DEVICE_ID, MotherActivity.device_id);
-//                        resRequest.setAuthHeader(UrlData.PARAM_AUTH_TYPE,
-//                                String.format("Bearer %s", MotherActivity.access_token));
-//                        mRequestQueue.add(resRequest);
                     }
                 },
                 // An error can be received if there's no connection to the server,
@@ -507,33 +499,26 @@ public class SessionManager {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
-                        if (mProgDialog.isShowing())
-                            mProgDialog.dismiss();
+                        dismissProgressDialog(mProgDialog);
 
                         // Parsing an error
                         NetworkResponse response = error.networkResponse;
                         String errorData = new String(response.data);
                         int statusCode = response.statusCode;
 
-                        switch (statusCode) {
-                            case HttpURLConnection.HTTP_CONFLICT: {
-                                try {
-                                    // See if this is an expected error from server, if not, use def action
-                                    String[] errorDesc = parseJsonError(errorData);
-                                    if (errorDesc[0].equals(MateyRequest.ErrorType.MERGE))
-                                        requestToMerge(context, securePreferences, fbAccessToken, errorDesc[1], errorDesc[2]);
-                                } catch (JSONException e){
-                                    dismissProgressAndShowAlert(context);
-                                }
-                                break;
+                        if (statusCode == HttpURLConnection.HTTP_CONFLICT) {
+                            try {
+                                // See if this is an expected error from server, if not, use def action
+                                String[] errorDesc = parseJsonError(errorData);
+                                if (errorDesc[0].equals(MateyRequest.ErrorType.MERGE))
+                                    requestToMerge(context, securePreferences, fbAccessToken, errorDesc[1], errorDesc[2]);
+                            } catch (JSONException e) {
+                                dismissProgressAndShowAlert(context);
                             }
-                            default: {
+                        } else
+                            dismissProgressAndShowAlert(context);
 
-                            }
-                        }
-
-                        Log.e(TAG, error.toString());
+                        Log.e(TAG, error.getLocalizedMessage(), error);
                     }
                 }
         );
@@ -561,6 +546,9 @@ public class SessionManager {
 
                         // Set up the input
                         final EditText input = new EditText(context);
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        int margin = Util.parseDp(16, context.getResources());
+                        layoutParams.setMargins(margin, 0, margin, 0);
                         // Specify the type of input expected; sets the input as a password, and will mask the text
                         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                         builder.setView(input);
@@ -570,6 +558,7 @@ public class SessionManager {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String passwordString = input.getText().toString();
+                                showProgressDialog(context, context.getString(R.string.gettingIn_dialog_message));
                                 sendAccessTokenReq(context, securePreferences, passwordString, emailToMergeWith, fbAccessToken);
                                 dialog.dismiss();
                             }
@@ -583,12 +572,14 @@ public class SessionManager {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                }, context.getString(R.string.negative_dialog_answer));
+                }, context.getString(R.string.negative_dialog_answer)
+        );
     }
 
 
     /**
-     * Method for contacting OAuth2 server for access token request
+     * Method for contacting OAuth2 server for access token request with default listeners
+     * NOTE: Shows progress dialog
      *
      * @param context MainActivity context used for dialog control and data entries of tokens, ids..
      * @param securePreferences {@link SecurePreferences} object used for storing ACCESS_TOKEN for default listeners
@@ -597,22 +588,23 @@ public class SessionManager {
      * @param fbAccessToken facebook access token if needed
      */
     private void sendAccessTokenReq(final MainActivity context, final SecurePreferences securePreferences, String passwordString, final String email, @NonNull String fbAccessToken) {
-        Response.Listener listener = createDefaultResponseListener(context, securePreferences, fbAccessToken, email);
+        Response.Listener<String> listener = createDefaultResponseListener(context, securePreferences, fbAccessToken, email);
         Response.ErrorListener errorListener = createDefaultErrorListener(context);
 
         sendAccessTokenReq(context, passwordString, email, "", listener, errorListener);
     }
 
     /**
-     * Method for creating default matey response listener, which is used for fb merge request and normal login process
+     * Method for creating default {@link com.android.volley.Response.Listener}, which saves UserProfile data retrieved from the server;
+     * NOTE:  used for fb merge request and normal login process
+     *
      * @param context MainActivity contest
      * @param securePreferences the secure prefs
      * @param fbAccessToken facebook access token; if this is empty, the response will proceed with normal login, otherwise offer to merge fb accounts
-     * @param email user email adress
-     * @return newly created {@link com.android.volley.Response.Listener}
+     * @param email user email address
+     * @return newly created listener
      */
-    private Response.Listener createDefaultResponseListener(final MainActivity context, final SecurePreferences securePreferences,
-                                                            @NonNull final String fbAccessToken, final String email) {
+    private Response.Listener<String> createDefaultResponseListener(final MainActivity context, final SecurePreferences securePreferences, @NonNull final String fbAccessToken, final String email) {
         return new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -627,18 +619,23 @@ public class SessionManager {
                     else
                         sendLoginReq(context, email, MotherActivity.device_id, MotherActivity.access_token);
                 } catch (JSONException e) {
-                    Log.e(TAG, e.getLocalizedMessage(), e);
+                    Log.e(TAG, "Error retrieving access token: " + e.getLocalizedMessage(), e);
                     dismissProgressAndShowAlert(context);
                 }
             }
         };
     }
 
+    /**
+     * Method for creating default {@link com.android.volley.Response.ErrorListener} which updates the UI
+     * @param context the context to show dialogs in
+     * @return newly created listener
+     */
     private Response.ErrorListener createDefaultErrorListener(final MainActivity context) {
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Error while authenticating user.", error.getCause());
+                Log.e(TAG, "Error retrieving access token: " + error.getLocalizedMessage(), error);
                 dismissProgressAndShowAlert(context);
             }
         };
@@ -662,7 +659,7 @@ public class SessionManager {
      * @param deviceId deviceId retrieved from the server
      * @param accessToken accessToken retrieved from the server
      */
-    private void sendLoginReq(final MainActivity context, String email, String deviceId, String accessToken,@NonNull String fbAccessToken) {
+    private void sendLoginReq(final MainActivity context, String email, String deviceId, String accessToken, @NonNull String fbAccessToken) {
         final SharedPreferences preferences = getDefaultSharedPreferences(context);
         // Immediately after contacting OAuth2 Server proceed to resource server for login
         // Creating new request for the resource server
@@ -681,8 +678,7 @@ public class SessionManager {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                // TODO - handle errors
-                Log.e(TAG, error.getLocalizedMessage(), error);
+                Log.e(TAG, "Error while trying to login the user: " + error.getLocalizedMessage(), error);
                 dismissProgressAndShowAlert(context);
             }
         });
@@ -702,19 +698,14 @@ public class SessionManager {
      * NOTE: Shows progress dialog
      *
      * @param context MainActivity context used for dialog control and data entries of tokens, ids..
-//     * @param securePreferences {@link SecurePreferences} object used for storing ACCESS_TOKEN
      * @param passwordString password string param
      * @param email email string param
-//     * @param fbAccessToken facebook access token if needed
+     * @param fbAccessToken facebook access token if needed
      * @param listener the success callback to call when there was success response
      * @param errorListener the error callback listener to call when an error has occurred
      */
     private void sendAccessTokenReq(final MainActivity context,
-                                    @NonNull String passwordString, @NonNull final String email, @NonNull String fbAccessToken, Response.Listener listener, Response.ErrorListener errorListener) {
-        mProgDialog = new ProgressDialog(context);
-        mProgDialog.setMessage(context.getString(R.string.gettingIn_dialog_message));
-        mProgDialog.show();
-
+                                    @NonNull String passwordString, @NonNull final String email, @NonNull String fbAccessToken, Response.Listener<String> listener, Response.ErrorListener errorListener) {
         // First contacting OAuth2 server
         MateyRequest oauthRequest = new MateyRequest(Request.Method.POST, UrlData.OAUTH_LOGIN,
                 listener, errorListener);
@@ -736,51 +727,13 @@ public class SessionManager {
         mRequestQueue.add(oauthRequest);
     }
 
-//    /** Method for sending a facebook merge request with std user to the server
-//     *
-//     * @param context MainActivity context
-//     * @param fbAccessToken facebook access token
-//     * @param email email to merge with
-//     * @param deviceId the device id retrieved from the server
-//     * @param accessToken access token retrieved from the server
-//     */
-//    private void sendFBLoginMergeRequest(final MainActivity context, final String fbAccessToken, final String email, String deviceId, String accessToken){
-//        MateyRequest mergeRequest = new MateyRequest(Request.Method.POST, UrlData.FACEBOOK_MERGE,
-//                new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        try {
-//                            JSONObject object = new JSONObject(response);
-//                            dismissProgressDialog(mProgDialog);
-//                            parseUserDataAndLogin(context, DataManager.getInstance(context), PreferenceManager.getDefaultSharedPreferences(context), object);
-//                        } catch (JSONException e) {
-//                            Log.e(TAG, e.getLocalizedMessage(), e);
-//                        }
-//                    }
-//                },
-//                new Response.ErrorListener() {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//                        dismissProgressAndShowAlert(context, context.getString(R.string.merge_acc_failed_msg));
-//                        Log.e(TAG, error.getLocalizedMessage(), error);
-//                    }
-//                }
-//        );
-//        mergeRequest.addParam("fb_token", fbAccessToken);
-//        mergeRequest.addParam(UrlData.PARAM_EMAIL, email);
-//        mergeRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
-//        mergeRequest.setAuthHeader(accessToken);
-//
-//        mRequestQueue.add(mergeRequest);
-//    }
-
     /**
      * Parsing data and calling login process {@link #loggedIn(MainActivity)}
-     * @see #parseUserData(MainActivity, DataManager, SharedPreferences, JSONObject)
+     * @see #parseUserData(DataManager, SharedPreferences, JSONObject)
      */
     private void parseUserDataAndLogin(MainActivity context, DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parse the data
-        parseUserData(context, dataManager, preferences, object);
+        parseUserData( dataManager, preferences, object);
 
         // Check if the response object has suggested friends list
         if  (object.has(KEY_SUGGESTED_FRIENDS)) {
@@ -796,7 +749,6 @@ public class SessionManager {
                 profile.setLastName(profileObject.getString(KEY_LAST_NAME));
                 list.add(profile);
             }
-
             // Add suggested friends list only in memory, not in db
             dataManager.setSuggestedFriends(list);
             // Login
@@ -805,17 +757,14 @@ public class SessionManager {
             loggedIn(context);
     }
 
-
-
     /** Method for parsing the user data retrieved from the server when trying to login
      *
-     * @param context the MainActivity context used to login
      * @param dataManager the {@link DataManager} instance used to store data
      * @param preferences the {@link SharedPreferences} instance used to store data
      * @param object json object which contains {@link #KEY_FIRST_NAME}, {@link #KEY_LAST_NAME}, {@link #KEY_EMAIL}, {@link #KEY_PROFILE_PICTURE};
-     * @throws JSONException the exception is thrown if json conversion failes
+     * @throws JSONException the exception is thrown if json conversion fails
      */
-    private void parseUserData(MainActivity context, DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
+    private void parseUserData( DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parsing user
         UserProfile userProfile = new UserProfile(object.getInt(KEY_USER_ID),
                 object.getString(KEY_FIRST_NAME),
@@ -830,7 +779,7 @@ public class SessionManager {
         dataManager.setCurrentUserProfile(preferences, userProfile);
     }
 
-    /** Helper method for retrieving error description message collected from the server
+    /** Method for retrieving error description message collected from the server
      *
      * @param errorData error string retrieved from the server
      * @return String[2] object, where String(0) = error type; String(1) = error description;
@@ -839,8 +788,9 @@ public class SessionManager {
     private String[] parseJsonError(String errorData) throws JSONException {
         JSONObject jsonError = new JSONObject(errorData);
 
-        return new String[]{jsonError.getString(MateyRequest.KEY_ERROR_TYPE),
-                jsonError.getString(MateyRequest.KEY_ERROR_DESC), jsonError.getString(MateyRequest.KEY_ERROR_EMAIL)};
+        return new String[] {jsonError.getString(MateyRequest.KEY_ERROR_TYPE),
+                jsonError.getString(MateyRequest.KEY_ERROR_DESC),
+                jsonError.getString(MateyRequest.KEY_ERROR_EMAIL)};
     }
 
     /** Method for parsing json response retrieved from the auth server;
@@ -871,11 +821,15 @@ public class SessionManager {
      * Helper method for dismissing progress dialog and showing alert on server error
      * @param context the context used for dialog control
      */
-    private void dismissProgressAndShowAlert(final MainActivity context){
+    private void dismissProgressAndShowAlert(MainActivity context){
         if (mProgDialog.isShowing())
             mProgDialog.dismiss();
 
-        Util.showAlertDialog(context, context.getString(R.string.server_not_responding_msg), null,
+        showServerAlert(context);
+    }
+
+    public void showServerAlert(MainActivity context){
+        Util.showServerNotResponding(context,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -907,7 +861,7 @@ public class SessionManager {
      * If the user is already logged in, access_token, user_id and device_id are already stored in {@link MotherActivity}
      * @param context the context to use when starting new activity
      */
-    public void loggedIn(MainActivity context) {
+    private void loggedIn(MainActivity context) {
         startUploadService(context);
 
         Intent intent = new Intent(context, HomeActivity.class);
@@ -937,12 +891,12 @@ public class SessionManager {
 
         clearUserCredentials(context, securePreferences);
         clearDatabase(context);
+        sendLogOutReq(context, MotherActivity.device_id, MotherActivity.access_token);
 
         if (context.isDebug()) {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             preferences.edit().remove("IS_DEBUG").remove("DATA_CREATED").apply();
         }
-        // TODO - Inform server about logout
 
         Intent i = new Intent(context, MainActivity.class);
         context.startActivity(i);
@@ -953,8 +907,26 @@ public class SessionManager {
      * Method for sending logout request on the server
      * @param context the context
      */
-    private void sendLogOutReq(Context context) {
-        // TODO - finish
+    private void sendLogOutReq(Context context, String deviceId, String accessToken) {
+        MateyRequest logoutRequest = new MateyRequest(Request.Method.POST, UrlData.LOGOUT_USER,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // TODO - finish
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO - finish
+                    }
+                });
+        // Setting request params and sending POST request
+//        logoutRequest.addParam(UrlData.PARAM_EMAIL, email);
+        logoutRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
+        logoutRequest.setAuthHeader(accessToken);
+
+        mRequestQueue.add(logoutRequest);
     }
 
     public static void clearUserCredentials(Context context, SecurePreferences securePreferences) {
@@ -966,7 +938,6 @@ public class SessionManager {
 
         // Removing current user  profile from prefs
         dataManager.setCurrentUserProfile(preferences, null);
-
 
         // Clearing user credentials
         securePreferences.removeValue(KEY_ACCESS_TOKEN);
@@ -984,6 +955,8 @@ public class SessionManager {
         context.getContentResolver().delete(DataContract.NotUploadedEntry.CONTENT_URI, null, null);
     }
 
+
+
     ///////////////// DATA INTERNET METHODS ///////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -999,7 +972,7 @@ public class SessionManager {
      * @param profilePictureLink the image url to download from
      * @return the newly created {@link Request} object with the tag {@link #TAG_COUNTER} incremented by 1;
      */
-    public Request downloadPicture(ImageView ivProfilePic, final String profilePictureLink) {
+    public Request downloadImage(ImageView ivProfilePic, final String profilePictureLink) {
 
         int w = DEFAULT_MAX_W, h = DEFAULT_MAX_H;
 
@@ -1059,15 +1032,45 @@ public class SessionManager {
         Log.d(TAG, "Posting new bulletin.");
 
         // First add the bulletin to the database then upload it to the server
-        dataManager.addBulletin(b, DataManager.STATUS_UPLOADING);
+        dataManager.addBulletin(b, STATUS_UPLOADING);
 
         if (mUploadService != null && mConnection != null)
-            mUploadService.uploadBulletins(b, accessToken);
+            mUploadService.uploadBulletin(b, accessToken);
         else {
-            dataManager.updateBulletinServerStatus(b, DataManager.STATUS_RETRY_UPLOAD);
+            dataManager.updateBulletinServerStatus(b, STATUS_RETRY_UPLOAD);
             startUploadService(context);
         }
     }
+
+    /**
+     * Helper method for uploading new reply to the server, also adds it to the database using dataManager
+     * @param reply the {@link Reply} to be uploaded
+     * @param dataManager the {@link DataManager} instance used for adding reply to the database
+     * @param context used to start the upload service if it isn't started
+     * @param accessToken access token used to authorize with the server
+     */
+    public void uploadNewReply(final Reply reply, final Bulletin currentBulletin, final DataManager dataManager, final String accessToken, final Context context) {
+        Log.d(TAG, "Uploading new reply.");
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                // First add the bulletin to the database then upload it to the server
+                dataManager.addReply(reply, currentBulletin, STATUS_UPLOADING);
+
+                if (mUploadService != null && mConnection != null)
+                    mUploadService.uploadReply(reply, accessToken);
+                else {
+                    dataManager.updateReplyServerStatus(reply, STATUS_RETRY_UPLOAD);
+                    // Update number of replies in bulletin db
+                    dataManager.updateBulletinRepliesCount(currentBulletin.getPostID(), currentBulletin.getNumOfReplies()-1);
+                }
+            }
+        };
+
+        mExecutor.execute(r);
+    }
+
 
     /**
      * Method for downloading and parsing news feed from the server, and all data around it
@@ -1075,7 +1078,7 @@ public class SessionManager {
      * @param count the total bulletin count that needs to be downloaded in a single burst
      * @param context the Context used for notifying when the parsing result is complete
      */
-    public void getNewsFeed(int start, int count, Context context) {
+    public void downloadNewsFeed(int start, int count, Context context) {
 
         Log.d(TAG, "Downloading news feed. Start position=".concat(Integer.toString(start))
                 .concat("; Count=").concat(Integer.toString(count)));
@@ -1118,13 +1121,13 @@ public class SessionManager {
      *
      * @param context the context of activity which is calling this method
      */
-    public void getNewsFeed(final Context context) {
+    public void downloadNewsFeed(final Context context) {
         int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
-        getNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
+        downloadNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
     }
 
     /**
-     * Method used to upload followed friends list, by the current user, to the server;
+     * Helper method used to upload followed friends list, by the current user, to the server;
      * @param addedFriends list of friends to be uploaded
      * @param accessToken access token used to authorise with the server
      * @param context used to start upload service if it isn't started
@@ -1138,6 +1141,93 @@ public class SessionManager {
             // TODO - finish error nadling
             startUploadService(context);
         }
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    ///////////////// GENERAL USE METHODS /////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Method for starting {@link UploadService} used for uploading data to the server
+     * @param c used to start the service
+     */
+    public void startUploadService(Context c) {
+        if(!mIsBound) {
+            Context context = c.getApplicationContext();
+            Intent intent = new Intent(context, UploadService.class);
+            context.startService(intent);
+            mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        } else if (mUploadService == null){
+            // If service gets destroyed in unusual way, just restart it
+            Context context = c.getApplicationContext();
+            Intent intent = new Intent(context, UploadService.class);
+            context.startService(intent);
+        }
+    }
+
+    /**
+     * Method for stopping {@link UploadService} used for uploading data to the server
+     * @param c used to stop the service
+     */
+    public void stopUploadService(Context c) {
+        if (mIsBound) {
+            Context context = c.getApplicationContext();
+            context.unbindService(mConnection);
+            Intent intent = new Intent(context, UploadService.class);
+            context.stopService(intent);
+            mIsBound = false;
+        }
+    }
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            UploadService.LocalBinder binder = (UploadService.LocalBinder) service;
+            mUploadService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            // Before uploading anything, checking for mUploadService is needed;
+            mUploadService = null;
+            Log.e(TAG, "Service: " + arg0 + " - has been disconected");
+        }
+    };
+
+    /** Method for stopping all pending and running downloads */
+    public void stopAllNetworking(){
+        mRequestQueue.cancelAll("");
+    }
+
+    /** Method for stopping all pending and running downloads */
+    public void stopAllNetworking(Object tag){
+        mRequestQueue.cancelAll(tag);
+    }
+
+    /**
+     * Method for adding new {@link Request} to the current {@link RequestQueue} in use
+     * @param req the request to be added
+     */
+    public void addToRequestQueue(Request req) {
+        addToRequestQueue(req,"");
+    }
+
+    /**
+     * Method for adding new {@link Request} to the current {@link RequestQueue} in use
+     * @param req the request to be added
+     * @param tag object to tag the network request
+     */
+    public void addToRequestQueue(Request req, Object tag) {
+        req.setTag(tag);
+        mRequestQueue.add(req);
+    }
+
+    public ImageLoader getImageLoader() {
+        return mImageLoader;
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1171,7 +1261,7 @@ public class SessionManager {
         dataManager.setCurrentUserProfile(preferences, userProfile);
 
         // Close progress dialog
-        if (mProgDialog.isShowing())
+        if (mProgDialog != null && mProgDialog.isShowing())
             mProgDialog.dismiss();
 
         // Close activity and proceed to HomeActivity
@@ -1183,7 +1273,10 @@ public class SessionManager {
 
     public void createDummyData(HomeActivity homeActivity) {
         DataManager dm = DataManager.getInstance(homeActivity);
-        dm.createDummyData();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(homeActivity);
+
+        if(!preferences.getBoolean("DATA_CREATED",false))
+            dm.createDummyData();
     }
 
 

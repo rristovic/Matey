@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.activity.view;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -25,7 +24,9 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
@@ -41,15 +42,14 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     public static final String EXTRA_SHOW_BULLETIN = "show_bulletin";
 
     public static final String[] REPLIES_COLUMNS = {
-            ReplyEntry.TABLE_NAME + "." + ReplyEntry._ID,
-            ReplyEntry.COLUMN_USER_ID,
-            ReplyEntry.COLUMN_FIRST_NAME,
-            ReplyEntry.COLUMN_LAST_NAME,
-            ReplyEntry.COLUMN_TEXT,
-            ReplyEntry.COLUMN_DATE,
-            ReplyEntry.COLUMN_NUM_OF_APPRVS,
-            ReplyEntry.COLUMN_APPRVS,
-            ReplyEntry.COLUMN_POST_ID
+            "replies.".concat(ReplyEntry._ID),
+            "replies.".concat(ReplyEntry.COLUMN_USER_ID),
+            "replies.".concat(ReplyEntry.COLUMN_FIRST_NAME),
+            "replies.".concat(ReplyEntry.COLUMN_LAST_NAME),
+            "replies.".concat(ReplyEntry.COLUMN_TEXT),
+            "replies.".concat(ReplyEntry.COLUMN_DATE),
+            "replies.".concat(ReplyEntry.COLUMN_NUM_OF_APPRVS),
+            "replies.".concat(ReplyEntry.COLUMN_POST_ID)
     };
 
     // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
@@ -61,8 +61,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     public static final int COL_TEXT = 4;
     public static final int COL_DATE = 5;
     public static final int COL_NUM_OF_APPRVS = 6;
-    public static final int COL_APPRVS = 7;
-    public static final int COL_POST_ID = 8;
+    public static final int COL_POST_ID = 7;
 
     public static int mBulletinPos = -1;
 
@@ -157,7 +156,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bulletin.Reply r = new Bulletin().getReplyInstance();
+                Reply r = new Bulletin().getReplyInstance();
                 UserProfile profile = mManager.getCurrentUserProfile();
 
                 // Create new reply
@@ -166,23 +165,22 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 r.replyDate = new Date();
                 r.userId = profile.getUserId();
                 r.postId = mCurBulletin.getPostID();
-                String id = -mCurBulletin.getPostID()/10000 + "" + mCurBulletin.getNumOfReplies();
-                r.replyId = Integer.parseInt(id);
+                r.replyId = DataManager.getInstance(BulletinViewActivity.this).getNewActivityId();
                 r.replyText = etReplyText.getText().toString();
-
-                // Add reply to database
-                mManager.addReply(r);
 
                 // Update UI
                 mAdapter.notifyDataSetChanged();
                 setHeadingText();
                 etReplyText.setText(null);
 
-                // Update number of replies in bulletin db
-                ContentValues values = new ContentValues(1);
-                int num = mCurBulletin.getNumOfReplies();
-                values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++num);
-                getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = " + mCurBulletin.getPostID(), null);
+                NetworkManager networkManager = NetworkManager.getInstance(BulletinViewActivity.this);
+                networkManager.uploadNewReply(r, mCurBulletin, DataManager.getInstance(BulletinViewActivity.this),
+                        MotherActivity.access_token, BulletinViewActivity.this);
+//                // Update number of replies in bulletin db
+//                ContentValues values = new ContentValues(1);
+//                int num = mCurBulletin.getNumOfReplies();
+//                values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++num);
+//                getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = " + mCurBulletin.getPostID(), null);
             }
         });
 
@@ -228,7 +226,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         return new CursorLoader(BulletinViewActivity.this,
                 DataContract.ReplyEntry.CONTENT_URI,
                 REPLIES_COLUMNS,
-                ReplyEntry.COLUMN_POST_ID + " = ?",
+                "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
                 new String[]{Integer.toString(getIntent().getIntExtra(EXTRA_BULLETIN_ID, -1))},
                 REPLIES_ORDER_BY);
 

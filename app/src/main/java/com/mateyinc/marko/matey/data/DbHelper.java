@@ -24,21 +24,18 @@ import com.mateyinc.marko.matey.data.DataContract.*;
 /**
  * Manages a local database for data.
  */
-public class DbHelper extends SQLiteOpenHelper {
+class DbHelper extends SQLiteOpenHelper {
 
-    // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 1;
 
-    public static final String DATABASE_NAME = "matey.db";
+    static final String DATABASE_NAME = "matey.db";
 
-    public DbHelper(Context context) {
+    DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-
-        // TODO - Update sql command after creating more columns in DataCotntract
 
         final String SQL_CREATE_MSG_TABLE = "CREATE TABLE " + MessageEntry.TABLE_NAME + " (" +
                 MessageEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -70,7 +67,8 @@ public class DbHelper extends SQLiteOpenHelper {
                 ProfileEntry.COLUMN_EMAIL + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_PICTURE + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_IS_FRIEND + " BOOLEAN DEFAULT FALSE, " +
-                ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER " +
+                ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0 " +
                 ");";
 
         final String SQL_CREATE_BULLETIN_TABLE = "CREATE TABLE " + BulletinEntry.TABLE_NAME + " (" +
@@ -96,11 +94,24 @@ public class DbHelper extends SQLiteOpenHelper {
                 ReplyEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
                 ReplyEntry.COLUMN_DATE + " INT NOT NULL, " +
                 ReplyEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
                 ReplyEntry.COLUMN_NUM_OF_APPRVS + " INTEGER DEFAULT 0," +
-                ReplyEntry.COLUMN_APPRVS + " TEXT, " +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_POST_ID + ") REFERENCES " +
+                BulletinEntry.TABLE_NAME + " (" + BulletinEntry._ID + "));";
+
+        final String SQL_CREATE_APPROVES_TABLE = "CREATE TABLE " + ApproveEntry.TABLE_NAME + " (" +
+                ApproveEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                ApproveEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
+                ApproveEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
+                ApproveEntry.COLUMN_REPLY_ID + " INTEGER NOT NULL, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
+                "FOREIGN KEY (" + ApproveEntry.COLUMN_USER_ID + ") REFERENCES " +
+                ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
+                "FOREIGN KEY (" + ApproveEntry.COLUMN_REPLY_ID + ") REFERENCES " +
+                ReplyEntry.TABLE_NAME + " (" + ReplyEntry._ID + "), " +
+                "FOREIGN KEY (" + ApproveEntry.COLUMN_POST_ID + ") REFERENCES " +
                 BulletinEntry.TABLE_NAME + " (" + BulletinEntry._ID + "));";
 
         final String SQL_CREATE_NOT_UPLOADED_TABLE = "CREATE TABLE " + NotUploadedEntry.TABLE_NAME + " (" +
@@ -113,6 +124,7 @@ public class DbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_BULLETIN_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_REPLY_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_NOT_UPLOADED_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_APPROVES_TABLE);
     }
 
     @Override
@@ -122,6 +134,19 @@ public class DbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ProfileEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + BulletinEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReplyEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + NotUploadedEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ApproveEntry.TABLE_NAME);
+        onCreate(sqLiteDatabase);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MessageEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + NotificationEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ProfileEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + BulletinEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ReplyEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ApproveEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + NotUploadedEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }

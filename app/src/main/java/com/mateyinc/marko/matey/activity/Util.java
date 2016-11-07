@@ -9,6 +9,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.TypedValue;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.main.MainActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -104,7 +105,7 @@ public class Util {
         return oS.toString();
     }
 
-    public static int getDp(int value, Resources res) {
+    public static int parseDp(int value, Resources res) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, res.getDisplayMetrics());
     }
 
@@ -120,6 +121,17 @@ public class Util {
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
         return (networkInfo != null && networkInfo.isConnected());
+    }
+
+    private static AlertDialog mDialog;
+    public static void showServerNotResponding(MainActivity context, DialogInterface.OnClickListener listener) {
+        if (mDialog == null || !mDialog.isShowing())
+            mDialog = new AlertDialog.Builder(context)
+                    .setMessage(context.getString(R.string.server_not_responding_msg))
+                    .setIcon(R.drawable.matey_logo)
+                    .setNeutralButton("OK", listener)
+                    .setCancelable(false)
+                    .show();
     }
 
     /**
@@ -175,4 +187,6 @@ public class Util {
 
     public static final String loremIpsumShort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
     public static final String loremIspum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
+
 }

@@ -32,6 +32,8 @@ public class MateyRequest extends StringRequest {
     public interface ErrorType {
         /** Error type: merge_offer; when the account has already been created, merge proposition is presented */
         String MERGE = "merge_offer";
+        /** When the account and facebook account has already been created, user can only login */
+        String FULL_REGISTERED = "full_reg";
     }
 
     private Map<String, String> mParams;
@@ -74,6 +76,24 @@ public class MateyRequest extends StringRequest {
         mBody = jsonArray.toString();
     }
 
+    public void setBodyFromComments(ArrayList<UserProfile> list){
+        JSONArray jsonArray  = new JSONArray();
+
+        try {
+            Iterator i = list.iterator();
+            while (i.hasNext()) {
+                JSONObject object = new JSONObject();
+                object.put(UrlData.PARAM_FOLLOWED_USER_ID, ((UserProfile) i.next()).getUserId());
+                jsonArray.put(object);
+            }
+        } catch (JSONException e){
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            mBody = null;
+        }
+
+        mBody = jsonArray.toString();
+    }
+
     public void setAuthHeader(String value) {
         authHeader.put(PARAM_AUTH_TYPE, String.format("Bearer %s", value));
     }
@@ -91,5 +111,16 @@ public class MateyRequest extends StringRequest {
     @Override
     public byte[] getBody() throws AuthFailureError {
         return mBody == null ? super.getBody() : mBody.getBytes();
+    }
+
+    protected boolean cacheHit;
+
+    @Override
+    public void addMarker(String tag) {
+        super.addMarker(tag);
+        cacheHit = false;
+        if (tag.equals("cache-hit")){
+            cacheHit = true;
+        }
     }
 }

@@ -17,6 +17,7 @@ import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.LinkedList;
@@ -69,7 +70,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext)
-                .inflate(R.layout.bulletin_replies_list_item, parent, false);
+                .inflate(R.layout.reply_replies_list_item, parent, false);
 
 
         if (viewType == FIRST_ITEM) {
@@ -112,7 +113,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             public void onApproveClicked(View caller, View rootView) {
                 int position = mRecycleView.getChildAdapterPosition(rootView); // Get child position in adapter
                 mCursor.moveToPosition(position);
-                Bulletin.Reply r = mManager.getReply(position, mCursor);
+                Reply r = mManager.getReply(position, mCursor);
 
                 if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
                     // Remove approve from data and from database
@@ -120,7 +121,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
                         if (p.getUserId() == mCurUserProfile.getUserId())
                             r.replyApproves.remove(p);
                     }
-                    mManager.addReply(r);
+//                    mManager.addReply(r, mCurBulletin, );
 
                     ((ImageView) caller).setColorFilter(mResources.getColor(R.color.light_gray)); // Changing the color of button
                     ((BulletinViewActivity) mContext).notifyBulletinFragment();
@@ -128,7 +129,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
                 } else { // Like
                     // Add approve  to database
                     r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
-                    mManager.addReply(r);
+//                    mManager.addReply(r);
 
                     ((BulletinViewActivity) mContext).notifyBulletinFragment();
                 }
@@ -153,7 +154,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
-        Bulletin.Reply reply = mManager.getReply(position, mCursor);
+        Reply reply = mManager.getReply(position, mCursor);
 
         if (!mOnlyShowReplies && position == 0) {
             BulletinRepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;

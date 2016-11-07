@@ -22,7 +22,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
 
@@ -54,7 +54,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
      * 0- Home; 1- Notifications; 2- Messages; 3- Friends; 4- Menu
      */
     private int mCurrentPage = 0;
-    private SessionManager mSessionManager;
+    private NetworkManager mNetworkManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +73,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         // Test/debug
         ifTest();
 
-        mSessionManager = SessionManager.getInstance(this);
+        mNetworkManager = NetworkManager.getInstance(this);
 
         // Settings the app bar via custom toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -249,21 +249,21 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     /** Helper method for getting the current user profile in {@link DataManager#mCurrentUserProfile} */
     private void getCurUser() {
         if (!DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this))) {
-            mSessionManager.logout(this, getSecurePreferences());
+            mNetworkManager.logout(this, getSecurePreferences());
         }
     }
 
     /** Helper method for downloading bulletin news feed */
     private void getBulletins() {
         if (isDebug()) {
-            mSessionManager.createDummyData(this);
+            mNetworkManager.createDummyData(this);
         } else
-            mSessionManager.getNewsFeed(this);
+            mNetworkManager.downloadNewsFeed(this);
     }
 
     /** Helper method for uploading data that has failed to upload */
     private void uploadFailedData(){
-        mSessionManager.uploadFailedData(HomeActivity.this);
+        mNetworkManager.uploadFailedData(HomeActivity.this);
     }
 
     @Override
@@ -274,15 +274,15 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         Log.d(TAG,"Access token:" + access_token);
 
         // Settings current user profile and access token in memory
-        if (mSessionManager == null) {
-            mSessionManager = SessionManager.getInstance(this);
+        if (mNetworkManager == null) {
+            mNetworkManager = NetworkManager.getInstance(this);
         }
-//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
-//        } else if (mSessionManager.getAccessToken().isEmpty())
-//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
+//            mNetworkManager.setAccessToken(getSecurePreferences().getString(NetworkManager.KEY_ACCESS_TOKEN));
+//        } else if (mNetworkManager.getAccessToken().isEmpty())
+//            mNetworkManager.setAccessToken(getSecurePreferences().getString(NetworkManager.KEY_ACCESS_TOKEN));
 
         if (!DataManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
-            mSessionManager.logout(this, getSecurePreferences());
+            mNetworkManager.logout(this, getSecurePreferences());
     }
 
     private void closeSearchView() {
@@ -380,7 +380,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     @Override
     protected void onDestroy() {
-        SessionManager.getInstance(this).stopUploadService(this);
+        NetworkManager.getInstance(this).stopUploadService(this);
         super.onDestroy();
     }
 

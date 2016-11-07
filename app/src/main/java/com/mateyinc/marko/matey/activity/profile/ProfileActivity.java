@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -16,15 +15,10 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
-import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 
 import java.lang.ref.WeakReference;
 
@@ -40,7 +34,6 @@ public class ProfileActivity extends MotherActivity {
     private TextView tvName,tvNumberOfMates;
     private ImageView ivProfilePic;
     private long mUserId;
-    private ImageLoader mImageLoader;
     private UserProfile mUserProfile;
     private BroadcastReceiver mBroadcastReceiver;
     private UserProfileAs mUserProfileAs;
@@ -64,7 +57,6 @@ public class ProfileActivity extends MotherActivity {
         tvName = (TextView) findViewById(R.id.tvName);
         tvNumberOfMates = (TextView)findViewById(R.id.tvNumOfMates);
         mUserProfile = new UserProfile();
-        initUIL();
 
         // If intent doesn't have extra profile id, then ProfileActivity is called for the current user profile
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
@@ -86,25 +78,19 @@ public class ProfileActivity extends MotherActivity {
     private void setData() {
         Log.d("ProfileActivity", "Data is set.");
         //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
-        SessionManager.getInstance(this).downloadPicture(ivProfilePic, mUserProfile.getProfilePictureLink());
+        NetworkManager.getInstance(this).downloadImage(ivProfilePic, mUserProfile.getProfilePictureLink());
         tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
         tvNumberOfMates.setText(mUserProfile.getNumOfFriends());
     }
 
     private void downloadData() {
         // Start downloading data
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SecurePreferences preferences = getSecurePreferences();
-                mUserProfileAs.execute(preferences.getString("user_id"),
-                        preferences.getString("uid"),
-                        preferences.getString("device_id")
-                        , Long.toString(mUserId));
-            }
-        });
+        SecurePreferences preferences = getSecurePreferences();
+        mUserProfileAs.execute(preferences.getString("user_id"),
+                preferences.getString("uid"),
+                preferences.getString("device_id"),
+                Long.toString(mUserId));
 
-        t.start();
     }
 
     @Override
@@ -133,23 +119,6 @@ public class ProfileActivity extends MotherActivity {
             Log.d(ProfileActivity.class.getSimpleName(), "userProfile info downloading stopped.");
         }
         super.onPause();
-    }
-
-    private void initUIL() {
-        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
-                .resetViewBeforeLoading(true).cacheOnDisk(true)
-                .cacheInMemory(true)
-                .imageScaleType(ImageScaleType.EXACTLY)
-                .bitmapConfig(Bitmap.Config.RGB_565).build();
-
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
-                this)
-                .defaultDisplayImageOptions(defaultOptions)
-                .memoryCache(new LruMemoryCache(2 * 1024 * 1024))
-                .diskCacheSize(50 * 1024 * 1024)
-                .writeDebugLogs().build();
-        ImageLoader.getInstance().init(config);
-        mImageLoader = ImageLoader.getInstance();
     }
 
 }

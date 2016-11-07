@@ -1,8 +1,6 @@
 package com.mateyinc.marko.matey.model;
 
-import android.os.Parcelable;
-
-public abstract class MModel implements Parcelable {
+public abstract class MModel {
 
     // Keys for JSON data from the server
     static final String KEY_ID = "activity_id";
@@ -17,6 +15,15 @@ public abstract class MModel implements Parcelable {
     static final String KEY_PROFILE_PIC = "profile_picture";
 
     protected int mServerStatus = 0;
+    private long _id;
+
+    public long getId(){
+        return _id;
+    }
+
+    public void setId(long _id){
+        this._id = _id;
+    }
 
     public int getServerStatus() {
         return mServerStatus;

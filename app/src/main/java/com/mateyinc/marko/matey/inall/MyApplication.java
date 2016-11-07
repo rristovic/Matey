@@ -10,7 +10,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.security.MessageDigest;
@@ -33,8 +33,8 @@ public class MyApplication extends Application {
                         mSecurePreferences = new SecurePreferences(MyApplication.this, "credentials", "1checkMate1717", true);
                 }
 
-                MotherActivity.access_token = mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN);
-                MotherActivity.device_id = mSecurePreferences.getString(SessionManager.KEY_DEVICE_ID);
+                MotherActivity.access_token = mSecurePreferences.getString(NetworkManager.KEY_ACCESS_TOKEN);
+                MotherActivity.device_id = mSecurePreferences.getString(NetworkManager.KEY_DEVICE_ID);
                 MotherActivity.user_id = PreferenceManager.getDefaultSharedPreferences(MyApplication.this).getLong(DataManager.KEY_CUR_USER_ID, Long.MIN_VALUE);
             }
         };

@@ -39,6 +39,7 @@ public class DataContract {
     public static final String PATH_PROFILES = "profiles";
     public static final String PATH_BULLETINS = "bulletins";
     public static final String PATH_REPLIES = "replies";
+    public static final String PATH_APPROVES = "approves";
     public static final String PATH_NOT_UPLOADED = "not_uploaded";
 
 
@@ -63,13 +64,10 @@ public class DataContract {
         public static final String COLUMN_MSG_BODY = "msg_body";
         public static final String COLUMN_MSG_TIME = "msg_time";
         public static final String COLUMN_IS_READ = "msg_isread";
-        // TODO - add required columns
 
         public static Uri buildMessageUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
-
-
     }
 
     /* Inner class that defines the table contents of the notifications table */
@@ -92,12 +90,9 @@ public class DataContract {
         public static final String COLUMN_NOTIF_TIME = "notif_time";
         public static final String COLUMN_NOTIF_LINK_ID = "notif_link_id";
 
-
-
         public static Uri buildNotifUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
-
     }
 
     public static final class ProfileEntry implements MBaseColumns {
@@ -123,7 +118,6 @@ public class DataContract {
         public static Uri buildProfileUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
-
     }
 
     public static final class BulletinEntry implements MBaseColumns {
@@ -153,10 +147,12 @@ public class DataContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+        public static Uri buildBulletinsWithApproves() {
+            return CONTENT_URI.buildUpon().appendPath("both").build();
+        }
     }
 
     public static final class ReplyEntry implements MBaseColumns {
-
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_REPLIES).build();
 
@@ -175,12 +171,32 @@ public class DataContract {
         public static final String COLUMN_TEXT = "reply_text";
         public static final String COLUMN_DATE = "reply_date";
         public static final String COLUMN_NUM_OF_APPRVS = "no_of_apprvs";
-        public static final String COLUMN_APPRVS = "apprvs";
+//        public static final String COLUMN_APPRVS = "apprvs";
 
         public static Uri buildReplyUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+    }
 
+    public static final class ApproveEntry implements MBaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_APPROVES).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_APPROVES;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_APPROVES;
+
+        public static final String TABLE_NAME = "approves";
+
+        // Adding columns DbHelper create table command  must be changed also
+        public static final String COLUMN_POST_ID = "post_id";
+        public static final String COLUMN_REPLY_ID = "reply_id";
+        public static final String COLUMN_USER_ID = "user_id";
+
+        public static Uri buildApproveUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     public static final class NotUploadedEntry implements MBaseColumns {
