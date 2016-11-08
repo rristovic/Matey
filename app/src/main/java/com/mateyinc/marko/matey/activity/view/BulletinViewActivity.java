@@ -23,8 +23,8 @@ import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.operations.UploadOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -156,7 +156,8 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Reply r = new Bulletin().getReplyInstance();
+                DataManager dm = DataManager.getInstance(BulletinViewActivity.this);
+                Reply r = new Reply();
                 UserProfile profile = mManager.getCurrentUserProfile();
 
                 // Create new reply
@@ -165,7 +166,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 r.replyDate = new Date();
                 r.userId = profile.getUserId();
                 r.postId = mCurBulletin.getPostID();
-                r.replyId = DataManager.getInstance(BulletinViewActivity.this).getNewActivityId();
+                r._id = dm.createNewActivityId();
                 r.replyText = etReplyText.getText().toString();
 
                 // Update UI
@@ -173,9 +174,11 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 setHeadingText();
                 etReplyText.setText(null);
 
-                NetworkManager networkManager = NetworkManager.getInstance(BulletinViewActivity.this);
-                networkManager.uploadNewReply(r, mCurBulletin, DataManager.getInstance(BulletinViewActivity.this),
-                        MotherActivity.access_token, BulletinViewActivity.this);
+                dm.addOperation(new UploadOp(r)).performOperations();
+//                NetworkManager networkManager = NetworkManager.getInstance(BulletinViewActivity.this);
+//                networkManager.uploadNewReply(r, mCurBulletin, DataManager.getInstance(BulletinViewActivity.this),
+//                        MotherActivity.access_token, BulletinViewActivity.this);
+
 //                // Update number of replies in bulletin db
 //                ContentValues values = new ContentValues(1);
 //                int num = mCurBulletin.getNumOfReplies();

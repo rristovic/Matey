@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet;
+package com.mateyinc.marko.matey.data.internet;
 
 import android.util.Log;
 
@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
+import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_AUTH_TYPE;
 
 public class MateyRequest extends StringRequest {
     protected static final String TAG = MateyRequest.class.getSimpleName();

@@ -11,8 +11,8 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.operations.UploadOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -89,15 +89,18 @@ public class NewBulletinActivity extends MotherActivity {
                 DataManager dataManager = DataManager.getInstance(NewBulletinActivity.this);
 
                 UserProfile profile = dataManager.getCurrentUserProfile();
-                Bulletin b = new Bulletin();
-                b.setUserID(profile.getUserId());
-                b.setPostID(dataManager.getNewActivityId());
-                b.setDate(new Date());
-                b.setFirstName(profile.getFirstName());
-                b.setLastName(profile.getLastName());
-                b.setMessage(etNewPostMsg.getText().toString());
+                Bulletin b = new Bulletin(
+                        dataManager.createNewActivityId(),
+                        profile.getUserId(),
+                        profile.getFirstName(),
+                        profile.getLastName(),
+                        etNewPostMsg.getText().toString(),
+                        new Date()
+                );
 
-                NetworkManager.getInstance(NewBulletinActivity.this).uploadNewBulletin(b, dataManager, NewBulletinActivity.access_token, NewBulletinActivity.this);
+                dataManager
+                        .addOperation(new UploadOp(b))
+                        .performOperations();
 
                 finish();
             }

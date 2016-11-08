@@ -39,6 +39,7 @@ public class DataProvider extends ContentProvider {
     static final int PROFILE_WITH_ID = 301;
     static final int BULLETINS = 400;
     static final int BULLETIN_WITH_ID = 401;
+    static final int BULLETIN_WITH_REPLIES_COUNT = 402;
     static final int REPLIES = 500;
     static final int REPLY_WITH_ID = 501;
     static final int APPROVES = 600;
@@ -46,6 +47,7 @@ public class DataProvider extends ContentProvider {
     static final int NOT_UPLOADED_ITEMS = 700;
 
     private static final SQLiteQueryBuilder sRepliesWithApproves;
+//    private static final SQLiteQueryBuilder sBulletinWithRepliesCount;
 
     static{
         sRepliesWithApproves = new SQLiteQueryBuilder();
@@ -58,6 +60,7 @@ public class DataProvider extends ContentProvider {
                         "." + DataContract.ReplyEntry._ID +
                         " = " + DataContract.ApproveEntry.TABLE_NAME +
                         "." + DataContract.ApproveEntry.COLUMN_REPLY_ID);
+
     }
 
 
@@ -90,6 +93,8 @@ public class DataProvider extends ContentProvider {
                 return DataContract.BulletinEntry.CONTENT_TYPE;
             case BULLETIN_WITH_ID:
                 return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
+            case BULLETIN_WITH_REPLIES_COUNT:
+                return DataContract.BulletinEntry.CONTENT_TYPE;
             case REPLIES:
                 return DataContract.ReplyEntry.CONTENT_TYPE;
             case REPLY_WITH_ID:
@@ -578,7 +583,7 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_PROFILES, PROFILES);
         matcher.addURI(authority, DataContract.PATH_PROFILES + "/#", PROFILE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_BULLETINS, BULLETINS);
-        matcher.addURI(authority, DataContract.PATH_BULLETINS + "/both", BULLETIN_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_BULLETINS + "/rcount/#", BULLETIN_WITH_REPLIES_COUNT);
         matcher.addURI(authority, DataContract.PATH_REPLIES, REPLIES);
         matcher.addURI(authority, DataContract.PATH_REPLIES + "/#", REPLY_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_APPROVES, APPROVES);

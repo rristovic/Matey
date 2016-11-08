@@ -27,7 +27,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;

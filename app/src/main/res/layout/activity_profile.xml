@@ -28,7 +28,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:scaleType="centerCrop"
-                android:src="@drawable/profile_bg" />
+                android:src="@drawable/empty_photo" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -106,7 +106,7 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentTop="false"
             android:layout_centerInParent="true"
-            android:src="@drawable/profile_bg"
+            android:src="@drawable/empty_photo"
             app:riv_border_width="7dp"
             app:riv_oval="true"
             app:riv_border_color="@color/profile_pic_border"

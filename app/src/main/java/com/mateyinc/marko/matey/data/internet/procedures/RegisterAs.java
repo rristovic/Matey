@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet.procedures;
+package com.mateyinc.marko.matey.data.internet.procedures;
 
 import android.os.AsyncTask;
 import android.os.Bundle;

@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet.http;
+package com.mateyinc.marko.matey.data.internet.http;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

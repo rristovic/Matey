@@ -1,13 +1,23 @@
 package com.mateyinc.marko.matey.model;
 
-public class UserProfile {
+import android.content.ContentValues;
+import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
+
+import com.android.volley.RequestQueue;
+import com.mateyinc.marko.matey.data.DataContract;
+
+import java.util.Locale;
+
+public class UserProfile extends MModel{
+    private static final String TAG = UserProfile.class.getSimpleName();
+
     public static final String USER_ID = "userid";
     public static final String FIRST_NAME = "firstname";
     public static final String LAST_NAME = "lastname";
     public static final String LAST_MSG_ID = "lastmsgid";
     public static final String EMAIL = "email";
-
-    private long userId;
 
     private String firstName;
     private String lastName;
@@ -28,7 +38,7 @@ public class UserProfile {
     }
 
     public UserProfile(long userId, String firstName, String lastName, String email, String picture) {
-        this.userId = userId;
+        this._id = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -44,11 +54,11 @@ public class UserProfile {
     }
 
     public long getUserId() {
-        return userId;
+        return _id;
     }
 
     public void setUserId(long userId) {
-        this.userId = userId;
+        this._id = userId;
     }
 
     public String getFirstName() {
@@ -161,6 +171,54 @@ public class UserProfile {
         this.hometown = currentUserProfile.hometown;
         this.location = currentUserProfile.location;
         this.quoteStatus = currentUserProfile.quoteStatus;
-        this.userId = currentUserProfile.userId;
+        this._id = currentUserProfile._id;
+    }
+
+    @Override
+    public void upload(Context context, RequestQueue queue, String accessToken) {
+
+    }
+
+    @Override
+    protected void uploadSucceeded(String response, Context context) {
+
+    }
+
+    @Override
+    protected void uploadFailed(Exception e, Context context) {
+
+    }
+
+    @Override
+    public void addToDb(Context c) {
+        ContentValues userValues = new ContentValues();
+        userValues.put(DataContract.ProfileEntry._ID, _id);
+        userValues.put(DataContract.ProfileEntry.COLUMN_NAME, firstName);
+        userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
+        userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
+        userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, profilePictureLink);
+        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
+        userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
+
+        // Add to db
+        Uri insertedUri = c.getContentResolver().insert(
+                DataContract.ProfileEntry.CONTENT_URI,
+                userValues);
+
+        if (insertedUri == null) {
+            Log.e(TAG, "Error inserting: " + UserProfile.this);
+        } else {
+            Log.d(TAG, "New profile added: " + UserProfile.this);
+        }
+    }
+
+    @Override
+    public void download(Context context, RequestQueue queue, String accessToken) {
+
+    }
+
+    @Override
+    public String toString() {
+        return String.format(Locale.US,"UserProfile: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", _id, firstName, lastName, email, profilePictureLink);
     }
 }

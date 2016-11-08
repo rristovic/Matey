@@ -10,7 +10,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.security.MessageDigest;

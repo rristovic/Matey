@@ -11,7 +11,7 @@ import com.mateyinc.marko.matey.activity.adapters.AddFriendsAdapter;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.ArrayList;

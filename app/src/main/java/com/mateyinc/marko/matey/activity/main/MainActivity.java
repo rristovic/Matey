@@ -47,7 +47,7 @@ import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;

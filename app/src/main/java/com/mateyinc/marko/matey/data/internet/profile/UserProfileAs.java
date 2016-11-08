@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet.profile;
+package com.mateyinc.marko.matey.data.internet.profile;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -138,7 +138,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         profile.setNumOfPosts(dataObj.getInt("num_of_posts"));
 
                         // Adding to db
-                        mDataManager.addUserProfile(profile);
+//                        mDataManager.addUserProfile(profile);
 
                         notifyActivity();
                         Log.d("UserProfileAs", "Profile data is downloaded.");

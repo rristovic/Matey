@@ -10,7 +10,7 @@ import android.view.Menu;
 
 import com.facebook.login.LoginManager;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.internet.procedures.LogoutAs;
+import com.mateyinc.marko.matey.data.internet.procedures.LogoutAs;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
 import java.util.Arrays;

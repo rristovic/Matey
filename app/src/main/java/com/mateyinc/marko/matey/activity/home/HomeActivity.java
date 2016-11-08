@@ -22,7 +22,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
 

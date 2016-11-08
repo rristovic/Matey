@@ -85,9 +85,11 @@
 
         <activity
             android:name=".activity.home.HomeActivity"
+            android:largeHeap="true"
             android:label="@string/title_activity_home" />
         <activity
             android:name=".activity.profile.ProfileActivity"
+            android:largeHeap="true"
             android:label="@string/title_activity_profile" />
         <activity
             android:name=".activity.home.GroupsActivity"
@@ -108,7 +110,7 @@
 
         <activity android:name=".activity.home.NewBulletinActivity" />
 
-        <service android:name=".internet.MateyAuthenticatorService">
+        <service android:name=".data.internet.MateyAuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -118,7 +120,7 @@
                 android:resource="@xml/authenticator" />
         </service>
         <service
-            android:name=".internet.MateySyncService"
+            android:name=".data.internet.MateySyncService"
             android:exported="true"
             android:process=":sync">
             <intent-filter>
@@ -130,7 +132,7 @@
                 android:resource="@xml/syncadapter" />
         </service>
         <service
-            android:name=".internet.procedures.UploadService"
+            android:name=".data.internet.procedures.UploadService"
             android:exported="false" />
 
         <activity android:name=".activity.AddFriendsActivity"></activity>

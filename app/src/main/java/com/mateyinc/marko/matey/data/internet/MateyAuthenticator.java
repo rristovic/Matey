@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet;
+package com.mateyinc.marko.matey.data.internet;
 
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;

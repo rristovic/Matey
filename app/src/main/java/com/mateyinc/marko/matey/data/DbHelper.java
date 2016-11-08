@@ -19,7 +19,13 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.mateyinc.marko.matey.data.DataContract.*;
+import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
+import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
+import com.mateyinc.marko.matey.data.DataContract.MessageEntry;
+import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
+import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
+import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 
 /**
  * Manages a local database for data.
@@ -36,7 +42,6 @@ class DbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-
         final String SQL_CREATE_MSG_TABLE = "CREATE TABLE " + MessageEntry.TABLE_NAME + " (" +
                 MessageEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 MessageEntry.COLUMN_SENDER_ID + " INTEGER NOT NULL, " +
@@ -77,7 +82,7 @@ class DbHelper extends SQLiteOpenHelper {
                 BulletinEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
-                BulletinEntry.COLUMN_DATE + " INT NOT NULL, " +
+                BulletinEntry.COLUMN_DATE + " INT, " +
                 BulletinEntry.COLUMN_NUM_OF_REPLIES + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +

@@ -13,7 +13,7 @@ import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
 
 /**
  * Created by Sarma on 8/27/2016.

@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet;
+package com.mateyinc.marko.matey.data.internet;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -47,14 +47,14 @@ import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.DummyData;
 import com.mateyinc.marko.matey.data.JSONParserAs;
+import com.mateyinc.marko.matey.data.internet.procedures.UploadService;
+import com.mateyinc.marko.matey.data.operations.AddToDatabaseOp;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.procedures.UploadService;
-import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.KVPair;
-import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -76,14 +76,12 @@ import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
+import static com.mateyinc.marko.matey.data.internet.UrlData.GET_NEWSFEED_ROUTE;
+import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_AUTH_TYPE;
+import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_COUNT;
+import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_START_POS;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 import static com.mateyinc.marko.matey.inall.MotherActivity.access_token;
-import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
-import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
-import static com.mateyinc.marko.matey.internet.UrlData.PARAM_COUNT;
-import static com.mateyinc.marko.matey.internet.UrlData.PARAM_START_POS;
 
 
 /**
@@ -143,6 +141,7 @@ public class NetworkManager {
     // Sets the Time Unit to seconds
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
     private CallbackManager mFbCallback;
+    private Context mContext;
 
     public static NetworkManager getInstance(Context context) {
         synchronized (mInstanceLock) {
@@ -764,16 +763,22 @@ public class NetworkManager {
      * @param object json object which contains {@link #KEY_FIRST_NAME}, {@link #KEY_LAST_NAME}, {@link #KEY_EMAIL}, {@link #KEY_PROFILE_PICTURE};
      * @throws JSONException the exception is thrown if json conversion fails
      */
-    private void parseUserData( DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
+    private void parseUserData(final DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parsing user
-        UserProfile userProfile = new UserProfile(object.getInt(KEY_USER_ID),
+        final UserProfile userProfile = new UserProfile(object.getInt(KEY_USER_ID),
                 object.getString(KEY_FIRST_NAME),
                 object.getString(KEY_LAST_NAME),
                 object.getString(KEY_EMAIL),
                 object.getString(KEY_PROFILE_PICTURE));
 
         // Adding current user to the database
-        dataManager.addUserProfile(userProfile);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
+            }
+        });
+        t.start();
 
         // Adding current user to the memory
         dataManager.setCurrentUserProfile(preferences, userProfile);
@@ -1022,57 +1027,6 @@ public class NetworkManager {
     }
 
     /**
-     * Helper method for uploading new bulletin to the server, also adds it to the database using dataManager
-     * @param b the {@link Bulletin} to be uploaded
-     * @param dataManager the {@link DataManager} instance used for adding bulletin to the database
-     * @param context used to start the upload service if it isn't started
-     * @param accessToken access token used to authorize with the server
-     */
-    public void uploadNewBulletin(Bulletin b, DataManager dataManager, String accessToken, Context context) {
-        Log.d(TAG, "Posting new bulletin.");
-
-        // First add the bulletin to the database then upload it to the server
-        dataManager.addBulletin(b, STATUS_UPLOADING);
-
-        if (mUploadService != null && mConnection != null)
-            mUploadService.uploadBulletin(b, accessToken);
-        else {
-            dataManager.updateBulletinServerStatus(b, STATUS_RETRY_UPLOAD);
-            startUploadService(context);
-        }
-    }
-
-    /**
-     * Helper method for uploading new reply to the server, also adds it to the database using dataManager
-     * @param reply the {@link Reply} to be uploaded
-     * @param dataManager the {@link DataManager} instance used for adding reply to the database
-     * @param context used to start the upload service if it isn't started
-     * @param accessToken access token used to authorize with the server
-     */
-    public void uploadNewReply(final Reply reply, final Bulletin currentBulletin, final DataManager dataManager, final String accessToken, final Context context) {
-        Log.d(TAG, "Uploading new reply.");
-
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                // First add the bulletin to the database then upload it to the server
-                dataManager.addReply(reply, currentBulletin, STATUS_UPLOADING);
-
-                if (mUploadService != null && mConnection != null)
-                    mUploadService.uploadReply(reply, accessToken);
-                else {
-                    dataManager.updateReplyServerStatus(reply, STATUS_RETRY_UPLOAD);
-                    // Update number of replies in bulletin db
-                    dataManager.updateBulletinRepliesCount(currentBulletin.getPostID(), currentBulletin.getNumOfReplies()-1);
-                }
-            }
-        };
-
-        mExecutor.execute(r);
-    }
-
-
-    /**
      * Method for downloading and parsing news feed from the server, and all data around it
      * @param start the start position of the bulletin
      * @param count the total bulletin count that needs to be downloaded in a single burst
@@ -1247,7 +1201,7 @@ public class NetworkManager {
 
         // Saves the time when token is created
         final SharedPreferences preferences = getDefaultSharedPreferences(context);
-        preferences.edit().putLong(TOKEN_SAVED_TIME, System.currentTimeMillis()).apply();
+         preferences.edit().putLong(DataManager.KEY_CUR_USER_ID, 666).apply();
 
         // Adding current user to the database
         DataManager dataManager = DataManager.getInstance(context);
@@ -1257,7 +1211,7 @@ public class NetworkManager {
                 context.getString(R.string.dev_email),
                 context.getString(R.string.dev_pic));
         userProfile.setNumOfFriends(40);
-        dataManager.addUserProfile(userProfile);
+        dataManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
         dataManager.setCurrentUserProfile(preferences, userProfile);
 
         // Close progress dialog
@@ -1266,18 +1220,20 @@ public class NetworkManager {
 
         // Close activity and proceed to HomeActivity
         Intent intent = new Intent(context, HomeActivity.class);
-        getDefaultSharedPreferences(context).edit().putBoolean("IS_DEBUG", true).commit();
+        getDefaultSharedPreferences(context).edit().putBoolean("IS_DEBUG", true).apply();
         context.startActivity(intent);
         context.finish();
     }
 
     public void createDummyData(HomeActivity homeActivity) {
-        DataManager dm = DataManager.getInstance(homeActivity);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(homeActivity);
 
-        if(!preferences.getBoolean("DATA_CREATED",false))
-            dm.createDummyData();
+        if(!preferences.getBoolean("DATA_CREATED",false)) {
+            DummyData d = new DummyData();
+            d.createDummyData(homeActivity);
+        }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

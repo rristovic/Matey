@@ -11,6 +11,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
@@ -20,7 +22,11 @@ import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.data.operations.DownloadOp;
+import com.mateyinc.marko.matey.data.operations.Operation;
+import com.mateyinc.marko.matey.data.operations.UploadOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.inall.MyApplication;
 import com.mateyinc.marko.matey.model.Approve;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
@@ -32,11 +38,13 @@ import org.json.JSONException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import static com.facebook.login.widget.ProfilePictureView.TAG;
 import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
 import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
 import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
@@ -50,13 +58,13 @@ public class DataManager {
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
 
     /** Number of bulletins to download from the server */
-    private static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
+    public static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
 
     /** The current page of bulletins in the database */
     public static int mCurrentPage = 0;
 
     // One day in milliseconds
-    private static final int ONE_DAY = 86400000;
+    public static final int ONE_DAY = 86400000;
     // One minute in milliseconds
     public static final int ONE_MIN = 60000;
 
@@ -111,9 +119,9 @@ public class DataManager {
     public static final String REPLIES_LIST = "replieslist";
 
     // For broadcast IntentFilters
-    public static final String BULLETIN_LIST_LOAD_FAILED = "com.mateyinc.marko.matey.internet.home.bulletins_load_failed";
-    public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.internet.home.bulletins_loaded";
-    public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.internet.home.bulletins_loaded_count";
+    public static final String BULLETIN_LIST_LOAD_FAILED = "com.mateyinc.marko.matey.data.internet.home.bulletins_load_failed";
+    public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.data.internet.home.bulletins_loaded";
+    public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.data.internet.home.bulletins_loaded_count";
 
     // Global instance fields
     private  final Object mLock = new Object(); // for synchronised blocks
@@ -141,6 +149,7 @@ public class DataManager {
 
     private DataManager(Context context) {
         mAppContext = context;
+        mRequestQueue = Volley.newRequestQueue(context);
     }
 
 
@@ -154,59 +163,60 @@ public class DataManager {
     private static final int CLASS_APPROVE = 3;
 
 
-    /**
-     * Helper method for adding new activity into the database in table {@link DataContract.NotUploadedEntry} so it can be uploaded later
-     * @param activityObject the object that needs to be reuploaded
-     */
-    private void addNotUploadedActivity(Object activityObject, int objectType){
-        long id;
-
-        switch (objectType){
-            case CLASS_BULLETIN:{
-                id = ((Bulletin) activityObject).getPostID();
-                break;
-            }
-            case CLASS_USERPROFILE:{
-                id = ((UserProfile) activityObject).getUserId();
-                break;
-            }
-            case CLASS_REPLY:{
-                id = ((Reply) activityObject).replyId;
-                break;
-            }
-            case CLASS_APPROVE:{
-                id = ((Approve) activityObject)._id;
-            }
-            default:
-                return;
-        }
-
-
-        // TODO - finish method later
-        ContentValues values = new ContentValues(2);
-        values.put(NotUploadedEntry._ID, id);
-        values.put(NotUploadedEntry.COLUMN_ENTRY_TYPE, objectType);
-
-        Uri uri;
-        uri = mAppContext.getContentResolver().insert(NotUploadedEntry.CONTENT_URI, values);
-
-        if (null == uri) {
-            Log.e(TAG, "Failed to insert object in NotUploaded table with id=" + id + "; object type=" + objectType);
-        }else{
-            Log.d(TAG, "Object inserted in NotUploaded table with id=" + id + "; object type=" + objectType);
-        }
-    }
+//    /**
+//     * Helper method for adding new activity into the database in table {@link DataContract.NotUploadedEntry} so it can be uploaded later
+//     * @param activityObject the object that needs to be reuploaded
+//     */
+//    private void addNotUploadedActivity(Object activityObject, int objectType){
+//        long id;
+//
+//        switch (objectType){
+//            case CLASS_BULLETIN:{
+//                id = ((Bulletin) activityObject).getPostID();
+//                break;
+//            }
+//            case CLASS_USERPROFILE:{
+//                id = ((UserProfile) activityObject).getUserId();
+//                break;
+//            }
+//            case CLASS_REPLY:{
+//                id = ((Reply) activityObject).replyId;
+//                break;
+//            }
+//            case CLASS_APPROVE:{
+//                id = ((Approve) activityObject)._id;
+//            }
+//            default:
+//                return;
+//        }
+//
+//
+//        // TODO - finish method later
+//        ContentValues values = new ContentValues(2);
+//        values.put(NotUploadedEntry._ID, id);
+//        values.put(NotUploadedEntry.COLUMN_ENTRY_TYPE, objectType);
+//
+//        Uri uri;
+//        uri = mAppContext.getContentResolver().insert(NotUploadedEntry.CONTENT_URI, values);
+//
+//        if (null == uri) {
+//            Log.e(TAG, "Failed to insert object in NotUploaded table with id=" + id + "; object type=" + objectType);
+//        }else{
+//            Log.d(TAG, "Object inserted in NotUploaded table with id=" + id + "; object type=" + objectType);
+//        }
+//    }
 
     /**
      * Method for creating new activity_id, which is later replaced by the id returned from the server;
-     * Newly created ids are starting from -1 to {@value Integer#MIN_VALUE}
+     * Newly created ids are starting from -2 to {@value Integer#MIN_VALUE}
      */
-    public long getNewActivityId() {
+    public long createNewActivityId() {
         Cursor c = mAppContext.getContentResolver().query(NotUploadedEntry.CONTENT_URI, null, null, null, null);
-        long id = 0;
+        long id = -2;
 
         if (c != null) {
-            id = -(c.getCount() + 1);
+            int count = c.getCount()+1;
+            id = -(count + 1);
             c.close();
         }
 
@@ -348,57 +358,22 @@ public class DataManager {
         Log.d(TAG, inserted + " user profile added.");
     }
 
-    /**
-     * Helper method to handle the insertion of a new user profile to the db and the server
-     *
-     * @param userId       id of the user
-     * @param userName     name of the user
-     * @param userLastName last name of the user
-     * @param lastMsgId    last message id that the user has sent to the current user
-     * @return the row ID of the added user profile.
-     */
-    public long addUserProfile(long userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
-        Cursor cursor = mAppContext.getContentResolver().query(
-                DataContract.ProfileEntry.CONTENT_URI,
-                new String[]{DataContract.ProfileEntry._ID},
-                DataContract.ProfileEntry._ID + " = " + userId,
-                null,
-                null);
+//    /**
+//     * Helper method to handle the insertion of a new user profile to the db and the server
+//     *
+//     * @param userId       id of the user
+//     * @param userName     name of the user
+//     * @param userLastName last name of the user
+//     * @param lastMsgId    last message id that the user has sent to the current user
+//     * @return the row ID of the added user profile.
+//     */
+//    public long addUserProfile(long userId, String userName, String userLastName, String email, String picture, int lastMsgId, boolean isFriend) {
+//
+//    }
 
-        if (cursor != null && cursor.moveToFirst()) {
-            updateUserProfile(userId, userName, userLastName, email, picture, lastMsgId, isFriend);
-        } else {
-            ContentValues userValues = new ContentValues();
-
-            userValues.put(DataContract.ProfileEntry._ID, userId);
-            userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
-            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
-            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-            userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
-            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend);
-            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
-
-            Uri insertedUri = mAppContext.getContentResolver().insert(
-                    DataContract.ProfileEntry.CONTENT_URI,
-                    userValues
-            );
-
-            if (null == insertedUri) {
-                Log.e(TAG, "Error inserting UserProfile: ID=" + userId + "; Name=" + userName + "; Last name=" + userLastName);
-            } else {
-                Log.d("DataManager", "UserProfile added: ID=" + userId +
-                        "; Name=" + userName + "; LastName=" + userLastName + "; LastMsgId=" + lastMsgId);
-            }
-        }
-        if (cursor != null)
-            cursor.close();
-
-        return userId;
-    }
-
-    public void addUserProfile(UserProfile profile) {
-        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getEmail(), profile.getProfilePictureLink(), profile.getLastMsgId(), profile.isFriend());
-    }
+//    public void addUserProfile(UserProfile profile) {
+//        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getEmail(), profile.getProfilePictureLink(), profile.getLastMsgId(), profile.isFriend());
+//    }
 
     /**
      * Method for changing user profile in db
@@ -481,24 +456,24 @@ public class DataManager {
         removeUserProfile(userProfile.getUserId());
     }
 
-    public void updateProfileServerStatus(UserProfile userProfile, int serverStatus){
-        if(STATUS_RETRY_UPLOAD == serverStatus){
-            addNotUploadedActivity(userProfile, CLASS_USERPROFILE);
-        }
-
-        ContentValues values = new ContentValues();
-        values.put(ProfileEntry.COLUMN_SERVER_STATUS, serverStatus);
-
-        int numOfUpdatedRows = mAppContext.getContentResolver().update(ProfileEntry.CONTENT_URI, values,
-                ProfileEntry._ID + " = ?", new String[]{Long.toString(userProfile.getUserId())});
-
-        if (numOfUpdatedRows != 1) {
-            Log.e(TAG, "Error updating bulletin: PostID=" + userProfile.getUserId());
-        } else {
-            String debugtext = "Bulletin updated: ID=" + userProfile.getUserId();
-            Log.d("BulletinManager", debugtext);
-        }
-    }
+//    public void updateProfileServerStatus(UserProfile userProfile, int serverStatus){
+//        if(STATUS_RETRY_UPLOAD == serverStatus){
+//            addNotUploadedActivity(userProfile, CLASS_USERPROFILE);
+//        }
+//
+//        ContentValues values = new ContentValues();
+//        values.put(ProfileEntry.COLUMN_SERVER_STATUS, serverStatus);
+//
+//        int numOfUpdatedRows = mAppContext.getContentResolver().update(ProfileEntry.CONTENT_URI, values,
+//                ProfileEntry._ID + " = ?", new String[]{Long.toString(userProfile.getUserId())});
+//
+//        if (numOfUpdatedRows != 1) {
+//            Log.e(TAG, "Error updating bulletin: PostID=" + userProfile.getUserId());
+//        } else {
+//            String debugtext = "Bulletin updated: ID=" + userProfile.getUserId();
+//            Log.d("BulletinManager", debugtext);
+//        }
+//    }
 
 
     ////////////////////////////////////////////////////////////////
@@ -644,7 +619,7 @@ public class DataManager {
     public static final int NUM_OF_BULLETINS_TO_DOWNLOAD = 40;
 
     /**
-     * Method for updating a new post_id, created with {@link DataManager#getNewActivityId()}, with the new
+     * Method for updating a new post_id, created with {@link DataManager#createNewActivityId()}, with the new
      * one returned from the server;
      *
      * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
@@ -683,6 +658,44 @@ public class DataManager {
         }
 
         addBulletins(bulletinList);
+    }
+
+    /**
+     * Method for adding list of Bulletin to database
+     *
+     * @param list to be added
+     */
+    public void addBulletins(ArrayList<Bulletin> list) {
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
+
+        for (Bulletin b : list) {
+            ContentValues values = new ContentValues();
+
+            values.put(DataContract.BulletinEntry._ID, b.getPostID());
+            values.put(DataContract.BulletinEntry.COLUMN_USER_ID, b.getUserID());
+            values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, b.getFirstName());
+            values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, b.getLastName());
+            values.put(DataContract.BulletinEntry.COLUMN_TEXT, b.getMessage());
+            values.put(DataContract.BulletinEntry.COLUMN_DATE, b.getDate().getTime());
+            values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, b.getNumOfReplies());
+            values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, STATUS_SUCCESS);
+
+            cVVector.add(values);
+            Log.d(TAG, "Bulletin added: " + b.toString());
+        }
+
+        int inserted = 0;
+        // add to database
+        if (cVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            cVVector.toArray(cvArray);
+
+            inserted = mAppContext.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI, cvArray);
+            updateNullBulletin();
+
+            // TODO - delete old data
+        }
+        Log.d(TAG, inserted + " bulletins added");
     }
 
     /**
@@ -736,64 +749,27 @@ public class DataManager {
     }
 
 
-    /**
-     * Method for adding list of Bulletin to database
-     *
-     * @param list to be added
-     */
-    public void addBulletins(ArrayList<Bulletin> list) {
-        Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
 
-        for (Bulletin b : list) {
-            ContentValues values = new ContentValues();
 
-            values.put(DataContract.BulletinEntry._ID, b.getPostID());
-            values.put(DataContract.BulletinEntry.COLUMN_USER_ID, b.getUserID());
-            values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, b.getFirstName());
-            values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, b.getLastName());
-            values.put(DataContract.BulletinEntry.COLUMN_TEXT, b.getMessage());
-            values.put(DataContract.BulletinEntry.COLUMN_DATE, b.getDate().getTime());
-            values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, b.getNumOfReplies());
-            values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, STATUS_SUCCESS);
-            values.put(DataContract.BulletinEntry.COLUMN_ATTACHMENTS, parseAttachmentsToJSON(b.getAttachments()));
-
-            cVVector.add(values);
-            Log.d(TAG, "Bulletin added: " + b.toString());
-        }
-
-        int inserted = 0;
-        // add to database
-        if (cVVector.size() > 0) {
-            ContentValues[] cvArray = new ContentValues[cVVector.size()];
-            cVVector.toArray(cvArray);
-
-            inserted = mAppContext.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI, cvArray);
-            updateNullBulletin();
-
-            // TODO - delete old data
-        }
-        Log.d(TAG, inserted + " bulletins added");
-    }
-
-    /**
-     * Inserting new bulletin into the database
-     *
-     * @param b bulletin to insert
-     */
-    public void addBulletin(Bulletin b, boolean isOnServer) {
-        addBulletin(b.getPostID(), b.getUserID(), b.getFirstName(), b.getLastName(), b.getMessage(),
-                b.getDate(), b.getNumOfReplies(), b.getAttachments(), isOnServer ? STATUS_SUCCESS : STATUS_UPLOADING);
-    }
-
-    /**
-     * Inserting new bulletin into the database
-     *
-     * @param b bulletin to insert
-     */
-    public void addBulletin(Bulletin b, int serverStatus) {
-        addBulletin(b.getPostID(), b.getUserID(), b.getFirstName(), b.getLastName(), b.getMessage(),
-                b.getDate(), b.getNumOfReplies(), b.getAttachments(), serverStatus);
-    }
+//    /**
+//     * Inserting new bulletin into the database
+//     *
+//     * @param b bulletin to insert
+//     */
+//    public void addBulletin(Bulletin b, boolean isOnServer) {
+//        addBulletin(b.getPostID(), b.getUserID(), b.getFirstName(), b.getLastName(), b.getMessage(),
+//                b.getDate(), b.getNumOfReplies(), b.getAttachments(), isOnServer ? STATUS_SUCCESS : STATUS_UPLOADING);
+//    }
+//
+//    /**
+//     * Inserting new bulletin into the database
+//     *
+//     * @param b bulletin to insert
+//     */
+//    public void addBulletin(Bulletin b, int serverStatus) {
+//        addBulletin(b.getPostID(), b.getUserID(), b.getFirstName(), b.getLastName(), b.getMessage(),
+//                b.getDate(), b.getNumOfReplies(), b.getAttachments(), serverStatus);
+//    }
 
     /**
      * Helper method to handle the insertion of new bulletin
@@ -889,32 +865,32 @@ public class DataManager {
         }
     }
 
-    /**
-     * Method for changing bulletin {@link Bulletin#mServerStatus} in db
-     *
-     * @param bulletin the bulletin that needs to be updated
-     */
-    public void updateBulletinServerStatus(Bulletin bulletin, int serverStatus) {
-
-        if(STATUS_RETRY_UPLOAD == serverStatus){
-            addNotUploadedActivity(bulletin, CLASS_BULLETIN);
-        }
-
-        ContentValues values = new ContentValues();
-        values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, serverStatus);
-
-        int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
-                DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(bulletin.getPostID())});
-
-        if (numOfUpdatedRows != 1) {
-            Log.e(TAG, "Error updating bulletin: PostID=" + bulletin.getPostID());
-        } else {
-            String debugtext = "Bulletin updated: ID=" + bulletin.getPostID();
-
-            Log.d("BulletinManager", debugtext);
-            updateNullBulletin();
-        }
-    }
+//    /**
+//     * Method for changing bulletin {@link Bulletin#mServerStatus} in db
+//     *
+//     * @param bulletin the bulletin that needs to be updated
+//     */
+//    public void updateBulletinServerStatus(Bulletin bulletin, int serverStatus) {
+//
+//        if(STATUS_RETRY_UPLOAD == serverStatus){
+//            addNotUploadedActivity(bulletin, CLASS_BULLETIN);
+//        }
+//
+//        ContentValues values = new ContentValues();
+//        values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, serverStatus);
+//
+//        int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
+//                DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(bulletin.getPostID())});
+//
+//        if (numOfUpdatedRows != 1) {
+//            Log.e(TAG, "Error updating bulletin: PostID=" + bulletin.getPostID());
+//        } else {
+//            String debugtext = "Bulletin updated: ID=" + bulletin.getPostID();
+//
+//            Log.d("BulletinManager", debugtext);
+//            updateNullBulletin();
+//        }
+//    }
 
     /**
      * Method for getting the bulletin from the database
@@ -1077,200 +1053,163 @@ public class DataManager {
      */
     public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " ASC";
 
-    /**
-     * Method for adding list of Replies to the database
-     *
-     * @param list the list to be added to the db
-     */
-    public void addReplies(LinkedList<Reply> list) {
-        Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
-
-        int numReplies = 0;
-        for (Reply r : list) {
-            ContentValues values = new ContentValues();
-
-            values.put(DataContract.ReplyEntry._ID, r.replyId);
-            values.put(DataContract.ReplyEntry.COLUMN_POST_ID, r.postId);
-            values.put(DataContract.ReplyEntry.COLUMN_USER_ID, r.userId);
-            values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, r.userFirstName);
-            values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, r.userLastName);
-            values.put(DataContract.ReplyEntry.COLUMN_TEXT, r.replyText);
-            values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate.getTime());
-            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, r.numOfApprvs);
-
-            cVVector.add(values);
-            Log.d(TAG, "Reply added: " + r.toString());
-            numReplies++;
-        }
 
 
-        int inserted = 0;
-        // add to database
-        if (cVVector.size() > 0) {
-            ContentValues[] cvArray = new ContentValues[cVVector.size()];
-            cVVector.toArray(cvArray);
-            inserted = mAppContext.getContentResolver().bulkInsert(DataContract.ReplyEntry.CONTENT_URI, cvArray);
+//    /**
+//     * Helper method to handle the insertion of the new reply
+//     *
+//     * @param reply the reply to be inserted into the database
+//     */
+//    public void addReply(Reply reply, Bulletin bulletin, int serverStatus) {
+//        addReply(reply.replyId, reply.userId, reply.postId, reply.userFirstName, reply.userLastName, reply.replyText, reply.replyDate
+//                , reply.replyApproves.size(), serverStatus, bulletin);
+//    }
 
-            // TODO - delete old data
-        }
-        Log.d(TAG, inserted + " replies added");
-    }
+//    /**
+//     * Helper method to handle the insertion of the new reply
+//     *
+//     * @param replyId     the id of the new reply
+//     * @param userId      the id of the user that has replied
+//     * @param postId      the id of the post that has been replied on
+//     * @param firstName   user's first name
+//     * @param lastName    user's last name
+//     * @param text        the message of the reply
+//     * @param date        the date of the reply in UTC
+//     * @param numOfApprvs the number of the reply approves
+//     */
+//    public void addReply(long replyId, long userId, long postId, String firstName, String lastName, String text, Date date,
+//                         int numOfApprvs, int serverStatus, Bulletin bulletin) {
+//        ContentValues values = new ContentValues();
+//
+//        values.put(DataContract.ReplyEntry._ID, replyId);
+//        values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
+//        values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
+//        values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
+//        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
+//        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
+//        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
+//        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
+//        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
+//
+//        Uri insertedUri = mAppContext.getContentResolver().insert(
+//                DataContract.ReplyEntry.CONTENT_URI,
+//                values
+//        );
+//
+//        if (insertedUri == null) {
+//            Log.e(TAG, "Error inserting reply: ID=" + replyId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
+//        } else {
+//            updateBulletinRepliesCount(bulletin.getPostID(), bulletin.getNumOfReplies() + 1);
+//            String debugtext = "Reply added: ID=" + replyId +
+//                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
+//                    + "...; Date=" + date;
+//            debugtext += "; Num of approves=" + numOfApprvs;
+//            Log.d(TAG, debugtext);
+//        }
+//    }
 
-    /**
-     * Helper method to handle the insertion of the new reply
-     *
-     * @param reply the reply to be inserted into the database
-     */
-    public void addReply(Reply reply, Bulletin bulletin, int serverStatus) {
-        addReply(reply.replyId, reply.userId, reply.postId, reply.userFirstName, reply.userLastName, reply.replyText, reply.replyDate
-                , reply.replyApproves.size(), serverStatus, bulletin);
-    }
+//    private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, int serverStatus) {
+//        ContentValues values = new ContentValues();
+//
+//        values.put(DataContract.ReplyEntry._ID, replyId);
+//        values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
+//        values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
+//        values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
+//        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
+//        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
+//        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
+//        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
+//        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
+//
+//
+//        int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.ReplyEntry.CONTENT_URI, values,
+//                DataContract.ReplyEntry._ID + " = ?", new String[]{Integer.toString(replyId)});
+//
+//        if (numOfUpdatedRows != 1) {
+//            Log.e(TAG, "Error updating reply: replyId=" + replyId + "; UserID=" + userId + "; Number of rows updated=" + numOfUpdatedRows);
+//        } else {
+//            String debugtext = "Reply updated: ID=" + replyId +
+//                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=";
+//            try {
+//                debugtext += text.substring(0, 30);
+//            } catch (Exception e) {
+//                debugtext += text;
+//            }
+//            debugtext += "...; Date=" + date;
+//            debugtext += "; Num of approves=" + numOfApprvs;
+//            Log.d(TAG, debugtext);
+//        }
+//    }
 
-    /**
-     * Helper method to handle the insertion of the new reply
-     *
-     * @param replyId     the id of the new reply
-     * @param userId      the id of the user that has replied
-     * @param postId      the id of the post that has been replied on
-     * @param firstName   user's first name
-     * @param lastName    user's last name
-     * @param text        the message of the reply
-     * @param date        the date of the reply in UTC
-     * @param numOfApprvs the number of the reply approves
-     */
-    public void addReply(long replyId, long userId, long postId, String firstName, String lastName, String text, Date date,
-                         int numOfApprvs, int serverStatus, Bulletin bulletin) {
-        ContentValues values = new ContentValues();
+//    /**
+//     * Method for updating reply's {@link Reply#mServerStatus} in db
+//     *
+//     * @param reply the reply that needs to be updated
+//     */
+//    public void updateReplyServerStatus(Reply reply, int serverStatus) {
+//
+//        if(STATUS_RETRY_UPLOAD == serverStatus){
+//            addNotUploadedActivity(reply, CLASS_REPLY);
+//        }
+//
+//        ContentValues values = new ContentValues();
+//        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
+//
+//        int numOfUpdatedRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
+//                ReplyEntry._ID + " = ?", new String[]{Long.toString(reply.replyId)});
+//
+//        if (numOfUpdatedRows != 1) {
+//            Log.e(TAG, "Error updating reply server status: ReplyID =" + reply.replyId);
+//        } else {
+//            String debugtext = "Reply server status updated: ReplyID =" + reply.replyId;
+//
+//            Log.d("BulletinManager", debugtext);
+//            updateNullBulletin();
+//        }
+//    }
 
-        values.put(DataContract.ReplyEntry._ID, replyId);
-        values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
-        values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
-        values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
-        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
-        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
-        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
-        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
-        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
+//    /**
+//     * Method for updating a new reply_id, created with {@link DataManager#createNewActivityId()}, with the new
+//     * one returned from the server;
+//     *
+//     * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
+//     * {@link Reply#mServerStatus} to {@value ServerStatus#STATUS_SUCCESS}
+//     *
+//     * Method for updating reply's id
+//     * @param oldReplyId reply's old id
+//     * @param newReplyId reply's new id
+//     */
+//    public void updateReplyId(long oldReplyId, long newReplyId){
+//        ContentValues values = new ContentValues(2);
+//        values.put(ReplyEntry._ID, newReplyId);
+//        values.put(ReplyEntry.COLUMN_SERVER_STATUS, STATUS_SUCCESS);
+//
+//        int numOfRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI,
+//                values, ReplyEntry._ID + " = ?", new String[]{Long.toString(oldReplyId)});
+//
+//        if (numOfRows == 1) {
+//            Log.d(TAG, "Reply update with new replyId =" + newReplyId);
+//        } else {
+//            Log.e(TAG, "Failed to update the reply with old replyId=" + oldReplyId);
+//        }
+//    }
 
-        Uri insertedUri = mAppContext.getContentResolver().insert(
-                DataContract.ReplyEntry.CONTENT_URI,
-                values
-        );
-
-        if (insertedUri == null) {
-            Log.e(TAG, "Error inserting reply: ID=" + replyId + "; UserID=" + userId + "; Text=" + text.substring(0, 30) + "...");
-        } else {
-            updateBulletinRepliesCount(bulletin.getPostID(), bulletin.getNumOfReplies() + 1);
-            String debugtext = "Reply added: ID=" + replyId +
-                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=" + text
-                    + "...; Date=" + date;
-            debugtext += "; Num of approves=" + numOfApprvs;
-            Log.d(TAG, debugtext);
-        }
-    }
-
-    private void updateReply(int replyId, int userId, int postId, String firstName, String lastName, String text, Date date, int numOfApprvs, int serverStatus) {
-        ContentValues values = new ContentValues();
-
-        values.put(DataContract.ReplyEntry._ID, replyId);
-        values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
-        values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
-        values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, firstName);
-        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
-        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
-        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
-        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
-        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
-
-
-        int numOfUpdatedRows = mAppContext.getContentResolver().update(DataContract.ReplyEntry.CONTENT_URI, values,
-                DataContract.ReplyEntry._ID + " = ?", new String[]{Integer.toString(replyId)});
-
-        if (numOfUpdatedRows != 1) {
-            Log.e(TAG, "Error updating reply: replyId=" + replyId + "; UserID=" + userId + "; Number of rows updated=" + numOfUpdatedRows);
-        } else {
-            String debugtext = "Reply updated: ID=" + replyId +
-                    "; Name=" + firstName + "; LastName=" + lastName + "; Text=";
-            try {
-                debugtext += text.substring(0, 30);
-            } catch (Exception e) {
-                debugtext += text;
-            }
-            debugtext += "...; Date=" + date;
-            debugtext += "; Num of approves=" + numOfApprvs;
-            Log.d(TAG, debugtext);
-        }
-    }
-
-    /**
-     * Method for updating reply's {@link Reply#mServerStatus} in db
-     *
-     * @param reply the reply that needs to be updated
-     */
-    public void updateReplyServerStatus(Reply reply, int serverStatus) {
-
-        if(STATUS_RETRY_UPLOAD == serverStatus){
-            addNotUploadedActivity(reply, CLASS_REPLY);
-        }
-
-        ContentValues values = new ContentValues();
-        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
-
-        int numOfUpdatedRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
-                ReplyEntry._ID + " = ?", new String[]{Long.toString(reply.replyId)});
-
-        if (numOfUpdatedRows != 1) {
-            Log.e(TAG, "Error updating reply server status: ReplyID =" + reply.replyId);
-        } else {
-            String debugtext = "Reply server status updated: ReplyID =" + reply.replyId;
-
-            Log.d("BulletinManager", debugtext);
-            updateNullBulletin();
-        }
-    }
-
-    /**
-     * Method for updating a new reply_id, created with {@link DataManager#getNewActivityId()}, with the new
-     * one returned from the server;
-     *
-     * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
-     * {@link Reply#mServerStatus} to {@value ServerStatus#STATUS_SUCCESS}
-     *
-     * Method for updating reply's id
-     * @param oldReplyId reply's old id
-     * @param newReplyId reply's new id
-     */
-    public void updateReplyId(long oldReplyId, long newReplyId){
-        ContentValues values = new ContentValues(2);
-        values.put(ReplyEntry._ID, newReplyId);
-        values.put(ReplyEntry.COLUMN_SERVER_STATUS, STATUS_SUCCESS);
-
-        int numOfRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI,
-                values, ReplyEntry._ID + " = ?", new String[]{Long.toString(oldReplyId)});
-
-        if (numOfRows == 1) {
-            Log.d(TAG, "Reply update with new replyId =" + newReplyId);
-        } else {
-            Log.e(TAG, "Failed to update the reply with old replyId=" + oldReplyId);
-        }
-    }
-
-    /**
-     * Method for updating reply's {@link Reply#replyDate}
-     */
-    public void updateReplyDate(Reply reply, Date date){
-        ContentValues values = new ContentValues(2);
-        values.put(ReplyEntry.COLUMN_DATE, date.toString());
-
-        int numOfRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI,
-                values, ReplyEntry._ID + " = ?", new String[]{Long.toString(reply.replyId)});
-
-        if (numOfRows == 1) {
-            Log.d(TAG, "Reply updated: ReplyID=" + reply.replyId);
-        } else {
-            Log.e(TAG, "Error updating reply: ReplyID=" + reply.replyId);
-        }
-    }
+//    /**
+//     * Method for updating reply's {@link Reply#replyDate}
+//     */
+//    public void updateReplyDate(Reply reply, Date date){
+//        ContentValues values = new ContentValues(2);
+//        values.put(ReplyEntry.COLUMN_DATE, date.toString());
+//
+//        int numOfRows = mAppContext.getContentResolver().update(ReplyEntry.CONTENT_URI,
+//                values, ReplyEntry._ID + " = ?", new String[]{Long.toString(reply.replyId)});
+//
+//        if (numOfRows == 1) {
+//            Log.d(TAG, "Reply updated: ReplyID=" + reply._id);
+//        } else {
+//            Log.e(TAG, "Error updating reply: ReplyID=" + reply.replyId);
+//        }
+//    }
 
     /**
      * Method for getting the reply from the database
@@ -1280,12 +1219,12 @@ public class DataManager {
      * @return the new instance of Bulletin from the database
      */
     public Reply getReply(int index, Cursor cursor) {
-        Reply reply = new Bulletin().getReplyInstance();
+        Reply reply = new Reply();
 
         try {
             cursor.moveToPosition(index);
 
-            reply.replyId = cursor.getInt(BulletinViewActivity.COL_REPLY_ID);
+            reply._id = cursor.getInt(BulletinViewActivity.COL_REPLY_ID);
             reply.userId = cursor.getInt(BulletinViewActivity.COL_USER_ID);
             reply.postId = cursor.getInt(BulletinViewActivity.COL_POST_ID);
             reply.userFirstName = cursor.getString(BulletinViewActivity.COL_FIRST_NAME);
@@ -1293,7 +1232,6 @@ public class DataManager {
             reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
             reply.replyText = cursor.getString(BulletinViewActivity.COL_TEXT);
             reply.numOfApprvs = cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS);
-
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return null;
@@ -1301,33 +1239,33 @@ public class DataManager {
         return reply;
     }
 
-    /**
-     * Method for getting the bulletin from the database with the default cursor
-     *
-     * @param index the position of the bulletin in the database
-     * @return the new instance of Bulletin from the database
-     */
-    public Reply getReply(int index) {
-        Cursor cursor = mAppContext.getContentResolver().query(
-                DataContract.ReplyEntry.CONTENT_URI,
-                BulletinViewActivity.REPLIES_COLUMNS,
-                null,
-                null,
-                REPLIES_ORDER_BY);
-
-        Reply reply;
-        try {
-            reply = getReply(index, cursor);
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
-
-        if (cursor != null)
-            cursor.close();
-
-        return reply;
-    }
+//    /**
+//     * Method for getting the bulletin from the database with the default cursor
+//     *
+//     * @param index the position of the bulletin in the database
+//     * @return the new instance of Bulletin from the database
+//     */
+//    public Reply getReply(int index) {
+//        Cursor cursor = mAppContext.getContentResolver().query(
+//                DataContract.ReplyEntry.CONTENT_URI,
+//                BulletinViewActivity.REPLIES_COLUMNS,
+//                null,
+//                null,
+//                REPLIES_ORDER_BY);
+//
+//        Reply reply;
+//        try {
+//            reply = getReply(index, cursor);
+//        } catch (NullPointerException e) {
+//            Log.e(TAG, e.getLocalizedMessage(), e);
+//            return null;
+//        }
+//
+//        if (cursor != null)
+//            cursor.close();
+//
+//        return reply;
+//    }
 
     public Context getContext() {
         return mAppContext;
@@ -1366,161 +1304,65 @@ public class DataManager {
         }
     }
 
-    /**
-     * Method for adding new approve to the database
-     * @param approve the {@link Approve} object to be added
-     */
-    public void addApprove(Approve approve){
-        addApprove(approve.userId, approve.replyId, approve.postId, approve.getServerStatus());
-    }
+//    /**
+//     * Method for adding new approve to the database
+//     * @param approve the {@link Approve} object to be added
+//     */
+//    public void addApprove(Approve approve){
+//        addApprove(approve.userId, approve.replyId, approve.postId, approve.getServerStatus());
+//    }
 
-    /**
-     * method for adding new approves to the database
-     * @param list list of {@link Approve} objects
-     */
-    public void addApproves(List<Approve> list) {
-        Vector<ContentValues> cVVector = new Vector<ContentValues>(list.size());
 
-        for (Approve approve : list) {
-            ContentValues values = new ContentValues();
 
-            values.put(ApproveEntry.COLUMN_REPLY_ID, approve.replyId);
-            values.put(ApproveEntry.COLUMN_USER_ID, approve.userId);
-            values.put(ApproveEntry.COLUMN_POST_ID, approve.postId);
-            values.put(ApproveEntry.COLUMN_SERVER_STATUS, approve.getServerStatus());
-            cVVector.add(values);
-            Log.d(TAG, "Approves added: " + approve.toString());
-        }
-
-        int inserted = 0;
-        // add to database
-        if (cVVector.size() > 0) {
-            ContentValues[] cvArray = new ContentValues[cVVector.size()];
-            cVVector.toArray(cvArray);
-
-            inserted = mAppContext.getContentResolver().bulkInsert(ApproveEntry.CONTENT_URI, cvArray);
-            // TODO - delete old data
-        }
-        Log.d(TAG, inserted + " approves added.");
-    }
-
-    /**
-     * Method for updating approve's {@link ApproveEntry#COLUMN_SERVER_STATUS} in db
-     *
-     * @param approve the approve that needs to be updated
-     */
-    public void updateApproveServerStatus(Approve approve, int serverStatus) {
-
-        if(STATUS_RETRY_UPLOAD == serverStatus){
-            addNotUploadedActivity(approve, CLASS_APPROVE);
-        }
-
-        ContentValues values = new ContentValues();
-        values.put(ApproveEntry.COLUMN_SERVER_STATUS, serverStatus);
-
-        int numOfUpdatedRows = mAppContext.getContentResolver().update(ApproveEntry.CONTENT_URI, values,
-                ApproveEntry._ID + " = ?", new String[]{Long.toString(approve._id)});
-
-        if (numOfUpdatedRows != 1) {
-            Log.e(TAG, "Error updating approve: ID =" + approve._id);
-        } else {
-            String debugtext = "Approve updated: ID =" + approve._id;
-
-            Log.d(TAG, debugtext);
-            updateNullBulletin();
-        }
-    }
+//    /**
+//     * Method for updating approve's {@link ApproveEntry#COLUMN_SERVER_STATUS} in db
+//     *
+//     * @param approve the approve that needs to be updated
+//     */
+//    public void updateApproveServerStatus(Approve approve, int serverStatus) {
+//
+//        if(STATUS_RETRY_UPLOAD == serverStatus){
+//            addNotUploadedActivity(approve, CLASS_APPROVE);
+//        }
+//
+//        ContentValues values = new ContentValues();
+//        values.put(ApproveEntry.COLUMN_SERVER_STATUS, serverStatus);
+//
+//        int numOfUpdatedRows = mAppContext.getContentResolver().update(ApproveEntry.CONTENT_URI, values,
+//                ApproveEntry._ID + " = ?", new String[]{Long.toString(approve._id)});
+//
+//        if (numOfUpdatedRows != 1) {
+//            Log.e(TAG, "Error updating approve: ID =" + approve._id);
+//        } else {
+//            String debugtext = "Approve updated: ID =" + approve._id;
+//
+//            Log.d(TAG, debugtext);
+//            updateNullBulletin();
+//        }
+//    }
 
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////
-    public void createDummyData() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mAppContext);
-                preferences.edit().putBoolean("DATA_CREATED",true).apply();
-                Random r = new Random();
-                int namesSize = Util.names.length;
-                int lNamesSize = Util.lastNames.length;
 
-                getCurrentUserProfile().setNumOfFriends(40);
-                for (int i = 1; i <= getCurrentUserProfile().getNumOfFriends(); i++) {
-                    addUserProfile(i, Util.names[r.nextInt(namesSize)], Util.lastNames[r.nextInt(lNamesSize)],
-                            mAppContext.getString(R.string.dev_email), mAppContext.getString(R.string.dev_nopic), 0, true);
-                }
+    private RequestQueue mRequestQueue;
 
-                int itemDownloaded = 0;
+    private List<Operation> opList = new ArrayList<>();
 
-                ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
-                LinkedList<Reply> repliesList = new LinkedList<>();
-                ArrayList<Approve> approveList = new ArrayList<>();
-                Cursor c = mAppContext.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI,
-                        null, null, null, null);
-                int count = c.getCount();
-                c.close();
-                for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
-
-
-                    UserProfile friend = getUserProfile(r.nextInt(count));
-                    Date date = new Date();
-                    date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * DataManager.mCurrentPage);
-
-                    Bulletin bulletin = new Bulletin();
-                    bulletin.setPostID(i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * DataManager.mCurrentPage);
-                    bulletin.setUserID(friend.getUserId());
-                    bulletin.setFirstName(friend.getFirstName());
-                    bulletin.setLastName(friend.getLastName());
-                    bulletin.setDate(date);
-                    bulletin.setMessage(Util.loremIspum);
-                    bulletin.setNumOfReplies(r.nextInt(20));
-                    bulletin.setServerStatus(STATUS_SUCCESS);
-
-                    for (int j = 0; j < bulletin.getNumOfReplies(); j++) {
-
-                        UserProfile friendReplied = getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends()));
-                        Reply reply = bulletin.getReplyInstance();
-
-                        reply.replyId = Integer.parseInt(Long.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
-                        reply.userId = friendReplied.getUserId();
-                        reply.postId = bulletin.getPostID();
-                        reply.userFirstName = friendReplied.getFirstName();
-                        reply.userLastName = friendReplied.getLastName();
-                        reply.replyText = Util.loremIpsumShort;
-                        reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage);
-
-                        for (int k = 0; k < r.nextInt(5); k++) {
-                            UserProfile profile = getUserProfile(r.nextInt(getCurrentUserProfile().getNumOfFriends()));
-                            reply.replyApproves.add(profile);
-                            approveList.add(new Approve(profile.getUserId(), bulletin.getPostID(), reply.replyId));
-                            reply.numOfApprvs++;
-                        }
-
-                        repliesList.add(reply);
-                    }
-
-                    list.add(bulletin);
-                    itemDownloaded++;
-                }
-                addBulletins(list);
-                addReplies(repliesList);
-                addApproves(approveList);
-
-                LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mAppContext);
-                Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
-                i.putExtra(DataManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
-
-                // Notifying HomeActivity that the data has been downloaded with broadcast and static member TODO - notify in onPostExecute later
-                broadcastManager.sendBroadcast(i);
-            }
-        });
-        thread.start();
+    public DataManager addOperation(Operation op){
+        opList.add(op);
+        return this;
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////
 
+    public void performOperations(){
+        Iterator i = opList.iterator();
 
+        while (i.hasNext()){
+            ((Operation) i.next()).execute(mAppContext, mRequestQueue, MotherActivity.access_token);
+            i.remove();
+        }
+    }
 
 }
 

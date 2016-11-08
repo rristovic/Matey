@@ -15,8 +15,8 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
-import com.mateyinc.marko.matey.internet.profile.UserProfileAs;
+import com.mateyinc.marko.matey.data.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 

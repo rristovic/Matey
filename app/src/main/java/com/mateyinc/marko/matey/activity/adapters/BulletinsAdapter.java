@@ -31,14 +31,14 @@ import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.NetworkManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
 import static com.mateyinc.marko.matey.data.DataManager.COL_POST_ID;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.*;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
+import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
 
 public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
@@ -343,8 +343,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                NetworkManager.getInstance(mContext).uploadNewBulletin(bulletin, mManager, MotherActivity.access_token, mContext);
-                mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
+//                NetworkManager.getInstance(mContext).uploadNewBulletin(bulletin, MotherActivity.access_token, mContext);
+//                mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
             }
         });
         ((LinearLayout) holder.mView).addView(textView, 0);

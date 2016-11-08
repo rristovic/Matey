@@ -10,9 +10,6 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 
-/**
- * Created by Sarma on 9/5/2016.
- */
 public class OnTouchInterface implements View.OnTouchListener {
 
     private final Context mContext;

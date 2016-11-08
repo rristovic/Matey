@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.internet.home;
+package com.mateyinc.marko.matey.data.internet.home;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -7,8 +7,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.internet.http.HTTP;
-import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.data.internet.http.HTTP;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -160,13 +159,16 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
                         JSONObject dataObj = new JSONObject(dataArr.get(i).toString());
 
-                        Bulletin bulletin = new Bulletin();
-                        bulletin.setPostID(dataObj.getInt("post_id"));
-                        bulletin.setUserID(dataObj.getInt("user_id"));
-                        bulletin.setFirstName(dataObj.getString("first_name"));
-                        bulletin.setLastName(dataObj.getString("last_name"));
-                        bulletin.setDate(dataObj.getString("date_created"));
-                        bulletin.setMessage(dataObj.getString("text"));
+//                        Bulletin bulletin = new Bulletin(
+//                                dataObj.getInt("post_id"),
+//                                dataObj.getInt("user_id")
+//                        );
+//                        bulletin.setPostID();
+//                        bulletin.setUserID();
+//                        bulletin.setFirstName(dataObj.getString("first_name"));
+//                        bulletin.setLastName(dataObj.getString("last_name"));
+//                        bulletin.setDate(dataObj.getString("date_created"));
+//                        bulletin.setMessage(dataObj.getString("text"));
 
 //                        Log.d("BulletinAs", i + 1 + ". " + bulletin.toString());
 //                        mBulletinManager.addBulletin(bulletin);
