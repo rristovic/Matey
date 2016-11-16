@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.data.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.data.internet.profile.UserProfileAs;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
@@ -78,7 +78,7 @@ public class ProfileActivity extends MotherActivity {
     private void setData() {
         Log.d("ProfileActivity", "Data is set.");
         //mImageLoader.displayImage(mUserProfile.getProfilePictureLink(), ivProfilePic);
-        NetworkManager.getInstance(this).downloadImage(ivProfilePic, mUserProfile.getProfilePictureLink());
+        SessionManager.getInstance(this).downloadImage(ivProfilePic, mUserProfile.getProfilePictureLink());
         tvName.setText(mUserProfile.getFirstName() + " " + mUserProfile.getLastName());
         tvNumberOfMates.setText(mUserProfile.getNumOfFriends());
     }

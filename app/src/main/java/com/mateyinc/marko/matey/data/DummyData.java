@@ -36,10 +36,6 @@ public class DummyData {
         return DataManager.getInstance(mAppContext).getUserProfile(index);
     }
 
-    private void updateNullBulletin(){
-        DataManager.getInstance(mAppContext).updateNullBulletin();
-    }
-
     public void createDummyData(Context context) {
         mAppContext = context;
         Thread thread = new Thread(new Runnable() {
@@ -207,7 +203,6 @@ public class DummyData {
             cVVector.toArray(cvArray);
 
             inserted = mAppContext.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI, cvArray);
-            updateNullBulletin();
 
             // TODO - delete old data
         }

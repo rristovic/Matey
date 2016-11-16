@@ -49,9 +49,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final int FIRST_ITEM = 1;
     private static final int ITEM = 2;
 
-    private View mEmptyView;
     private RecyclerView mRecycleView;
-
     /**
      * Used in long click to determine the position of clicked view
      */
@@ -59,10 +57,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     public static String clickedText = "";
     public static final int COPYTEXT_ID = 100;
 
-    public BulletinsAdapter(HomeActivity context, TextView emptyView) {
+    public BulletinsAdapter(HomeActivity context) {
         mContext = context;
         mManager = DataManager.getInstance(context);
-        mEmptyView = emptyView;
     }
 
     @Override
@@ -77,30 +74,15 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     View view = LayoutInflater.from(mContext) //Inflate the view
                             .inflate(R.layout.bulletin_list_item, parent, false);
 
-//                    LinearLayout retryView = new LinearLayout(mContext);
-//                    LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,Util.parseDp(30,mContext.getResources()));
-//                    retryView.setLayoutParams(retryParams);
-//                    retryView.setOnClickListener(new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
 //
-//                        }
-//                    });
-//
-//                    LinearLayout container = new LinearLayout(mContext);
-//                    LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-//                    container.setLayoutParams(containerParams);
-//                    container.setOrientation(LinearLayout.VERTICAL);
-//
-//                    container.addView(retryView);
-
                     // Implementing ViewHolderClickListener and returning view holder
                     return new ViewHolder(view, getViewHolderListener());
                 }
                 case FIRST_ITEM: {
                     View view = LayoutInflater.from(mContext)
                             .inflate(R.layout.bulletin_first_list_item, parent, false);
-                    return new ViewHolderFirst(view);
+
+                    return new ViewHolderFirst(view, getViewHolderListener());
                 }
                 default:
                     return null;
@@ -162,6 +144,18 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         switch (getItemViewType(position)) {
 //             Parsing data to views if available
+            case FIRST_ITEM: {
+                BulletinsAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
+                holder.ivProfilePic.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent i = new Intent(mContext, ProfileActivity.class);
+                        mContext.startActivity(i);
+                    }
+                });
+                holder.ibAttachment.setOnTouchListener((HomeActivity) mContext);
+                holder.ibLocation.setOnTouchListener((HomeActivity) mContext);
+            }
 
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
@@ -290,19 +284,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
                 break;
             }
-            case FIRST_ITEM: {
-                BulletinsAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
-                holder.ivProfilePic.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent i = new Intent(mContext, ProfileActivity.class);
-                        mContext.startActivity(i);
-                    }
-                });
-                holder.ibAttachment.setOnTouchListener((HomeActivity) mContext);
-                holder.ibLocation.setOnTouchListener((HomeActivity) mContext);
-                break;
-            }
             default:
                 break;
         }
@@ -343,7 +324,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                NetworkManager.getInstance(mContext).uploadNewBulletin(bulletin, MotherActivity.access_token, mContext);
+//                SessionManager.getInstance(mContext).uploadNewBulletin(bulletin, MotherActivity.access_token, mContext);
 //                mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
             }
         });
@@ -374,7 +355,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
     public void swapCursor(Cursor newCursor) {
         super.swapCursor(newCursor);
-        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
@@ -440,7 +420,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         }
 
 
-        private interface ViewHolderClickListener {
+        protected interface ViewHolderClickListener {
             void onRepliesClick(View caller, View rootView, boolean onlyShowReplies);
 
             void onMsgClick(TextView mMessage, View mView);
@@ -451,22 +431,24 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         }
     }
 
-    private static class ViewHolderFirst extends RecyclerView.ViewHolder {
+    private static class ViewHolderFirst extends ViewHolder {
         private final View mView;
         private final ImageView ivProfilePic;
         private final TextView btnSendToSea;
         private final ImageButton ibLocation;
         private final ImageButton ibAttachment;
+        private final View mNewPostWrapper;
 
-        private ViewHolderFirst(View view) {
-            super(view);
+        private ViewHolderFirst(View view, ViewHolderClickListener listener) {
+            super(view, listener);
             mView = view;
+            mNewPostWrapper = view.findViewById(R.id.newPostWrapper);
             ivProfilePic = (ImageView) view.findViewById(R.id.ivProfilePic);
             btnSendToSea = (TextView) view.findViewById(R.id.tvSendToSea);
             ibLocation = (ImageButton) view.findViewById(R.id.ibLocation);
             ibAttachment = (ImageButton) view.findViewById(R.id.ibAttachment);
 
-            mView.setOnClickListener(new View.OnClickListener() {
+            mNewPostWrapper.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(mView.getContext(), NewBulletinActivity.class);
@@ -474,7 +456,5 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 }
             });
         }
-
-
     }
 }

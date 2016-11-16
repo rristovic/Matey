@@ -47,20 +47,21 @@ public class DataProvider extends ContentProvider {
     static final int NOT_UPLOADED_ITEMS = 700;
 
     private static final SQLiteQueryBuilder sRepliesWithApproves;
-//    private static final SQLiteQueryBuilder sBulletinWithRepliesCount;
+    private static final SQLiteQueryBuilder sBulletinWithRepliesCount;
 
     static{
         sRepliesWithApproves = new SQLiteQueryBuilder();
+        sBulletinWithRepliesCount = new SQLiteQueryBuilder();
 
-        //  This is an inner join which looks like
-        //  approves INNER JOIN bulletins ON approves.post_id = bulletins._id
         sRepliesWithApproves.setTables(
                 DataContract.ReplyEntry.TABLE_NAME + " LEFT OUTER JOIN " + DataContract.ApproveEntry.TABLE_NAME +
-                        " ON " + DataContract.ReplyEntry.TABLE_NAME +
-                        "." + DataContract.ReplyEntry._ID +
-                        " = " + DataContract.ApproveEntry.TABLE_NAME +
-                        "." + DataContract.ApproveEntry.COLUMN_REPLY_ID);
+                        " ON " + DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry._ID +
+                        " = " + DataContract.ApproveEntry.TABLE_NAME + "." + DataContract.ApproveEntry.COLUMN_REPLY_ID);
 
+        sBulletinWithRepliesCount.setTables(
+                DataContract.BulletinEntry.TABLE_NAME + " LEFT OUTER JOIN" + DataContract.ReplyEntry.TABLE_NAME +
+                        " ON " + DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID +
+                        " = " + DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry.COLUMN_POST_ID);
     }
 
 
@@ -588,7 +589,6 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_REPLIES + "/#", REPLY_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_APPROVES, APPROVES);
         matcher.addURI(authority, DataContract.PATH_APPROVES + "/#", APPROVE_WITH_ID);
-
         matcher.addURI(authority, DataContract.PATH_NOT_UPLOADED, NOT_UPLOADED_ITEMS);
 
 

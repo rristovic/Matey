@@ -12,14 +12,14 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
-import com.mateyinc.marko.matey.data.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.LinkedList;
 
 public class AddFriendsAdapter extends RecycleCursorAdapter {
 
-    private final NetworkManager mNetworkManager;
+    private final SessionManager mSessionManager;
     private Context mContext;
     private RecyclerView mRecycleView;
     private LinkedList mFriendsAdded;
@@ -28,7 +28,7 @@ public class AddFriendsAdapter extends RecycleCursorAdapter {
     public AddFriendsAdapter(Context context) {
         mContext = context;
         mFriendsAdded = new LinkedList();
-        mNetworkManager = NetworkManager.getInstance(mContext);
+        mSessionManager = SessionManager.getInstance(mContext);
     }
 
     public void setData(LinkedList<UserProfile> list){
@@ -90,7 +90,7 @@ public class AddFriendsAdapter extends RecycleCursorAdapter {
         viewHolder.tvName.setText(profile.getFirstName().concat(" ").concat(profile.getLastName()));
 
         if(profile.getProfilePictureLink() != null && !profile.getProfilePictureLink().isEmpty())
-        mNetworkManager.downloadImage(viewHolder.ivProfilePic, profile.getProfilePictureLink());
+        mSessionManager.downloadImage(viewHolder.ivProfilePic, profile.getProfilePictureLink());
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{

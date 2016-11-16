@@ -45,9 +45,9 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.data.internet.NetworkManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -91,7 +91,7 @@ public class MainActivity extends MotherActivity {
     public boolean isAnimRunning = false;
 
     private Resources resources;
-    private NetworkManager mNetworkManager;
+    private SessionManager mSessionManager;
 
     // FB
     public CallbackManager fbCallbackManager;
@@ -120,14 +120,14 @@ public class MainActivity extends MotherActivity {
         setContentView(R.layout.activity_main);
 
         init();
-        mNetworkManager.startSession(this);
+        mSessionManager.startSession(this);
     }
 
     private void init() {
         initGCM();
         initFBLogin();
 
-        mNetworkManager = NetworkManager.getInstance(this);
+        mSessionManager = SessionManager.getInstance(this);
         btnLogin = (ButtonLoginPage) findViewById(R.id.btnLogin);
         btnReg = (ButtonLoginPage) findViewById(R.id.btnReg);
         btnFb = (Button) findViewById(R.id.btnFacebook);
@@ -155,7 +155,7 @@ public class MainActivity extends MotherActivity {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mNetworkManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(EXTRA_GCM_TOKEN));
+                mSessionManager.registerDevice(MainActivity.this, getSecurePreferences(), intent.getStringExtra(EXTRA_GCM_TOKEN));
             }
         };
 
@@ -192,7 +192,7 @@ public class MainActivity extends MotherActivity {
                                         try {
                                             email[0] = (object.getString("email"));
 
-                                            NetworkManager.getInstance(MainActivity.this)
+                                            SessionManager.getInstance(MainActivity.this)
                                                     .loginWithFacebook(accessToken.getToken(),
                                                             email[0], getSecurePreferences(), MainActivity.this);
                                         } catch (JSONException e) {
@@ -225,8 +225,8 @@ public class MainActivity extends MotherActivity {
                 if (!mLoginFormVisible) {
                      if (!mDeviceReady) {
                          // If the device isn't ready, try registering with the server again
-                         mNetworkManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
-                         mNetworkManager.startSession(MainActivity.this);
+                         mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
+                         mSessionManager.startSession(MainActivity.this);
                          return;
                     }
                     // Showing login form
@@ -238,7 +238,7 @@ public class MainActivity extends MotherActivity {
                     email = email.trim();
 
                     if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
-                        mNetworkManager.debugLogin(getSecurePreferences(), MainActivity.this);
+                        mSessionManager.debugLogin(getSecurePreferences(), MainActivity.this);
                         return;
                     }
 
@@ -251,7 +251,7 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", getString(R.string.password_error_msg));
                         showDialog(1004, bundle);
                     } else {
-                        NetworkManager.getInstance(MainActivity.this).
+                        SessionManager.getInstance(MainActivity.this).
                                 loginWithVolley(email, pass, getSecurePreferences(), MainActivity.this);
                     }
                 }
@@ -264,8 +264,8 @@ public class MainActivity extends MotherActivity {
                 if (!mRegFormVisible) {
                     if (!mDeviceReady) {
                         // If the device isn't ready, try registering with the server again
-                        mNetworkManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
-                        mNetworkManager.startSession(MainActivity.this);
+                        mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
+                        mSessionManager.startSession(MainActivity.this);
                         return;
                     }
                     // Showing reg form
@@ -285,7 +285,7 @@ public class MainActivity extends MotherActivity {
                         bundle.putString("message", getString(R.string.password_error_msg));
                         showDialog(1004, bundle);
                     } else {
-                        NetworkManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, "Lorem Ipsum", "Lorem Ipsum", email, pass);
+                        SessionManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, "Lorem Ipsum", "Lorem Ipsum", email, pass);
                     }
                 }
             }
@@ -296,8 +296,8 @@ public class MainActivity extends MotherActivity {
             public void onClick(View v) {
                  if (!mDeviceReady) {
                     // If the device isn't ready, try registering with the server again
-                    mNetworkManager.showProgressDialog(MainActivity.this, getString(R.string.gettingIn_dialog_message));
-                    mNetworkManager.startSession(MainActivity.this);
+                    mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.gettingIn_dialog_message));
+                    mSessionManager.startSession(MainActivity.this);
                 } else {
                     LoginManager.getInstance().logInWithReadPermissions(MainActivity.this,
                             Arrays.asList("public_profile", "user_friends", "email", "user_friends"));
@@ -787,7 +787,7 @@ public class MainActivity extends MotherActivity {
                 mRegFormVisible = false;
                 return true;
             } else {
-//                mNetworkManager.stopAllNetworking();
+//                mSessionManager.stopAllNetworking();
                 return super.onKeyDown(keyCode, event);
             }
 

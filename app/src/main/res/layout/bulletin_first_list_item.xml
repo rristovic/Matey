@@ -1,74 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/bulletin_pic_height"
+    android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/bulletins_listView_bottomMargin"
-    android:background="@color/white"
-    android:paddingEnd="@dimen/bulletins_padding_side"
-    android:paddingLeft="@dimen/bulletins_padding_side"
-    android:paddingRight="@dimen/bulletins_padding_side"
-    android:paddingStart="@dimen/bulletins_padding_side">
+    android:orientation="vertical">
 
-    <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-        android:id="@+id/ivProfilePic"
-        android:layout_width="@dimen/bulletin_pic_height"
-        android:layout_height="@dimen/bulletin_pic_height"
-        android:padding="@dimen/bulletin_pic_padding"
-        android:scaleType="centerCrop"
-        android:src="@drawable/empty_photo"
-        app:riv_border_color="@color/profile_pic_border"
-        app:riv_border_width="0dp"
-        app:riv_oval="true" />
-
-    <ImageButton
-        android:id="@+id/ibAttachment"
-        android:layout_width="24dp"
-        android:layout_height="@dimen/bulletin_pic_height"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:background="@color/bg_transparent"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_attachment"
-        android:tint="@color/light_gray" />
-
-    <ImageButton
-        android:id="@+id/ibLocation"
-        android:layout_width="24dp"
-        android:layout_height="@dimen/bulletin_pic_height"
-        android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/ibAttachment"
-        android:layout_toStartOf="@+id/ibAttachment"
-        android:background="@color/bg_transparent"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_compas"
-        android:tint="@color/light_gray" />
-
-    <TextView
-        android:id="@+id/tvSendToSea"
+    <RelativeLayout
+        android:id="@+id/newPostWrapper"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="5dp"
-        android:layout_toEndOf="@+id/ivProfilePic"
-        android:layout_toRightOf="@+id/ivProfilePic"
-        android:fontFamily="@string/roboto_light"
-        android:text="@string/bulletin_sendtosea_tittle"
-        android:textColor="@color/light_gray"
-        android:textStyle="italic"
-        android:layout_toLeftOf="@+id/ibLocation"
-    android:layout_toStartOf="@+id/ibLocation"
-        android:layout_alignParentTop="false"
-        android:gravity="center_vertical|start|left" />
+        android:layout_height="@dimen/bulletin_pic_height"
+        android:layout_marginBottom="@dimen/bulletins_listView_bottomMargin"
+        android:background="@color/white"
+        android:paddingEnd="@dimen/bulletins_padding_side"
+        android:paddingLeft="@dimen/bulletins_padding_side"
+        android:paddingRight="@dimen/bulletins_padding_side"
+        android:paddingStart="@dimen/bulletins_padding_side">
 
-    <FrameLayout
+        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+            android:id="@+id/ivProfilePic"
+            android:layout_width="@dimen/bulletin_pic_height"
+            android:layout_height="@dimen/bulletin_pic_height"
+            android:padding="@dimen/bulletin_pic_padding"
+            android:scaleType="centerCrop"
+            android:src="@drawable/empty_photo"
+            app:riv_border_color="@color/profile_pic_border"
+            app:riv_border_width="0dp"
+            app:riv_oval="true" />
+
+        <ImageButton
+            android:id="@+id/ibAttachment"
+            android:layout_width="24dp"
+            android:layout_height="@dimen/bulletin_pic_height"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@color/bg_transparent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_attachment"
+            android:tint="@color/light_gray" />
+
+        <ImageButton
+            android:id="@+id/ibLocation"
+            android:layout_width="24dp"
+            android:layout_height="@dimen/bulletin_pic_height"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/ibAttachment"
+            android:layout_toStartOf="@+id/ibAttachment"
+            android:background="@color/bg_transparent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_compas"
+            android:tint="@color/light_gray" />
+
+        <TextView
+            android:id="@+id/tvSendToSea"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="false"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="5dp"
+            android:layout_toEndOf="@+id/ivProfilePic"
+            android:layout_toLeftOf="@+id/ibLocation"
+            android:layout_toRightOf="@+id/ivProfilePic"
+            android:layout_toStartOf="@+id/ibLocation"
+            android:fontFamily="@string/roboto_light"
+            android:gravity="center_vertical|start|left"
+            android:text="@string/bulletin_sendtosea_tittle"
+            android:textColor="@color/light_gray"
+            android:textStyle="italic" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="10dp"
+            android:layout_toEndOf="@+id/ivProfilePic"
+            android:layout_toRightOf="@+id/ivProfilePic"
+            android:background="@color/light_gray" />
+
+    </RelativeLayout>
+
+    <include
+        layout="@layout/bulletin_list_item"
         android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
-        android:layout_toEndOf="@+id/ivProfilePic"
-        android:layout_toRightOf="@+id/ivProfilePic"
-        android:background="@color/light_gray" />
+        android:layout_height="wrap_content" />
 
-</RelativeLayout>
+</LinearLayout>
