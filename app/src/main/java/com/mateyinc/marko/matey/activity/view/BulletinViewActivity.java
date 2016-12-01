@@ -175,7 +175,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 etReplyText.setText(null);
 
                 dm.addOperation(new UploadOp(r)).performOperations();
-//                NetworkManager networkManager = NetworkManager.getInstance(BulletinViewActivity.this);
+//                SessionManager networkManager = SessionManager.getInstance(BulletinViewActivity.this);
 //                networkManager.uploadNewReply(r, mCurBulletin, DataManager.getInstance(BulletinViewActivity.this),
 //                        MotherActivity.access_token, BulletinViewActivity.this);
 

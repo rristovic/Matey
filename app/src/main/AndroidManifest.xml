@@ -131,9 +131,6 @@
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
         </service>
-        <service
-            android:name=".data.internet.procedures.UploadService"
-            android:exported="false" />
 
         <activity android:name=".activity.AddFriendsActivity"></activity>
     </application>

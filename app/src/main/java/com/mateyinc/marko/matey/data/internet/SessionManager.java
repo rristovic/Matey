@@ -3,15 +3,12 @@ package com.mateyinc.marko.matey.data.internet;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.util.LruCache;
@@ -33,7 +30,6 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.Volley;
 import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginManager;
@@ -49,7 +45,6 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.DummyData;
 import com.mateyinc.marko.matey.data.JSONParserAs;
-import com.mateyinc.marko.matey.data.internet.procedures.UploadService;
 import com.mateyinc.marko.matey.data.operations.AddToDatabaseOp;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
@@ -87,8 +82,8 @@ import static com.mateyinc.marko.matey.inall.MotherActivity.access_token;
 /**
  * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER, DOWNLOAD & UPLOAD DATA)
  */
-public class NetworkManager {
-    private static final String TAG = NetworkManager.class.getSimpleName();
+public class SessionManager {
+    private static final String TAG = SessionManager.class.getSimpleName();
 
     // Key for securePreference to store the device_id
     public static final String KEY_DEVICE_ID = "device_id";
@@ -110,24 +105,21 @@ public class NetworkManager {
     private static final String KEY_LAST_NAME = "last_name";
     private static final String KEY_SUGGESTED_FRIENDS = "suggested_friends";
 
-    /** The application id is on hard drive NetworkManager status */
+    /** The application id is on hard drive SessionManager status */
     public static final int STATUS_OK = 100;
 
-    /** Something when wrong NetworkManager status*/
+    /** Something when wrong SessionManager status*/
     public static final int STATUS_ERROR = 200;
 
-    /** Error with getting the application id NetworkManager status*/
+    /** Error with getting the application id SessionManager status*/
     private static final int STATUS_ERROR_APPID = 400;
 
-    private static NetworkManager mInstance;
+    private static SessionManager mInstance;
     private static final Object mInstanceLock = new Object();
 
-    //    private Context mAppContext;
     private ImageLoader mImageLoader;
     private RequestQueue mRequestQueue;
     private ProgressDialog mProgDialog;
-    private UploadService mUploadService;
-    private boolean mIsBound;
 
     private final Object mLock = new Object();
     private final BlockingQueue<Runnable> mDecodeWorkQueue;
@@ -140,22 +132,19 @@ public class NetworkManager {
     private static final int KEEP_ALIVE_TIME = 10;
     // Sets the Time Unit to seconds
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
-    private CallbackManager mFbCallback;
-    private Context mContext;
 
-    public static NetworkManager getInstance(Context context) {
+    public static SessionManager getInstance(Context context) {
         synchronized (mInstanceLock) {
             if (mInstance == null) {
-                mInstance = new NetworkManager(context.getApplicationContext());
-                Log.d(TAG, "New instance of NetworkManager created.");
+                mInstance = new SessionManager(context.getApplicationContext());
+                Log.d(TAG, "New instance of SessionManager created.");
             }
         }
 
         return mInstance;
     }
 
-    private NetworkManager(Context context) {
-
+    private SessionManager(Context context) {
         mRequestQueue = Volley.newRequestQueue(context);
         mDecodeWorkQueue = new LinkedBlockingQueue<Runnable>();
 
@@ -867,8 +856,6 @@ public class NetworkManager {
      * @param context the context to use when starting new activity
      */
     private void loggedIn(MainActivity context) {
-        startUploadService(context);
-
         Intent intent = new Intent(context, HomeActivity.class);
         context.startActivity(intent);
         context.finish();
@@ -879,7 +866,6 @@ public class NetworkManager {
      * @param context the context used to start new activity
      */
     private void loggedInWithSuggestedFriends(MainActivity context) {
-        startUploadService(context);
         Intent intent = new Intent(context, AddFriendsActivity.class);
         context.startActivity(intent);
         context.finish();
@@ -1018,12 +1004,6 @@ public class NetworkManager {
      */
     public void uploadFailedData(Context context) {
         Log.d(TAG, "Uploading failed data.");
-
-        if (mUploadService != null && mConnection != null)
-            mUploadService.uploadFailedData();
-        else {
-            startUploadService(context);
-        }
     }
 
     /**
@@ -1088,69 +1068,13 @@ public class NetworkManager {
      */
     public void uploadFollowedFriends(ArrayList<UserProfile> addedFriends, String accessToken, Context context){
         Log.d(TAG, "Uploading added friends.");
-
-        if (mUploadService != null && mConnection != null)
-            mUploadService.uploadFollowedFriends(addedFriends, accessToken);
-        else {
-            // TODO - finish error nadling
-            startUploadService(context);
-        }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////// GENERAL USE METHODS /////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * Method for starting {@link UploadService} used for uploading data to the server
-     * @param c used to start the service
-     */
-    public void startUploadService(Context c) {
-        if(!mIsBound) {
-            Context context = c.getApplicationContext();
-            Intent intent = new Intent(context, UploadService.class);
-            context.startService(intent);
-            mIsBound = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        } else if (mUploadService == null){
-            // If service gets destroyed in unusual way, just restart it
-            Context context = c.getApplicationContext();
-            Intent intent = new Intent(context, UploadService.class);
-            context.startService(intent);
-        }
-    }
 
-    /**
-     * Method for stopping {@link UploadService} used for uploading data to the server
-     * @param c used to stop the service
-     */
-    public void stopUploadService(Context c) {
-        if (mIsBound) {
-            Context context = c.getApplicationContext();
-            context.unbindService(mConnection);
-            Intent intent = new Intent(context, UploadService.class);
-            context.stopService(intent);
-            mIsBound = false;
-        }
-    }
-
-    /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            UploadService.LocalBinder binder = (UploadService.LocalBinder) service;
-            mUploadService = binder.getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            // Before uploading anything, checking for mUploadService is needed;
-            mUploadService = null;
-            Log.e(TAG, "Service: " + arg0 + " - has been disconected");
-        }
-    };
 
     /** Method for stopping all pending and running downloads */
     public void stopAllNetworking(){
@@ -1166,7 +1090,7 @@ public class NetworkManager {
      * Method for adding new {@link Request} to the current {@link RequestQueue} in use
      * @param req the request to be added
      */
-    public void addToRequestQueue(Request req) {
+    private void addToRequestQueue(Request req) {
         addToRequestQueue(req,"");
     }
 
@@ -1175,7 +1099,7 @@ public class NetworkManager {
      * @param req the request to be added
      * @param tag object to tag the network request
      */
-    public void addToRequestQueue(Request req, Object tag) {
+    private void addToRequestQueue(Request req, Object tag) {
         req.setTag(tag);
         mRequestQueue.add(req);
     }

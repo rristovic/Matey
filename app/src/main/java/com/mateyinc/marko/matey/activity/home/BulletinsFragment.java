@@ -20,19 +20,21 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.data.internet.NetworkManager;
+import com.mateyinc.marko.matey.data.internet.SessionManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static com.mateyinc.marko.matey.data.DataManager.BULLETINS_LOADER;
 import static com.mateyinc.marko.matey.data.DataManager.BULLETIN_COLUMNS;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -42,7 +44,6 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     private BroadcastReceiver mDataDownloaded;
     private RecyclerView mRecycleView;
     private EndlessScrollListener mScrollListener;
-    private TextView mEmptyView;
 
     /**
      * The list which hold the updated bulletin positions;
@@ -50,7 +51,12 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
      */
     public static ArrayList<Integer> mUpdatedPositions = new ArrayList<>();
 
-    private NetworkManager mNetworkManager;
+    private SessionManager mSessionManager;
+    public static final int BULLETINS_LOADER = 100;
+    private LinearLayout llNoData;
+    private LinearLayout rlNewPostView;
+    private ProgressBar mProgressBar;
+    private FrameLayout mMainFeedLayout;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -63,7 +69,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = (HomeActivity) context;
-        mNetworkManager = NetworkManager.getInstance(context);
+        mSessionManager = SessionManager.getInstance(context);
 
         getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
     }
@@ -71,25 +77,33 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_bulletins, container, false);
-        mRecycleView = (RecyclerView) view.findViewById(R.id.rvBulletinList);
-        mEmptyView = (TextView) view.findViewById(R.id.tvEmptyView);
-        mAdapter = new BulletinsAdapter(mContext, mEmptyView);
+        mMainFeedLayout = (FrameLayout) inflater.inflate(R.layout.fragment_bulletins, container, false);
 
+        llNoData = (LinearLayout) mMainFeedLayout.findViewById(R.id.llNoData);
+        rlNewPostView = (LinearLayout) mMainFeedLayout.findViewById(R.id.rlNewPostView);
+        rlNewPostView.removeViewAt(1);
+        mProgressBar = (ProgressBar) mMainFeedLayout.findViewById(R.id.pbDataLoading);
+
+        mRecycleView = new RecyclerView(getContext());
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        mRecycleView.setLayoutParams(params);
+        mAdapter = new BulletinsAdapter(mContext);
         // Set the adapter
-        Context context = view.getContext();
+        Context context = mMainFeedLayout.getContext();
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         mRecycleView.setLayoutManager(layoutManager);
         mRecycleView.setAdapter(mAdapter);
 
+
+
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                mNetworkManager.downloadNewsFeed(mContext);
+                mSessionManager.downloadNewsFeed(mContext);
             }
         };
 
-        return view;
+        return mMainFeedLayout;
     }
 
     @Override
@@ -155,11 +169,32 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        updateEmptyView(data.getCount());
         mAdapter.swapCursor(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
+    }
+
+    /**
+     * Show an 'empty' view when there's no data to display
+     */
+    private void updateEmptyView(int dataCount) {
+        if (dataCount == 0) {
+            if (mMainFeedLayout.getChildAt(0) instanceof RelativeLayout) {
+                mMainFeedLayout.removeAllViews();
+
+                mMainFeedLayout.addView(llNoData);
+            }
+            // TODO - finish error loading data
+        } else {
+            // There is data to display, show RecycleView instead of empty view
+            if (mMainFeedLayout.getChildAt(0) instanceof LinearLayout) {
+                mMainFeedLayout.removeAllViews();
+                mMainFeedLayout.addView(mRecycleView);
+            }
+        }
     }
 }
