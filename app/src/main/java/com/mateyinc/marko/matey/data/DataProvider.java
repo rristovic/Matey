@@ -26,7 +26,7 @@ import android.support.annotation.Nullable;
 
 public class DataProvider extends ContentProvider {
 
-    // The URI Matcher used by this content provider.
+    // The URI Matcher used by this content mProvider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
     private DbHelper mOpenHelper;

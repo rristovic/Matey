@@ -8,9 +8,11 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
@@ -52,7 +54,7 @@ import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLO
 /**
  * The manager for the data entries
  */
-public class DataManager {
+public class DataManager implements OperationProvider {
     private static final String TAG = DataManager.class.getSimpleName();
 
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
@@ -97,6 +99,21 @@ public class DataManager {
     public static final int COL_NUM_OF_REPLIES = 6;
     public static final int COL_ON_SERVER = 7;
     public static final int COL_ATTCHS = 8;
+
+    @Override
+    public void submitRequest(Request request) {
+
+    }
+
+    @Override
+    public void submitRunnable(Runnable runnable) {
+
+    }
+
+    @Override
+    public String getAccessToken() {
+        return null;
+    }
 
     public interface ServerStatus {
         /** Activity upload status that is saved in database, and used for UI control */
@@ -176,7 +193,7 @@ public class DataManager {
 //                break;
 //            }
 //            case CLASS_USERPROFILE:{
-//                id = ((UserProfile) activityObject).getUserId();
+//                id = ((UserProfileOps) activityObject).getUserId();
 //                break;
 //            }
 //            case CLASS_REPLY:{
@@ -225,7 +242,7 @@ public class DataManager {
     ////////////////////////////////////////////////////////////////
 
 
-    // UserProfile methods /////////////////////////////////////////
+    // UserProfileOps methods /////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
     /** Key for storing user pref file id in shared prefs */
@@ -371,7 +388,7 @@ public class DataManager {
 //
 //    }
 
-//    public void addUserProfile(UserProfile profile) {
+//    public void addUserProfile(UserProfileOps profile) {
 //        addUserProfile(profile.getUserId(), profile.getFirstName(), profile.getLastName(), profile.getEmail(), profile.getProfilePictureLink(), profile.getLastMsgId(), profile.isFriend());
 //    }
 
@@ -397,9 +414,9 @@ public class DataManager {
                 DataContract.ProfileEntry._ID + " = ?", new String[]{Long.toString(userId)});
 
         if (numOfUpdated != 1) {
-            Log.e(TAG, "Error setting UserProfile: ID=" + userId + "; Name=" + userName + "; Last name=" + userLastName + "; Number of updated rows=" + numOfUpdated);
+            Log.e(TAG, "Error setting UserProfileOps: ID=" + userId + "; Name=" + userName + "; Last name=" + userLastName + "; Number of updated rows=" + numOfUpdated);
         } else
-            Log.d("DataManager", "UserProfile changed: ID=" + userId +
+            Log.d("DataManager", "UserProfileOps changed: ID=" + userId +
                     "; Name=" + userName + "; LastName=" + userLastName + "; LastMsgId=" + lastMsgId);
     }
 
@@ -407,7 +424,7 @@ public class DataManager {
      * Returns user profile from db
      *
      * @param index position of user profile in database
-     * @return new instance of UserProfile from database
+     * @return new instance of UserProfileOps from database
      */
     public UserProfile getUserProfile(int index) {
         Cursor cursor = mAppContext.getContentResolver().query(
@@ -456,7 +473,7 @@ public class DataManager {
         removeUserProfile(userProfile.getUserId());
     }
 
-//    public void updateProfileServerStatus(UserProfile userProfile, int serverStatus){
+//    public void updateProfileServerStatus(UserProfileOps userProfile, int serverStatus){
 //        if(STATUS_RETRY_UPLOAD == serverStatus){
 //            addNotUploadedActivity(userProfile, CLASS_USERPROFILE);
 //        }
@@ -574,14 +591,14 @@ public class DataManager {
             msgId = msgCursor.getLong(msgIdIndex);
 
         } else {
-            // Now that the content provider is set up, inserting rows of data is pretty simple.
+            // Now that the content mProvider is set up, inserting rows of data is pretty simple.
             // First create a ContentValues object to hold the data you want to insert.
             ContentValues msgValues = new ContentValues();
             ContentValues profileValues = new ContentValues();
 
 
             // Then add the data, along with the corresponding name of the data type,
-            // so the content provider knows what kind of value is being inserted.
+            // so the content mProvider knows what kind of value is being inserted.
             msgValues.put(DataContract.MessageEntry.COLUMN_SENDER_ID, senderId);
             msgValues.put(DataContract.MessageEntry.COLUMN_SENDER_NAME, senderName);
             msgValues.put(DataContract.MessageEntry.COLUMN_MSG_BODY, body);
@@ -1363,6 +1380,9 @@ public class DataManager {
             i.remove();
         }
     }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
 
 }
 

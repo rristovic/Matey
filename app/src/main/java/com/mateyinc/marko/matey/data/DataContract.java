@@ -24,11 +24,11 @@ import android.net.Uri;
  */
 public class DataContract {
 
-    // Name for the content provider
+    // Name for the content mProvider
     public static final String CONTENT_AUTHORITY = "com.mateyinc.marko.matey";
 
     // Use CONTENT_AUTHORITY to create the base of all URI's which apps will use to contact
-    // the content provider.
+    // the content mProvider.
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
     // Possible paths (appended to base content URI for possible URI's)

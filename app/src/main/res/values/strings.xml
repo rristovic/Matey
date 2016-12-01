@@ -31,7 +31,7 @@
     <string name="enter_pass_title">Enter password for email <xliff:g id="first_reply_name">%1$s</xliff:g></string>
     <string name="merge_acc_failed_msg">Account merging has failed</string>
 
-    <!-- Database and content provider authority string -->
+    <!-- Database and content mProvider authority string -->
     <string name="content_authority" translatable="false">com.mateyinc.marko.matey</string>
 
     <!-- Account type -->

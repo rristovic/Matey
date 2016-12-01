@@ -219,6 +219,6 @@ public class UserProfile extends MModel{
 
     @Override
     public String toString() {
-        return String.format(Locale.US,"UserProfile: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", _id, firstName, lastName, email, profilePictureLink);
+        return String.format(Locale.US,"UserProfileOps: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", _id, firstName, lastName, email, profilePictureLink);
     }
 }

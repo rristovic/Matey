@@ -594,7 +594,7 @@ public class NetworkManager {
     }
 
     /**
-     * Method for creating default {@link com.android.volley.Response.Listener}, which saves UserProfile data retrieved from the server;
+     * Method for creating default {@link com.android.volley.Response.Listener}, which saves UserProfileOps data retrieved from the server;
      * NOTE:  used for fb merge request and normal login process
      *
      * @param context MainActivity contest
