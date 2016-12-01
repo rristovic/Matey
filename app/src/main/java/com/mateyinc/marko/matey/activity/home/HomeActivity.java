@@ -80,6 +80,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
+
         ibHome = (ImageButton) findViewById(R.id.ibHome);
         // Change icon color for navigation
         ibHome.setColorFilter(getResources().getColor(R.color.app_bar_background));

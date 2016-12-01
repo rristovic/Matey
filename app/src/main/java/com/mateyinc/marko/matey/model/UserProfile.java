@@ -196,9 +196,11 @@ public class UserProfile extends MModel{
         userValues.put(DataContract.ProfileEntry.COLUMN_NAME, firstName);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-        userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, profilePictureLink);
+        userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, profilePictureLink);
         userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
+        userValues.put(DataContract.ProfileEntry.COLUMN_FULL_NAME, "NN");
+        userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, "NN");
 
         // Add to db
         Uri insertedUri = c.getContentResolver().insert(

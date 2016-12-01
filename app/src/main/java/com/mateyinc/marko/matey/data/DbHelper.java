@@ -32,7 +32,7 @@ import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
  */
 class DbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     static final String DATABASE_NAME = "matey.db";
 
@@ -69,8 +69,12 @@ class DbHelper extends SQLiteOpenHelper {
                 ProfileEntry._ID + " INTEGER NOT NULL, " +
                 ProfileEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_FULL_NAME + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_EMAIL + " TEXT NOT NULL, " +
-                ProfileEntry.COLUMN_PICTURE + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_PROF_PIC + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_COVER_PIC + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_FOLLOWERS_NUM + " INTEGER DEFAULT 0, " +
+                ProfileEntry.COLUMN_FOLLOWING_NUM + " INTEGER DEFAULT 0, " +
                 ProfileEntry.COLUMN_IS_FRIEND + " BOOLEAN DEFAULT FALSE, " +
                 ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0 " +

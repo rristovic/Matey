@@ -4,6 +4,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contentView"
 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -23,7 +24,7 @@
             android:orientation="vertical">
 
             <ImageView
-                android:id="@+id/ivProfileBg"
+                android:id="@+id/ivCoverPic"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -106,11 +107,11 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentTop="false"
             android:layout_centerInParent="true"
+            android:scaleType="centerCrop"
             android:src="@drawable/empty_photo"
-            app:riv_border_width="7dp"
-            app:riv_oval="true"
             app:riv_border_color="@color/profile_pic_border"
-            android:scaleType="centerCrop" />
+            app:riv_border_width="7dp"
+            app:riv_oval="true" />
 
         <TextView
             android:id="@+id/tvName"
@@ -128,19 +129,19 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/tvName"
             android:layout_centerHorizontal="true"
+            android:paddingBottom="10dp"
             android:text="Moscow, RU"
             android:textColor="@color/login_btn_white"
-            android:textSize="@dimen/profile_info_mates_title_text_size"
-            android:paddingBottom="10dp" />
+            android:textSize="@dimen/profile_info_mates_title_text_size" />
 
         <LinearLayout
-            android:orientation="horizontal"
             android:id="@+id/llMainButtons"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/tvLocation"
+            android:background="@color/white"
             android:gravity="center"
-            android:background="@color/white">
+            android:orientation="horizontal">
 
             <ImageButton
                 android:id="@+id/imageButton6"

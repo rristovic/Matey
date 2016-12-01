@@ -89,6 +89,7 @@
             android:label="@string/title_activity_home" />
         <activity
             android:name=".activity.profile.ProfileActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:largeHeap="true"
             android:label="@string/title_activity_profile" />
         <activity

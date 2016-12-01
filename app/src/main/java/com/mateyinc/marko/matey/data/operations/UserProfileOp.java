@@ -21,11 +21,17 @@ public class UserProfileOp extends Operations {
     private static final String TAG = UserProfileOp.class.getSimpleName();
 
     // Json keys in response from the server TODO - finish keys
-    private static final String KEY_ID = "";
-    private static final String KEY_FIRST_NAME = "";
-    private static final String KEY_LAST_NAME = "";
-    private static final String KEY_PIC_LINK = "";
-    private static final String KEY_EMAIL = "";
+    private static final String KEY_ID = "user_id";
+    private static final String KEY_FIRST_NAME = "first_name";
+    private static final String KEY_LAST_NAME = "last_name";
+    private static final String KEY_FULL_NAME = "full_name";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_PROFILE_PIC = "picture_url";
+    private static final String KEY_COVER_PIC = "picture_url";
+    private static final String KEY_FOLLOWERS_NUM = "num_of_followers";
+    private static final String KEY_FOLLOWING_NUM = "num_of_following";
+    private static final String KEY_VERIFIED = "verified";
+    private static final String KEY_FIRST_LOGIN = "first_login";
 
     public UserProfileOp(OperationProvider provider, MotherActivity context) {
         super(provider, context);
@@ -81,15 +87,26 @@ public class UserProfileOp extends Operations {
             Long id = object.getLong(KEY_ID);
             String name = object.getString(KEY_FIRST_NAME);
             String lastName = object.getString(KEY_LAST_NAME);
+            String fullName = object.getString(KEY_FULL_NAME);
             String email = object.getString(KEY_EMAIL);
-            String picLink = object.getString(KEY_PIC_LINK);
+            String picLink = object.getString(KEY_PROFILE_PIC);
+            String coverLink = object.getString(KEY_COVER_PIC);
+            int followersNum = object.getInt(KEY_FOLLOWERS_NUM);
+            int followingNum = object.getInt(KEY_FOLLOWING_NUM);
+            boolean verified = object.getBoolean(KEY_VERIFIED);
+            boolean firstLogin = object.getBoolean(KEY_FIRST_LOGIN);
 
             userValues = new ContentValues();
             userValues.put(DataContract.ProfileEntry._ID, id);
             userValues.put(DataContract.ProfileEntry.COLUMN_NAME, name);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
+            userValues.put(DataContract.ProfileEntry.COLUMN_FULL_NAME, fullName);
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-            userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picLink);
+            userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picLink);
+            userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverLink);
+            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
+            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
+
 //            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
 //            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
 

@@ -3,33 +3,25 @@ package com.mateyinc.marko.matey.data;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
-import android.preference.PreferenceManager;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
-import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
-import com.mateyinc.marko.matey.data.operations.DownloadOp;
 import com.mateyinc.marko.matey.data.operations.Operation;
-import com.mateyinc.marko.matey.data.operations.UploadOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.inall.MyApplication;
-import com.mateyinc.marko.matey.model.Approve;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -43,13 +35,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.Vector;
 
-import static com.facebook.login.widget.ProfilePictureView.TAG;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
 import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
 
 /**
  * The manager for the data entries
@@ -99,6 +87,9 @@ public class DataManager implements OperationProvider {
     public static final int COL_NUM_OF_REPLIES = 6;
     public static final int COL_ON_SERVER = 7;
     public static final int COL_ATTCHS = 8;
+
+
+    public  final ImageLoader mImageLoader;
 
     @Override
     public void submitRequest(Request request) {
@@ -167,6 +158,22 @@ public class DataManager implements OperationProvider {
     private DataManager(Context context) {
         mAppContext = context;
         mRequestQueue = Volley.newRequestQueue(context);
+
+        mImageLoader = new ImageLoader(mRequestQueue,
+                new ImageLoader.ImageCache() {
+                    private final LruCache<String, Bitmap>
+                            cache = new LruCache<String, Bitmap>(20);
+
+                    @Override
+                    public Bitmap getBitmap(String url) {
+                        return cache.get(url);
+                    }
+
+                    @Override
+                    public void putBitmap(String url, Bitmap bitmap) {
+                        cache.put(url, bitmap);
+                    }
+                });
     }
 
 
@@ -287,7 +294,7 @@ public class DataManager implements OperationProvider {
                 mCurrentUserProfile = new UserProfile(id, c.getString(c.getColumnIndex(ProfileEntry.COLUMN_NAME)),
                         c.getString(c.getColumnIndex(ProfileEntry.COLUMN_LAST_NAME)),
                         c.getString(c.getColumnIndex(ProfileEntry.COLUMN_EMAIL)),
-                        c.getString(c.getColumnIndex(ProfileEntry.COLUMN_PICTURE)));
+                        c.getString(c.getColumnIndex(ProfileEntry.COLUMN_PROF_PIC)));
 
                 Log.d(TAG, "Current user profile updated with user_id=" + id);
                 c.close();
@@ -353,7 +360,7 @@ public class DataManager implements OperationProvider {
             userValues.put(DataContract.ProfileEntry.COLUMN_NAME, profile.getFirstName());
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, profile.getLastName());
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, profile.getEmail());
-            userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, profile.getProfilePictureLink());
+            userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, profile.getProfilePictureLink());
             userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, profile.isFriend() ? 1 : 0);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
             if(areFollowed)
@@ -408,7 +415,7 @@ public class DataManager implements OperationProvider {
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
         userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend);
-        userValues.put(DataContract.ProfileEntry.COLUMN_PICTURE, picture);
+        userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,
                 DataContract.ProfileEntry._ID + " = ?", new String[]{Long.toString(userId)});
