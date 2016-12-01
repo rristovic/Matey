@@ -40,4 +40,7 @@
     <color name="light_gray">#8e8d8d</color>
     <color name="blue">#1976d2</color>
 
+    <!-- Used in profile -->
+    <color name="mateyBlue">#4075b0</color>
+
 </resources>

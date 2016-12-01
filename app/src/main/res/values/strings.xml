@@ -76,6 +76,13 @@
     <string name="reply_approve">approves</string>
     <string name="continue_reading_message">Continue reading</string>
 
+    <!-- Profile related -->
+    <string name="followers_label">followers</string>
+    <string name="following_label">following</string>
+    <string name="send_letter_label">Send a letter</string>
+    <string name="sailing_with_label">Sailing with</string>
+    <string name="sail_with_label">Sail with them</string>
+
     <!-- Search fragment related -->
     <string name="search_posts">Posts</string>
     <string name="search_messages">Messages</string>

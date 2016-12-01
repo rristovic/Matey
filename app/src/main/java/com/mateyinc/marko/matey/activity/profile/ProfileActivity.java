@@ -111,7 +111,6 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         if (data == null || !data.moveToFirst())
             return;
 
-
         DataManager.getInstance(this).mImageLoader.get(data.getString(COL_PROFILE_PIC),
                 new ImageLoader.ImageListener() {
                     @Override
