@@ -92,7 +92,7 @@ public class UserProfileOp extends Operations {
         int method;
         switch (mProfileData.mAction){
             case FOLLOW_PROFILE:{
-                url = "";
+                url = UrlData.createFollowUrl(2);
                 method = Request.Method.POST;
                 submitRunnable(new Runnable() {
                     @Override
@@ -104,8 +104,8 @@ public class UserProfileOp extends Operations {
             }
 
             case UNFOLLOW_PROFILE:{
-                url = "";
-                method = Request.Method.POST;
+                url = UrlData.createUnfollowUrl(2);
+                method = Request.Method.DELETE;
                 submitRunnable(new Runnable() {
                     @Override
                     public void run() {

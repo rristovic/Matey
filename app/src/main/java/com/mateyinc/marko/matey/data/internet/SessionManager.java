@@ -76,7 +76,6 @@ import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_AUTH_TYPE;
 import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_COUNT;
 import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_START_POS;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
-import static com.mateyinc.marko.matey.inall.MotherActivity.access_token;
 
 
 /**
@@ -797,7 +796,7 @@ public class SessionManager {
         // Add data to secure prefs
         ArrayList<KVPair> list = new ArrayList<>();
         String accessToken = dataObj.getString(KEY_ACCESS_TOKEN);
-        list.add(new KVPair(KEY_ACCESS_TOKEN, access_token));
+        list.add(new KVPair(KEY_ACCESS_TOKEN, accessToken));
         list.add(new KVPair(KEY_TOKEN_TYPE, dataObj.getString(KEY_TOKEN_TYPE)));
 
         securePreferences.putValues(list);

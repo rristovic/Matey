@@ -183,16 +183,20 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
      */
     private void updateEmptyView(int dataCount) {
         if (dataCount == 0) {
+            // First remove recycle view if it's present, then no data view
             if (mMainFeedLayout.getChildAt(0) instanceof RelativeLayout) {
                 mMainFeedLayout.removeAllViews();
 
+                // Add linear layout to the view
                 mMainFeedLayout.addView(llNoData);
             }
             // TODO - finish error loading data
         } else {
             // There is data to display, show RecycleView instead of empty view
+            // First remove linear layout ('no data') then add recycle view
             if (mMainFeedLayout.getChildAt(0) instanceof LinearLayout) {
                 mMainFeedLayout.removeAllViews();
+                // Add recycle view
                 mMainFeedLayout.addView(mRecycleView);
             }
         }

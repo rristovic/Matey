@@ -109,10 +109,9 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e(getTag(), error.getLocalizedMessage(), error);
                         MotherActivity c = mContextRef.get();
                         if (c != null){
-                            Log.e(getTag(), "Upload has failed: ".concat(error.getLocalizedMessage()), error);
+                            Log.e(getTag(), "Upload has failed: " + error.getLocalizedMessage(), error);
                             onUploadFailed(error);
                         }
                     }

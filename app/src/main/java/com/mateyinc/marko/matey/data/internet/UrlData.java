@@ -72,6 +72,11 @@ public abstract class UrlData {
     public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
     /** User_id param of the followed user */
     public static final String PARAM_FOLLOWED_USER_ID = "user_id";
+
+    /** Url for uploading new followed friend */
+    private static final String POST_NEW_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
+    /** Url for uploading new unfollowed friend */
+    private static final String DELETE_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
     /////////////////////////////////////////////////////////////////////////////////////
 
     // Register new user
@@ -116,5 +121,12 @@ public abstract class UrlData {
 
     public static String createLogoutUrl(String deviceId){
         return LOGOUT_USER.replace(":deviceId", deviceId);
+    }
+
+    public static String createUnfollowUrl(long userId){
+        return DELETE_FOLLOWED_USER.replace(":userId", Long.toString(userId));
+    }
+    public static String createFollowUrl(long userId){
+        return POST_NEW_FOLLOWED_USER.replace(":userId", Long.toString(userId));
     }
 }
