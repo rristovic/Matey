@@ -118,7 +118,8 @@ public class DataContract {
         public static final String COLUMN_FOLLOWERS_NUM = "followers_num";
         public static final String COLUMN_VERIFIED = "verified";
         public static final String COLUMN_FIRST_LOGIN = "first_login";
-        public static final String COLUMN_IS_FRIEND = "is_friend";
+        public static final String COLUMN_FOLLOWING = "following";
+        public static final String COLUMN_FOLLOWED = "followed";
         public static final String COLUMN_LAST_MSG_ID = "profile_last_msg_id";
 
         public static Uri buildProfileUri(long id) {
@@ -218,8 +219,7 @@ public class DataContract {
         public static final String TABLE_NAME = "not_uploaded_items";
 
         /**
-         * Entry type can be: {@link DataManager#CLASS_BULLETIN};
-         * {@link DataManager#CLASS_REPLY}; {@link DataManager#CLASS_USERPROFILE}
+         * Entry type can be value from {@link com.mateyinc.marko.matey.data.OperationFactory.OperationType}
          */
         public static final String COLUMN_ENTRY_TYPE = "entry_type";
 

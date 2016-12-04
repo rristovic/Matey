@@ -1,13 +1,14 @@
 package com.mateyinc.marko.matey.data.operations;
 
 import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.data.OperationFactory;
 import com.mateyinc.marko.matey.data.OperationProvider;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 public class BulletinOp extends Operations {
 
     BulletinOp(OperationProvider provider, MotherActivity context) {
-        super(provider, context);
+        super(provider, context, OperationFactory.OperationType.BULLETIN_OP);
     }
 
     @Override
@@ -26,16 +27,6 @@ public class BulletinOp extends Operations {
 
     @Override
     public <T> void upload(T object) {
-
-    }
-
-    @Override
-    protected <T> void onUploadSuccess(T object) {
-
-    }
-
-    @Override
-    protected <T> void onUploadFailed(T object) {
 
     }
 

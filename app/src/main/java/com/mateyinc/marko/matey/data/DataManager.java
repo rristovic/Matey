@@ -36,6 +36,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
 
@@ -93,17 +95,17 @@ public class DataManager implements OperationProvider {
 
     @Override
     public void submitRequest(Request request) {
-
+        mRequestQueue.add(request);
     }
 
     @Override
     public void submitRunnable(Runnable runnable) {
-
+        mExecutor.submit(runnable);
     }
 
     @Override
     public String getAccessToken() {
-        return null;
+        return MotherActivity.access_token;
     }
 
     public interface ServerStatus {
@@ -135,6 +137,7 @@ public class DataManager implements OperationProvider {
     private  final Object mLock = new Object(); // for synchronised blocks
     private static DataManager mInstance ;
     private Context mAppContext;
+    private ExecutorService mExecutor = Executors.newFixedThreadPool(10);
 
     private UserProfile mCurrentUserProfile;
     private int newPostID;
@@ -356,15 +359,15 @@ public class DataManager implements OperationProvider {
         for (UserProfile profile : list) {
             ContentValues userValues = new ContentValues();
 
-            userValues.put(DataContract.ProfileEntry._ID, profile.getUserId());
-            userValues.put(DataContract.ProfileEntry.COLUMN_NAME, profile.getFirstName());
-            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, profile.getLastName());
-            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, profile.getEmail());
-            userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, profile.getProfilePictureLink());
-            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, profile.isFriend() ? 1 : 0);
-            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
+            userValues.put(ProfileEntry._ID, profile.getUserId());
+            userValues.put(ProfileEntry.COLUMN_NAME, profile.getFirstName());
+            userValues.put(ProfileEntry.COLUMN_LAST_NAME, profile.getLastName());
+            userValues.put(ProfileEntry.COLUMN_EMAIL, profile.getEmail());
+            userValues.put(ProfileEntry.COLUMN_PROF_PIC, profile.getProfilePictureLink());
+            userValues.put(ProfileEntry.COLUMN_FOLLOWING, profile.isFriend() ? 1 : 0);
+            userValues.put(ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
             if(areFollowed)
-                userValues.put(ProfileEntry.COLUMN_IS_FRIEND, true);
+                userValues.put(ProfileEntry.COLUMN_FOLLOWING, true);
 
             cVVector.add(userValues);
             Log.d(TAG, "Bulletin added: " + userValues.toString());
@@ -376,7 +379,7 @@ public class DataManager implements OperationProvider {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
             cVVector.toArray(cvArray);
 
-            inserted = mAppContext.getContentResolver().bulkInsert(DataContract.ProfileEntry.CONTENT_URI, cvArray);
+            inserted = mAppContext.getContentResolver().bulkInsert(ProfileEntry.CONTENT_URI, cvArray);
             // TODO - delete old data
         }
         Log.d(TAG, inserted + " user profile added.");
@@ -414,7 +417,7 @@ public class DataManager implements OperationProvider {
         userValues.put(DataContract.ProfileEntry.COLUMN_NAME, userName);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, userLastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-        userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, isFriend);
+        userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING, isFriend);
         userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picture);
 
         int numOfUpdated = mAppContext.getContentResolver().update(DataContract.ProfileEntry.CONTENT_URI, userValues,

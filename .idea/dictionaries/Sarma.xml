@@ -2,6 +2,8 @@
   <dictionary name="Sarma">
     <words>
       <w>unfollow</w>
+      <w>unfollowed</w>
+      <w>unfollowing</w>
     </words>
   </dictionary>
 </component>

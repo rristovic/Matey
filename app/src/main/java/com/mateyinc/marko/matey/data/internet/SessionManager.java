@@ -100,7 +100,7 @@ public class SessionManager {
     // Fields downloaded from Resource Server
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_EMAIL = "email";
-    private static final String KEY_PROFILE_PICTURE = "profile_picture";
+    private static final String KEY_PROFILE_PICTURE = "picture_url";
     private static final String KEY_FIRST_NAME = "first_name";
     private static final String KEY_LAST_NAME = "last_name";
     private static final String KEY_SUGGESTED_FRIENDS = "suggested_friends";
@@ -651,7 +651,7 @@ public class SessionManager {
         final SharedPreferences preferences = getDefaultSharedPreferences(context);
         // Immediately after contacting OAuth2 Server proceed to resource server for login
         // Creating new request for the resource server
-        MateyRequest resRequest = new MateyRequest(Request.Method.POST, UrlData.LOGIN_USER, new Response.Listener<String>() {
+        MateyRequest resRequest = new MateyRequest(Request.Method.PUT, UrlData.createLoginUrl(deviceId), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 // Parsing response.data
@@ -672,7 +672,6 @@ public class SessionManager {
         });
         // Setting request params and sending POST request
         resRequest.addParam(UrlData.PARAM_EMAIL, email);
-        resRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
         resRequest.setAuthHeader(accessToken);
         if (!fbAccessToken.isEmpty())
             resRequest.addParam("fb_token", fbAccessToken);
@@ -899,7 +898,7 @@ public class SessionManager {
      * @param context the context
      */
     private void sendLogOutReq(Context context, String deviceId, String accessToken) {
-        MateyRequest logoutRequest = new MateyRequest(Request.Method.POST, UrlData.LOGOUT_USER,
+        MateyRequest logoutRequest = new MateyRequest(Request.Method.POST, UrlData.createLogoutUrl(deviceId),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -914,7 +913,6 @@ public class SessionManager {
                 });
         // Setting request params and sending POST request
 //        logoutRequest.addParam(UrlData.PARAM_EMAIL, email);
-        logoutRequest.addParam(UrlData.PARAM_DEVICE_ID, deviceId);
         logoutRequest.setAuthHeader(accessToken);
 
         mRequestQueue.add(logoutRequest);

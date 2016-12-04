@@ -26,13 +26,14 @@ import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.data.operations.Operations;
 
 /**
- * Manages a local database for data.
+ * Manages a local database.
  */
 class DbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     static final String DATABASE_NAME = "matey.db";
 
@@ -75,9 +76,10 @@ class DbHelper extends SQLiteOpenHelper {
                 ProfileEntry.COLUMN_COVER_PIC + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_FOLLOWERS_NUM + " INTEGER DEFAULT 0, " +
                 ProfileEntry.COLUMN_FOLLOWING_NUM + " INTEGER DEFAULT 0, " +
-                ProfileEntry.COLUMN_IS_FRIEND + " BOOLEAN DEFAULT FALSE, " +
-                ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER, " +
-                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0 " +
+                ProfileEntry.COLUMN_FOLLOWING + " BOOLEAN DEFAULT FALSE, " +
+                ProfileEntry.COLUMN_FOLLOWED + " BOOLEAN DEFAULT FALSE, " +
+                ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER DEFAULT -1, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT " + Operations.ServerStatus.STATUS_UPLOADING.ordinal() +
                 ");";
 
         final String SQL_CREATE_BULLETIN_TABLE = "CREATE TABLE " + BulletinEntry.TABLE_NAME + " (" +

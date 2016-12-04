@@ -6,9 +6,12 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
-import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -17,7 +20,9 @@ import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.OperationFactory;
 import com.mateyinc.marko.matey.data.operations.Operations;
+import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+
 
 public class ProfileActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>{
     private String TAG = ProfileActivity.class.getSimpleName();
@@ -43,8 +48,10 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     private static final int COL_FOLLOWERS_NUM = COL_COVER_PIC + 1;
     private static final int COL_FOLLOWING_NUM = COL_FOLLOWERS_NUM + 1;
 
-    private TextView tvName, tvNumberOfMates;
+    private TextView tvName, tvFollowersNum, tvFollowingNum;
     private ImageView ivProfilePic, ivCoverPic;
+    private ToggleButton tBtnSailWith;
+    private Button btnSendMsg;
     private long mUserId;
 
     @Override
@@ -55,17 +62,10 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 //        if (getSupportActionBar() != null)
 //            getSupportActionBar().hide();
         setContentView(R.layout.activity_profile);
-        // Note that some of these constants are new as of API 16 (Jelly Bean)
-        // and API 19 (KitKat). It is safe to use them, as they are inlined
-        // at compile-time and do nothing on earlier devices.
-        findViewById(R.id.contentView).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
         init();
+        setClickListeners();
         readData();
     }
 
@@ -73,7 +73,10 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
         ivCoverPic = (ImageView) findViewById(R.id.ivCoverPic);
         tvName = (TextView) findViewById(R.id.tvName);
-        tvNumberOfMates = (TextView)findViewById(R.id.tvNumOfMates);
+        tvFollowersNum = (TextView) findViewById(R.id.tvFollowersNum);
+        tvFollowingNum = (TextView) findViewById(R.id.tvFollowingNum);
+        tBtnSailWith = (ToggleButton) findViewById(R.id.tBtnSailWith);
+        btnSendMsg = (Button) findViewById(R.id.btnSendMsg);
 
         // If intent doesn't have extra profile id, then ProfileActivity is called for the current user profile
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
@@ -81,6 +84,27 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         else{
             mUserId = DataManager.getInstance(ProfileActivity.this).getCurrentUserProfile().getUserId();
         }
+    }
+
+    private void setClickListeners() {
+        tBtnSailWith.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                OperationFactory factory = OperationFactory.getInstance(ProfileActivity.this);
+                Operations userProfileOp = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
+                if (isChecked) {
+                    // Follow/following current user
+                    userProfileOp.upload(
+                            UserProfileOp.followNewUser(MotherActivity.user_id, mUserId)
+                    );
+                } else {
+                    // unfollow/not following cur user
+                    userProfileOp.upload(
+                            UserProfileOp.unfollowUser(MotherActivity.user_id, mUserId)
+                    );
+                }
+            }
+        });
     }
 
     /**
@@ -137,6 +161,8 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
                 }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
 
         tvName.setText(data.getString(COL_FULL_NAME));
+        tvFollowersNum.setText(Integer.toString(data.getInt(COL_FOLLOWERS_NUM)));
+        tvFollowingNum.setText(Integer.toString(data.getInt(COL_FOLLOWING_NUM)));
 
         Log.d("ProfileActivity", "Data is set.");
     }

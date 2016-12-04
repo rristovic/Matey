@@ -2,7 +2,6 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/contentView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -107,48 +106,52 @@
             android:textSize="@dimen/profile_info_mates_title_text_size" />
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
+            android:layout_height="@dimen/profile_buttons_size"
             android:layout_below="@+id/tvLocation"
             android:layout_marginEnd="@dimen/profile_buttons_margin"
             android:layout_marginLeft="@dimen/profile_buttons_margin"
             android:layout_marginRight="@dimen/profile_buttons_margin"
             android:layout_marginStart="@dimen/profile_buttons_margin"
             android:layout_marginTop="@dimen/profile_name_margin_top"
-            android:layout_height="@dimen/profile_buttons_size">
+            android:orientation="horizontal">
 
             <ToggleButton
-                android:text="tbtnSailWith"
+                android:id="@+id/tBtnSailWith"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/tBtnSailWith"
+                android:layout_marginEnd="@dimen/profile_buttons_distance"
+                android:layout_marginRight="@dimen/profile_buttons_distance"
                 android:layout_weight="1"
                 android:background="@drawable/profile_btn"
-                android:textColor="@color/mateyBlue"
-                android:layout_marginRight="@dimen/profile_buttons_distance"
-                android:layout_marginEnd="@dimen/profile_buttons_distance"
-                android:checked="true" />
+                android:checked="false"
+                android:text="tbtnSailWith"
+                android:textColor="@color/profile_btn"
+                android:textOff="@string/sail_with_label"
+                android:textOn="@string/sailing_with_label" />
 
             <Button
-                android:text="@string/send_letter_label"
+                android:id="@+id/btnSendMsg"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/btnSendMsg"
-                android:layout_weight="1"
-                android:textColor="@color/mateyBlue"
-                android:background="@drawable/profile_btn"
                 android:layout_marginLeft="@dimen/profile_buttons_distance"
-                android:layout_marginStart="@dimen/profile_buttons_distance" />
+                android:layout_marginStart="@dimen/profile_buttons_distance"
+                android:layout_weight="1"
+                android:background="@drawable/profile_btn"
+                android:text="@string/send_letter_label"
+                android:textColor="@color/profile_btn" />
         </LinearLayout>
 
     </RelativeLayout>
 
     <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-        android:layout_marginTop="@dimen/profile_pic_margin_top"
         android:id="@+id/ivProfilePic"
         android:layout_width="@dimen/profile_pic_dimen"
         android:layout_height="@dimen/profile_pic_dimen"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/profile_pic_margin_top"
         android:scaleType="centerCrop"
         android:src="@drawable/empty_photo"
         app:riv_border_color="@color/white"

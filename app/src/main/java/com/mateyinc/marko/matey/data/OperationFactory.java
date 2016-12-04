@@ -5,15 +5,15 @@ import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 /**
- * Factory class for creating {@link Operations}
+ * Factory class for creating {@link Operations} which is used for data download/upload control and saving to the database;
  */
 public class OperationFactory {
 
     /**
      * Operation type that can be created with {@link OperationFactory};
      */
-    public interface OperationType{
-        int USER_PROFILE_OP = 0;
+    public enum OperationType{
+        BULLETIN_OP, USER_PROFILE_OP
     }
 
     /** Used for db control **/
@@ -44,10 +44,10 @@ public class OperationFactory {
      * @param opType type of the operations. Can be a value from {@link OperationType}
      * @return newly created instance of operation class;
      */
-    public Operations getOperation(int opType){
+    public Operations getOperation(OperationType opType){
 
         if(opType == OperationType.USER_PROFILE_OP){
-            return new UserProfileOp(mProvider, mContext);
+            return new UserProfileOp(mProvider, mContext, opType);
         }
 
         return null;
