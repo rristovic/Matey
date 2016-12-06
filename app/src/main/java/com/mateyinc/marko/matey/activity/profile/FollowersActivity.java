@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -64,7 +65,7 @@ public class FollowersActivity extends MotherActivity {
         tvHeading = (TextView) findViewById(R.id.tvHeading);
         rvList = (RecyclerView) findViewById(R.id.rvList);
         mProgress = (ProgressBar) findViewById(R.id.progressBar);
-        mAdapter = new ListAdapter();
+        mAdapter = new ListAdapter(this);
         rvList.setAdapter(mAdapter);
 
         toolbar.findViewById(R.id.ibBack).setOnClickListener(new View.OnClickListener() {
@@ -150,7 +151,6 @@ public class FollowersActivity extends MotherActivity {
                 mScrollListener = new EndlessScrollListener((LinearLayoutManager) rvList.getLayoutManager()) {
                     @Override
                     public void onLoadMore(int page, int totalItemsCount) {
-                        getData();
                     }
                 };
         }
@@ -214,16 +214,41 @@ public class FollowersActivity extends MotherActivity {
 
     private class ListAdapter extends RecyclerView.Adapter<ViewHolder> {
         private LinkedList<Object[]> data;
+        private MotherActivity mContext;
 
-        ListAdapter() {
+        ListAdapter(MotherActivity context) {
             setHasStableIds(true);
+            mContext = context;
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.activity_followers_list_item, parent, false);
-            return new ViewHolder(view);
+            return new ViewHolder(view, new ViewHolder.ViewHolderListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked, int position) {
+                    // Because button will be set to checked state programmatically to update UI,
+                    // first check if the user is already being followed so that it doesn't upload
+                    OperationFactory factory = OperationFactory.getInstance(mContext);
+                    Operations userProfileOp = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
+                    if (isChecked && !(boolean)data.get(position)[COL_FOLLOWING]) {
+                        // Follow/following current user
+                        userProfileOp.startUploadAction(
+                                UserProfileOp.followNewUserAction((long)data.get(position)[COL_ID])
+                        );
+                        // Update data
+                        data.get(position)[COL_FOLLOWING] = true;
+                    } else if(!isChecked && (boolean)data.get(position)[COL_FOLLOWING]) {
+                        // unfollow/not following cur user
+                        userProfileOp.startUploadAction(
+                                UserProfileOp.unfollowUserAction((long)data.get(position)[COL_ID])
+                        );
+                        // Update data
+                        data.get(position)[COL_FOLLOWING] = false;
+                    }
+                }
+            });
         }
 
         @Override
@@ -241,7 +266,10 @@ public class FollowersActivity extends MotherActivity {
                         public void onErrorResponse(VolleyError error) {
                             Log.e(TAG, error.getLocalizedMessage(), error);
                         }
-                    }, holder.mImage.getWidth(), holder.mImage.getHeight());
+                    }, holder.mImage.getWidth(), holder.mImage.getHeight()
+            );
+
+            holder.mButton.setChecked((boolean)currentData[COL_FOLLOWING]);
             holder.tvName.setText((String) currentData[COL_FULLNAME]);
         }
 
@@ -261,19 +289,34 @@ public class FollowersActivity extends MotherActivity {
         }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener{
+        View mView;
         int mPosition;
         TextView tvName;
         ToggleButton mButton;
         ImageView mImage;
+        ViewHolderListener mListener;
 
-        ViewHolder(View itemView) {
+        interface ViewHolderListener{
+            void onCheckedChanged(CompoundButton compoundButton, boolean bm, int position);
+        }
+
+        ViewHolder(View itemView, ViewHolderListener listener) {
             super(itemView);
 
+            mListener = listener;
+            mView = itemView;
             tvName = (TextView) itemView.findViewById(R.id.tvName);
             mPosition = this.getAdapterPosition();
             mButton = (ToggleButton) itemView.findViewById(R.id.tBtnSailWith);
             mImage = (ImageView) itemView.findViewById(R.id.ivProfilePic);
+
+            mButton.setOnCheckedChangeListener(this);
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            mListener.onCheckedChanged(compoundButton, b, getAdapterPosition());
         }
     }
 }

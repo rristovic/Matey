@@ -128,7 +128,7 @@ public abstract class Operations {
                             successListener.onResponse(response);
 
                         MotherActivity c = mContextRef.get();
-                        if (c != null){
+                        if (c != null) {
                             Log.d(getTag(), "Upload has succeed.");
                             onUploadSuccess(response);
                         }
@@ -141,7 +141,7 @@ public abstract class Operations {
                             failedListener.onErrorResponse(error);
 
                         MotherActivity c = mContextRef.get();
-                        if (c != null){
+                        if (c != null) {
                             Log.e(getTag(), "Upload has failed: " + error.getLocalizedMessage(), error);
                             onUploadFailed(error);
                         }
@@ -205,9 +205,9 @@ public abstract class Operations {
                 DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(id)});
 
         if (numOfUpdatedRows != 1) {
-            Log.e(getTag(), String.format("Error updating bulletin (with ID=%d) server status to %s.", id, serverStatus.name()));
+            Log.e(getTag(), String.format("Error updating %s (with ID=%d) server status to %s.",mOpType.name(), id, serverStatus.name()));
         } else {
-            Log.d(getTag(), String.format("Bulletin (with ID=%d) server status updated to %s.", id, serverStatus.name()));
+            Log.d(getTag(), String.format("%s (with ID=%d) server status updated to %s.",mOpType.name(), id, serverStatus.name()));
         }
     }
 
