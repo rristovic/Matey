@@ -48,7 +48,6 @@
     <dimen name="profile_pic_margin_top">140dp</dimen>
 
 
-
     <!-- Text size -->
     <dimen name="heading">20sp</dimen>
     <dimen name="subHeading">16sp</dimen>

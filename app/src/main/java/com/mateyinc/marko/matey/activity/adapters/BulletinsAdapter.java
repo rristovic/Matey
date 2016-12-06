@@ -304,9 +304,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     }
 
     /**
-     * Setting the view to the failed upload mode
+     * Setting the view to the failed startUploadAction mode
      * @param holder   the view holder which will be changed
-     * @param bulletin the bulletin to upload it's {@link Bulletin#mServerStatus}
+     * @param bulletin the bulletin to startUploadAction it's {@link Bulletin#mServerStatus}
      */
     private void setViewToUploadFailed(ViewHolder holder, final Bulletin bulletin) {
         // If mView already has retry text view, don't add it again

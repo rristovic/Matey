@@ -1,11 +1,15 @@
 package com.mateyinc.marko.matey.activity.profile;
 
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.view.TouchDelegate;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -13,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
@@ -30,7 +35,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
 
     /** Intent extra param which has user id
-     * used to download data from the server or from database; */
+     * used to startDownloadAction data from the server or from database; */
     public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
 
     // Projection for profile query
@@ -94,15 +99,49 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
                 Operations userProfileOp = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
                 if (isChecked) {
                     // Follow/following current user
-                    userProfileOp.upload(
-                            UserProfileOp.followNewUser(MotherActivity.user_id, mUserId)
+                    userProfileOp.startUploadAction(
+                            UserProfileOp.followNewUserAction(MotherActivity.user_id, mUserId)
                     );
                 } else {
                     // unfollow/not following cur user
-                    userProfileOp.upload(
-                            UserProfileOp.unfollowUser(MotherActivity.user_id, mUserId)
+                    userProfileOp.startUploadAction(
+                            UserProfileOp.unfollowUserAction(MotherActivity.user_id, mUserId)
                     );
                 }
+            }
+        });
+
+        tvFollowersNum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(ProfileActivity.this, FollowersActivity.class);
+                startActivity(i);
+            }
+        });
+
+        tvFollowingNum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(ProfileActivity.this, FollowersActivity.class);
+                startActivity(i);
+            }
+        });
+
+        final View parent = (View) tvFollowersNum.getParent();  // button: the view you want to enlarge hit area
+        parent.post( new Runnable() {
+            public void run() {
+                final Rect rect = new Rect();
+                tvFollowersNum.getHitRect(rect);
+                rect.left -= 100;   // increase left hit area
+                rect.bottom += 100; // increase bottom hit area
+                rect.right += 100;  // increase right hit area
+                parent.setTouchDelegate(new TouchDelegate(rect , tvFollowersNum));
+
+                tvFollowingNum.getHitRect(rect);
+                rect.left -= 100;   // increase left hit area
+                rect.bottom += 100; // increase bottom hit area
+                rect.right += 100;  // increase right hit area
+                parent.setTouchDelegate(new TouchDelegate(rect , tvFollowingNum));
             }
         });
     }
@@ -117,7 +156,8 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         OperationFactory factory = OperationFactory.getInstance(this);
         Operations operations = factory.getOperation(
                 OperationFactory.OperationType.USER_PROFILE_OP);
-        operations.download(mUserId);
+        operations.startDownloadAction(
+                UserProfileOp.getUserProfileAction(mUserId));
     }
 
     @Override

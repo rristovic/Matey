@@ -1,6 +1,8 @@
 package com.mateyinc.marko.matey.data.operations;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -9,6 +11,7 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.OperationFactory;
 import com.mateyinc.marko.matey.data.OperationProvider;
+import com.mateyinc.marko.matey.data.internet.NetworkAction;
 import com.mateyinc.marko.matey.data.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
@@ -16,8 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
-
-import static android.R.attr.id;
+import java.util.Vector;
 
 /**
  * User profile downloading and uploading operations, also updates the db;
@@ -25,10 +27,11 @@ import static android.R.attr.id;
 public class UserProfileOp extends Operations {
     private static final String TAG = UserProfileOp.class.getSimpleName();
 
+
     /**
      * Upload action that can be performed.
      */
-    private enum UploadAction{
+    private enum UploadAction {
         /** Indicates that the user has followed a new user profile **/
         FOLLOW_PROFILE,
         /** Indicates that the user has unfollowed a profile **/
@@ -41,39 +44,79 @@ public class UserProfileOp extends Operations {
         UPLOAD_INFO
     }
 
-    // Json keys in response from the server TODO - finish keys
-    private static final String KEY_ID = "user_id";
-    private static final String KEY_FIRST_NAME = "first_name";
-    private static final String KEY_LAST_NAME = "last_name";
-    private static final String KEY_FULL_NAME = "full_name";
-    private static final String KEY_EMAIL = "email";
-    private static final String KEY_PROFILE_PIC = "picture_url";
-    private static final String KEY_COVER_PIC = "cover_url";
-    private static final String KEY_FOLLOWERS_NUM = "num_of_followers";
-    private static final String KEY_FOLLOWING_NUM = "num_of_following";
-    private static final String KEY_VERIFIED = "verified";
+    /**
+     * Download action that can be performed.
+     */
+    private enum DownloadAction {
+        /** Action for downloading followed list fot the current user profile */
+        GET_FOLLOWED_LIST,
+        GET_USER_PROFILE
+    }
 
-    // Holds the profile data for upload
-    private static ProfileData mProfileData;
+    // Json keys in response from the server TODO - finish keys
+    public static final String KEY_ID = "user_id";
+    public static final String KEY_FIRST_NAME = "first_name";
+    public static final String KEY_LAST_NAME = "last_name";
+    public static final String KEY_FULL_NAME = "full_name";
+    public static final String KEY_EMAIL = "email";
+    public static final String KEY_PROFILE_PIC = "picture_url";
+    public static final String KEY_COVER_PIC = "cover_url";
+    public static final String KEY_FOLLOWERS_NUM = "num_of_followers";
+    public static final String KEY_FOLLOWING_NUM = "num_of_following";
+    public static final String KEY_VERIFIED = "verified";
+    public static final String KEY_FOLLOWING = "following";
+
+    // Holds the profile data for startUploadAction
+    private static ProfileNetworkAction mNetworkAction;
 
     public UserProfileOp(OperationProvider provider, MotherActivity context, OperationFactory.OperationType operationType) {
         super(provider, context, operationType);
-        mProfileData = new ProfileData();
+        mNetworkAction = new ProfileNetworkAction();
     }
 
     @Override
-    public void download(long id) {
-        String url = UrlData.createProfileDataUrl(id);
-        createDownloadReq(url);
+    public void startDownloadAction(NetworkAction action) {
+        String url;
+
+        switch (mNetworkAction.getDownloadAction()){
+            case GET_FOLLOWED_LIST:{
+                int position = 0;
+                int size = 0;
+                // TODO - finish params
+                Uri uri =  Uri.parse(UrlData.GET_FOLLOWERS).buildUpon()
+                        .appendQueryParameter(UrlData.QPARAM_POSITION, Integer.toString(position))
+                        .appendQueryParameter(UrlData.QPARAM_SIZE, Integer.toString(size))
+                        .build();
+                url = uri.toString();
+                break;
+            }
+
+            default:{
+                url = "#";
+            }
+        }
+
+        createNewDownloadReq(url);
         startDownload();
     }
 
     @Override
     public void onDownloadSuccess(final String response) {
+        final Context c = mContextRef.get();
+        final String parsedResponse;
+
+        switch (mNetworkAction.getDownloadAction()){
+            case GET_USER_PROFILE:return;
+            case GET_FOLLOWED_LIST:{
+            }
+            default: {
+                parsedResponse = "";
+            }
+        }
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                saveToDb(response);
+                saveToDb(parsedResponse, c);
             }
         });
     }
@@ -83,14 +126,12 @@ public class UserProfileOp extends Operations {
 
     }
 
+
     @Override
-    public <T> void upload(T object) {
-        if (!(object instanceof ProfileData)){
-            throw new RuntimeException("Wrong data format is queued for upload. Please pass ProfileData as parameter.");
-        }
+    public void startUploadAction(NetworkAction action) {
         String url;
         int method;
-        switch (mProfileData.mAction){
+        switch (mNetworkAction.getUploadAction()){
             case FOLLOW_PROFILE:{
                 url = UrlData.createFollowUrl(2);
                 method = Request.Method.POST;
@@ -130,7 +171,7 @@ public class UserProfileOp extends Operations {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                updateServerStatus(mProfileData.userId, ServerStatus.STATUS_SUCCESS);
+                updateServerStatus(mNetworkAction.userId, ServerStatus.STATUS_SUCCESS);
             }
         });
     }
@@ -140,7 +181,7 @@ public class UserProfileOp extends Operations {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                updateServerStatus(mProfileData.userId, ServerStatus.STATUS_RETRY_UPLOAD);
+                updateServerStatus(mNetworkAction.userId, ServerStatus.STATUS_RETRY_UPLOAD);
             }
         });
     }
@@ -156,21 +197,30 @@ public class UserProfileOp extends Operations {
 
         int numOfUpdatedRows = mContextRef.get().getContentResolver().update(
                 ProfileEntry.CONTENT_URI, values, ProfileEntry._ID + " = ?",
-                new String[]{Long.toString(mProfileData.followedUserId)}
+                new String[]{Long.toString(mNetworkAction.mUserProfileId)}
         );
 
         if (numOfUpdatedRows != 1) {
-            Log.e(getTag(), String.format("Error updating user profile (with ID=%d) to %s.", id, isFollowed ? "followed" : "unfollowed"));
+            Log.e(getTag(), String.format("Error updating user profile (with ID=%d) to %s.", mNetworkAction.mUserProfileId, isFollowed ? "followed" : "unfollowed"));
         } else {
-            Log.d(getTag(), String.format("User profile (with ID=%d) updated to %s.", id, isFollowed ? "followed" : "unfollowed"));
+            Log.d(getTag(), String.format("User profile (with ID=%d) updated to %s.", mNetworkAction.mUserProfileId, isFollowed ? "followed" : "unfollowed"));
         }
     }
 
-    void saveToDb(String response) {
+    /**
+     * Method for saving multiple values into the database
+     * @param cVVector {@link Vector} object which contains {@link ContentValues} object values;
+     * @param c context used for db control
+     * @param isNew boolean that indicates if this data is new or not, thus updates it or just inerts it into db
+     */
+    void saveToDbMultiple(Vector<ContentValues> cVVector, Context c, boolean isNew){
+    }
+
+    void saveToDb(String response, Context c) {
         try {
             ContentValues userValues;
             JSONObject object;
-            // TODO - finish download multiple users
+            // TODO - finish startDownloadAction multiple users
             object = new JSONObject(response);
 
             // Parsing
@@ -201,7 +251,7 @@ public class UserProfileOp extends Operations {
 
 
             // Add to db
-            int insertedUri = mContextRef.get().getContentResolver().update(
+            int insertedUri = c.getContentResolver().update(
                     DataContract.ProfileEntry.CONTENT_URI,
                     userValues,
                     ProfileEntry._ID + " = ?", new String[]{Long.toString(id)});
@@ -219,29 +269,55 @@ public class UserProfileOp extends Operations {
     }
 
     /**
-     * Method for creating new data file for upload with action {@link UploadAction#FOLLOW_PROFILE}.
+     * Method for creating new action {@link UploadAction#FOLLOW_PROFILE}.
      * @param curUserId  current user id that is following someone.
      * @param followedUserId  user id of the followed profile.
-     * @return newly created data file for upload.
+     * @return newly created {@link NetworkAction}.
      */
-    public static ProfileData followNewUser(long curUserId, long followedUserId){
-        mProfileData.userId = curUserId;
-        mProfileData.followedUserId = followedUserId;
-        mProfileData.mAction = UploadAction.FOLLOW_PROFILE;
-        return mProfileData;
+    public static NetworkAction followNewUserAction(long curUserId, long followedUserId){
+        mNetworkAction.userId = curUserId;
+        mNetworkAction.mUserProfileId = followedUserId;
+        mNetworkAction.setUploadAction(UploadAction.FOLLOW_PROFILE);
+        return mNetworkAction;
     }
 
     /**
-     * Method for creating new data file for upload with action {@link UploadAction#UNFOLLOW_PROFILE}.
+     * Method for creating new action {@link UploadAction#UNFOLLOW_PROFILE}.
      * @param curUserId current user id that is unfollowing someone.
      * @param unfollowedUserId user id of the followed profile.
-     * @return newly created data file for upload.
+     * @return newly created data file for startUploadAction.
      */
-    public static ProfileData unfollowUser(long curUserId, long unfollowedUserId) {
-        mProfileData.userId = curUserId;
-        mProfileData.followedUserId = unfollowedUserId;
-        mProfileData.mAction = UploadAction.UNFOLLOW_PROFILE;
-        return mProfileData;
+    public static NetworkAction unfollowUserAction(long curUserId, long unfollowedUserId) {
+        mNetworkAction.userId = curUserId;
+        mNetworkAction.mUserProfileId = unfollowedUserId;
+        mNetworkAction.setUploadAction(UploadAction.UNFOLLOW_PROFILE);
+        return mNetworkAction;
+    }
+
+    /**
+     * Method for creating new action {@link DownloadAction#GET_FOLLOWED_LIST}
+     * @param position
+     * @param offset
+     * @param limit
+     * @return network action to be performed
+     */
+    public static NetworkAction getFollowersListAction(int position, int offset, int limit) {
+        mNetworkAction.startPosition = position;
+        mNetworkAction.offset = offset;
+        mNetworkAction.limit = limit;
+        mNetworkAction.setDownloadAction(DownloadAction.GET_FOLLOWED_LIST);
+        return mNetworkAction;
+    }
+
+    /**
+     * Method for creating new action {@link DownloadAction#GET_USER_PROFILE}
+     * @param profileId profile id of the requested user
+     * @return network action to be performed
+     */
+    public static NetworkAction getUserProfileAction(long profileId){
+        mNetworkAction.mUserProfileId = profileId;
+        mNetworkAction.setDownloadAction(DownloadAction.GET_USER_PROFILE);
+        return mNetworkAction;
     }
 
     /**
@@ -256,13 +332,37 @@ public class UserProfileOp extends Operations {
         return TAG;
     }
 
-    private class ProfileData {
 
-        private long userId;
-        private long followedUserId;
+    private class ProfileNetworkAction extends NetworkAction<UploadAction, DownloadAction>{
 
-        // Booleans which indicates what kind of request this is
-        private UploadAction mAction;
+        long mUserProfileId;
+
+        int startPosition;
+        int offset;
+        int limit;
+
+        private UploadAction mUploadAction;
+        private DownloadAction mDownloadAction;
+
+        @Override
+        public UploadAction getUploadAction() {
+            return mUploadAction;
+        }
+
+        @Override
+        public DownloadAction getDownloadAction() {
+            return mDownloadAction;
+        }
+
+        @Override
+        public void setDownloadAction(DownloadAction action) {
+            mDownloadAction = action;
+        }
+
+        @Override
+        public void setUploadAction(UploadAction action) {
+            mUploadAction = action;
+        }
     }
 }
 

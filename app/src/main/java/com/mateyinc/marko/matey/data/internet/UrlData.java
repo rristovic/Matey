@@ -36,7 +36,7 @@ public abstract class UrlData {
     /** Position parameter of the post in the database for route {@link UrlData#GET_NEWSFEED_ROUTE} */
     public static final String PARAM_START_POS = "start";
 
-    /** Count parameter for post count to download at route {@link UrlData#GET_NEWSFEED_ROUTE} */
+    /** Count parameter for post count to startDownloadAction at route {@link UrlData#GET_NEWSFEED_ROUTE} */
     public static final String PARAM_COUNT = "count";
 
     /** Url for downloading user profile data */
@@ -68,6 +68,10 @@ public abstract class UrlData {
     /** Liked reply id */
     public static final String PARAM_LIKED_REPLY_ID = "text";
 
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    ///// Profile data /////////////////////////////////////////////////////////////////////////////////////
     /** Url for uploading new followed friends list to the server. */
     public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
     /** User_id param of the followed user */
@@ -77,7 +81,18 @@ public abstract class UrlData {
     private static final String POST_NEW_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
     /** Url for uploading new unfollowed friend */
     private static final String DELETE_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
-    /////////////////////////////////////////////////////////////////////////////////////
+    /** Url for download followers list */
+    public static final String GET_FOLLOWERS = ACCESS_BASE_URL.concat("/users/me/following");
+    /** Size query param for followers list */
+    public static final String QPARAM_SIZE = "size";
+    /** Limit query param for followers list */
+    public static final String QPARAM_LIMIT = "limit";
+    /** Position query param for followers list */
+    public static final String QPARAM_POSITION = "position";
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
     // Register new user
     public static final String REGISTER_USER = BASE_URL.concat("/users/accounts");
@@ -123,6 +138,7 @@ public abstract class UrlData {
         return LOGOUT_USER.replace(":deviceId", deviceId);
     }
 
+    // Profile methods
     public static String createUnfollowUrl(long userId){
         return DELETE_FOLLOWED_USER.replace(":userId", Long.toString(userId));
     }

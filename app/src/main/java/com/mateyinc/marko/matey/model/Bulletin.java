@@ -222,7 +222,7 @@ public class Bulletin extends MModel {
     }
 
     /**
-     * Helper method to be called when upload has succeeded
+     * Helper method to be called when startUploadAction has succeeded
      * @param response response retrieved from the server
      * @param context context used for db control
      */
@@ -245,7 +245,7 @@ public class Bulletin extends MModel {
     }
 
     /**
-     * Helper method to be called when upload has failed
+     * Helper method to be called when startUploadAction has failed
      * @param error error response retrieved from the server
      * @param context context used for db control
      */

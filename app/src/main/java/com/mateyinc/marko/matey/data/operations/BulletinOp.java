@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.data.operations;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.OperationFactory;
 import com.mateyinc.marko.matey.data.OperationProvider;
+import com.mateyinc.marko.matey.data.internet.NetworkAction;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 public class BulletinOp extends Operations {
@@ -11,8 +12,10 @@ public class BulletinOp extends Operations {
         super(provider, context, OperationFactory.OperationType.BULLETIN_OP);
     }
 
+
     @Override
-    public void download(long id) {
+    public void startDownloadAction(NetworkAction action) {
+
     }
 
     @Override
@@ -26,7 +29,7 @@ public class BulletinOp extends Operations {
     }
 
     @Override
-    public <T> void upload(T object) {
+    public void startUploadAction(NetworkAction action) {
 
     }
 

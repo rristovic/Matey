@@ -11,21 +11,27 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.OperationFactory;
 import com.mateyinc.marko.matey.data.OperationProvider;
 import com.mateyinc.marko.matey.data.internet.MateyRequest;
+import com.mateyinc.marko.matey.data.internet.NetworkAction;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An operation class which define actions that can be performed on defined data models
  */
 public abstract class Operations {
 
+    private Response.Listener<String> successListener;
+    private Response.ErrorListener failedListener;
+
     /** Indicates what kind of operations this is, used for general db control in {@link #addNotUploadedActivity(long)} */
     private final OperationFactory.OperationType mOpType;
 
-    /** Activity upload status that is saved in database, and used for UI control */
+    /** Activity startUploadAction status that is saved in database, and used for UI control */
     public enum ServerStatus {
-        /** Indicates that the data upload to the server has failed */
+        /** Indicates that the data startUploadAction to the server has failed */
         STATUS_RETRY_UPLOAD,
         /** Indicates that the data is currently being uploaded to the server */
         STATUS_UPLOADING,
@@ -40,18 +46,25 @@ public abstract class Operations {
     // Used for networking and threading
     private OperationProvider mProvider;
 
-     Operations(OperationProvider provider, MotherActivity context, OperationFactory.OperationType operationType){
+    Operations(OperationProvider provider, MotherActivity context, OperationFactory.OperationType operationType){
          this.mOpType = operationType;
          this.mProvider = provider;
          mContextRef = new WeakReference<MotherActivity>(context);
     }
 
+    public void addSuccessListener(Response.Listener<String> listener){
+        successListener = listener;
+    }
+    public void addFailedListener(Response.ErrorListener listener){
+        failedListener = listener;
+    }
+
     // Download methods
-    public abstract void download(long id);
+    public abstract void startDownloadAction(NetworkAction action);
     protected abstract void onDownloadSuccess(String response);
     protected abstract void onDownloadFailed(VolleyError error);
     // Upload methods
-    public abstract <T> void upload(T object);
+    public abstract void startUploadAction(NetworkAction action);
     protected void onUploadSuccess(String response){
         Log.d(getTag(), "Upload has succeed.");
     };
@@ -61,14 +74,17 @@ public abstract class Operations {
 
     /**
      * Method for creating new network request with provided parameters
-     * @param url url to download from
+     * @param url url to startDownloadAction from
      */
-    void createDownloadReq(String url){
+    void createNewDownloadReq(final String url){
         // Creating new request
          mRequest = new MateyRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        if (successListener != null)
+                            successListener.onResponse(response);
+
                         MotherActivity c = mContextRef.get();
                         if (c != null){
                             Log.d(getTag(), "Download has succeed.");
@@ -79,10 +95,12 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e(getTag(), error.getLocalizedMessage(), error);
+                        if (failedListener != null)
+                            failedListener.onErrorResponse(error);
+
                         MotherActivity c = mContextRef.get();
                         if (c != null){
-                            Log.e(getTag(), "Download has failed: ".concat(error.getLocalizedMessage()), error);
+                            Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
                             onDownloadFailed(error);
                         }
                     }
@@ -91,14 +109,18 @@ public abstract class Operations {
 
     /**
      * Method for creating new network request with provided parameters
-     * @param url url to upload to
-     * @param method http method used for upload{@link com.android.volley.Request.Method}
+     * @param url url to startUploadAction to
+     * @param method http method used for startUploadAction{@link com.android.volley.Request.Method}
      */
-    void createNewUploadReq(String url, int method){
+    void createNewUploadReq(final String url, int method){
         mRequest = new MateyRequest(method, url,
+
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        if (successListener != null)
+                            successListener.onResponse(response);
+
                         MotherActivity c = mContextRef.get();
                         if (c != null){
                             Log.d(getTag(), "Upload has succeed.");
@@ -109,6 +131,9 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        if (failedListener != null)
+                            failedListener.onErrorResponse(error);
+
                         MotherActivity c = mContextRef.get();
                         if (c != null){
                             Log.e(getTag(), "Upload has failed: " + error.getLocalizedMessage(), error);
@@ -120,24 +145,24 @@ public abstract class Operations {
 
 
     /**
-     * Helper method for starting newly created request with {@link #createDownloadReq(String)};
-     * Must be called to initiate the download process;
+     * Helper method for starting newly created request with {@link #createNewDownloadReq(String)};
+     * Must be called to initiate the startDownloadAction process;
      * Sets the authorisation header with {@link OperationProvider#getAccessToken()};
      */
     void startDownload(){
         setDefaultAuthHeader();
-        // Starting the download
+        // Starting the startDownloadAction
         mProvider.submitRequest(mRequest);
     }
 
     /**
      * Helper method for starting newly create request;
-     * Must be called to initiate the upload process;
+     * Must be called to initiate the startUploadAction process;
      * Sets the default authorisation header with {@link OperationProvider#getAccessToken()}
      */
     void startUpload(){
         setDefaultAuthHeader();
-         // Starting the download
+         // Starting the startDownloadAction
         mProvider.submitRequest(mRequest);
     }
 
@@ -160,7 +185,7 @@ public abstract class Operations {
     /**
      * Method for updating {@link com.mateyinc.marko.matey.data.MBaseColumns#COLUMN_SERVER_STATUS} in db.
      * @param id id of the activity/data.
-     * @param serverStatus the {@link ServerStatus} to upload.
+     * @param serverStatus the {@link ServerStatus} to startUploadAction.
      */
     protected void updateServerStatus(long id, ServerStatus serverStatus){
         // Add to not uploaded table if needed
@@ -218,5 +243,4 @@ public abstract class Operations {
 
     /** Returns the TAG constant for logging **/
     protected abstract String getTag();
-
 }

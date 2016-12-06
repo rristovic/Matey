@@ -704,7 +704,7 @@ public class MainActivity extends MotherActivity {
 
 //    /**
 //     * Check the device to make sure it has the Google Play Services APK. If
-//     * it doesn't, display a dialog that allows users to download the APK from
+//     * it doesn't, display a dialog that allows users to startDownloadAction the APK from
 //     * the Google Play Store or enable it in the device's system settings.
 //     */
 //    public boolean checkPlayServices() {

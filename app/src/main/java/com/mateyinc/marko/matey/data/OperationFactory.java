@@ -5,7 +5,7 @@ import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 /**
- * Factory class for creating {@link Operations} which is used for data download/upload control and saving to the database;
+ * Factory class for creating {@link Operations} which is used for data startDownloadAction/startUploadAction control and saving to the database;
  */
 public class OperationFactory {
 

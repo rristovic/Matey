@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:layout_margin="5dp">
+
+    <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+        android:id="@+id/ivProfilePic"
+        android:layout_width="@dimen/bulletin_pic_height"
+        android:layout_height="@dimen/bulletin_pic_height"
+        android:layout_marginRight="5dp"
+        android:layout_marginEnd="5dp"
+        android:padding="@dimen/bulletin_pic_padding"
+        android:scaleType="centerCrop"
+        app:riv_border_color="@color/profile_pic_border"
+        app:riv_border_width="0dp"
+        app:riv_oval="true"
+        android:src="@drawable/empty_photo" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/tvName"
+        android:layout_weight="1"
+        android:gravity="center_vertical"/>
+
+    <ToggleButton
+        android:text="@string/add_btn_label"
+        android:layout_height="48dp"
+        android:id="@+id/tBtnSailWith"
+        android:layout_width="55dp"
+        android:layout_weight="0.07" />
+</LinearLayout>

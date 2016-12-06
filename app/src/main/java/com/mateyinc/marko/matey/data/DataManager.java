@@ -49,7 +49,7 @@ public class DataManager implements OperationProvider {
 
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
 
-    /** Number of bulletins to download from the server */
+    /** Number of bulletins to startDownloadAction from the server */
     public static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
 
     /** The current page of bulletins in the database */
@@ -109,12 +109,12 @@ public class DataManager implements OperationProvider {
     }
 
     public interface ServerStatus {
-        /** Activity upload status that is saved in database, and used for UI control */
+        /** Activity startUploadAction status that is saved in database, and used for UI control */
         int STATUS_RETRY_UPLOAD = -1;
         /** @see #STATUS_RETRY_UPLOAD */
         int STATUS_UPLOADING = 0;
         /**
-         * Activity upload status that is saved in database, and used for UI control;
+         * Activity startUploadAction status that is saved in database, and used for UI control;
          * If data is downloaded from the server, this is the status that gets saved
          */
         int STATUS_SUCCESS = 1;
@@ -1310,7 +1310,7 @@ public class DataManager implements OperationProvider {
      * @param userId the id of the user who approved the post
      * @param replyId the id of the reply that user has approved
      * @param postId the id of the post that user has approved
-     * @param serverStatus the upload status
+     * @param serverStatus the startUploadAction status
      */
     public void addApprove( long userId, long replyId, long postId, int serverStatus) {
         ContentValues values = new ContentValues();

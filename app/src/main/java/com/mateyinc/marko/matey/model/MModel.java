@@ -95,14 +95,14 @@ public abstract class MModel {
     abstract public void upload(Context context, RequestQueue queue, String accessToken);
 
     /**
-     * Method to call when upload request has been completed
+     * Method to call when startUploadAction request has been completed
      * @param response String response retrieved from the server
      * @param context context used for db control
      */
     abstract protected void uploadSucceeded(String response, Context context);
 
     /**
-     * Method to call when upload request has failed
+     * Method to call when startUploadAction request has failed
      * @param e error message retrieved from the server
      * @param context context used for db control
      */

@@ -227,7 +227,7 @@ public class SessionManager {
 
     /**
      * Check the device to make sure it has the Google Play Services APK. If
-     * it doesn't, display a dialog that allows users to download the APK from
+     * it doesn't, display a dialog that allows users to startDownloadAction the APK from
      * the Google Play Store or enable it in the device's system settings.
      */
     private boolean checkPlayServices(final MainActivity activity) {
@@ -957,7 +957,7 @@ public class SessionManager {
     /**
      * Method for downloading and displaying image from provided link to the ImageView
      * @param ivProfilePic {@link ImageView} object to display downloaded image into
-     * @param profilePictureLink the image url to download from
+     * @param profilePictureLink the image url to startDownloadAction from
      * @return the newly created {@link Request} object with the tag {@link #TAG_COUNTER} incremented by 1;
      */
     public Request downloadImage(ImageView ivProfilePic, final String profilePictureLink) {
@@ -997,7 +997,7 @@ public class SessionManager {
 
     /** Method for uploading failed data to the server
      *
-     * @param context used to start the upload service if it isn't started
+     * @param context used to start the startUploadAction service if it isn't started
      */
     public void uploadFailedData(Context context) {
         Log.d(TAG, "Uploading failed data.");
@@ -1048,7 +1048,7 @@ public class SessionManager {
     /**
      * Helper method for downloading news feed from the server to the database;
      * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server;
-     * Automatically determines from what bulletin position to download by calling {@link DataManager#getNumOfBulletinsInDb()}
+     * Automatically determines from what bulletin position to startDownloadAction by calling {@link DataManager#getNumOfBulletinsInDb()}
      *
      * @param context the context of activity which is calling this method
      */
@@ -1058,10 +1058,10 @@ public class SessionManager {
     }
 
     /**
-     * Helper method used to upload followed friends list, by the current user, to the server;
+     * Helper method used to startUploadAction followed friends list, by the current user, to the server;
      * @param addedFriends list of friends to be uploaded
      * @param accessToken access token used to authorise with the server
-     * @param context used to start upload service if it isn't started
+     * @param context used to start startUploadAction service if it isn't started
      */
     public void uploadFollowedFriends(ArrayList<UserProfile> addedFriends, String accessToken, Context context){
         Log.d(TAG, "Uploading added friends.");

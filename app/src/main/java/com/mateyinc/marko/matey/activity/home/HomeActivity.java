@@ -262,7 +262,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
             mSessionManager.downloadNewsFeed(this);
     }
 
-    /** Helper method for uploading data that has failed to upload */
+    /** Helper method for uploading data that has failed to startUploadAction */
     private void uploadFailedData(){
         mSessionManager.uploadFailedData(HomeActivity.this);
     }

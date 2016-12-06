@@ -25,7 +25,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     /**
      * Indicates if BulletinAs Async task is started for the first time in application or not.
-     * If it is first start, then download friends data and bulletins data from the server, otherwise just download bulletin data
+     * If it is first start, then startDownloadAction friends data and bulletins data from the server, otherwise just startDownloadAction bulletin data
      */
     private boolean mIsInit = false;
 
@@ -46,7 +46,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
            return null;
         }
 
-        // Init download bulletins with friends list
+        // Init startDownloadAction bulletins with friends list
         if (!isCancelled() && init) {
 
             mIsInit = true;
@@ -101,7 +101,7 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
     }
 
     /**
-     * Method for creating the url for the server to download the new data from the given page
+     * Method for creating the url for the server to startDownloadAction the new data from the given page
      *
      * @param curPage the page of the new data to be downloaded
      * @return newly created url ready to send to the server
