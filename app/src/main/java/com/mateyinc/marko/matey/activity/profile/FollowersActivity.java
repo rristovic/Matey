@@ -1,6 +1,8 @@
 package com.mateyinc.marko.matey.activity.profile;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,7 +14,10 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.OperationFactory;
 import com.mateyinc.marko.matey.data.operations.Operations;
@@ -28,9 +33,21 @@ import java.util.LinkedList;
 public class FollowersActivity extends MotherActivity {
     private static final String TAG = FollowersActivity.class.getSimpleName();
 
+    /**
+     * Intent action - download and display followers list
+     */
+    public static final String ACTION_FOLLOWERS = "followers";
+    /**
+     * Intent action - download and display folliwing profiles list
+     */
+    public static final String ACTION_FOLLOWING = "following";
+    public static final String EXTRA_PROFILE_ID = "user_id";
+
+    private EndlessScrollListener mScrollListener;
     private ProgressBar mProgress;
     private RecyclerView rvList;
     private ListAdapter mAdapter;
+    private TextView tvHeading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,22 +59,36 @@ public class FollowersActivity extends MotherActivity {
     }
 
     private void init() {
+        setSupportActionBar();
+
+        tvHeading = (TextView) findViewById(R.id.tvHeading);
         rvList = (RecyclerView) findViewById(R.id.rvList);
         mProgress = (ProgressBar) findViewById(R.id.progressBar);
         mAdapter = new ListAdapter();
+        rvList.setAdapter(mAdapter);
 
+        toolbar.findViewById(R.id.ibBack).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     public void getData() {
+        if (mScrollListener != null)
+            mScrollListener.mLoading = true;
         int position = 0;
         int offset = 0;
-        int limit = 0;
+        final int limit = 20;
 
         OperationFactory factory = OperationFactory.getInstance(this);
         Operations downloadFollowers = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
         downloadFollowers.addSuccessListener(new Response.Listener<String>() {
             @Override
             public void onResponse(final String response) {
+                if (mScrollListener != null)
+                    mScrollListener.mLoading = false;
                 DataManager.getInstance(FollowersActivity.this).submitRunnable(new Runnable() {
                     @Override
                     public void run() {
@@ -65,17 +96,64 @@ public class FollowersActivity extends MotherActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mProgress.setVisibility(View.GONE);
-                                mAdapter.setData(list);
+                                if (mProgress != null)
+                                    mProgress.setVisibility(View.GONE);
+                                setData(list);
                             }
                         });
                     }
                 });
             }
         });
-        downloadFollowers.startDownloadAction(
-                UserProfileOp.getFollowersListAction(position, offset, limit)
-        );
+        downloadFollowers.addFailedListener(new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (mScrollListener != null)
+                mScrollListener.mLoading = false;
+            }
+        });
+
+        Intent i = getIntent();
+        if (i.getAction().equals(ACTION_FOLLOWERS)) {
+            downloadFollowers.startDownloadAction(
+                    UserProfileOp.getFollowersListAction(i.getLongExtra(EXTRA_PROFILE_ID, -1), offset, limit)
+            );
+
+            // Setting header
+            char[] text = getString(R.string.followers_label).toCharArray();
+            text[0] = Character.toUpperCase(text[0]);
+            String label = new String(text);
+            tvHeading.setText(label);
+        }
+        else {
+            downloadFollowers.startDownloadAction(
+                    UserProfileOp.getFollowingListAction(i.getLongExtra(EXTRA_PROFILE_ID, -1), offset, limit));
+
+            // Setting header
+            char[] text = getString(R.string.following_label).toCharArray();
+            text[0] = Character.toUpperCase(text[0]);
+            String label = new String(text);
+            tvHeading.setText(label);
+        }
+
+    }
+
+    /**
+     * Helper method for settings the data in adapter
+     *
+     * @param list list of data
+     */
+    private void setData(LinkedList<Object[]> list) {
+        mAdapter.setData(list);
+        if (mAdapter.getItemCount() == 20) {
+            if (mScrollListener == null)
+                mScrollListener = new EndlessScrollListener((LinearLayoutManager) rvList.getLayoutManager()) {
+                    @Override
+                    public void onLoadMore(int page, int totalItemsCount) {
+                        getData();
+                    }
+                };
+        }
     }
 
     /**
@@ -121,8 +199,11 @@ public class FollowersActivity extends MotherActivity {
     private static final String KEY_PICTURE_URL = UserProfileOp.KEY_PROFILE_PIC;
     private static final String KEY_COVER_URL = UserProfileOp.KEY_COVER_PIC;
     private static final String KEY_FOLLOWING = UserProfileOp.KEY_FOLLOWING;
+    private static final String KEY_SIZE = "size";
+    private static final String KEY_OFFSET = "offset";
+    private static final String KEY_LIMIT = "limit";
     // Indices for data position that will be saved
-    private static final int COL_ID = 1;
+    private static final int COL_ID = 0;
     private static final int COL_NAME = COL_ID + 1;
     private static final int COL_LASTNAME = COL_NAME + 1;
     private static final int COL_FULLNAME = COL_LASTNAME + 1;
@@ -141,20 +222,32 @@ public class FollowersActivity extends MotherActivity {
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.followers_list_item, parent, false);
+                    .inflate(R.layout.activity_followers_list_item, parent, false);
             return new ViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
+        public void onBindViewHolder(final ViewHolder holder, int position) {
             Object[] currentData = data.get(position);
 
-            holder.tvName.setText((String)currentData[COL_FULLNAME]);
+            DataManager.getInstance(FollowersActivity.this).mImageLoader.get((String)currentData[COL_PIC],
+                    new ImageLoader.ImageListener() {
+                        @Override
+                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                            holder.mImage.setImageBitmap(response.getBitmap());
+                        }
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, error.getLocalizedMessage(), error);
+                        }
+                    }, holder.mImage.getWidth(), holder.mImage.getHeight());
+            holder.tvName.setText((String) currentData[COL_FULLNAME]);
         }
 
         @Override
         public int getItemCount() {
-            return data.size();
+            return data == null ? 0 : data.size();
         }
 
         @Override

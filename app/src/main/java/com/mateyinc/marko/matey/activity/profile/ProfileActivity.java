@@ -58,6 +58,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     private ToggleButton tBtnSailWith;
     private Button btnSendMsg;
     private long mUserId;
+    private TextView tvHeading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,12 +101,12 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
                 if (isChecked) {
                     // Follow/following current user
                     userProfileOp.startUploadAction(
-                            UserProfileOp.followNewUserAction(MotherActivity.user_id, mUserId)
+                            UserProfileOp.followNewUserAction(mUserId)
                     );
                 } else {
                     // unfollow/not following cur user
                     userProfileOp.startUploadAction(
-                            UserProfileOp.unfollowUserAction(MotherActivity.user_id, mUserId)
+                            UserProfileOp.unfollowUserAction(mUserId)
                     );
                 }
             }
@@ -115,6 +116,8 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(ProfileActivity.this, FollowersActivity.class);
+                i.setAction(FollowersActivity.ACTION_FOLLOWERS);
+                i.putExtra(FollowersActivity.EXTRA_PROFILE_ID, mUserId);
                 startActivity(i);
             }
         });
@@ -123,6 +126,8 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(ProfileActivity.this, FollowersActivity.class);
+                i.putExtra(FollowersActivity.EXTRA_PROFILE_ID, mUserId);
+                i.setAction(FollowersActivity.ACTION_FOLLOWING);
                 startActivity(i);
             }
         });

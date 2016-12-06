@@ -82,13 +82,13 @@ public abstract class UrlData {
     /** Url for uploading new unfollowed friend */
     private static final String DELETE_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
     /** Url for download followers list */
-    public static final String GET_FOLLOWERS = ACCESS_BASE_URL.concat("/users/me/following");
-    /** Size query param for followers list */
-    public static final String QPARAM_SIZE = "size";
+    private static final String GET_FOLLOWERS = ACCESS_BASE_URL.concat("/users/:userId/followers");
+    /** Url for download followers list */
+    private static final String GET_FOLLOWING = ACCESS_BASE_URL.concat("/users/:userId/following");
     /** Limit query param for followers list */
     public static final String QPARAM_LIMIT = "limit";
     /** Position query param for followers list */
-    public static final String QPARAM_POSITION = "position";
+    public static final String QPARAM_OFFSET = "offset";
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -144,5 +144,11 @@ public abstract class UrlData {
     }
     public static String createFollowUrl(long userId){
         return POST_NEW_FOLLOWED_USER.replace(":userId", Long.toString(userId));
+    }
+    public static String createFollowingListUrl(long userId){
+        return GET_FOLLOWING.replace(":userId", Long.toString(userId));
+    }
+    public static String createFollowersListUrl(long userId){
+        return GET_FOLLOWERS.replace(":userId", Long.toString(userId));
     }
 }

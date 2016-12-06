@@ -82,8 +82,11 @@ public abstract class Operations {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if (successListener != null)
+                        if (successListener != null) {
                             successListener.onResponse(response);
+                            Log.d(getTag(), "Download has succeed.");
+                            return;
+                        }
 
                         MotherActivity c = mContextRef.get();
                         if (c != null){
@@ -95,8 +98,11 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (failedListener != null)
+                        if (failedListener != null) {
                             failedListener.onErrorResponse(error);
+                            Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
+                            return;
+                        }
 
                         MotherActivity c = mContextRef.get();
                         if (c != null){

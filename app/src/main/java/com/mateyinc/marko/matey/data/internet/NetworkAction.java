@@ -8,7 +8,6 @@ import java.util.LinkedList;
  */
 public abstract class NetworkAction<U, D> {
 
-    public long userId;
 
     /**
      * Method for returning startUploadAction action contained in this class

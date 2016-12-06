@@ -76,10 +76,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         mSessionManager = SessionManager.getInstance(this);
 
         // Settings the app bar via custom toolbar
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
+        setSupportActionBar();
 
         ibHome = (ImageButton) findViewById(R.id.ibHome);
         // Change icon color for navigation

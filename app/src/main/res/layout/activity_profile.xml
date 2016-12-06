@@ -116,6 +116,7 @@
             android:layout_marginTop="@dimen/profile_name_margin_top"
             android:orientation="horizontal">
 
+
             <ToggleButton
                 android:id="@+id/tBtnSailWith"
                 style="?android:attr/borderlessButtonStyle"
@@ -126,7 +127,6 @@
                 android:layout_weight="1"
                 android:background="@drawable/profile_btn"
                 android:checked="false"
-                android:text="tbtnSailWith"
                 android:textColor="@color/profile_btn"
                 android:textOff="@string/sail_with_label"
                 android:textOn="@string/sailing_with_label" />

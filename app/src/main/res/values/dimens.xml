@@ -47,6 +47,11 @@
     <dimen name="profile_pic_dimen">100dp</dimen>
     <dimen name="profile_pic_margin_top">140dp</dimen>
 
+    <!-- Followers/ing activity related -->
+    <dimen name="followers_button_size">130dp</dimen>
+    <dimen name="followers_button_textSize">12dp</dimen>
+    <dimen name="followers_button_padding">12dp</dimen>
+
 
     <!-- Text size -->
     <dimen name="heading">20sp</dimen>

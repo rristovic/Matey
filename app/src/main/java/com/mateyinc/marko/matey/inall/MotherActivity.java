@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 
 import com.facebook.login.LoginManager;
@@ -19,6 +20,8 @@ abstract public class MotherActivity extends AppCompatActivity {
 
     public static long user_id;
     public static String device_id;
+
+    protected Toolbar toolbar;
 
     /** Access token used to authorise with the server */
     public static String access_token;
@@ -147,6 +150,12 @@ abstract public class MotherActivity extends AppCompatActivity {
 
         return super.onCreateDialog(id);
 
+    }
+
+    protected void setSupportActionBar(){
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
 }

@@ -234,7 +234,7 @@ public class MainActivity extends MotherActivity {
                 } else {
                     String email = etEmail.getText().toString().toLowerCase();
                     email = email.trim();
-                    String pass = etPass.getText().toString().toLowerCase();
+                    String pass = etPass.getText().toString();
                     email = email.trim();
 
                     if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
