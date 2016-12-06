@@ -2,6 +2,7 @@ package com.mateyinc.marko.matey.data.operations;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -231,11 +232,8 @@ public class UserProfileOp extends Operations {
     }
 
     void saveToDb(String response, Context c) {
-        try {
-            ContentValues userValues;
-            JSONObject object;
-            // TODO - finish startDownloadAction multiple users
-            object = new JSONObject(response);
+         try {
+            JSONObject object =  new JSONObject(response);
 
             // Parsing
             Long id = object.getLong(KEY_ID);
@@ -245,11 +243,12 @@ public class UserProfileOp extends Operations {
             String email = object.getString(KEY_EMAIL);
             String picLink = object.getString(KEY_PROFILE_PIC);
             String coverLink = object.getString(KEY_COVER_PIC);
-            int followersNum = object.getInt(KEY_FOLLOWERS_NUM);
-            int followingNum = object.getInt(KEY_FOLLOWING_NUM);
+//            int followersNum = object.getInt(KEY_FOLLOWERS_NUM);
+//            int followingNum = object.getInt(KEY_FOLLOWING_NUM);
             boolean verified = object.getBoolean(KEY_VERIFIED);
 
-            userValues = new ContentValues();
+             // Saving
+            ContentValues userValues = new ContentValues();
             userValues.put(DataContract.ProfileEntry._ID, id);
             userValues.put(DataContract.ProfileEntry.COLUMN_NAME, name);
             userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
@@ -257,22 +256,19 @@ public class UserProfileOp extends Operations {
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
             userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picLink);
             userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverLink);
-            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
-            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
 
 //            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
 //            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
 
-
-            // Add to db
-            int insertedUri = c.getContentResolver().update(
-                    DataContract.ProfileEntry.CONTENT_URI,
-                    userValues,
-                    ProfileEntry._ID + " = ?", new String[]{Long.toString(id)});
+                 // Add to db
+            Uri uri = c.getContentResolver().insert(
+                    DataContract.ProfileEntry.CONTENT_URI, userValues);
 
             // Debug
             String debugString = getString(id, name, lastName, email, picLink);
-            if (insertedUri == 0 ) {
+            if (uri == null ) {
                 Log.e(TAG, "Error inserting " + debugString);
             } else {
                 Log.d(TAG, "New profile added: " + debugString);

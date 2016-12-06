@@ -233,20 +233,27 @@ public class FollowersActivity extends MotherActivity {
                     OperationFactory factory = OperationFactory.getInstance(mContext);
                     Operations userProfileOp = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
                     if (isChecked && !(boolean)data.get(position)[COL_FOLLOWING]) {
-                        // Follow/following current user
+                        // Follow current user only when checked and user is not being followed
                         userProfileOp.startUploadAction(
                                 UserProfileOp.followNewUserAction((long)data.get(position)[COL_ID])
                         );
                         // Update data
                         data.get(position)[COL_FOLLOWING] = true;
                     } else if(!isChecked && (boolean)data.get(position)[COL_FOLLOWING]) {
-                        // unfollow/not following cur user
+                        // unfollow cur user only when unchecked and user is followed
                         userProfileOp.startUploadAction(
                                 UserProfileOp.unfollowUserAction((long)data.get(position)[COL_ID])
                         );
                         // Update data
                         data.get(position)[COL_FOLLOWING] = false;
                     }
+                }
+
+                @Override
+                public void onProfileClicked(int position) {
+                    Intent i = new Intent(mContext, ProfileActivity.class);
+                    i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, (long)data.get(position)[COL_ID]);
+                    mContext.startActivity(i);
                 }
             });
         }
@@ -289,7 +296,7 @@ public class FollowersActivity extends MotherActivity {
         }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener{
+    static class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnClickListener{
         View mView;
         int mPosition;
         TextView tvName;
@@ -299,6 +306,7 @@ public class FollowersActivity extends MotherActivity {
 
         interface ViewHolderListener{
             void onCheckedChanged(CompoundButton compoundButton, boolean bm, int position);
+            void onProfileClicked(int position);
         }
 
         ViewHolder(View itemView, ViewHolderListener listener) {
@@ -312,11 +320,19 @@ public class FollowersActivity extends MotherActivity {
             mImage = (ImageView) itemView.findViewById(R.id.ivProfilePic);
 
             mButton.setOnCheckedChangeListener(this);
+            mImage.setOnClickListener(this);
+            tvName.setOnClickListener(this);
         }
 
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
             mListener.onCheckedChanged(compoundButton, b, getAdapterPosition());
         }
+
+        @Override
+        public void onClick(View view) {
+            mListener.onProfileClicked(getAdapterPosition());
+        }
+
     }
 }

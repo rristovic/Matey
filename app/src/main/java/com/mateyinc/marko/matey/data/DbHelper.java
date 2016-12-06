@@ -33,7 +33,7 @@ import com.mateyinc.marko.matey.data.operations.Operations;
  */
 class DbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 6;
 
     static final String DATABASE_NAME = "matey.db";
 
@@ -80,7 +80,8 @@ class DbHelper extends SQLiteOpenHelper {
                 ProfileEntry.COLUMN_FOLLOWED + " BOOLEAN DEFAULT FALSE, " +
                 ProfileEntry.COLUMN_LAST_MSG_ID + " INTEGER DEFAULT -1, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT " + Operations.ServerStatus.STATUS_UPLOADING.ordinal() +
-                ");";
+                ", UNIQUE (" + ProfileEntry._ID + ") ON CONFLICT REPLACE " +
+                " );";
 
         final String SQL_CREATE_BULLETIN_TABLE = "CREATE TABLE " + BulletinEntry.TABLE_NAME + " (" +
                 BulletinEntry._ID + " INTEGER NOT NULL, " +
