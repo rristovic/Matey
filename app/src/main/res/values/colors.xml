@@ -43,4 +43,6 @@
     <!-- Used in profile -->
     <color name="mateyBlue">#4075b0</color>
 
+    <color name="black_overlay">#66000000</color>
+
 </resources>

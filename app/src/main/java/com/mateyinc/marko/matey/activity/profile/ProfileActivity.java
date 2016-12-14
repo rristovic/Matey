@@ -17,10 +17,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.OperationFactory;
@@ -29,13 +29,15 @@ import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 
-public class ProfileActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class ProfileActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private String TAG = ProfileActivity.class.getSimpleName();
 
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
 
-    /** Intent extra param which has user id
-     * used to startDownloadAction data from the server or from database; */
+    /**
+     * Intent extra param which has user id
+     * used to startDownloadAction data from the server or from database;
+     */
     public static final String EXTRA_PROFILE_ID = "com.mateyinc.marko.matey.activity.profile.user_id";
 
     // Projection for profile query
@@ -59,6 +61,8 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     private Button btnSendMsg;
     private long mUserId;
     private TextView tvHeading;
+    private String mPicLink = "";
+    private String mCoverLink = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +91,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         // If intent doesn't have extra profile id, then ProfileActivity is called for the current user profile
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getLongExtra(EXTRA_PROFILE_ID, -1);
-        else{
+        else {
             mUserId = DataManager.getInstance(ProfileActivity.this).getCurrentUserProfile().getUserId();
         }
     }
@@ -133,20 +137,30 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         });
 
         final View parent = (View) tvFollowersNum.getParent();  // button: the view you want to enlarge hit area
-        parent.post( new Runnable() {
+        parent.post(new Runnable() {
             public void run() {
                 final Rect rect = new Rect();
                 tvFollowersNum.getHitRect(rect);
                 rect.left -= 100;   // increase left hit area
                 rect.bottom += 100; // increase bottom hit area
                 rect.right += 100;  // increase right hit area
-                parent.setTouchDelegate(new TouchDelegate(rect , tvFollowersNum));
+                parent.setTouchDelegate(new TouchDelegate(rect, tvFollowersNum));
 
                 tvFollowingNum.getHitRect(rect);
                 rect.left -= 100;   // increase left hit area
                 rect.bottom += 100; // increase bottom hit area
                 rect.right += 100;  // increase right hit area
-                parent.setTouchDelegate(new TouchDelegate(rect , tvFollowingNum));
+                parent.setTouchDelegate(new TouchDelegate(rect, tvFollowingNum));
+            }
+        });
+
+        ivProfilePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(ProfileActivity.this, PictureViewActivity.class);
+                i.putExtra(PictureViewActivity.EXTRA_PIC_LINK, mPicLink);
+                ProfileActivity.this.startActivity(i);
+
             }
         });
     }
@@ -180,7 +194,9 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         if (data == null || !data.moveToFirst())
             return;
 
-        DataManager.getInstance(this).mImageLoader.get(data.getString(COL_PROFILE_PIC),
+        mPicLink = data.getString(COL_PROFILE_PIC);
+        mCoverLink = data.getString(COL_COVER_PIC);
+        DataManager.getInstance(this).mImageLoader.get(mPicLink,
                 new ImageLoader.ImageListener() {
                     @Override
                     public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
@@ -192,7 +208,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
                         Log.e(TAG, error.getLocalizedMessage(), error);
                     }
                 }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
-        DataManager.getInstance(this).mImageLoader.get(data.getString(COL_COVER_PIC),
+        DataManager.getInstance(this).mImageLoader.get(mCoverLink,
                 new ImageLoader.ImageListener() {
                     @Override
                     public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {

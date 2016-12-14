@@ -102,4 +102,16 @@
     <string name="add_btn_label">Add</string>
     <string name="finish_btn_label">finish</string>
     <string name="conToServer_msg">Connecting to the server, please wait..</string>
+
+    <string name="title_activity_picture_view">PictureViewActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <!-- Profile related -->
+    <string name="chose_from_gal_label">Chose from gallery</string>
+    <string name="take_a_pic_label">Take a picture</string>
+    <string name="choosing_new_pic_title">Choose new picture</string>
+    <string name="choosing_new_pic_msg">How would you like to add a picture</string>
+    <string name="change_pic_btn">Change picture</string>
+
 </resources>

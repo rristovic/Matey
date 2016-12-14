@@ -719,6 +719,7 @@ public class SessionManager {
      */
     private void parseUserDataAndLogin(MainActivity context, DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parse the data
+
         parseUserData( dataManager, preferences, object);
 
         // Check if the response object has suggested friends list

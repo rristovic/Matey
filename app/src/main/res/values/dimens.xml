@@ -46,6 +46,7 @@
     <dimen name="profile_cover_dimen">180dp</dimen>
     <dimen name="profile_pic_dimen">100dp</dimen>
     <dimen name="profile_pic_margin_top">140dp</dimen>
+    <dimen name="profile_pic_min_height">300dp</dimen>
 
     <!-- Followers/ing activity related -->
     <dimen name="followers_button_size">130dp</dimen>
