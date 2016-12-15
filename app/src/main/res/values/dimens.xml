@@ -98,5 +98,8 @@
     <dimen name="senderName_topMargin">4dp</dimen>
     <dimen name="msg_activeState_dimen">8dp</dimen>
 
+    <!-- Upload new pic dimens -->
+    <dimen name="rotate_btn_padding">60dp</dimen>
+
 
 </resources>

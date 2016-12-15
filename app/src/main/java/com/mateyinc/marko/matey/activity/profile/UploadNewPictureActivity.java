@@ -3,7 +3,6 @@ package com.mateyinc.marko.matey.activity.profile;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -16,6 +15,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
@@ -23,7 +23,6 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -36,7 +35,6 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.view.gestures.MoveGestureDetector;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.internet.MultipartRequest;
 import com.mateyinc.marko.matey.data.internet.UrlData;
@@ -54,8 +52,11 @@ import java.util.Date;
 import java.util.Locale;
 
 import uk.co.senab.photoview.PhotoView;
-import uk.co.senab.photoview.PhotoViewAttacher;
 
+import static android.R.attr.angle;
+import static android.R.attr.pivotX;
+import static android.R.attr.pivotY;
+import static com.mateyinc.marko.matey.R.id.imageView;
 import static com.mateyinc.marko.matey.activity.view.PictureViewActivity.calculateInSampleSize;
 
 
@@ -64,32 +65,23 @@ public class UploadNewPictureActivity extends MotherActivity {
 
     public static final String EXTRA_PIC_URI = "picture_url";
 
-    // Fields for scaling/panning with touch
-    private float mScaleFactor = 1f;
-    private float mFocusX, mFocusY, mInitialFocusX, mInitialFocusY;
-    private Matrix mMatrix = new Matrix();// The Matrix class holds a 3x3 matrix to move the coordinates.
-    private Matrix mInitialMatrix = new Matrix();
-
     private final String twoHyphens = "--";
     private final String lineEnd = "\r\n";
     private final String boundary = "apiclient-" + System.currentTimeMillis();
     private final String mimeType = "multipart/form-data;boundary=" + boundary;
     private byte[] multipartBody;
+
     /**
      * Image will be compressed with this amount of quality; goes from 0 - 100
      */
     private static final int JPG_QUALITY = 70;
 
-    // Listeners
-    private ScaleGestureDetector mScaleDetector;
-    private MoveGestureDetector mMoveDetector;
-
+    private ImageView ivRotateLeft, ivRotateRight;
     private PhotoView mImageView;
-    private Button btnCancel;
+    private Button btnCancel, btnSave;
     private Bitmap mBitmap;
-    private PhotoViewAttacher mAttacher;
-    private Button btnSave;
     private Uri mPicUri;
+    private String mImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +96,8 @@ public class UploadNewPictureActivity extends MotherActivity {
         mImageView = (PhotoView) findViewById(R.id.ivMain);
         btnCancel = (Button) findViewById(R.id.btnCancel);
         btnSave = (Button) findViewById(R.id.btnSave);
+        ivRotateLeft = (ImageView) findViewById(R.id.ivLeftRotate);
+        ivRotateRight = (ImageView) findViewById(R.id.ivRightRotate);
 
         if (getIntent().hasExtra(EXTRA_PIC_URI))
             mPicUri = getIntent().getParcelableExtra(EXTRA_PIC_URI);
@@ -116,7 +110,7 @@ public class UploadNewPictureActivity extends MotherActivity {
             // Load bitmap into memory
             mBitmap = getThumbnail(mPicUri, getMaxImageSize());
             // Filling up image view
-            setLoadedPic();
+            setLoadedPic(mBitmap);
         } catch (IOException e) {
             mBitmap = null;
             e.printStackTrace();
@@ -154,12 +148,14 @@ public class UploadNewPictureActivity extends MotherActivity {
             @Override
             public void onClick(View v) {
 
+//                saveImage();
                 String[] filePathColumn = { MediaStore.Images.Media.DATA,
                         MediaStore.Images.Media.TITLE, MediaStore.Images.Media.MIME_TYPE};
 
                 Cursor cursor = getContentResolver().query(mPicUri,
                         filePathColumn, null, null, null);
                 cursor.moveToFirst();
+                mImagePath = cursor.getString(0);
                 String title = cursor.getString(1);
                 String mimeType = cursor.getString(2);
                 cursor.close();
@@ -173,6 +169,21 @@ public class UploadNewPictureActivity extends MotherActivity {
             public void onClick(View v) {
                 uploadFailed();
             }
+        });
+
+        ivRotateLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mImageView.setRotationBy(-90f);
+            }
+        });
+
+        ivRotateRight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mImageView.setRotationBy(90f);
+            }
+
         });
     }
 
@@ -358,7 +369,7 @@ public class UploadNewPictureActivity extends MotherActivity {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    public Bitmap getThumbnail(Uri uri, int reqSize) throws FileNotFoundException, IOException {
+    public Bitmap getThumbnail(Uri uri, int reqSize) throws IOException {
         InputStream input = this.getContentResolver().openInputStream(uri);
 
         BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
@@ -403,9 +414,9 @@ public class UploadNewPictureActivity extends MotherActivity {
         }
     }
 
-    private void setLoadedPic() {
+    private void setLoadedPic(Bitmap bitmap) {
         if (mBitmap != null)
-            mImageView.setImageBitmap(mBitmap);
+            mImageView.setImageBitmap(bitmap);
         mImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
     }
 
@@ -455,6 +466,8 @@ public class UploadNewPictureActivity extends MotherActivity {
             antiAPaint.setXfermode(null);
         }
     }
+
+
 
 //    private class PhotoTapListener implements PhotoViewAttacher.OnPhotoTapListener {
 //
