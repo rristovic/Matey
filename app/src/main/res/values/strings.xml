@@ -114,4 +114,9 @@
     <string name="choosing_new_pic_msg">How would you like to add a picture</string>
     <string name="change_pic_btn">Change picture</string>
 
+    <!-- Upload new pic related -->
+    <string name="no_cam_app">No camera app installed</string>
+    <string name="no_image_picker">No image picker installed</string>
+    <string name="error_capture_image">Can\'t capture new image</string>
+
 </resources>

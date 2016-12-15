@@ -81,7 +81,6 @@ public class UploadNewPictureActivity extends MotherActivity {
     private Button btnCancel, btnSave;
     private Bitmap mBitmap;
     private Uri mPicUri;
-    private String mImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,7 +154,6 @@ public class UploadNewPictureActivity extends MotherActivity {
                 Cursor cursor = getContentResolver().query(mPicUri,
                         filePathColumn, null, null, null);
                 cursor.moveToFirst();
-                mImagePath = cursor.getString(0);
                 String title = cursor.getString(1);
                 String mimeType = cursor.getString(2);
                 cursor.close();
