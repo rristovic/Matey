@@ -2,7 +2,6 @@ package com.mateyinc.marko.matey.data.operations;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -243,9 +242,9 @@ public class UserProfileOp extends Operations {
             String email = object.getString(KEY_EMAIL);
             String picLink = object.getString(KEY_PROFILE_PIC);
             String coverLink = object.getString(KEY_COVER_PIC);
-//            int followersNum = object.getInt(KEY_FOLLOWERS_NUM);
-//            int followingNum = object.getInt(KEY_FOLLOWING_NUM);
-            boolean verified = object.getBoolean(KEY_VERIFIED);
+            int followersNum = object.getInt(KEY_FOLLOWERS_NUM);
+            int followingNum = object.getInt(KEY_FOLLOWING_NUM);
+//            boolean verified = object.getBoolean(KEY_VERIFIED);
 
              // Saving
             ContentValues userValues = new ContentValues();
@@ -256,8 +255,8 @@ public class UserProfileOp extends Operations {
             userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
             userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picLink);
             userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverLink);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
+            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
+            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
 
 //            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
 //            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);

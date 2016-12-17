@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity;
 import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -34,7 +35,18 @@ import uk.co.senab.photoview.PhotoView;
 
 public class PictureViewActivity extends MotherActivity {
     private static final String TAG = PictureViewActivity.class.getSimpleName();
-    public static final String EXTRA_PIC_LINK = "picture_link";
+
+    /** Intent string extra holding picture link that needs to be loaded */
+    public static final String EXTRA_PIC_LINK = TAG + ".picture_link";
+    /** Intent boolean extra indicating that the current user is viewing its own profile */
+    public static final String EXTRA_IS_CUR_USER = TAG + ".is_cur_user";
+    /** Intent long extra holding image's user id */
+    public static final String EXTRA_USER_ID = TAG + ".user_id";
+
+    /** Action that indicates that the cover photo is viewing */
+    public static final String ACTION_COVER_PIC = TAG + ".action_change_cover";
+    /** Action indicating that profile photo is viewing */
+    public static final String ACTION_PROFILE_PIC = TAG + ".action_change_profile";
 
     private PhotoView mImageView;
     private Button btnChangePic;
@@ -47,8 +59,12 @@ public class PictureViewActivity extends MotherActivity {
     private static final int CHANGE_PIC_REQ_CODE = 102;
 
     // If user capture new image it is saved here
-    private String mCurrentPhotoPath;
     private File mImageFile;
+    private String mCurrentPhotoPath;
+
+    private String mAction;
+    private long mUserId;
+    private boolean isCurUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,17 +76,24 @@ public class PictureViewActivity extends MotherActivity {
     }
 
     private void init() {
-        mImageView = (PhotoView) findViewById(R.id.ivMain);
-        btnChangePic = (Button) findViewById(R.id.btnChangePic);
-
+        // Getting info for activity
         String picLink;
-        if (getIntent().hasExtra(EXTRA_PIC_LINK))
-            picLink = getIntent().getStringExtra(EXTRA_PIC_LINK);
-        else {
+        Intent i = getIntent();
+        if (i.hasExtra(EXTRA_PIC_LINK) && i.getAction() != null) {
+            isCurUser = i.getBooleanExtra(EXTRA_IS_CUR_USER, false);
+            picLink = i.getStringExtra(EXTRA_PIC_LINK);
+            mAction = i.getAction();
+            mUserId = i.getLongExtra(EXTRA_USER_ID, -1);
+        } else {
             finish();
             return;
         }
 
+        mImageView = (PhotoView) findViewById(R.id.ivMain);
+        if (isCurUser)
+            btnChangePic = (Button) findViewById(R.id.btnChangePic);
+
+        // Loading and setting data
         DataManager.getInstance(this).mImageLoader.get(picLink,
                 new ImageLoader.ImageListener() {
                     @Override
@@ -86,27 +109,28 @@ public class PictureViewActivity extends MotherActivity {
     }
 
     private void setListeners() {
-        btnChangePic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(PictureViewActivity.this);
-                builder.setPositiveButton(R.string.chose_from_gal_label, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        choseImage();
-                    }
-                });
-                builder.setNegativeButton(getString(R.string.take_a_pic_label), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        captureImage();
-                    }
-                });
-                builder.setTitle(R.string.choosing_new_pic_title);
-                builder.setMessage(R.string.choosing_new_pic_msg);
-                builder.create().show();
-            }
-        });
+        if (btnChangePic != null)
+            btnChangePic.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(PictureViewActivity.this);
+                    builder.setPositiveButton(R.string.chose_from_gal_label, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            choseImage();
+                        }
+                    });
+                    builder.setNegativeButton(getString(R.string.take_a_pic_label), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            captureImage();
+                        }
+                    });
+                    builder.setTitle(R.string.choosing_new_pic_title);
+                    builder.setMessage(R.string.choosing_new_pic_msg);
+                    builder.create().show();
+                }
+            });
     }
 
     /**
@@ -181,9 +205,19 @@ public class PictureViewActivity extends MotherActivity {
                     Uri fullPhotoUri = data.getData();
                     Intent i = new Intent(PictureViewActivity.this, UploadNewPictureActivity.class);
                     i.putExtra(UploadNewPictureActivity.EXTRA_PIC_URI, fullPhotoUri);
-                    startActivity(i);
-                    break;
+                    i.setAction(mAction);
+                    i.putExtra(EXTRA_USER_ID, mUserId);
+                    startActivityForResult(i, CHANGE_PIC_REQ_CODE);
                 }
+                break;
+            case CHANGE_PIC_REQ_CODE:
+                if (resultCode == RESULT_OK) {
+                    Intent i = new Intent(PictureViewActivity.this, ProfileActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(i);
+                }
+                break;
+            default:break;
         }
     }
 
@@ -196,7 +230,7 @@ public class PictureViewActivity extends MotherActivity {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    public Bitmap getThumbnail(Uri uri, int reqSize) throws FileNotFoundException, IOException {
+    public Bitmap getThumbnail(Uri uri, int reqSize) throws IOException {
         InputStream input = PictureViewActivity.this.getContentResolver().openInputStream(uri);
 
         BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();

@@ -90,7 +90,7 @@
         <activity
             android:name=".activity.profile.ProfileActivity"
             android:largeHeap="true"
-            android:theme="@style/AppTheme.ActionBar.Transparent" />
+            android:theme="@style/AppTheme.ActionBar.Transparent"
         android:label="@string/title_activity_profile" />
         <activity
             android:name=".activity.home.GroupsActivity"

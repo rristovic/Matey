@@ -118,5 +118,7 @@
     <string name="no_cam_app">No camera app installed</string>
     <string name="no_image_picker">No image picker installed</string>
     <string name="error_capture_image">Can\'t capture new image</string>
+    <string name="uploading_pic_title">Uploading picture</string>
+    <string name="failed_to_upload_img_msg">Failed to upload new image</string>
 
 </resources>

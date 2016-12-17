@@ -108,6 +108,10 @@ public class DataManager implements OperationProvider {
         return MotherActivity.access_token;
     }
 
+    public RequestQueue getRequestQueue() {
+        return mRequestQueue;
+    }
+
     public interface ServerStatus {
         /** Activity startUploadAction status that is saved in database, and used for UI control */
         int STATUS_RETRY_UPLOAD = -1;
