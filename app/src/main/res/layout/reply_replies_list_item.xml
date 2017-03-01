@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="@dimen/commentview_padding">
 
     <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-        android:id="@+id/ivBulletinProfilePic"
+        android:id="@+id/ivReplyProfilePic"
         android:layout_width="@dimen/commentview_pic_size"
         android:layout_height="@dimen/commentview_pic_size"
         android:layout_marginEnd="7dp"
@@ -24,91 +23,108 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <RelativeLayout
-            android:id="@+id/rlHeading"
+        <TextView
+            android:id="@+id/tvReplyName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true">
-
-            <TextView
-                android:id="@+id/tvReplyName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:text="Radovan"
-                android:textColor="@color/blue"
-                android:textSize="@dimen/body" />
-
-            <TextView
-                android:id="@+id/tvTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:fontFamily="@string/roboto_light"
-                android:text="New Text"
-                android:textSize="@dimen/info"
-                android:textStyle="italic" />
-
-            <ImageView
-                android:id="@+id/imageView7"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="4dp"
-                android:layout_marginRight="4dp"
-                android:layout_toLeftOf="@+id/tvTime"
-                android:layout_toStartOf="@+id/tvTime"
-                android:src="@drawable/ic_clock"
-                android:tint="@color/light_gray" />
-        </RelativeLayout>
+            android:layout_alignParentTop="true"
+            android:text="Replier name"
+            android:textColor="@color/blue"
+            android:textSize="@dimen/body" />
 
         <TextView
-            android:id="@+id/tvText"
+            android:id="@+id/tvMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/rlHeading"
-            android:text="Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 Proba test 1 2 4 "
-            android:textSize="@dimen/body" />
+            android:layout_below="@id/tvReplyName"
+            android:text="Body of the message"
+            android:textSize="@dimen/reply_textSize_message" />
 
-        <RelativeLayout
-            android:layout_width="match_parent"
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/tvText"
-            android:layout_marginTop="10dp">
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/tvMessage"
+            android:fontFamily="@string/roboto_light"
+            android:text="Time"
+            android:textSize="@dimen/reply_textSize_time"
+            android:textStyle="italic" />
 
-            <TextView
-                android:id="@+id/tvApproves"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:text="9 approves"
-                android:textColor="@color/blue"
-                android:textSize="@dimen/info" />
+        <TextView
+            android:id="@+id/tvReplyStats"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/reply_buttons"
+            android:layout_below="@id/tvTime"
+            android:layout_toEndOf="@id/llReply"
+            android:layout_toRightOf="@id/llReply"
+            android:gravity="center_vertical"
+            android:text="Reply stats"
+            android:textSize="@dimen/info" />
+
+        <LinearLayout
+            android:id="@+id/llArr"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/reply_buttons"
+            android:layout_below="@id/tvTime"
+            android:layout_marginEnd="@dimen/reply_buttons_margin"
+            android:layout_marginRight="@dimen/reply_buttons_margin"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/ivApprove"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/body"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:cropToPadding="false"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_ahoy" />
+                android:layout_width="@dimen/bulletin_bottomBtn"
+                android:layout_height="@dimen/bulletin_bottomBtn"
+                android:layout_marginEnd="@dimen/bulletin_bottomBtn_textMargin"
+                android:layout_marginRight="@dimen/bulletin_bottomBtn_textMargin"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_hook"
+                android:tint="@color/gray" />
 
-        </RelativeLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Arrr!"
+                android:textColor="@color/gray"
+                android:textSize="@dimen/bulletin_textSize_buttons" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llReply"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/reply_buttons"
+            android:layout_below="@id/tvTime"
+            android:layout_marginEnd="@dimen/reply_buttons_margin"
+            android:layout_marginRight="@dimen/reply_buttons_margin"
+            android:layout_toEndOf="@id/llArr"
+            android:layout_toRightOf="@id/llArr"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/bulletin_bottomBtn"
+                android:layout_height="@dimen/bulletin_bottomBtn"
+                android:layout_marginEnd="@dimen/bulletin_bottomBtn_textMargin"
+                android:layout_marginRight="@dimen/bulletin_bottomBtn_textMargin"
+                android:scaleType="center"
+                android:src="@drawable/ic_bottle"
+                android:tint="@color/gray" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reply"
+                android:textColor="@color/gray"
+                android:textSize="@dimen/bulletin_textSize_buttons" />
+        </LinearLayout>
 
     </RelativeLayout>
 

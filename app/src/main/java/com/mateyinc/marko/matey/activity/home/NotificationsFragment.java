@@ -23,7 +23,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 
 import java.util.Date;
 
@@ -36,7 +36,7 @@ public class NotificationsFragment extends Fragment implements LoaderManager.Loa
 
     private NotificationsAdapter mAdapter;
     private Context mContext;
-    private DataManager mManager;
+    private OperationManager mManager;
 
     private static final int NOTIF_LOADER = 1;
 
@@ -78,7 +78,7 @@ public class NotificationsFragment extends Fragment implements LoaderManager.Loa
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAdapter = new NotificationsAdapter(mContext, null, 0);
-        mManager = DataManager.getInstance(mContext);
+        mManager = OperationManager.getInstance(mContext);
     }
 
     @Override
@@ -193,11 +193,11 @@ public class NotificationsFragment extends Fragment implements LoaderManager.Loa
 //    private class NotificationAdapter extends RecyclerView.Adapter<NotificationsFragment.NotificationAdapter.ViewHolder>{
 //
 //        private final Context mContext;
-//        private final DataManager mManager;
+//        private final OperationManager mManager;
 //
 //        public NotificationAdapter(Context context){
 //            mContext = context;
-//            mManager = DataManager.getInstance(context);
+//            mManager = OperationManager.getInstance(context);
 //        }
 //
 //        @Override

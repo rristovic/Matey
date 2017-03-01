@@ -25,7 +25,7 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.MessageEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 
 /**
  * Created by Sarma on 8/27/2016.
@@ -34,7 +34,7 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
 
     private MessageAdapter mAdapter;
     private Context mContext;
-    private DataManager mManager;
+    private OperationManager mManager;
 
     private static final int MESSAGE_LOADER = 0;
 
@@ -84,7 +84,7 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAdapter = new MessageAdapter(mContext, null, 0);
-        mManager = DataManager.getInstance(mContext);
+        mManager = OperationManager.getInstance(mContext);
     }
 
     @Override

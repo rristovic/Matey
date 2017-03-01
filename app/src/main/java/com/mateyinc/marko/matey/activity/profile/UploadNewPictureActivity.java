@@ -38,11 +38,10 @@ import android.widget.Toast;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.MultipartRequest;
 import com.mateyinc.marko.matey.data.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -61,14 +60,8 @@ import java.util.Locale;
 
 import uk.co.senab.photoview.PhotoView;
 
-import static android.R.attr.key;
-import static android.R.attr.maxHeight;
-import static android.R.attr.maxWidth;
-import static android.R.attr.scaleType;
-import static android.app.Activity.RESULT_OK;
 import static com.mateyinc.marko.matey.activity.view.PictureViewActivity.ACTION_COVER_PIC;
 import static com.mateyinc.marko.matey.activity.view.PictureViewActivity.ACTION_PROFILE_PIC;
-import static com.mateyinc.marko.matey.activity.view.PictureViewActivity.EXTRA_USER_ID;
 import static com.mateyinc.marko.matey.activity.view.PictureViewActivity.calculateInSampleSize;
 
 
@@ -403,7 +396,7 @@ public class UploadNewPictureActivity extends MotherActivity {
                 Context c = contextRef.get();
                 if (c != null) {
                     // Remove old pic from cache
-                    DataManager.getInstance(c).getRequestQueue().getCache().remove(
+                    OperationManager.getInstance(c).getRequestQueue().getCache().remove(
                             new StringBuilder(url.length() + 12).append("#W").append(300)
                                     .append("#H").append(300).append("#S").append(ImageView.ScaleType.CENTER_INSIDE).append(url)
                                     .toString()
@@ -431,7 +424,7 @@ public class UploadNewPictureActivity extends MotherActivity {
         });
 
         multipartRequest.setAuthHeader(MotherActivity.access_token);
-        DataManager.getInstance(this).submitRequest(multipartRequest);
+        OperationManager.getInstance(this).submitRequest(multipartRequest);
     }
 
     /**

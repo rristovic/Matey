@@ -3,13 +3,13 @@ package com.mateyinc.marko.matey.activity.adapters;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 public abstract class RecycleCursorAdapter extends RecyclerView.Adapter {
     protected Cursor mCursor;
     protected MotherActivity mContext;
-    protected DataManager mManager;
+    protected OperationManager mManager;
 
     @Override
     public int getItemCount() {

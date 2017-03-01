@@ -20,10 +20,10 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.adapters.BulletinRepliesAdapter;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
+import com.mateyinc.marko.matey.activity.home.NewPostActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
-import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.data.operations.UploadOp;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
@@ -31,8 +31,8 @@ import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
-import static com.mateyinc.marko.matey.data.DataManager.REPLIES_LOADER;
-import static com.mateyinc.marko.matey.data.DataManager.REPLIES_ORDER_BY;
+import static com.mateyinc.marko.matey.data.OperationManager.REPLIES_LOADER;
+import static com.mateyinc.marko.matey.data.OperationManager.REPLIES_ORDER_BY;
 
 public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -48,7 +48,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             "replies.".concat(ReplyEntry.COLUMN_LAST_NAME),
             "replies.".concat(ReplyEntry.COLUMN_TEXT),
             "replies.".concat(ReplyEntry.COLUMN_DATE),
-            "replies.".concat(ReplyEntry.COLUMN_NUM_OF_APPRVS),
+            "replies.".concat(ReplyEntry.COLUMN_NUM_OF_LIKES),
             "replies.".concat(ReplyEntry.COLUMN_POST_ID)
     };
 
@@ -69,8 +69,8 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     private RecyclerView rvList;
     private ImageButton ibBack;
     private TextView tvHeading, etReplyText;
-    private ImageView ivReply;
-    private DataManager mManager;
+    private ImageView ivReply, ivOpenReplyScreen;
+    private OperationManager mManager;
 
     private Bulletin mCurBulletin = null;
 
@@ -85,7 +85,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
     private void init() {
         Intent i = getIntent();
-        mManager = DataManager.getInstance(BulletinViewActivity.this);
+        mManager = OperationManager.getInstance(BulletinViewActivity.this);
 
         if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
             mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
@@ -99,6 +99,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         rvList = (RecyclerView) findViewById(R.id.rvBulletinRepliesList);
         tvHeading = (TextView) findViewById(R.id.tvReplyViewHeading);
         mAdapter = new BulletinRepliesAdapter(this, rvList);
+        ivOpenReplyScreen = (ImageView) findViewById(R.id.ivOpenReplyScreen);
         ivReply = (ImageView) findViewById(R.id.ivSendReply);
         ivReply.setEnabled(false);
         etReplyText = (TextView) findViewById(R.id.tvReply);
@@ -131,9 +132,11 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         rvList.setAdapter(mAdapter);
 
         // Notifying the adapter to show bulletin info if it is required by the starting intent
-        if (i.hasExtra(EXTRA_SHOW_BULLETIN)) {
-            mAdapter.showBulletinInfo(mCurBulletin);
-        }
+//        if (i.hasExtra(EXTRA_SHOW_BULLETIN)) {
+//            mAdapter.showBulletinInfo(mCurBulletin);
+//        }//
+      mAdapter.showBulletinInfo(mCurBulletin);
+
 
         // Init loader
         getSupportLoaderManager().initLoader(REPLIES_LOADER, null, this);
@@ -147,6 +150,14 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     }
 
     private void setListeners() {
+        ivOpenReplyScreen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(BulletinViewActivity.this, NewPostActivity.class);
+                i.putExtra(NewPostActivity.EXTRA_REPLY_SUBJECT, mCurBulletin.getMessage());// TODO - finish instead of getMessage
+                startActivity(i);
+            }
+        });
         ibBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -156,7 +167,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DataManager dm = DataManager.getInstance(BulletinViewActivity.this);
+                OperationManager dm = OperationManager.getInstance(BulletinViewActivity.this);
                 Reply r = new Reply();
                 UserProfile profile = mManager.getCurrentUserProfile();
 
@@ -174,9 +185,9 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 setHeadingText();
                 etReplyText.setText(null);
 
-                dm.addOperation(new UploadOp(r)).performOperations();
+//                dm.addOperation(new UploadOp(r)).performOperations();
 //                SessionManager networkManager = SessionManager.getInstance(BulletinViewActivity.this);
-//                networkManager.uploadNewReply(r, mCurBulletin, DataManager.getInstance(BulletinViewActivity.this),
+//                networkManager.uploadNewReply(r, mCurBulletin, OperationManager.getInstance(BulletinViewActivity.this),
 //                        MotherActivity.access_token, BulletinViewActivity.this);
 
 //                // Update number of replies in bulletin db

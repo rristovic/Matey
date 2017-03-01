@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.util.LruCache;
@@ -42,10 +41,8 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.DummyData;
-import com.mateyinc.marko.matey.data.JSONParserAs;
-import com.mateyinc.marko.matey.data.operations.AddToDatabaseOp;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -59,8 +56,6 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -71,15 +66,11 @@ import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
-import static com.mateyinc.marko.matey.data.internet.UrlData.GET_NEWSFEED_ROUTE;
-import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_AUTH_TYPE;
-import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_COUNT;
-import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_START_POS;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 
 
 /**
- * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER, DOWNLOAD & UPLOAD DATA)
+ * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER and AUTHENTICATE)
  */
 public class SessionManager {
     private static final String TAG = SessionManager.class.getSimpleName();
@@ -220,7 +211,7 @@ public class SessionManager {
     /** Method to check if user is logged in */
     private boolean isUserLoggedIn(SharedPreferences preferences) {
         // Only check if the id exists because on logout it gets deleted
-        long user_id = preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
+        long user_id = preferences.getLong(OperationManager.KEY_CUR_USER_ID, -1);
 
         return  user_id != -1;
     }
@@ -534,7 +525,7 @@ public class SessionManager {
                         // Set up the input
                         final EditText input = new EditText(context);
                         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        int margin = Util.parseDp(16, context.getResources());
+                        int margin = (int)Util.parseDp(16, context.getResources());
                         layoutParams.setMargins(margin, 0, margin, 0);
                         // Specify the type of input expected; sets the input as a password, and will mask the text
                         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -656,7 +647,7 @@ public class SessionManager {
                 // Parsing response.data
                 try {
                     JSONObject object = new JSONObject(response);
-                    parseUserDataAndLogin(context, DataManager.getInstance(context), preferences, object);
+                    parseUserDataAndLogin(context, OperationManager.getInstance(context), preferences, object);
                     dismissProgressDialog(mProgDialog);
                 } catch (JSONException e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
@@ -715,12 +706,12 @@ public class SessionManager {
 
     /**
      * Parsing data and calling login process {@link #loggedIn(MainActivity)}
-     * @see #parseUserData(DataManager, SharedPreferences, JSONObject)
+     * @see #parseUserData(OperationManager, SharedPreferences, JSONObject)
      */
-    private void parseUserDataAndLogin(MainActivity context, DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
+    private void parseUserDataAndLogin(MainActivity context, OperationManager operationManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parse the data
 
-        parseUserData( dataManager, preferences, object);
+        parseUserData(operationManager, preferences, object);
 
         // Check if the response object has suggested friends list
         if  (object.has(KEY_SUGGESTED_FRIENDS)) {
@@ -737,7 +728,7 @@ public class SessionManager {
                 list.add(profile);
             }
             // Add suggested friends list only in memory, not in db
-            dataManager.setSuggestedFriends(list);
+            operationManager.setSuggestedFriends(list);
             // Login
             loggedInWithSuggestedFriends(context);
         } else
@@ -746,12 +737,12 @@ public class SessionManager {
 
     /** Method for parsing the user data retrieved from the server when trying to login
      *
-     * @param dataManager the {@link DataManager} instance used to store data
+     * @param operationManager the {@link OperationManager} instance used to store data
      * @param preferences the {@link SharedPreferences} instance used to store data
      * @param object json object which contains {@link #KEY_FIRST_NAME}, {@link #KEY_LAST_NAME}, {@link #KEY_EMAIL}, {@link #KEY_PROFILE_PICTURE};
      * @throws JSONException the exception is thrown if json conversion fails
      */
-    private void parseUserData(final DataManager dataManager, SharedPreferences preferences, JSONObject object) throws JSONException{
+    private void parseUserData(final OperationManager operationManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parsing user
         final UserProfile userProfile = new UserProfile(object.getInt(KEY_USER_ID),
                 object.getString(KEY_FIRST_NAME),
@@ -760,16 +751,16 @@ public class SessionManager {
                 object.getString(KEY_PROFILE_PICTURE));
 
         // Adding current user to the database
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                dataManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
-            }
-        });
-        t.start();
+//        Thread t = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                operationManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
+//            }
+//        });
+//        t.start();
 
         // Adding current user to the memory
-        dataManager.setCurrentUserProfile(preferences, userProfile);
+        operationManager.setCurrentUserProfile(preferences, userProfile);
     }
 
     /** Method for retrieving error description message collected from the server
@@ -920,13 +911,13 @@ public class SessionManager {
 
     public static void clearUserCredentials(Context context, SecurePreferences securePreferences) {
         SharedPreferences preferences = getDefaultSharedPreferences(context);
-        DataManager dataManager = DataManager.getInstance(context);
+        OperationManager operationManager = OperationManager.getInstance(context);
 
         // Removing current user profile from db
-        dataManager.removeUserProfile(preferences.getLong(DataManager.KEY_CUR_USER_ID, -1));
+        operationManager.removeUserProfile(preferences.getLong(OperationManager.KEY_CUR_USER_ID, -1));
 
         // Removing current user  profile from prefs
-        dataManager.setCurrentUserProfile(preferences, null);
+        operationManager.setCurrentUserProfile(preferences, null);
 
         // Clearing user credentials
         securePreferences.removeValue(KEY_ACCESS_TOKEN);
@@ -1004,59 +995,7 @@ public class SessionManager {
         Log.d(TAG, "Uploading failed data.");
     }
 
-    /**
-     * Method for downloading and parsing news feed from the server, and all data around it
-     * @param start the start position of the bulletin
-     * @param count the total bulletin count that needs to be downloaded in a single burst
-     * @param context the Context used for notifying when the parsing result is complete
-     */
-    public void downloadNewsFeed(int start, int count, Context context) {
 
-        Log.d(TAG, "Downloading news feed. Start position=".concat(Integer.toString(start))
-                .concat("; Count=").concat(Integer.toString(count)));
-
-        Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
-        builder.appendQueryParameter(PARAM_START_POS, Integer.toString(start))
-                .appendQueryParameter(PARAM_COUNT, Integer.toString(count));
-        URL url;
-        try {
-            url = new URL(builder.build().toString());
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "Downloading failed: " + e.getLocalizedMessage(), e);
-            return;
-        }
-
-        final WeakReference<Context> ref = new WeakReference<Context>(context);
-        MateyRequest request = new MateyRequest(Request.Method.GET, url.toString(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                if (ref.get() != null) {
-                     new JSONParserAs(ref.get()).execute(response);
-                }
-            }
-
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(MateyRequest.TAG, error.getLocalizedMessage(), error);
-            }
-        });
-        request.setAuthHeader(PARAM_AUTH_TYPE, String.format("Bearer %s", MotherActivity.access_token));
-
-        mRequestQueue.add(request);
-    }
-
-    /**
-     * Helper method for downloading news feed from the server to the database;
-     * Downloads {@value DataManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server;
-     * Automatically determines from what bulletin position to startDownloadAction by calling {@link DataManager#getNumOfBulletinsInDb()}
-     *
-     * @param context the context of activity which is calling this method
-     */
-    public void downloadNewsFeed(final Context context) {
-        int start = DataManager.getInstance(context).getNumOfBulletinsInDb();
-        downloadNewsFeed(start, DataManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
-    }
 
     /**
      * Helper method used to startUploadAction followed friends list, by the current user, to the server;
@@ -1123,18 +1062,18 @@ public class SessionManager {
 
         // Saves the time when token is created
         final SharedPreferences preferences = getDefaultSharedPreferences(context);
-         preferences.edit().putLong(DataManager.KEY_CUR_USER_ID, 666).apply();
+         preferences.edit().putLong(OperationManager.KEY_CUR_USER_ID, 666).apply();
 
         // Adding current user to the database
-        DataManager dataManager = DataManager.getInstance(context);
+        OperationManager operationManager = OperationManager.getInstance(context);
         UserProfile userProfile = new UserProfile(666,
                 context.getString(R.string.dev_name),
                 context.getString(R.string.dev_lname),
                 context.getString(R.string.dev_email),
                 context.getString(R.string.dev_pic));
         userProfile.setNumOfFriends(40);
-        dataManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
-        dataManager.setCurrentUserProfile(preferences, userProfile);
+//        operationManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
+        operationManager.setCurrentUserProfile(preferences, userProfile);
 
         // Close progress dialog
         if (mProgDialog != null && mProgDialog.isShowing())

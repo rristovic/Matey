@@ -19,9 +19,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
-import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.data.OperationFactory;
-import com.mateyinc.marko.matey.data.operations.Operations;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
@@ -79,18 +77,16 @@ public class FollowersActivity extends MotherActivity {
     public void getData() {
         if (mScrollListener != null)
             mScrollListener.mLoading = true;
-        int position = 0;
         int offset = 0;
-        final int limit = 20;
+        int count = 20;
 
-        OperationFactory factory = OperationFactory.getInstance(this);
-        Operations downloadFollowers = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
-        downloadFollowers.addSuccessListener(new Response.Listener<String>() {
+        OperationManager manager = OperationManager.getInstance(FollowersActivity.this);
+        manager.addSuccessListener(new Response.Listener<String>() {
             @Override
             public void onResponse(final String response) {
                 if (mScrollListener != null)
                     mScrollListener.mLoading = false;
-                DataManager.getInstance(FollowersActivity.this).submitRunnable(new Runnable() {
+                OperationManager.getInstance(FollowersActivity.this).submitRunnable(new Runnable() {
                     @Override
                     public void run() {
                         final LinkedList<Object[]> list = parseData(response);
@@ -106,37 +102,40 @@ public class FollowersActivity extends MotherActivity {
                 });
             }
         });
-        downloadFollowers.addFailedListener(new Response.ErrorListener() {
+        manager.addErrorListener(new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 if (mScrollListener != null)
-                mScrollListener.mLoading = false;
+                    mScrollListener.mLoading = false;
             }
         });
 
-        Intent i = getIntent();
-        if (i.getAction().equals(ACTION_FOLLOWERS)) {
-            downloadFollowers.startDownloadAction(
-                    UserProfileOp.getFollowersListAction(i.getLongExtra(EXTRA_PROFILE_ID, -1), offset, limit)
-            );
+        manager.downloadFollowers(offset, count,
+                getIntent().getLongExtra(EXTRA_PROFILE_ID, -1), FollowersActivity.this);
 
-            // Setting header
-            char[] text = getString(R.string.followers_label).toCharArray();
-            text[0] = Character.toUpperCase(text[0]);
-            String label = new String(text);
-            tvHeading.setText(label);
-        }
-        else {
-            downloadFollowers.startDownloadAction(
-                    UserProfileOp.getFollowingListAction(i.getLongExtra(EXTRA_PROFILE_ID, -1), offset, limit));
-
-            // Setting header
-            char[] text = getString(R.string.following_label).toCharArray();
-            text[0] = Character.toUpperCase(text[0]);
-            String label = new String(text);
-            tvHeading.setText(label);
-        }
-
+//        Intent i = getIntent();
+//        if (i.getAction().equals(ACTION_FOLLOWERS)) {
+//            downloadFollowers.startDownloadAction(
+//                    UserProfileOp.getFollowersListAction(i.getLongExtra(EXTRA_PROFILE_ID, -1), offset, limit)
+//            );
+//
+//            // Setting header
+//            char[] text = getString(R.string.followers_label).toCharArray();
+//            text[0] = Character.toUpperCase(text[0]);
+//            String label = new String(text);
+//            tvHeading.setText(label);
+//        }
+//        else {
+//            downloadFollowers.startDownloadAction(
+//                    UserProfileOp.getFollowingListAction(i.getLongExtra(EXTRA_PROFILE_ID, -1), offset, limit));
+//
+//            // Setting header
+//            char[] text = getString(R.string.following_label).toCharArray();
+//            text[0] = Character.toUpperCase(text[0]);
+//            String label = new String(text);
+//            tvHeading.setText(label);
+//        }
+//
     }
 
     /**
@@ -228,22 +227,16 @@ public class FollowersActivity extends MotherActivity {
             return new ViewHolder(view, new ViewHolder.ViewHolderListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked, int position) {
-                    // Because button will be set to checked state programmatically to update UI,
-                    // first check if the user is already being followed so that it doesn't upload
-                    OperationFactory factory = OperationFactory.getInstance(mContext);
-                    Operations userProfileOp = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
+//                    // Because button will be set to checked state programmatically to update UI,
+//                    // first check if the user is already being followed so that it doesn't upload
                     if (isChecked && !(boolean)data.get(position)[COL_FOLLOWING]) {
                         // Follow current user only when checked and user is not being followed
-                        userProfileOp.startUploadAction(
-                                UserProfileOp.followNewUserAction((long)data.get(position)[COL_ID])
-                        );
+                        OperationManager.getInstance(mContext).followNewUser((long)data.get(position)[COL_ID], FollowersActivity.this);
                         // Update data
                         data.get(position)[COL_FOLLOWING] = true;
                     } else if(!isChecked && (boolean)data.get(position)[COL_FOLLOWING]) {
                         // unfollow cur user only when unchecked and user is followed
-                        userProfileOp.startUploadAction(
-                                UserProfileOp.unfollowUserAction((long)data.get(position)[COL_ID])
-                        );
+                        OperationManager.getInstance(mContext).unfollowUser((long)data.get(position)[COL_ID], FollowersActivity.this);
                         // Update data
                         data.get(position)[COL_FOLLOWING] = false;
                     }
@@ -262,7 +255,7 @@ public class FollowersActivity extends MotherActivity {
         public void onBindViewHolder(final ViewHolder holder, int position) {
             Object[] currentData = data.get(position);
 
-            DataManager.getInstance(FollowersActivity.this).mImageLoader.get((String)currentData[COL_PIC],
+            OperationManager.getInstance(FollowersActivity.this).mImageLoader.get((String)currentData[COL_PIC],
                     new ImageLoader.ImageListener() {
                         @Override
                         public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {

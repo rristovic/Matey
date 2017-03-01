@@ -30,15 +30,15 @@ public class JSONParserAs extends AsyncTask<String, Void, Void> {
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mContext);
 
         try {
-            DataManager.getInstance(mContext).parseBulletins(params[0]);
+            OperationManager.getInstance(mContext).parseBulletins(params[0]);
         } catch (JSONException | ParseException e) {
             Log.e(TAG, e.getLocalizedMessage(),e);
-            Intent i = new Intent(DataManager.BULLETIN_LIST_LOAD_FAILED);
+            Intent i = new Intent(OperationManager.BULLETIN_LIST_LOAD_FAILED);
             broadcastManager.sendBroadcast(i);
             return null;
         }
 
-        Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
+        Intent i = new Intent(OperationManager.BULLETIN_LIST_LOADED);
         broadcastManager.sendBroadcast(i);
 
         return null;

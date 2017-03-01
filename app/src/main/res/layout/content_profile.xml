@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contentView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/gray_background_color"
+    android:focusableInTouchMode="true"
+    tools:context="com.mateyinc.marko.matey.activity.profile.ProfileActivity"
+    tools:showIn="@layout/activity_profile">
+
+    <ImageView
+        android:id="@+id/ivCoverPic"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/profile_cover_dimen"
+        android:elevation="@dimen/main_elevation"
+        android:scaleType="centerCrop"
+        android:src="@color/bg_transparent"
+        app:layout_scrollFlags="scroll|enterAlways"
+        />
+
+    <RelativeLayout
+        android:id="@+id/rlMainInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ivCoverPic"
+        android:background="@color/white"
+        android:elevation="@dimen/main_elevation"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvFollowingNum"
+            android:layout_width="@dimen/profile_info_mates_tv_size"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginEnd="@dimen/profile_info_mates_margin"
+            android:layout_marginRight="@dimen/profile_info_mates_margin"
+            android:layout_marginTop="@dimen/profile_info_mates_margin_top"
+            android:gravity="center"
+            android:text="0"
+            android:textColor="@color/black"
+            android:textSize="@dimen/profile_info_mates_text_size" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="@dimen/profile_info_mates_tv_size"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@id/tvFollowingNum"
+            android:layout_alignRight="@id/tvFollowingNum"
+            android:layout_below="@id/tvFollowingNum"
+            android:gravity="center"
+            android:text="@string/following_label"
+            android:textColor="@color/black"
+            android:textSize="@dimen/profile_info_mates_title_text_size" />
+
+        <TextView
+            android:id="@+id/tvFollowersNum"
+            android:layout_width="@dimen/profile_info_mates_tv_size"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="@dimen/profile_info_mates_margin"
+            android:layout_marginStart="@dimen/profile_info_mates_margin"
+            android:layout_marginTop="@dimen/profile_info_mates_margin_top"
+            android:gravity="center"
+            android:text="0"
+            android:textColor="@color/black"
+            android:textSize="@dimen/profile_info_mates_text_size" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="@dimen/profile_info_mates_tv_size"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@id/tvFollowersNum"
+            android:layout_alignStart="@id/tvFollowersNum"
+            android:layout_below="@id/tvFollowersNum"
+            android:gravity="center"
+            android:text="@string/followers_label"
+            android:textColor="@color/black"
+            android:textSize="@dimen/profile_info_mates_title_text_size" />
+
+        <TextView
+            android:id="@+id/tvBadgeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textView"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/profile_badge_margin_top"
+            android:text="super human"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvBadgeTitle"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/profile_name_margin_top"
+            android:text="Radovan Ristovic"
+            android:textColor="@color/black"
+            android:textSize="@dimen/profile_info_name_text_size" />
+
+        <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvName"
+            android:layout_centerHorizontal="true"
+            android:text="Moscow, RU"
+            android:textColor="@color/black"
+            android:textSize="@dimen/profile_info_mates_title_text_size" />
+
+        <RelativeLayout
+            android:id="@+id/llBadges"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvLocation"
+            android:layout_marginEnd="@dimen/badges_margin"
+            android:layout_marginLeft="@dimen/badges_margin"
+            android:layout_marginRight="@dimen/badges_margin"
+            android:layout_marginStart="@dimen/badges_margin"
+            android:layout_marginTop="@dimen/badges_margin_top"
+            android:orientation="horizontal">
+
+
+            <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+                android:id="@+id/civFirstBadge"
+                android:layout_width="@dimen/badge_size"
+                android:layout_height="@dimen/badge_image_size"
+                android:src="@drawable/empty_photo"
+                app:riv_border_color="@color/white"
+                app:riv_border_width="1dp"
+                app:riv_oval="true" />
+
+            <TextView
+                android:id="@+id/tvFirstBadge"
+                android:layout_width="@dimen/badge_size"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/civFirstBadge"
+                android:gravity="center"
+                android:text="0" />
+
+            <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+                android:id="@+id/civSecondBadge"
+                android:layout_width="@dimen/badge_size"
+                android:layout_height="@dimen/badge_image_size"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/empty_photo"
+
+                app:riv_border_color="@color/white"
+                app:riv_border_width="1dp"
+                app:riv_oval="true" />
+
+            <TextView
+                android:id="@+id/tvSecondBadge"
+                android:layout_width="@dimen/badge_size"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/civSecondBadge"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:text="0" />
+
+            <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+                android:id="@+id/civThirdBadge"
+                android:layout_width="@dimen/badge_size"
+                android:layout_height="@dimen/badge_image_size"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/empty_photo"
+                app:riv_border_color="@color/white"
+                app:riv_border_width="1dp"
+                app:riv_oval="true" />
+
+
+            <TextView
+                android:id="@+id/tvThirdBadge"
+                android:layout_width="@dimen/badge_size"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@id/civThirdBadge"
+                android:gravity="center"
+                android:text="0" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/llMainButtons"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/profile_buttons_size"
+            android:layout_below="@+id/llBadges"
+            android:layout_marginEnd="@dimen/profile_buttons_margin"
+            android:layout_marginLeft="@dimen/profile_buttons_margin"
+            android:layout_marginRight="@dimen/profile_buttons_margin"
+            android:layout_marginStart="@dimen/profile_buttons_margin"
+            android:layout_marginTop="@dimen/profile_name_margin_top"
+            android:orientation="horizontal">
+
+
+            <ToggleButton
+                android:id="@+id/tBtnSailWith"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/profile_buttons_distance"
+                android:layout_marginRight="@dimen/profile_buttons_distance"
+                android:layout_weight="1"
+                android:background="@drawable/profile_btn"
+                android:checked="false"
+                android:textColor="@color/profile_btn"
+                android:textOff="@string/sail_with_label"
+                android:textOn="@string/sailing_with_label" />
+
+            <Button
+                android:id="@+id/btnSendMsg"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/profile_buttons_distance"
+                android:layout_marginStart="@dimen/profile_buttons_distance"
+                android:layout_weight="1"
+                android:background="@drawable/profile_btn"
+                android:text="@string/send_letter_label"
+                android:textColor="@color/profile_btn" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+        android:id="@+id/ivProfilePic"
+        android:layout_width="@dimen/profile_pic_dimen"
+        android:layout_height="@dimen/profile_pic_dimen"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/profile_pic_margin_top"
+        android:elevation="@dimen/main_elevation"
+        android:scaleType="centerCrop"
+        android:src="@drawable/empty_photo"
+
+        app:riv_border_color="@color/white"
+        app:riv_border_width="2dp"
+        app:riv_oval="true" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvActivities"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_below="@id/rlMainInfo"
+        app:layoutManager="LinearLayoutManager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+</RelativeLayout>

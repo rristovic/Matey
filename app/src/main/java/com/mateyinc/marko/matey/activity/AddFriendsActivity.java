@@ -9,7 +9,7 @@ import android.widget.Button;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.AddFriendsAdapter;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -38,7 +38,7 @@ public class AddFriendsActivity extends MotherActivity {
         mAdapter = new AddFriendsAdapter(this);
 
         mRecycleView.setAdapter(mAdapter);
-        mAdapter.setData(DataManager.getInstance(this).getSuggestedFriendsList());
+        mAdapter.setData(OperationManager.getInstance(this).getSuggestedFriendsList());
 
         setClickListeners();
     }
@@ -49,7 +49,7 @@ public class AddFriendsActivity extends MotherActivity {
             public void onClick(View v) {
                 LinkedList list = mAdapter.getAllFriends();
                 // Add friends to database and to the server
-                DataManager.getInstance(AddFriendsActivity.this).
+                OperationManager.getInstance(AddFriendsActivity.this).
                         addUserProfiles(new ArrayList<UserProfile>(list), true);
                 SessionManager.getInstance(AddFriendsActivity.this)
                         .uploadFollowedFriends(new ArrayList<UserProfile>(list), MotherActivity.access_token, AddFriendsActivity.this);
@@ -67,7 +67,7 @@ public class AddFriendsActivity extends MotherActivity {
                 // Add friends to database and to the server
 
                 if (list.size() != 0) {
-                    DataManager.getInstance(AddFriendsActivity.this).
+                    OperationManager.getInstance(AddFriendsActivity.this).
                             addUserProfiles(new ArrayList<UserProfile>(list), true);
                     SessionManager.getInstance(AddFriendsActivity.this)
                             .uploadFollowedFriends(new ArrayList<UserProfile>(list), MotherActivity.access_token, AddFriendsActivity.this);

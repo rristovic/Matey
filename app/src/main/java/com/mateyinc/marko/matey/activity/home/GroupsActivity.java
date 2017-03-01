@@ -227,8 +227,6 @@ public class GroupsActivity extends MotherActivity {
             }
             return null;
         }
-
-
     }
 
 

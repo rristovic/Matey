@@ -10,7 +10,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -26,8 +26,8 @@ import java.net.URLEncoder;
 public class UserProfileAs extends AsyncTask<String, Void, String> {
     private static final String TAG = UserProfileAs.class.getSimpleName();
 
-    private final DataManager mManager;
-    private final DataManager mDataManager;
+    private final OperationManager mManager;
+    private final OperationManager mOperationManager;
     // TODO - rework weak reference
     MotherActivity activity;
     private WeakReference<UserProfile> mUserProfile;
@@ -36,16 +36,16 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     public UserProfileAs(MotherActivity activity, WeakReference<UserProfile> userProfile, long reqUserId) {
         this.activity = activity;
         this.mUserProfile = userProfile;
-        mManager = DataManager.getInstance(activity);
-        mDataManager = DataManager.getInstance(activity);
+        mManager = OperationManager.getInstance(activity);
+        mOperationManager = OperationManager.getInstance(activity);
         mUserId = reqUserId;
     }
 
     @Override
     protected void onPreExecute() {
 
-        if(mUserId == mDataManager.getCurrentUserProfile().getUserId()){
-            mUserProfile.get().setData(mDataManager.getCurrentUserProfile());
+        if(mUserId == mOperationManager.getCurrentUserProfile().getUserId()){
+            mUserProfile.get().setData(mOperationManager.getCurrentUserProfile());
             notifyActivity();
             this.cancel(true);
             return;
@@ -138,7 +138,7 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
                         profile.setNumOfPosts(dataObj.getInt("num_of_posts"));
 
                         // Adding to db
-//                        mDataManager.addUserProfile(profile);
+//                        mOperationManager.addUserProfile(profile);
 
                         notifyActivity();
                         Log.d("UserProfileAs", "Profile data is downloaded.");

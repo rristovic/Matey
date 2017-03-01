@@ -6,7 +6,7 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.http.HTTP;
 
 import org.json.JSONArray;
@@ -20,8 +20,8 @@ import java.net.URLEncoder;
 public class BulletinAs extends AsyncTask<String, Void, String> {
 
     HomeActivity mContext;
-    DataManager mBulletinManager;
-    DataManager mDataManager;
+    OperationManager mBulletinManager;
+    OperationManager mOperationManager;
 
     /**
      * Indicates if BulletinAs Async task is started for the first time in application or not.
@@ -31,8 +31,8 @@ public class BulletinAs extends AsyncTask<String, Void, String> {
 
     public BulletinAs(HomeActivity activity) {
         this.mContext = activity;
-        mBulletinManager = DataManager.getInstance(activity);
-        mDataManager = DataManager.getInstance(activity);
+        mBulletinManager = OperationManager.getInstance(activity);
+        mOperationManager = OperationManager.getInstance(activity);
     }
 
     @Override

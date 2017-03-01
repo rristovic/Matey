@@ -104,8 +104,8 @@ public class Util {
 //        return oS.toString();
 //    }
 
-    public static int parseDp(int value, Resources res) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, res.getDisplayMetrics());
+    public static float parseDp(float value, Resources res) {
+        return  TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, res.getDisplayMetrics());
     }
 
     /**

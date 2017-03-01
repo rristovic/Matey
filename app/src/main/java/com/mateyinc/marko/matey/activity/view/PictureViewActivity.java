@@ -19,7 +19,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.io.File;
@@ -94,7 +94,7 @@ public class PictureViewActivity extends MotherActivity {
             btnChangePic = (Button) findViewById(R.id.btnChangePic);
 
         // Loading and setting data
-        DataManager.getInstance(this).mImageLoader.get(picLink,
+        OperationManager.getInstance(this).mImageLoader.get(picLink,
                 new ImageLoader.ImageListener() {
                     @Override
                     public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {

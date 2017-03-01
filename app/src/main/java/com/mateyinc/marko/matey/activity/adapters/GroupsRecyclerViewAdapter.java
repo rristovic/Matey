@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 
 /**
  * Created by Sarma on 8/30/2016.
@@ -19,11 +19,11 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
 
 
     private final Context mContext;
-    private final DataManager mManager;
+    private final OperationManager mManager;
 
     public GroupsRecyclerViewAdapter(Context context) {
         mContext = context;
-        mManager = DataManager.getInstance(context);
+        mManager = OperationManager.getInstance(context);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
             super(view);
             mView = view;
 //            mProfilePic = (ImageView) view.findViewById(R.id.ivNotifProfilePic);
-            mNotifText = (TextView) view.findViewById(R.id.tvText);
+            mNotifText = (TextView) view.findViewById(R.id.tvMessage);
 //            mTime = (TextView) view.findViewById(R.id.tvNotifTime);
         }
     }

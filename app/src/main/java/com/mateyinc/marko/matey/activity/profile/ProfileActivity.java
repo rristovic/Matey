@@ -1,26 +1,39 @@
 package com.mateyinc.marko.matey.activity.profile;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.util.LruCache;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
 import android.view.TouchDelegate;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -30,10 +43,7 @@ import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.DataManager;
-import com.mateyinc.marko.matey.data.OperationFactory;
-import com.mateyinc.marko.matey.data.operations.Operations;
-import com.mateyinc.marko.matey.data.operations.UserProfileOp;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_COVER_PATH;
@@ -77,14 +87,23 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 
     private TextView tvName, tvFollowersNum, tvFollowingNum;
     private ImageView ivProfilePic, ivCoverPic;
+    private ImageButton ibSettings;
     private ToggleButton tBtnSailWith;
+    private RecyclerView rvActivities;
+    private RelativeLayout rlBadges;
     private Button btnSendMsg;
     private TextView tvHeading;
+    private ScrollView svScrollFrame;
+
     private String mPicLink = "";
     private String mCoverLink = "";
-
     private long mUserId;
     private boolean isCurUser = false;
+
+    // Position used for scroll control
+    private float mBadgesPos;
+
+    private OperationManager mOpManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +118,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 
         setChildSupportActionBar();
         init();
-        setClickListeners();
+        setListeners();
         readData();
     }
 
@@ -108,11 +127,14 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getLongExtra(EXTRA_PROFILE_ID, -1);
         else {
-            mUserId = DataManager.getInstance(ProfileActivity.this).getCurrentUserProfile().getUserId();
+            mUserId = OperationManager.getInstance(ProfileActivity.this).getCurrentUserProfile().getUserId();
             isCurUser = true;
         }
 
+         mOpManager = OperationManager.getInstance(this);
+
         // UI bounding
+        svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
         ivCoverPic = (ImageView) findViewById(R.id.ivCoverPic);
         tvName = (TextView) findViewById(R.id.tvName);
@@ -120,34 +142,67 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         tvFollowingNum = (TextView) findViewById(R.id.tvFollowingNum);
         tBtnSailWith = (ToggleButton) findViewById(R.id.tBtnSailWith);
         btnSendMsg = (Button) findViewById(R.id.btnSendMsg);
+        rlBadges = (RelativeLayout) findViewById(R.id.llBadges);
+        rvActivities = (RecyclerView) findViewById(R.id.rvActivities);
+        ibSettings = (ImageButton) findViewById(R.id.ibSettings);
         if (isCurUser) {
             LinearLayout layout = (LinearLayout) findViewById(R.id.llMainButtons);
             layout.removeAllViews();
             layout.setVisibility(View.GONE);
+            ibSettings.setVisibility(View.GONE);
+        }
+
+        rvActivities.setAdapter(new Adatpter());
+        final LayoutManager layoutManager = new LayoutManager(ProfileActivity.this);
+        rvActivities.setLayoutManager(layoutManager);
+    }
+
+    private class LayoutManager extends LinearLayoutManager {
+
+        boolean isScrollEnabled = true;
+
+        public LayoutManager(Context context) {
+            super(context);
+        }
+
+        @Override
+        public boolean canScrollVertically() {
+            return isScrollEnabled && super.canScrollVertically();
         }
     }
 
-    private void setClickListeners() {
+    private void setListeners() {
         if (!isCurUser) {
             tBtnSailWith.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    OperationFactory factory = OperationFactory.getInstance(ProfileActivity.this);
-                    Operations userProfileOp = factory.getOperation(OperationFactory.OperationType.USER_PROFILE_OP);
                     if (isChecked) {
                         // Follow/following current user
-                        userProfileOp.startUploadAction(
-                                UserProfileOp.followNewUserAction(mUserId)
-                        );
+                        mOpManager.followNewUser(mUserId, ProfileActivity.this);
                     } else {
                         // unfollow/not following cur user
-                        userProfileOp.startUploadAction(
-                                UserProfileOp.unfollowUserAction(mUserId)
-                        );
+                        mOpManager.unfollowUser(mUserId, ProfileActivity.this);
                     }
                 }
             });
+
+            ibSettings.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(ProfileActivity.this);
+                    dialog.setAdapter(new ArrayAdapter<String>(ProfileActivity.this,
+                                    android.R.layout.simple_list_item_1, new String[]{getString(R.string.action_block)}),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // TODO - finish block feature
+                                }
+                            })
+                            .setTitle(null).create().show();
+                }
+            });
         }
+
 
         tvFollowersNum.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -203,15 +258,41 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
                 );
             }
         });
+
+        tvFollowersNum.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int[] ints = new int[2];
+                tvFollowersNum.getLocationOnScreen(ints);
+                mBadgesPos = ints[1];
+
+                //Remove the listener before proceeding
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    tvFollowingNum.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    tvFollowingNum.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+            }
+        });
+
+//        svScrollFrame.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+//            @Override
+//            public void onScrollChanged() {
+//                int scrollY = svScrollFrame.getScrollY(); // For ScrollView
+////                int scrollX = rootScrollView.getScrollX(); // For HorizontalScrollView
+//                // DO SOMETHING WITH THE SCROLL COORDINATES
+//            }
+//        });
     }
 
     /**
      * Create intent to view the image
+     *
      * @param intentAction action can be <br>{@link PictureViewActivity#ACTION_COVER_PIC}, {@link PictureViewActivity#ACTION_PROFILE_PIC}
-     * @param picLink string picture link
+     * @param picLink      string picture link
      * @return newly create intent
      */
-    private Intent getViewIntent(String intentAction, String picLink){
+    private Intent getViewIntent(String intentAction, String picLink) {
         Intent i = new Intent(ProfileActivity.this, PictureViewActivity.class);
         i.putExtra(PictureViewActivity.EXTRA_PIC_LINK, picLink);
         i.putExtra(PictureViewActivity.EXTRA_IS_CUR_USER, isCurUser);
@@ -228,11 +309,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         // Initialise LoaderManager
         getSupportLoaderManager().initLoader(0, null, this);
         // Download new data
-        OperationFactory factory = OperationFactory.getInstance(this);
-        Operations operations = factory.getOperation(
-                OperationFactory.OperationType.USER_PROFILE_OP);
-        operations.startDownloadAction(
-                UserProfileOp.getUserProfileAction(mUserId));
+        mOpManager.downloadUserProfile(mUserId, this);
     }
 
     @Override
@@ -241,7 +318,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 
 //        ivProfilePic.setImageBitmap(((Bitmap) intent.getParcelableExtra(EXTRA_PIC_BITMAP)));
 //        ivProfilePic.setColorFilter(Color.argb(125, 0, 0, 0));
-//        DataManager.getInstance(this).mImageLoader.isCached("",1,1);
+//        OperationManager.getInstance(this).mImageLoader.isCached("",1,1);
     }
 
 
@@ -266,10 +343,10 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 
         if (mPicLink.equals(FLAG_CHANGED)) {
             mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI,"");
+                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
             loadTempPic(FLAG_PROFILE_CHANGED);
         } else
-            DataManager.getInstance(this).mImageLoader.get(mPicLink,
+            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
                     new ImageLoader.ImageListener() {
                         @Override
                         public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
@@ -284,10 +361,10 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 
         if (mCoverLink.equals(FLAG_CHANGED)) {
             mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_COVER_URI,"");
+                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
             loadTempPic(FLAG_COVER_CHANGED);
         } else
-            DataManager.getInstance(this).mImageLoader.get(mCoverLink,
+            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
                     new ImageLoader.ImageListener() {
                         @Override
                         public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
@@ -313,29 +390,30 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     private void loadTempPic(final String flagTypeChanged) {
         // TODO - finish loading temp pic and saving it
         ImageLoader loader = new ImageLoader(Volley.newRequestQueue(getApplicationContext()), new ImageLoader.ImageCache() {
-                private final LruCache<String, Bitmap>
-                        cache = new LruCache<String, Bitmap>(2);
-                @Override
-                public Bitmap getBitmap(String url) {
-                    // Get image path
-                    if (flagTypeChanged.equals(FLAG_COVER_CHANGED)) {
-                        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                        String path = pref.getString(KEY_COVER_PATH, "");
-                        return BitmapFactory.decodeFile(path);
-                    } else if (flagTypeChanged.equals(FLAG_PROFILE_CHANGED)) {
-                        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                        String path = pref.getString(KEY_PROF_PIC_PATH, "");
-                        return BitmapFactory.decodeFile(path);
-                    }
+            private final LruCache<String, Bitmap>
+                    cache = new LruCache<String, Bitmap>(2);
 
-                    return cache.get(url);
+            @Override
+            public Bitmap getBitmap(String url) {
+                // Get image path
+                if (flagTypeChanged.equals(FLAG_COVER_CHANGED)) {
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                    String path = pref.getString(KEY_COVER_PATH, "");
+                    return BitmapFactory.decodeFile(path);
+                } else if (flagTypeChanged.equals(FLAG_PROFILE_CHANGED)) {
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                    String path = pref.getString(KEY_PROF_PIC_PATH, "");
+                    return BitmapFactory.decodeFile(path);
                 }
 
-                @Override
-                public void putBitmap(String url, Bitmap bitmap) {
-                    cache.put(url, bitmap);
-                }
-            });
+                return cache.get(url);
+            }
+
+            @Override
+            public void putBitmap(String url, Bitmap bitmap) {
+                cache.put(url, bitmap);
+            }
+        });
 
         int width, height;
 
@@ -368,12 +446,44 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     public void onLoaderReset(Loader<Cursor> loader) {
     }
 
-    private static ImageLoader loader;
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_profile, menu);
+    }
 
-    // Used by profile activity and picture view activity
-    private static ImageLoader getImageLoader(final Context context) {
+    private class Adatpter extends RecyclerView.Adapter<ViewHolder> {
 
 
-        return loader;
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            TextView view = new TextView(parent.getContext());
+            ViewGroup.LayoutParams layoutParams = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
+            view.setLayoutParams(layoutParams);
+            view.setText("Lorem Ipsum");
+
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return 20;
+        }
+
+
+    }
+
+    private static class ViewHolder extends RecyclerView.ViewHolder {
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+        }
     }
 }

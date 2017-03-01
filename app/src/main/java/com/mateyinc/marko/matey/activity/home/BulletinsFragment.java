@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -16,26 +17,26 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static com.mateyinc.marko.matey.data.DataManager.BULLETIN_COLUMNS;
+import static com.mateyinc.marko.matey.data.OperationManager.BULLETIN_COLUMNS;
 
 public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -56,7 +57,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     private LinearLayout llNoData;
     private LinearLayout rlNewPostView;
     private ProgressBar mProgressBar;
-    private FrameLayout mMainFeedLayout;
+    private CoordinatorLayout mMainFeedLayout;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -77,31 +78,42 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mMainFeedLayout = (FrameLayout) inflater.inflate(R.layout.fragment_bulletins, container, false);
+        mMainFeedLayout = (CoordinatorLayout) inflater.inflate(R.layout.fragment_bulletins, container, false);
 
-        llNoData = (LinearLayout) mMainFeedLayout.findViewById(R.id.llNoData);
-        rlNewPostView = (LinearLayout) mMainFeedLayout.findViewById(R.id.rlNewPostView);
-        rlNewPostView.removeViewAt(1);
-        mProgressBar = (ProgressBar) mMainFeedLayout.findViewById(R.id.pbDataLoading);
+//        llNoData = (LinearLayout) mMainFeedLayout.findViewById(R.id.llNoData);
+//        rlNewPostView = (LinearLayout) mMainFeedLayout.findViewById(R.id.rlNewPostView);
+//        rlNewPostView.removeViewAt(1);
+//        mProgressBar = (ProgressBar) mMainFeedLayout.findViewById(R.id.pbDataLoading);
 
+        // Programmatically creating recycle view
         mRecycleView = new RecyclerView(getContext());
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         mRecycleView.setLayoutParams(params);
         mAdapter = new BulletinsAdapter(mContext);
+
         // Set the adapter
         Context context = mMainFeedLayout.getContext();
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         mRecycleView.setLayoutManager(layoutManager);
         mRecycleView.setAdapter(mAdapter);
 
-
+        // Add the view
+        mMainFeedLayout.addView(mRecycleView);
 
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                mSessionManager.downloadNewsFeed(mContext);
+//                mSessionManager.downloadNewsFeed(mContext);
             }
         };
+
+        mMainFeedLayout.findViewById(R.id.fabNewPost).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, NewPostActivity.class);
+                mContext.startActivity(intent);
+            }
+        });
 
         return mMainFeedLayout;
     }
@@ -128,11 +140,11 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         LocalBroadcastManager.getInstance(mContext).registerReceiver(mDataDownloaded = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                DataManager.mCurrentPage++; // Update curPage
+                OperationManager.mCurrentPage++; // Update curPage
                 mScrollListener.mLoading = false;
-                Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + DataManager.mCurrentPage);
+                Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + OperationManager.mCurrentPage);
             }
-        }, new IntentFilter(DataManager.BULLETIN_LIST_LOADED));
+        }, new IntentFilter(OperationManager.BULLETIN_LIST_LOADED));
     }
 
     @Override
@@ -178,27 +190,47 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         mAdapter.swapCursor(null);
     }
 
+
+    private final static String EMPTY_VIEW_TAG = "emptyview";
+
     /**
      * Show an 'empty' view when there's no data to display
      */
     private void updateEmptyView(int dataCount) {
         if (dataCount == 0) {
-            // First remove recycle view if it's present, then no data view
-            if (mMainFeedLayout.getChildAt(0) instanceof RelativeLayout) {
-                mMainFeedLayout.removeAllViews();
+            // If there is no data, add empty view to the layout
+            TextView noDataTV = new TextView(mMainFeedLayout.getContext());
+            noDataTV.setTag(EMPTY_VIEW_TAG);
+            noDataTV.setGravity(Gravity.CENTER);
+            ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            noDataTV.setLayoutParams(params);
+            noDataTV.setText(getString(R.string.empty_list));
 
-                // Add linear layout to the view
-                mMainFeedLayout.addView(llNoData);
-            }
-            // TODO - finish error loading data
+            mMainFeedLayout.addView(noDataTV);
         } else {
-            // There is data to display, show RecycleView instead of empty view
-            // First remove linear layout ('no data') then add recycle view
-            if (mMainFeedLayout.getChildAt(0) instanceof LinearLayout) {
-                mMainFeedLayout.removeAllViews();
-                // Add recycle view
-                mMainFeedLayout.addView(mRecycleView);
+            // If there is data we need to check if there was an empty view already added to the layout so we remove it
+            View view = mMainFeedLayout.findViewWithTag(EMPTY_VIEW_TAG);
+            if (view != null) {
+                mMainFeedLayout.removeView(view);
             }
         }
+//        if (dataCount == 0) {
+//            // First remove recycle view if it's present, then no data view
+//            if (mMainFeedLayout.getChildAt(0) instanceof RelativeLayout) {
+//                mMainFeedLayout.removeAllViews();
+//
+//                // Add linear layout to the view
+//                mMainFeedLayout.addView(llNoData);
+//            }
+//            // TODO - finish error loading data
+//        } else {
+//            // There is data to display, show RecycleView instead of empty view
+//            // First remove linear layout ('no data') then add recycle view
+//            if (mMainFeedLayout.getChildAt(0) instanceof LinearLayout) {
+//                mMainFeedLayout.removeAllViews();
+//                // Add recycle view
+//                mMainFeedLayout.addView(mRecycleView);
+//            }
+//        }
     }
 }

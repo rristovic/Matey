@@ -1,22 +1,13 @@
 package com.mateyinc.marko.matey.activity.adapters;
 
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -26,25 +17,23 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
-import com.mateyinc.marko.matey.activity.home.NewBulletinActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import java.util.Date;
 
-import static com.mateyinc.marko.matey.data.DataManager.COL_POST_ID;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_UPLOADING;
+import static com.mateyinc.marko.matey.data.OperationManager.COL_POST_ID;
+import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_RETRY_UPLOAD;
+import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_SUCCESS;
+import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_UPLOADING;
 
 public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
 
     // Maximum number of character in a post
-    private static final int CHAR_LIM = 600;
+    private static final int CHAR_LIM = 300;
 
     private static final int FIRST_ITEM = 1;
     private static final int ITEM = 2;
@@ -59,7 +48,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
     public BulletinsAdapter(HomeActivity context) {
         mContext = context;
-        mManager = DataManager.getInstance(context);
+        mManager = OperationManager.getInstance(context);
     }
 
     @Override
@@ -70,7 +59,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 mRecycleView = (RecyclerView) parent;
 
             switch (viewType) {
-                case ITEM: {
+                case ITEM:
+                default:{
                     View view = LayoutInflater.from(mContext) //Inflate the view
                             .inflate(R.layout.bulletin_list_item, parent, false);
 
@@ -78,14 +68,12 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     // Implementing ViewHolderClickListener and returning view holder
                     return new ViewHolder(view, getViewHolderListener());
                 }
-                case FIRST_ITEM: {
-                    View view = LayoutInflater.from(mContext)
-                            .inflate(R.layout.bulletin_first_list_item, parent, false);
-
-                    return new ViewHolderFirst(view, getViewHolderListener());
-                }
-                default:
-                    return null;
+//                case FIRST_ITEM: {
+//                    View view = LayoutInflater.from(mContext)
+//                            .inflate(R.layout.bulletin_first_list_item, parent, false);
+//
+//                    return new ViewHolderFirst(view, getViewHolderListener());
+//                }
             }
         } else {
             throw new RuntimeException("Not bound to RecyclerView");
@@ -99,43 +87,43 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
      */
     private ViewHolder.ViewHolderClickListener getViewHolderListener() {
         return new ViewHolder.ViewHolderClickListener() {
-            public void onRepliesClick(View caller, View rootView, boolean onlyShowReplies) {
-                int position = mRecycleView.getChildAdapterPosition(rootView);
-                if (onlyShowReplies) {
-                    Intent i = new Intent(mContext, BulletinViewActivity.class);
-                    mCursor.moveToPosition(position);
-                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
-                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
-                    mContext.startActivity(i);
-                } else {
-                    Intent i = new Intent(mContext, BulletinViewActivity.class);
-                    i.putExtra(BulletinViewActivity.EXTRA_NEW_REPLY, true);
-                    mCursor.moveToPosition(position);
-                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
-                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
-                    mContext.startActivity(i);
-                }
-            }
 
             @Override
-            public void onMsgClick(TextView mMessage, View rootView) {
-                // TODO - finish method
-            }
-
-            @Override
-            public void onNameClick(TextView mName, View rootView) {
-                int position = mRecycleView.getChildAdapterPosition(rootView);
-                Intent i = new Intent(mContext, ProfileActivity.class);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(position, mCursor).getUserID());
+            public void onReplyClick(View caller, int adapterViewPosition) {
+                Intent i = new Intent(mContext, BulletinViewActivity.class);
+                i.putExtra(BulletinViewActivity.EXTRA_NEW_REPLY, true);
+                mCursor.moveToPosition(adapterViewPosition);
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
 
             @Override
-            public boolean onLongClick(View v, View rootView) {
-                clickedPosition = mRecycleView.getChildAdapterPosition(rootView);
-                clickedText = ((TextView) v).getText().toString();
-                return false;
+            public void onBodyClicked(View view, int adapterViewPosition) {
+                Intent i = new Intent(mContext, BulletinViewActivity.class);
+                mCursor.moveToPosition(adapterViewPosition);
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
+                mContext.startActivity(i);
             }
+
+            @Override
+            public void onNameClick(View view, int adapterViewPosition) {
+                Intent i = new Intent(mContext, ProfileActivity.class);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(adapterViewPosition, mCursor).getUserID());
+                mContext.startActivity(i);
+            }
+
+            @Override
+            public void onBoostClick(View caller, int adapterViewPosition) {
+
+            }
+
+//            @Override
+//            public boolean onLongClick(View v, int adapterViewPosition) {
+//                clickedText = ((TextView) v).getText().toString();
+//                return false;
+//            }
         };
     }
 
@@ -144,19 +132,20 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         switch (getItemViewType(position)) {
 //             Parsing data to views if available
-            case FIRST_ITEM: {
-                BulletinsAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
-                holder.ivProfilePic.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent i = new Intent(mContext, ProfileActivity.class);
-                        mContext.startActivity(i);
-                    }
-                });
-                holder.ibAttachment.setOnTouchListener((HomeActivity) mContext);
-                holder.ibLocation.setOnTouchListener((HomeActivity) mContext);
-            }
+//            case FIRST_ITEM: {
+//                BulletinsAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
+//                holder.ivProfilePic.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        Intent i = new Intent(mContext, ProfileActivity.class);
+//                        mContext.startActivity(i);
+//                    }
+//                });
+//                holder.ibAttachment.setOnTouchListener((HomeActivity) mContext);
+//                holder.ibLocation.setOnTouchListener((HomeActivity) mContext);
+//            }
 
+            case FIRST_ITEM:
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
                 final Bulletin bulletin = mManager.getBulletin(position, mCursor);
@@ -164,31 +153,34 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 try {
                     if (bulletin.getMessage().length() > CHAR_LIM) {
                         // Setting text view message
-                        SpannableString ss = new SpannableString(bulletin.getMessage().substring(0, CHAR_LIM - 1).concat(" ... ")
-                                .concat(mContext.getString(R.string.continue_reading_message)));
-
-                        ClickableSpan clickableSpan = new ClickableSpan() {
-                            @Override
-                            public void onClick(View textView) {
-                                Intent i = new Intent(mContext, BulletinViewActivity.class);
-                                i.putExtra(BulletinViewActivity.EXTRA_SHOW_BULLETIN, true);
-                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, bulletin.getPostID());
-                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
-                                mContext.startActivity(i);
-                            }
-
-                            @Override
-                            public void updateDrawState(TextPaint ds) {
-                                super.updateDrawState(ds);
-                                ds.setUnderlineText(false);
-                            }
-                        };
-                        ss.setSpan(clickableSpan, CHAR_LIM + 4, ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                        // Set the message
-                        holder.tvMessage.setMovementMethod(LinkMovementMethod.getInstance());
-                        holder.tvMessage.setHighlightColor(Color.TRANSPARENT);
-                        holder.tvMessage.setText(ss);
+//                        SpannableString ss = new SpannableString(bulletin.getMessage().substring(0, CHAR_LIM - 1).concat(" ... ")
+//                                .concat(mContext.getString(R.string.continue_reading_message)));
+//
+//                        ClickableSpan clickableSpan = new ClickableSpan() {
+//                            @Override
+//                            public void onClick(View textView) {
+//                                Intent i = new Intent(mContext, BulletinViewActivity.class);
+//                                i.putExtra(BulletinViewActivity.EXTRA_SHOW_BULLETIN, true);
+//                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, bulletin.getPostID());
+//                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
+//                                mContext.startActivity(i);
+//                            }
+//
+//                            @Override
+//                            public void updateDrawState(TextPaint ds) {
+//                                super.updateDrawState(ds);
+//                                ds.setUnderlineText(false);
+//                            }
+//                        };
+//                        ss.setSpan(clickableSpan, CHAR_LIM + 4, ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//
+//                        // Set the message
+//                        holder.tvMessage.setMovementMethod(LinkMovementMethod.getInstance());
+//                        holder.tvMessage.setHighlightColor(Color.TRANSPARENT);
+//                        holder.tvMessage.setText(ss);
+                        String text = bulletin.getMessage().substring(0, CHAR_LIM - 1).concat(" ... ")
+                                .concat(mContext.getString(R.string.continue_reading_message));
+                        holder.tvMessage.setText(text);
                     } else {
                         holder.tvMessage.setText(bulletin.getMessage());
                     }
@@ -196,6 +188,11 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     Log.e(TAG, e.getLocalizedMessage(), e);
                     holder.tvMessage.setText(mContext.getString(R.string.error_message));
                 }
+
+                holder.tvSubject.setText(bulletin.getSubject());
+                holder.tvStats.setText(String.format(mContext.getString(R.string.statistics),
+                        bulletin.getNumOfLikes(), bulletin.getNumOfReplies()));
+
                 try {
                     holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
                 } catch (Exception e) {
@@ -209,61 +206,61 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                     holder.tvDate.setText(Util.getReadableDateText(new Date()));
                 }
 
-                ((ViewHolder) mHolder).rlReplies.removeAllViews(); // First reset the layout then add new views
+//                ((ViewHolder) mHolder).llReplies.removeAllViews(); // First reset the layout then add new views
 
-                // Adding replies programmatically
-                try {
-                    Resources resources = mContext.getResources();
-                    int repliesCount = bulletin.getNumOfReplies();
-                    int margin = 0;
-                    int marginIncrease = Util.parseDp(15, resources);
-                    int height = Util.parseDp(24, resources);
+//                // Adding replies programmatically
+//                try {
+//                    Resources resources = mContext.getResources();
+//                    int repliesCount = bulletin.getNumOfReplies();
+//                    int margin = 0;
+//                    int marginIncrease = Util.parseDp(15, resources);
+//                    int height = Util.parseDp(24, resources);
 
-                    // Adding image view
-                    RoundedImageView imageView = null;
-                    for (int i = 0; i < repliesCount; i++) {
-                        if (i == 3) break; // Add no more than 3 views
-                        imageView = new RoundedImageView(mContext);
-
-                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(height, height);
-                        params.addRule(RelativeLayout.CENTER_VERTICAL);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_START);
-                        params.leftMargin = margin;
-                        margin += marginIncrease; // increasing margin for next view
-
-                        imageView.setImageResource(R.drawable.empty_photo);
-                        imageView.setOval(true);
-                        imageView.setBorderWidth(0);
-                        imageView.setLayoutParams(params);
-                        imageView.setId(i);
-
-                        holder.rlReplies.addView(imageView);
-                    }
-
-
-                    // Adding text view
-                    TextView textView = null;
-                    if (repliesCount > 3) {
-                        textView = new TextView(mContext);
-
-                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
-                        layoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
-                        layoutParams.leftMargin = Util.parseDp(2, mContext.getResources());
-                        textView.setLayoutParams(layoutParams);
-
-                        textView.setGravity(Gravity.CENTER_VERTICAL);
-                        String text = String.format(mContext.getString(R.string.bulletin_reply_text), Integer.toString(repliesCount - 3));
-                        textView.setText(text);
-
-                        holder.rlReplies.addView(textView);
-
-                    }
-
-                } catch (Exception e) {
-                    Log.e(TAG, e.getLocalizedMessage(), e);
-                }
+//                    // Adding image view
+//                    RoundedImageView imageView = null;
+//                    for (int i = 0; i < repliesCount; i++) {
+//                        if (i == 3) break; // Add no more than 3 views
+//                        imageView = new RoundedImageView(mContext);
+//
+//                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(height, height);
+//                        params.addRule(RelativeLayout.CENTER_VERTICAL);
+//                        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+//                        params.addRule(RelativeLayout.ALIGN_PARENT_START);
+//                        params.leftMargin = margin;
+//                        margin += marginIncrease; // increasing margin for next view
+//
+//                        imageView.setImageResource(R.drawable.empty_photo);
+//                        imageView.setOval(true);
+//                        imageView.setBorderWidth(0);
+//                        imageView.setLayoutParams(params);
+//                        imageView.setId(i);
+//
+////                        holder.llReplies.addView(imageView);
+//                    }
+//
+//
+//                    // Adding text view
+//                    TextView textView = null;
+//                    if (repliesCount > 3) {
+//                        textView = new TextView(mContext);
+//
+//                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+//                        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+//                        layoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
+//                        layoutParams.leftMargin = Util.parseDp(2, mContext.getResources());
+//                        textView.setLayoutParams(layoutParams);
+//
+//                        textView.setGravity(Gravity.CENTER_VERTICAL);
+//                        String text = String.format(mContext.getString(R.string.bulletin_reply_text), Integer.toString(repliesCount - 3));
+//                        textView.setText(text);
+//
+////                        holder.llReplies.addView(textView);
+//
+//                    }
+//
+//                } catch (Exception e) {
+//                    Log.e(TAG, e.getLocalizedMessage(), e);
+//                }
 
                 switch (bulletin.getServerStatus()) {
                     case STATUS_UPLOADING: {
@@ -316,7 +313,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         }
 
         TextView textView = new TextView(mContext);
-        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.parseDp(30, mContext.getResources()));
+        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int)Util.parseDp(30, mContext.getResources()));
         textView.setLayoutParams(params);
         textView.setText("Retry");
         textView.setTag("RetryTextView");
@@ -361,100 +358,123 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
         private final View mView;
         private final TextView tvMessage;
-        private final TextView tvName;
-        private final TextView tvDate;
-        private final RelativeLayout rlReplies;
-        private final LinearLayout btnReply;
+        private final TextView tvName, tvDate, tvStats, tvSubject;
+        private final RelativeLayout rlBody;
+        private final LinearLayout btnReply, btnBoost;
+        private final ImageView ivBookmark, ivShare;
         ViewHolderClickListener mListener;
+
+        private static final String BTN_REPLY_TAG = "replytag";
+        private static final String BTN_BOOST_TAG = "boosttag";
+        private static final String TV_NAME_TAG = "nametag";
+        private static final String RL_BODY_TAG = "bodytag";
 
         private ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
             tvMessage = (TextView) view.findViewById(R.id.tvMessage);
-            tvMessage.setTag("msg");
             tvName = (TextView) view.findViewById(R.id.tvName);
-            tvName.setTag("name");
+            tvName.setTag(TV_NAME_TAG);
+            tvSubject = (TextView) view.findViewById(R.id.tvSubject);
             tvDate = (TextView) view.findViewById(R.id.tvDate);
-            rlReplies = (RelativeLayout) view.findViewById(R.id.rlReplies);
+            tvStats = (TextView) view.findViewById(R.id.tvStats);
+            rlBody = (RelativeLayout) view.findViewById(R.id.rlBody);
+            rlBody.setTag(RL_BODY_TAG);
             btnReply = (LinearLayout) view.findViewById(R.id.llReply);
+            btnReply.setTag(BTN_REPLY_TAG);
+            btnBoost = (LinearLayout) view.findViewById(R.id.llBoost);
+            btnBoost.setTag(BTN_BOOST_TAG);
+            ivBookmark = (ImageView) view.findViewById(R.id.ivBookmark);
+            ivShare = (ImageView) view.findViewById(R.id.ivShare);
             mListener = listener;
 
-            rlReplies.setOnClickListener(this);
+            rlBody.setOnClickListener(this);
             btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
             btnReply.setOnClickListener(this);
-            tvMessage.setOnClickListener(this);
             tvName.setOnClickListener(this);
-            tvMessage.setOnCreateContextMenuListener(this);
+//            tvMessage.setOnCreateContextMenuListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            if (v instanceof RelativeLayout) {
-                int c = ((RelativeLayout) v).getChildCount();
-                if (c > 0) // Only open if there are comments present
-                    mListener.onRepliesClick(rlReplies, mView, true);
-                return;
-            } else if (v instanceof LinearLayout) {
-                mListener.onRepliesClick(btnReply, mView, false);
-                return;
-            }
-
             String tag = v.getTag().toString();
-            if (tag.equals("msg")) {
-                mListener.onMsgClick(tvMessage, mView);
-            } else if (tag.equals("name")) {
-                mListener.onNameClick(tvName, mView);
-                Log.d(BulletinsAdapter.class.getSimpleName(), "onNameClick();");
+            int position = ViewHolder.this.getAdapterPosition();
+
+            switch (tag) {
+                case BTN_REPLY_TAG: {
+                    mListener.onReplyClick(v, position);
+                    break;
+                }
+
+                case BTN_BOOST_TAG: {
+                    mListener.onBoostClick(v, position);
+                    break;
+                }
+
+                case TV_NAME_TAG: {
+                    mListener.onNameClick(v, position);
+                    break;
+                }
+
+                case RL_BODY_TAG: {
+                    mListener.onBodyClicked(v, position);
+                    break;
+                }
             }
         }
 
+
         @Override
         public boolean onLongClick(View v) {
-            return mListener.onLongClick(v, mView);
+//            int position = ViewHolder.this.getAdapterPosition();
+//            return mListener.onLongClick(v, position);
+            return false;
         }
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            menu.setHeaderTitle(null);
-            menu.add(0, COPYTEXT_ID, 0, mView.getContext().getString(R.string.menu_item_copy_text));//groupId, itemId, order, title
+//            menu.setHeaderTitle(null);
+//            menu.add(0, COPYTEXT_ID, 0, mView.getContext().getString(R.string.menu_item_copy_text));//groupId, itemId, order, title
         }
 
 
         protected interface ViewHolderClickListener {
-            void onRepliesClick(View caller, View rootView, boolean onlyShowReplies);
+            void onReplyClick(View caller, int adapterViewPosition);
 
-            void onMsgClick(TextView mMessage, View mView);
+            void onBodyClicked(View caller, int adapterViewPosition);
 
-            void onNameClick(TextView mName, View mView);
+            void onNameClick(View caller, int adapterViewPosition);
 
-            boolean onLongClick(View v, View mView);
+//            boolean onLongClick(View caller, int adapterViewPosition);
+
+            void onBoostClick(View caller, int adapterViewPosition);
         }
     }
 
-    private static class ViewHolderFirst extends ViewHolder {
-        private final View mView;
-        private final ImageView ivProfilePic;
-        private final TextView btnSendToSea;
-        private final ImageButton ibLocation;
-        private final ImageButton ibAttachment;
-        private final View mNewPostWrapper;
-
-        private ViewHolderFirst(View view, ViewHolderClickListener listener) {
-            super(view, listener);
-            mView = view;
-            mNewPostWrapper = view.findViewById(R.id.newPostWrapper);
-            ivProfilePic = (ImageView) view.findViewById(R.id.ivProfilePic);
-            btnSendToSea = (TextView) view.findViewById(R.id.tvSendToSea);
-            ibLocation = (ImageButton) view.findViewById(R.id.ibLocation);
-            ibAttachment = (ImageButton) view.findViewById(R.id.ibAttachment);
-
-            mNewPostWrapper.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent i = new Intent(mView.getContext(), NewBulletinActivity.class);
-                    mView.getContext().startActivity(i);
-                }
-            });
-        }
-    }
+//    private static class ViewHolderFirst extends ViewHolder {
+//        private final View mView;
+//        private final ImageView ivProfilePic;
+//        private final TextView btnSendToSea;
+//        private final ImageButton ibLocation;
+//        private final ImageButton ibAttachment;
+//        private final View mNewPostWrapper;
+//
+//        private ViewHolderFirst(View view, ViewHolderClickListener listener) {
+//            super(view, listener);
+//            mView = view;
+//            mNewPostWrapper = view.findViewById(R.id.newPostWrapper);
+//            ivProfilePic = (ImageView) view.findViewById(R.id.ivProfilePic);
+//            btnSendToSea = (TextView) view.findViewById(R.id.tvSendToSea);
+//            ibLocation = (ImageButton) view.findViewById(R.id.ibLocation);
+//            ibAttachment = (ImageButton) view.findViewById(R.id.ibAttachment);
+//
+//            mNewPostWrapper.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Intent i = new Intent(mView.getContext(), NewPostActivity.class);
+//                    mView.getContext().startActivity(i);
+//                }
+//            });
+//        }
+//    }
 }

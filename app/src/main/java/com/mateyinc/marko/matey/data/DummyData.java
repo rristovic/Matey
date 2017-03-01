@@ -24,7 +24,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import static android.provider.Contacts.SettingsColumns.KEY;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
+import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_SUCCESS;
 
 public class DummyData {
     private static final String TAG = DummyData.class.getSimpleName();
@@ -33,7 +33,7 @@ public class DummyData {
     private UserProfile mCurUserProfile = new UserProfile();
 
     private UserProfile getUserProfile(int index){
-        return DataManager.getInstance(mAppContext).getUserProfile(index);
+        return OperationManager.getInstance(mAppContext).getUserProfile(index);
     }
 
     public void createDummyData(Context context) {
@@ -70,22 +70,22 @@ public class DummyData {
                 Log.d(TAG, "User profiles added.");
 
                 int itemDownloaded = 0;
-                ArrayList<Bulletin> list = new ArrayList<>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+                ArrayList<Bulletin> list = new ArrayList<>(OperationManager.NO_OF_BULLETIN_TO_DOWNLOAD);
                 LinkedList<Reply> repliesList = new LinkedList<>();
                 ArrayList<Approve> approveList = new ArrayList<>();
                 Cursor c = mAppContext.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI,
                         null, null, null, null);
                 int count = c.getCount();
                 c.close();
-                for (int i = 0; i < DataManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
+                for (int i = 0; i < OperationManager.NO_OF_BULLETIN_TO_DOWNLOAD; i++) {
 
 
                     UserProfile friend = getUserProfile(r.nextInt(count));
                     Date date = new Date();
-                    date.setTime(date.getTime() - i * Util.ONE_MIN - DataManager.ONE_DAY * DataManager.mCurrentPage);
+                    date.setTime(date.getTime() - i * Util.ONE_MIN - OperationManager.ONE_DAY * OperationManager.mCurrentPage);
 
                     Bulletin bulletin = new Bulletin(
-                            i + DataManager.NO_OF_BULLETIN_TO_DOWNLOAD * DataManager.mCurrentPage,
+                            i + OperationManager.NO_OF_BULLETIN_TO_DOWNLOAD * OperationManager.mCurrentPage,
                             friend.getUserId(),
                             friend.getFirstName(),
                             friend.getLastName(),
@@ -107,7 +107,7 @@ public class DummyData {
                         reply.userFirstName = friendReplied.getFirstName();
                         reply.userLastName = friendReplied.getLastName();
                         reply.replyText = Util.loremIpsumShort;
-                        reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * DataManager.mCurrentPage);
+                        reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * OperationManager.mCurrentPage);
 
                         for (int k = 0; k < r.nextInt(5); k++) {
                             UserProfile profile = getUserProfile(r.nextInt(mCurUserProfile.getNumOfFriends()));
@@ -127,8 +127,8 @@ public class DummyData {
                 addApproves(approveList);
 
                 LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(mAppContext);
-                Intent i = new Intent(DataManager.BULLETIN_LIST_LOADED);
-                i.putExtra(DataManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
+                Intent i = new Intent(OperationManager.BULLETIN_LIST_LOADED);
+                i.putExtra(OperationManager.EXTRA_ITEM_DOWNLOADED_COUNT, itemDownloaded);
 
                 // Notifying HomeActivity that the data has been downloaded with broadcast and static member TODO - notify in onPostExecute later
                 broadcastManager.sendBroadcast(i);
@@ -156,7 +156,7 @@ public class DummyData {
             values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, r.userLastName);
             values.put(DataContract.ReplyEntry.COLUMN_TEXT, r.replyText);
             values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate.getTime());
-            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, r.numOfApprvs);
+            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, r.numOfApprvs);
 
             cVVector.add(values);
             numReplies++;

@@ -161,4 +161,10 @@ public abstract class UrlData {
     public static String createFollowersListUrl(long userId){
         return GET_FOLLOWERS.replace(":userId", Long.toString(userId));
     }
+
+    // News feed method
+    public static String createDownloadNewsfeedUrl(long userId){
+        // TODO - finish
+        return "";
+    }
 }

@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
@@ -20,7 +21,10 @@ import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.operations.Operation;
+import com.mateyinc.marko.matey.data.operations.NewsfeedOp;
+import com.mateyinc.marko.matey.data.operations.OperationType;
+import com.mateyinc.marko.matey.data.operations.Operations;
+import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
@@ -32,20 +36,18 @@ import org.json.JSONException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_SUCCESS;
+import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_SUCCESS;
 
 /**
- * The manager for the data entries
+ * Class used for downloading and uploading data to th server
  */
-public class DataManager implements OperationProvider {
-    private static final String TAG = DataManager.class.getSimpleName();
+public class OperationManager implements OperationProvider {
+    private static final String TAG = OperationManager.class.getSimpleName();
 
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
 
@@ -75,7 +77,9 @@ public class DataManager implements OperationProvider {
             DataContract.BulletinEntry.COLUMN_DATE,
             DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES,
             DataContract.BulletinEntry.COLUMN_SERVER_STATUS,
-            DataContract.BulletinEntry.COLUMN_ATTACHMENTS
+            DataContract.BulletinEntry.COLUMN_ATTACHMENTS,
+            BulletinEntry.COLUMN_NUM_OF_LIKES,
+            BulletinEntry.COLUMN_SUBJECT
     };
 
     // These indices are tied to BULLETIN_COLUMNS.  If BULLETIN_COLUMNS changes, these
@@ -89,6 +93,8 @@ public class DataManager implements OperationProvider {
     public static final int COL_NUM_OF_REPLIES = 6;
     public static final int COL_ON_SERVER = 7;
     public static final int COL_ATTCHS = 8;
+    public static final int COL_NUM_OF_LIKES = 9;
+    public static final int COL_SUBJECT = 10;
 
 
     public  final ImageLoader mImageLoader;
@@ -139,7 +145,7 @@ public class DataManager implements OperationProvider {
 
     // Global instance fields
     private  final Object mLock = new Object(); // for synchronised blocks
-    private static DataManager mInstance ;
+    private static OperationManager mInstance ;
     private Context mAppContext;
     private ExecutorService mExecutor = Executors.newFixedThreadPool(10);
 
@@ -147,22 +153,22 @@ public class DataManager implements OperationProvider {
     private int newPostID;
 
     /**
-     * Method for retrieving DataManager singleton
+     * Method for retrieving OperationManager singleton
      *
      * @param context the context of calling class
-     * @return the DataManager instance
+     * @return the OperationManager instance
      */
-    public static synchronized DataManager getInstance(Context context) {
+    public static synchronized OperationManager getInstance(Context context) {
             if (mInstance == null) {
-                mInstance = new DataManager(context.getApplicationContext());
-                mInstance.addNullBulletin();
-                Log.d(TAG, "New instance of DataManager created.");
+                mInstance = new OperationManager(context.getApplicationContext());
+//                mInstance.addNullBulletin();
+                Log.d(TAG, "New instance of OperationManager created.");
             }
 
             return mInstance;
     }
 
-    private DataManager(Context context) {
+    private OperationManager(Context context) {
         mAppContext = context;
         mRequestQueue = Volley.newRequestQueue(context);
 
@@ -272,11 +278,11 @@ public class DataManager implements OperationProvider {
         mCurrentUserProfile = userProfile;
 
         if (userProfile != null) {
-            preferences.edit().putLong(DataManager.KEY_CUR_USER_ID, userProfile.getUserId()).apply();
+            preferences.edit().putLong(OperationManager.KEY_CUR_USER_ID, userProfile.getUserId()).apply();
             MotherActivity.user_id = mCurrentUserProfile.getUserId();
             Log.d(TAG, "Current user updated.");
         } else {
-            preferences.edit().remove(DataManager.KEY_CUR_USER_ID).commit();
+            preferences.edit().remove(OperationManager.KEY_CUR_USER_ID).commit();
             Log.d(TAG, "Current user removed from prefs.");
         }
     }
@@ -291,7 +297,7 @@ public class DataManager implements OperationProvider {
         if  (mCurrentUserProfile != null)
             return true;
 
-        long id = preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
+        long id = preferences.getLong(OperationManager.KEY_CUR_USER_ID, -1);
 
         Cursor c = mAppContext.getContentResolver().query(ProfileEntry.CONTENT_URI, null,
                 ProfileEntry._ID + " = ?", new String[]{Long.toString(id)}, null);
@@ -337,7 +343,7 @@ public class DataManager implements OperationProvider {
      * @return the current user id
      */
     public long getCurrentUserProfileIdFromPrefs(SharedPreferences preferences) {
-        return preferences.getLong(DataManager.KEY_CUR_USER_ID, -1);
+        return preferences.getLong(OperationManager.KEY_CUR_USER_ID, -1);
     }
 
     private LinkedList<UserProfile> suggestedFriends;
@@ -358,7 +364,7 @@ public class DataManager implements OperationProvider {
      * @param areFollowed indicates if these profiles are followed by the current user
      */
     public void addUserProfiles(ArrayList<UserProfile> list, boolean areFollowed) {
-        Vector<ContentValues> cVVector = new Vector<ContentValues>(DataManager.NO_OF_BULLETIN_TO_DOWNLOAD);
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(OperationManager.NO_OF_BULLETIN_TO_DOWNLOAD);
 
         for (UserProfile profile : list) {
             ContentValues userValues = new ContentValues();
@@ -430,7 +436,7 @@ public class DataManager implements OperationProvider {
         if (numOfUpdated != 1) {
             Log.e(TAG, "Error setting UserProfileOps: ID=" + userId + "; Name=" + userName + "; Last name=" + userLastName + "; Number of updated rows=" + numOfUpdated);
         } else
-            Log.d("DataManager", "UserProfileOps changed: ID=" + userId +
+            Log.d("OperationManager", "UserProfileOps changed: ID=" + userId +
                     "; Name=" + userName + "; LastName=" + userLastName + "; LastMsgId=" + lastMsgId);
     }
 
@@ -555,10 +561,10 @@ public class DataManager implements OperationProvider {
             notifId = ContentUris.parseId(insertedUri);
 
             if (null == insertedUri) {
-                Log.d("DataManager", "Error inserting notification: sender id=" + senderId +
+                Log.d("OperationManager", "Error inserting notification: sender id=" + senderId +
                         "; Sender name=" + senderName + "; Text=" + body + "; Time=" + time);
             } else {
-                Log.d("DataManager", "Notification added: sender id=" + senderId +
+                Log.d("OperationManager", "Notification added: sender id=" + senderId +
                         "; Sender name=" + senderName + "; Text=" + body + "; Time=" + time);
             }
         }
@@ -650,7 +656,7 @@ public class DataManager implements OperationProvider {
     public static final int NUM_OF_BULLETINS_TO_DOWNLOAD = 40;
 
     /**
-     * Method for updating a new post_id, created with {@link DataManager#createNewActivityId()}, with the new
+     * Method for updating a new post_id, created with {@link OperationManager#createNewActivityId()}, with the new
      * one returned from the server;
      *
      * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
@@ -943,6 +949,9 @@ public class DataManager implements OperationProvider {
                     cursor.getString(COL_TEXT),
                     new Date(cursor.getLong(COL_DATE)));
 
+            bulletin.setNumOfReplies(cursor.getInt(COL_NUM_OF_LIKES));
+            bulletin.setmSubject(cursor.getString(COL_SUBJECT));
+
             bulletin.setServerStatus(cursor.getInt(COL_ON_SERVER));
             bulletin.setNumOfReplies(cursor.getInt(COL_NUM_OF_REPLIES));
             bulletin.setAttachmentsFromJSON(cursor.getString(7));
@@ -1119,7 +1128,7 @@ public class DataManager implements OperationProvider {
 //        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
 //        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
 //        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
-//        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
+//        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, numOfApprvs);
 //        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
 //
 //        Uri insertedUri = mAppContext.getContentResolver().insert(
@@ -1149,7 +1158,7 @@ public class DataManager implements OperationProvider {
 //        values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, lastName);
 //        values.put(DataContract.ReplyEntry.COLUMN_TEXT, text);
 //        values.put(DataContract.ReplyEntry.COLUMN_DATE, date.getTime());
-//        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_APPRVS, numOfApprvs);
+//        values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, numOfApprvs);
 //        values.put(ReplyEntry.COLUMN_SERVER_STATUS, serverStatus);
 //
 //
@@ -1200,7 +1209,7 @@ public class DataManager implements OperationProvider {
 //    }
 
 //    /**
-//     * Method for updating a new reply_id, created with {@link DataManager#createNewActivityId()}, with the new
+//     * Method for updating a new reply_id, created with {@link OperationManager#createNewActivityId()}, with the new
 //     * one returned from the server;
 //     *
 //     * NOTE: Should only be called when post_id is retrieved from the server, because it's updating the
@@ -1377,26 +1386,117 @@ public class DataManager implements OperationProvider {
     ///////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////
 
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
     private RequestQueue mRequestQueue;
+    private Response.Listener<String> mSuccessListener;
+    private Response.ErrorListener mErrorListener;
 
-    private List<Operation> opList = new ArrayList<>();
-
-    public DataManager addOperation(Operation op){
-        opList.add(op);
-        return this;
+    /**
+     * Method for downloading and parsing news feed from the server, and all data around it
+     * @param startPosition the start position of the bulletin
+     * @param count the total bulletin count that needs to be downloaded in a single burst
+     * @param context the Context used for notifying when the parsing result is complete
+     */
+    public void downloadNewsFeed(int startPosition, int count, MotherActivity context) {
+        NewsfeedOp newsfeedOp = new NewsfeedOp(this, context);
+        setListeners(newsfeedOp);
+        newsfeedOp.setCount(count).setStartPos(startPosition)
+                .startDownloadAction();
     }
 
-    public void performOperations(){
-        Iterator i = opList.iterator();
-
-        while (i.hasNext()){
-            ((Operation) i.next()).execute(mAppContext, mRequestQueue, MotherActivity.access_token);
-            i.remove();
-        }
+    /**
+     * Helper method for downloading news feed from the server to the database;
+     * Downloads {@value OperationManager#NUM_OF_BULLETINS_TO_DOWNLOAD} bulletins from the server;
+     * Automatically determines from what bulletin position to startDownloadAction by calling {@link OperationManager#getNumOfBulletinsInDb()}
+     *
+     * @param context the context of activity which is calling this method
+     */
+    public void downloadNewsFeed(final MotherActivity context) {
+        int start = getNumOfBulletinsInDb();
+        downloadNewsFeed(start, OperationManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////
 
+    //// User profile methods ///////
+    /**
+     * Helper method for downloading user profile data from the server;
+     * @param userId id of the user profile
+     */
+    public void downloadUserProfile(long userId, MotherActivity context) {
+        UserProfileOp op = new UserProfileOp(context);
+        setListeners(op);
+        op.setOperationType(OperationType.DOWNLOAD_USER_PROFILE);
+        op.setUserId(userId).startDownloadAction();
+    }
 
+    /**
+     * Helper method for downloading user followers.
+     * @param offset starting position of followers;
+     * @param count offset indicates how much will be downloaded;
+     * @param context {@link MotherActivity} context used for download/save ops;
+     */
+    public void downloadFollowers(int offset, int count, long id, MotherActivity context) {
+        UserProfileOp op = new UserProfileOp(context);
+        setListeners(op);
+        op.setOperationType(OperationType.DOWNLOAD_FOLLOWERS);
+        op.setCount(count).setOffset(offset).setUserId(id)
+                .startDownloadAction();
+    }
+
+    /**
+     * Helper method to use when new user profile has been followed.
+     * Updates followed user profile database.
+     * @param userId id of the user being followed;
+     * @param context {@link MotherActivity} context used for upload/save operations;
+     */
+    public void followNewUser(long userId, MotherActivity context) {
+        UserProfileOp operation = new UserProfileOp(context);
+        setListeners(operation);
+        operation.setOperationType(OperationType.FOLLOW_USER_PROFILE);
+        operation.setUserId(userId).startUploadAction();
+    }
+
+    /**
+     * Helper method to use when user profile has been unfollowed.
+     * Updates unfollowed user profile database.
+     * @param userId id of unfollowed user
+     * @param context {@link MotherActivity} context used for upload/save operations;
+     */
+    public void unfollowUser(long userId, MotherActivity context) {
+        UserProfileOp operation = new UserProfileOp(context);
+        setListeners(operation);
+        operation.setOperationType(OperationType.UNFOLLOW_USER_PROFILE);
+        operation.setUserId(userId).startUploadAction();
+    }
+
+    /**
+     * Method for adding custom success download/upload listener
+     * @param listener listener to be added
+     */
+    public void addSuccessListener(Response.Listener<String> listener){
+        mSuccessListener = listener;
+    }
+
+    /**
+     * Method for adding custom error download/upload listener
+     * @param listener listener to be added
+     */
+    public void addErrorListener(Response.ErrorListener listener){
+        mErrorListener = listener;
+    }
+
+    /**
+     * Method for setting operation listeners if they exits, otherwise they will be set by default
+     * @param operation {@link Operations} to set listeners on
+     */
+    private void setListeners(Operations operation){
+        if (null != mSuccessListener)
+            operation.addSuccessListener(mSuccessListener);
+
+        if (null != mErrorListener)
+            operation.addFailedListener(mErrorListener);
+    }
 }
 

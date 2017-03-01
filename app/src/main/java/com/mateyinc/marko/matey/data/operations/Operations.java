@@ -8,15 +8,12 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.OperationFactory;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.OperationProvider;
 import com.mateyinc.marko.matey.data.internet.MateyRequest;
-import com.mateyinc.marko.matey.data.internet.NetworkAction;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An operation class which define actions that can be performed on defined data models
@@ -27,7 +24,7 @@ public abstract class Operations {
     private Response.ErrorListener failedListener;
 
     /** Indicates what kind of operations this is, used for general db control in {@link #addNotUploadedActivity(long)} */
-    private final OperationFactory.OperationType mOpType;
+    protected OperationType mOpType;
 
     /** Activity startUploadAction status that is saved in database, and used for UI control */
     public enum ServerStatus {
@@ -46,10 +43,22 @@ public abstract class Operations {
     // Used for networking and threading
     private OperationProvider mProvider;
 
-    Operations(OperationProvider provider, MotherActivity context, OperationFactory.OperationType operationType){
-         this.mOpType = operationType;
-         this.mProvider = provider;
-         mContextRef = new WeakReference<MotherActivity>(context);
+    Operations(MotherActivity context){
+        mOpType = OperationType.NO_OPERATION;
+        this.mProvider = OperationManager.getInstance(context);
+        mContextRef = new WeakReference<MotherActivity>(context);
+    }
+
+    Operations(MotherActivity context, OperationType operationType){
+        this.mOpType = operationType;
+        this.mProvider = OperationManager.getInstance(context);
+        mContextRef = new WeakReference<MotherActivity>(context);
+    }
+
+    Operations(OperationProvider provider, MotherActivity context, OperationType operationType){
+        this.mOpType = operationType;
+        this.mProvider = provider;
+        mContextRef = new WeakReference<MotherActivity>(context);
     }
 
     public void addSuccessListener(Response.Listener<String> listener){
@@ -59,12 +68,20 @@ public abstract class Operations {
         failedListener = listener;
     }
 
+    /**
+     * Method for setting the type of operation that will be performed.
+     * @param operationType {@link OperationType} type of the operation
+     */
+    public void setOperationType(OperationType operationType) {
+        mOpType = operationType;
+    }
+
     // Download methods
-    public abstract void startDownloadAction(NetworkAction action);
+    public abstract void startDownloadAction();
     protected abstract void onDownloadSuccess(String response);
     protected abstract void onDownloadFailed(VolleyError error);
     // Upload methods
-    public abstract void startUploadAction(NetworkAction action);
+    public abstract void startUploadAction();
     protected void onUploadSuccess(String response){
         Log.d(getTag(), "Upload has succeed.");
     };
@@ -217,7 +234,7 @@ public abstract class Operations {
      */
     private String getCorrectTableColumn() {
         switch (mOpType){
-            case USER_PROFILE_OP:{
+            case DOWNLOAD_USER_PROFILE:{
                 return DataContract.ProfileEntry.COLUMN_SERVER_STATUS;
             }
 

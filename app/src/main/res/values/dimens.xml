@@ -54,7 +54,6 @@
     <dimen name="badges_margin_top">26dp</dimen>
 
 
-
     <!-- Followers/ing activity related -->
     <dimen name="followers_button_size">130dp</dimen>
     <dimen name="followers_button_textSize">12dp</dimen>
@@ -63,17 +62,29 @@
 
     <!-- Text size -->
     <dimen name="heading">20sp</dimen>
+    <dimen name="smallHeading">18sp</dimen>
     <dimen name="subHeading">16sp</dimen>
     <dimen name="body">14sp</dimen>
     <dimen name="info">12sp</dimen>
 
-    <!-- Action bar size -->
-    <dimen name="navBar_size">48dp</dimen>
-    <dimen name="actionBar_icon_size">28dp</dimen>
-    <dimen name="actionBar_icon_margin">12dp</dimen>
-    <dimen name="actionBar_icon_padding">12dp</dimen>
-
-    <!-- Bulletins dimens -->
+    <!-- Bulletin related - Text size -->
+    <dimen name="bulletin_textSize_userName">@dimen/subHeading</dimen>
+    <dimen name="bulletin_textSize_group">@dimen/body</dimen>
+    <dimen name="bulletin_textSize_subject">@dimen/smallHeading</dimen>
+    <dimen name="bulletin_textSize_message">@dimen/body</dimen>
+    <dimen name="bulletin_textSize_time">@dimen/info</dimen>
+    <dimen name="bulletin_textSize_buttons">@dimen/body</dimen>
+    <!-- Bulletin related - View size -->
+    <dimen name="bulletin_margin">10dp</dimen>
+    <dimen name="bulletin_topBtn">22dp</dimen>
+    <dimen name="bulletin_topBtn_topMargin">5dp</dimen>
+    <dimen name="bulletin_topBtn_margin">10dp</dimen>
+    <dimen name="bulletin_bottomBtn">20dp</dimen>
+    <dimen name="bulletin_bottomBtn_textMargin">5dp</dimen>
+    <dimen name="bulletin_body_margin">5dp</dimen>
+    <dimen name="bulletin_repliedIcons">25dp</dimen>
+    <dimen name="bulletin_bottomStats_margin">7dp</dimen>
+    <dimen name="bulletin_bottomButton_sideMargin">5dp</dimen>
     <dimen name="bulletins_listView_margin">12dp</dimen>
     <dimen name="reply_profile_dimen">20dp</dimen>
     <dimen name="bulletins_name_topMargin">7dp</dimen>
@@ -83,6 +94,28 @@
     <dimen name="bulletins_listView_bottomMargin">10dp</dimen>
     <dimen name="bulletin_pic_height">52dp</dimen>
     <dimen name="bulletin_pic_padding">5dp</dimen>
+
+    <!-- Reply related - Text size -->
+    <dimen name="reply_textSize_userName">@dimen/subHeading</dimen>
+    <dimen name="reply_textSize_message">@dimen/body</dimen>
+    <dimen name="reply_textSize_time">@dimen/info</dimen>
+    <dimen name="reply_textSize_stats">@dimen/info</dimen>
+    <!-- Reply related - View size -->
+    <dimen name="reply_buttons">30dp</dimen>
+    <dimen name="reply_buttons_margin">12dp</dimen>
+
+    <!-- New post related - View size-->
+    <dimen name="newPost_etSubject">48dp</dimen>
+    <dimen name="newPost_divider_margin">16dp</dimen>
+
+
+    <!-- Action bar size -->
+    <dimen name="navBar_size">48dp</dimen>
+    <dimen name="actionBar_icon_size">28dp</dimen>
+    <dimen name="actionBar_icon_margin">12dp</dimen>
+    <dimen name="actionBar_icon_padding">12dp</dimen>
+
+
 
     <!-- Bulletin Reply dimens -->
     <dimen name="commentview_padding">12dp</dimen>

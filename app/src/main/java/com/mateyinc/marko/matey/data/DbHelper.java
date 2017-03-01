@@ -88,9 +88,11 @@ class DbHelper extends SQLiteOpenHelper {
                 BulletinEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 BulletinEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
                 BulletinEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
-                BulletinEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_SUBJECT + " TEXT NOT NULL, " +
+                BulletinEntry.COLUMN_TEXT + " TEXT, " +
                 BulletinEntry.COLUMN_DATE + " INT, " +
                 BulletinEntry.COLUMN_NUM_OF_REPLIES + " INTEGER DEFAULT 0, " +
+                BulletinEntry.COLUMN_NUM_OF_LIKES + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +
                 // Set up the sender_id column as a foreign key to profile table.
@@ -104,10 +106,11 @@ class DbHelper extends SQLiteOpenHelper {
                 ReplyEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
                 ReplyEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +
                 ReplyEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
-                ReplyEntry.COLUMN_DATE + " INT NOT NULL, " +
                 ReplyEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
+                ReplyEntry.COLUMN_DATE + " INT, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
-                ReplyEntry.COLUMN_NUM_OF_APPRVS + " INTEGER DEFAULT 0," +
+                ReplyEntry.COLUMN_NUM_OF_LIKES + " INTEGER DEFAULT 0," +
+                ReplyEntry.COLUMN_NUM_OF_REPLIES + " INTEGER DEFAULT 0," +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_POST_ID + ") REFERENCES " +

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.volley.RequestQueue;
 import com.mateyinc.marko.matey.data.DataContract;
 
 import java.util.Locale;
@@ -174,22 +173,6 @@ public class UserProfile extends MModel{
         this._id = currentUserProfile._id;
     }
 
-    @Override
-    public void upload(Context context, RequestQueue queue, String accessToken) {
-
-    }
-
-    @Override
-    protected void uploadSucceeded(String response, Context context) {
-
-    }
-
-    @Override
-    protected void uploadFailed(Exception e, Context context) {
-
-    }
-
-    @Override
     public void addToDb(Context c) {
         ContentValues userValues = new ContentValues();
         userValues.put(DataContract.ProfileEntry._ID, _id);
@@ -214,10 +197,7 @@ public class UserProfile extends MModel{
         }
     }
 
-    @Override
-    public void download(Context context, RequestQueue queue, String accessToken) {
 
-    }
 
     @Override
     public String toString() {

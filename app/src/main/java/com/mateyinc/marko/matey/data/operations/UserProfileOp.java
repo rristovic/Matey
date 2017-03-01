@@ -9,9 +9,6 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.OperationFactory;
-import com.mateyinc.marko.matey.data.OperationProvider;
-import com.mateyinc.marko.matey.data.internet.NetworkAction;
 import com.mateyinc.marko.matey.data.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
@@ -69,42 +66,42 @@ public class UserProfileOp extends Operations {
     public static final String KEY_VERIFIED = "verified";
     public static final String KEY_FOLLOWING = "following";
 
-    // Holds the profile data for startUploadAction
-    private static ProfileNetworkAction mNetworkAction;
+    private long mUserId;
+    private int mCount, mOffset;
 
-    public UserProfileOp(OperationProvider provider, MotherActivity context, OperationFactory.OperationType operationType) {
-        super(provider, context, operationType);
-        mNetworkAction = new ProfileNetworkAction();
+    public UserProfileOp(MotherActivity context) {
+        super(context);
     }
 
     @Override
-    public void startDownloadAction(NetworkAction action) {
+    public void startDownloadAction() {
         String url;
 
-        switch (mNetworkAction.getDownloadAction()){
-            case GET_FOLLOWED_LIST:{
-                Uri uri =  Uri.parse(UrlData.createFollowersListUrl(mNetworkAction.mUserProfileId)).buildUpon()
-                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mNetworkAction.limit))
-                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mNetworkAction.offset))
+        switch (mOpType){
+            case DOWNLOAD_FOLLOWERS:{
+                Uri uri =  Uri.parse(UrlData.createFollowersListUrl(mUserId)).buildUpon()
+                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mCount))
+                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mOffset))
                         .build();
                 url = uri.toString();
                 break;
             }
-            case GET_FOLLOWING_LIST:{
-                // TODO - finish params
-                Uri uri =  Uri.parse(UrlData.createFollowingListUrl(mNetworkAction.mUserProfileId)).buildUpon()
-                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mNetworkAction.limit))
-                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mNetworkAction.offset))
-                        .build();
-                url = uri.toString();
-                break;
-            }
-            case GET_USER_PROFILE:{
-                url = UrlData.createProfileDataUrl(mNetworkAction.mUserProfileId);
+//            case GET_FOLLOWING_LIST:{
+//                // TODO - finish params
+//                Uri uri =  Uri.parse(UrlData.createFollowingListUrl(mNetworkAction.mUserProfileId)).buildUpon()
+//                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mNetworkAction.limit))
+//                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mNetworkAction.offset))
+//                        .build();
+//                url = uri.toString();
+//                break;
+//            }
+            case DOWNLOAD_USER_PROFILE:{
+                url = UrlData.createProfileDataUrl(mUserId);
                 break;
             }
 
             default:{
+                Log.e(TAG, "No operation type has been specified!");
                 url = "#";
             }
         }
@@ -118,19 +115,19 @@ public class UserProfileOp extends Operations {
         final Context c = mContextRef.get();
         final String parsedResponse;
 
-        switch (mNetworkAction.getDownloadAction()){
-            case GET_USER_PROFILE:{
-                parsedResponse = response;
-                break;
-            }
-            default: {
-                parsedResponse = "";
-            }
-        }
+//        switch (mNetworkAction.getDownloadAction()){
+//            case GET_USER_PROFILE:{
+//                parsedResponse = response;
+//                break;
+//            }
+//            default: {
+//                parsedResponse = "";
+//            }
+//        }
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                saveToDb(parsedResponse, c);
+                saveToDb(response, c);
             }
         });
     }
@@ -142,12 +139,12 @@ public class UserProfileOp extends Operations {
 
 
     @Override
-    public void startUploadAction(NetworkAction action) {
+    public void startUploadAction() {
         String url;
         int method;
-        switch (mNetworkAction.getUploadAction()){
-            case FOLLOW_PROFILE:{
-                url = UrlData.createFollowUrl(mNetworkAction.mUserProfileId);
+        switch (mOpType){
+            case FOLLOW_USER_PROFILE: {
+                url = UrlData.createFollowUrl(mUserId);
                 method = Request.Method.POST;
                 submitRunnable(new Runnable() {
                     @Override
@@ -157,9 +154,8 @@ public class UserProfileOp extends Operations {
                 });
                 break;
             }
-
-            case UNFOLLOW_PROFILE:{
-                url = UrlData.createUnfollowUrl(mNetworkAction.mUserProfileId);
+            case UNFOLLOW_USER_PROFILE: {
+                url = UrlData.createUnfollowUrl(mUserId);
                 method = Request.Method.DELETE;
                 submitRunnable(new Runnable() {
                     @Override
@@ -185,7 +181,7 @@ public class UserProfileOp extends Operations {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                updateServerStatus(mNetworkAction.mUserProfileId, ServerStatus.STATUS_SUCCESS);
+                updateServerStatus(1, ServerStatus.STATUS_SUCCESS);
             }
         });
     }
@@ -195,7 +191,7 @@ public class UserProfileOp extends Operations {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                updateServerStatus(mNetworkAction.mUserProfileId, ServerStatus.STATUS_RETRY_UPLOAD);
+//                updateServerStatus(mNetworkAction.mUserProfileId, ServerStatus.STATUS_RETRY_UPLOAD);
             }
         });
     }
@@ -211,13 +207,13 @@ public class UserProfileOp extends Operations {
 
         int numOfUpdatedRows = mContextRef.get().getContentResolver().update(
                 ProfileEntry.CONTENT_URI, values, ProfileEntry._ID + " = ?",
-                new String[]{Long.toString(mNetworkAction.mUserProfileId)}
+                new String[]{Long.toString(mUserId)}
         );
 
         if (numOfUpdatedRows != 1) {
-            Log.e(getTag(), String.format("Error updating user profile (with ID=%d) to %s.", mNetworkAction.mUserProfileId, isFollowed ? "followed" : "unfollowed"));
+            Log.e(getTag(), String.format("Error updating user profile (with ID=%d) to %s.", mUserId, isFollowed ? "followed" : "unfollowed"));
         } else {
-            Log.d(getTag(), String.format("User profile (with ID=%d) updated to %s.", mNetworkAction.mUserProfileId, isFollowed ? "followed" : "unfollowed"));
+            Log.d(getTag(), String.format("User profile (with ID=%d) updated to %s.", mUserId, isFollowed ? "followed" : "unfollowed"));
         }
     }
 
@@ -278,67 +274,6 @@ public class UserProfileOp extends Operations {
     }
 
     /**
-     * Method for creating new action {@link UploadAction#FOLLOW_PROFILE}.
-     * @param followedUserId  user id of the followed profile.
-     * @return newly created {@link NetworkAction}.
-     */
-    public static NetworkAction followNewUserAction(long followedUserId){
-        mNetworkAction.mUserProfileId = followedUserId;
-        mNetworkAction.setUploadAction(UploadAction.FOLLOW_PROFILE);
-        return mNetworkAction;
-    }
-
-    /**
-     * Method for creating new action {@link UploadAction#UNFOLLOW_PROFILE}.
-     * @param unfollowedUserId user id of the followed profile.
-     * @return newly created data file for startUploadAction.
-     */
-    public static NetworkAction unfollowUserAction( long unfollowedUserId) {
-        mNetworkAction.mUserProfileId = unfollowedUserId;
-        mNetworkAction.setUploadAction(UploadAction.UNFOLLOW_PROFILE);
-        return mNetworkAction;
-    }
-
-    /**
-     * Method for creating new action {@link DownloadAction#GET_FOLLOWED_LIST}
-     * @param offset
-     * @param limit
-     * @return network action to be performed
-     */
-    public static NetworkAction getFollowersListAction(long profileId, int offset, int limit) {
-        mNetworkAction.mUserProfileId = profileId;
-        mNetworkAction.offset = offset;
-        mNetworkAction.limit = limit;
-        mNetworkAction.setDownloadAction(DownloadAction.GET_FOLLOWED_LIST);
-        return mNetworkAction;
-    }
-
-    /**
-     * Method for creating new action {@link DownloadAction#GET_FOLLOWED_LIST}
-     * @param offset
-     * @param limit
-     * @return network action to be performed
-     */
-    public static NetworkAction getFollowingListAction(long profileId, int offset, int limit) {
-        mNetworkAction.mUserProfileId = profileId;
-        mNetworkAction.offset = offset;
-        mNetworkAction.limit = limit;
-        mNetworkAction.setDownloadAction(DownloadAction.GET_FOLLOWING_LIST);
-        return mNetworkAction;
-    }
-
-    /**
-     * Method for creating new action {@link DownloadAction#GET_USER_PROFILE}
-     * @param profileId profile id of the requested user
-     * @return network action to be performed
-     */
-    public static NetworkAction getUserProfileAction(long profileId){
-        mNetworkAction.mUserProfileId = profileId;
-        mNetworkAction.setDownloadAction(DownloadAction.GET_USER_PROFILE);
-        return mNetworkAction;
-    }
-
-    /**
      * Helper method for creating debug text string
      */
     public String getString(long id, String name, String lastName, String email, String picLink){
@@ -351,35 +286,15 @@ public class UserProfileOp extends Operations {
     }
 
 
-    private class ProfileNetworkAction extends NetworkAction<UploadAction, DownloadAction>{
-
-        long mUserProfileId;
-
-        int offset;
-        int limit;
-
-        private UploadAction mUploadAction;
-        private DownloadAction mDownloadAction;
-
-        @Override
-        public UploadAction getUploadAction() {
-            return mUploadAction;
-        }
-
-        @Override
-        public DownloadAction getDownloadAction() {
-            return mDownloadAction;
-        }
-
-        @Override
-        public void setDownloadAction(DownloadAction action) {
-            mDownloadAction = action;
-        }
-
-        @Override
-        public void setUploadAction(UploadAction action) {
-            mUploadAction = action;
-        }
+    public UserProfileOp setUserId(long userId) {
+        mUserId = userId;
+        return this;
+    }public UserProfileOp setCount(int count) {
+        mCount = count;
+        return this;
+    }public UserProfileOp setOffset(int offset) {
+        mOffset = offset;
+        return this;
     }
 }
 

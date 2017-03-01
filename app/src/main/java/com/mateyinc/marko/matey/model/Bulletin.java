@@ -6,15 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.internet.MateyRequest;
-import com.mateyinc.marko.matey.data.internet.UrlData;
-import com.mateyinc.marko.matey.data.updater.DataUpdater;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,7 +18,6 @@ import java.util.LinkedList;
 import java.util.Locale;
 
 import static com.mateyinc.marko.matey.activity.Util.parseDate;
-import static com.mateyinc.marko.matey.data.DataManager.ServerStatus.STATUS_RETRY_UPLOAD;
 
 public class Bulletin extends MModel {
     private String TAG = Bulletin.class.getSimpleName();
@@ -40,14 +31,15 @@ public class Bulletin extends MModel {
     public static final String KEY_NUM_OF_SHARES = "num_of_shares";
     public static final String KEY_LAST_USER_RESPOND = "last_user_respond";
 
+    private long mUserID;
     private String mFirstName;
     private String mLastName;
     private Date mDate;
     private String mText;
-    private long mUserID;
-    private LinkedList<Attachment> mAttachments;
+    private String mSubject;
     private int mNumOfReplies = 0;
-
+    private int mNumOfLikes = 0;
+    private LinkedList<Attachment> mAttachments;
 
     public Bulletin(long post_id, long user_id, String firstName, String lastName, String text, Date date) {
         _id = post_id;
@@ -76,6 +68,21 @@ public class Bulletin extends MModel {
         this.mNumOfReplies = noOfReplies;
     }
 
+    public int getNumOfLikes() {
+        return mNumOfLikes;
+    }
+
+    public void setmNumOfLikes(int mNumOfLikes) {
+        this.mNumOfLikes = mNumOfLikes;
+    }
+
+    public String getSubject() {
+        return mSubject;
+    }
+
+    public void setmSubject(String mSubject) {
+        this.mSubject = mSubject;
+    }
 
     public long getPostID() {
         return _id;
@@ -92,7 +99,6 @@ public class Bulletin extends MModel {
     public void setUserID(long mUserID) {
         this.mUserID = mUserID;
     }
-
 
     public String getMessage() {
         return mText;
@@ -176,92 +182,6 @@ public class Bulletin extends MModel {
         return b;
     }
 
-    @Override
-    public void upload(final Context context, RequestQueue queue, String accessToken) {
-        // First add to db
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                addToDb(context);
-            }
-        });
-        t.start();
-
-        // Creating new request
-        MateyRequest uploadRequest = new MateyRequest(Request.Method.POST, UrlData.POST_NEW_BULLETINS_ROUTE,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(final String response) {
-                        Thread t = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                uploadSucceeded(response, context);
-                            }
-                        });
-                        t.start();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(final VolleyError error) {
-                        Thread t = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                uploadFailed(error, context);
-                            }
-                        });
-                        t.start();
-                    }
-                }
-        );
-        uploadRequest.setAuthHeader(accessToken);
-        uploadRequest.addParam(UrlData.PARAM_TEXT_DATA, this.mText);
-
-        // Send request to the network
-        queue.add(uploadRequest);
-    }
-
-    /**
-     * Helper method to be called when startUploadAction has succeeded
-     * @param response response retrieved from the server
-     * @param context context used for db control
-     */
-    @Override
-    protected void uploadSucceeded(final String response, final Context context) {
-        try {
-            JSONObject object = new JSONObject(response);
-            // Format data
-            Date date = Util.parseDate(object.getString(KEY_DATE_ADDED));
-            // Update data
-//            updateIdAndDate(object.getLong(Bulletin.KEY_POST_ID), date, context);
-            Bulletin.this.updateIdAndDate(_id, object.getLong(Bulletin.KEY_POST_ID),
-                    date, DataUpdater.BULLETIN_CLASS, context);
-
-        } catch (JSONException e) {
-            uploadFailed(e, context);
-        } catch (ParseException e){
-            uploadFailed(e, context);
-        }
-    }
-
-    /**
-     * Helper method to be called when startUploadAction has failed
-     * @param error error response retrieved from the server
-     * @param context context used for db control
-     */
-    @Override
-    protected void uploadFailed(Exception error, Context context) {
-//        updateServerStatus(STATUS_RETRY_UPLOAD, context);
-        Bulletin.this.updateServerStatus(STATUS_RETRY_UPLOAD, DataUpdater.BULLETIN_CLASS, context);
-        Log.e(TAG, error.getLocalizedMessage(), error);
-    }
-
-    @Override
-    public void download(Context context, RequestQueue queue, String accessToken) {
-
-    }
-
-    @Override
     public void addToDb(final Context c) {
         ContentValues values = new ContentValues();
         values.put(DataContract.BulletinEntry._ID, _id);
@@ -305,16 +225,6 @@ public class Bulletin extends MModel {
         } else {
             Log.e(TAG, "Failed to add null bulletin.");
         }
-    }
-
-    /** @see #updateIdAndDate(long, long, Date, int, Context)  */
-    private void updateIdAndDate(final long newId, final Date date, final Context context){
-        Bulletin.this.updateIdAndDate(_id, newId, date, DataUpdater.BULLETIN_CLASS, context);
-    }
-
-    /**@see #updateServerStatus(int, int, Context)*/
-    private void updateServerStatus(final int serverStatus, final Context context){
-        Bulletin.this.updateServerStatus(serverStatus, DataUpdater.BULLETIN_CLASS, context);
     }
 
     public static void decrementRepliesCount(long postId, Context context){
@@ -390,11 +300,6 @@ public class Bulletin extends MModel {
     }
 
 
-
-
-    public static MModel getInstance(){
-        return new Bulletin();
-    }
 
     private Bulletin(){}
     private Bulletin(long postId){

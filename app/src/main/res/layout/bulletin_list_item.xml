@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/llBulletinPanel"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/bulletins_listView_bottomMargin"
+    android:layout_marginLeft="@dimen/bulletin_margin"
+    android:layout_marginRight="@dimen/bulletin_margin"
+    android:layout_marginTop="@dimen/bulletin_margin"
+
     android:background="@color/white"
+    android:elevation="4dp"
     android:orientation="vertical"
     android:paddingLeft="@dimen/bulletins_padding_side"
-    android:paddingRight="@dimen/bulletins_padding_side"
-    android:id="@+id/llBulletinPanel">
+    android:paddingRight="@dimen/bulletins_padding_side">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -20,27 +24,46 @@
             android:id="@+id/ivBulletinProfilePic"
             android:layout_width="@dimen/bulletin_pic_height"
             android:layout_height="@dimen/bulletin_pic_height"
-            android:layout_marginRight="5dp"
             android:layout_marginEnd="5dp"
+            android:layout_marginRight="5dp"
             android:padding="@dimen/bulletin_pic_padding"
             android:scaleType="centerCrop"
+            android:src="@drawable/empty_photo"
             app:riv_border_color="@color/profile_pic_border"
             app:riv_border_width="0dp"
-            app:riv_oval="true"
-            android:src="@drawable/empty_photo" />
+            app:riv_oval="true" />
 
-        <TextView
+        <com.mateyinc.marko.matey.activity.home.MediumTextView
             android:id="@+id/tvName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/bulletins_name_topMargin"
             android:layout_toEndOf="@+id/ivBulletinProfilePic"
             android:layout_toRightOf="@+id/ivBulletinProfilePic"
-            android:fontFamily="@string/roboto_medium"
             android:text="Sender name"
             android:textColor="@color/blue"
             android:textIsSelectable="false"
-            android:textSize="@dimen/subHeading" />
+            android:textSize="@dimen/bulletin_textSize_userName" />
+
+        <ImageView
+            android:id="@+id/ivShare"
+            android:layout_width="@dimen/bulletin_topBtn"
+            android:layout_height="@dimen/bulletin_topBtn"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="@dimen/bulletin_topBtn_topMargin"
+            android:src="@drawable/ic_share" />
+
+        <ImageView
+            android:id="@+id/ivBookmark"
+            android:layout_width="@dimen/bulletin_topBtn"
+            android:layout_height="@dimen/bulletin_topBtn"
+            android:layout_marginEnd="@dimen/bulletin_topBtn_margin"
+            android:layout_marginRight="@dimen/bulletin_topBtn_margin"
+            android:layout_marginTop="@dimen/bulletin_topBtn_topMargin"
+            android:layout_toLeftOf="@id/ivShare"
+            android:layout_toStartOf="@id/ivShare"
+            android:src="@drawable/ic_star" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -48,113 +71,155 @@
             android:layout_alignBottom="@+id/ivBulletinProfilePic"
             android:layout_alignParentBottom="false"
             android:layout_marginBottom="@dimen/bulletins_name_topMargin"
-            android:layout_toRightOf="@+id/ivBulletinProfilePic"
             android:layout_toEndOf="@+id/ivBulletinProfilePic"
+            android:layout_toRightOf="@+id/ivBulletinProfilePic"
             android:gravity="center"
             android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/imageView2"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_marginRight="4dp"
-                android:layout_marginEnd="4dp"
-                android:src="@drawable/ic_clock"
-                android:tint="@color/light_gray" />
-
-            <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@string/roboto_light"
-                android:text="12:00 "
-                android:textColor="@color/light_gray"
-                android:textSize="@dimen/info"
-                android:textStyle="italic" />
 
             <TextView
                 android:id="@+id/tvBulletinCategory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@string/roboto_light"
-                android:text="in General"
+                android:text="PHP Programing"
                 android:textColor="@color/light_gray"
                 android:textIsSelectable="false"
-                android:textSize="@dimen/info"
-                android:textStyle="italic" />
+                android:textSize="@dimen/bulletin_textSize_group" />
         </LinearLayout>
 
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginEnd="@dimen/bulletins_msg_margin"
-        android:layout_marginLeft="@dimen/bulletins_msg_margin"
-        android:layout_marginRight="@dimen/bulletins_msg_margin"
-        android:layout_marginStart="@dimen/bulletins_msg_margin">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/bulletin_body_margin"
+        android:layout_marginLeft="@dimen/bulletin_body_margin"
+        android:layout_marginRight="@dimen/bulletin_body_margin"
+        android:layout_marginStart="@dimen/bulletin_body_margin"
+        android:id="@+id/rlBody">
 
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/tvSubject"
             android:layout_marginBottom="10dp"
-            android:text="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&apos;s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged."
-            android:textSize="@dimen/body"
+            android:layout_marginLeft="@dimen/bulletins_msg_margin"
+            android:layout_marginStart="@dimen/bulletins_msg_margin"
             android:textColor="@color/blackDarkTransparent"
-            android:textColorLink="@color/light_gray" />
+            android:textColorLink="@color/light_gray"
+            android:textSize="@dimen/bulletin_textSize_message"
+            android:text="Some details about subject" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+
+        <TextView
+            android:id="@+id/tvSubject"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tvMessage"
-            android:layout_marginBottom="4dp"
-            android:orientation="horizontal">
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="4dp"
+            android:textColor="@color/blackDarkTransparent"
+            android:textColorLink="@color/light_gray"
+            android:textSize="@dimen/bulletin_textSize_subject"
+            android:text="Subject" />
 
-            <TextView
-                android:id="@+id/textView9"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="#informatic"
-                android:textColor="@color/blue"
-                android:textSize="@dimen/info" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvStats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvMessage"
+            android:text="Statistics"
+            android:textSize="@dimen/bulletin_textSize_message" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/tvStats"
+            android:layout_alignParentRight="true"
+            android:fontFamily="@string/roboto_light"
+            android:text="12:00 "
+            android:textColor="@color/light_gray"
+            android:textSize="@dimen/bulletin_textSize_time" />
+
+
 
     </RelativeLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0.1dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:background="@color/light_gray"></FrameLayout>
+        android:layout_marginLeft="@dimen/bulletin_body_margin"
+        android:layout_marginRight="@dimen/bulletin_body_margin"
+        android:layout_marginTop="@dimen/bulletin_bottomStats_margin"
+        android:background="@color/light_gray"
+        android:id="@+id/divider" />
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/llBottomButtons"
         android:layout_width="match_parent"
         android:layout_height="38dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:id="@+id/rlRepliesPanel">
+        android:layout_marginLeft="@dimen/bulletin_body_margin"
+        android:layout_marginRight="@dimen/bulletin_body_margin"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/llBoost"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:animateLayoutChanges="false"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView78"
+                android:layout_width="@dimen/bulletin_bottomBtn"
+                android:layout_height="@dimen/bulletin_bottomBtn"
+                android:layout_marginEnd="@dimen/bulletin_bottomBtn_textMargin"
+                android:layout_marginRight="@dimen/bulletin_bottomBtn_textMargin"
+                android:clickable="false"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_boost"
+                android:tint="@color/gray" />
+
+            <com.mateyinc.marko.matey.activity.home.MediumTextView
+                android:id="@+id/textView98"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:clickable="false"
+                android:enabled="false"
+                android:text="Boost!"
+                android:textColor="@color/gray"
+                android:textSize="@dimen/bulletin_textSize_buttons" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/llReply"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/imageView5"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_reply_black_24dp"
+                android:layout_width="@dimen/bulletin_bottomBtn"
+                android:layout_height="@dimen/bulletin_bottomBtn"
+                android:layout_marginEnd="@dimen/bulletin_bottomBtn_textMargin"
+                android:layout_marginRight="@dimen/bulletin_bottomBtn_textMargin"
+                android:scaleType="center"
+                android:src="@drawable/ic_bottle"
                 android:tint="@color/gray" />
 
-            <TextView
+            <com.mateyinc.marko.matey.activity.home.MediumTextView
                 android:id="@+id/textView10"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -163,15 +228,9 @@
                 android:layout_alignParentTop="true"
                 android:text="Reply"
                 android:textColor="@color/gray"
-                android:textSize="@dimen/subHeading" />
+                android:textSize="@dimen/bulletin_textSize_buttons" />
         </LinearLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/rlReplies"
-            android:layout_toLeftOf="@+id/llReply"></RelativeLayout>
-
-    </RelativeLayout>
+    </LinearLayout>
 
 </LinearLayout>

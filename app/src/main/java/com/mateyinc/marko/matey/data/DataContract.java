@@ -144,9 +144,11 @@ public class DataContract {
         public static final String COLUMN_FIRST_NAME = "first_name";
         public static final String COLUMN_LAST_NAME = "last_name";
         public static final String COLUMN_TEXT = "post_text";
+        public static final String COLUMN_SUBJECT = "post_subject";
         public static final String COLUMN_DATE = "post_date";
         public static final String COLUMN_ATTACHMENTS = "post_attachments";
-        public static final String COLUMN_NUM_OF_REPLIES = "post_replies";
+        public static final String COLUMN_NUM_OF_REPLIES = "bulletin_num_of_replies";
+        public static final String COLUMN_NUM_OF_LIKES = "bulletin_num_of_likes";
 
         public static String DEFAULT_SORT = " DESC";
 
@@ -177,8 +179,8 @@ public class DataContract {
         public static final String COLUMN_LAST_NAME = "last_name";
         public static final String COLUMN_TEXT = "reply_text";
         public static final String COLUMN_DATE = "reply_date";
-        public static final String COLUMN_NUM_OF_APPRVS = "no_of_apprvs";
-//        public static final String COLUMN_APPRVS = "apprvs";
+        public static final String COLUMN_NUM_OF_LIKES = "reply_num_of_likes";
+        public static final String COLUMN_NUM_OF_REPLIES = "reply_num_of_replies";
 
         public static Uri buildReplyUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -219,7 +221,7 @@ public class DataContract {
         public static final String TABLE_NAME = "not_uploaded_items";
 
         /**
-         * Entry type can be value from {@link com.mateyinc.marko.matey.data.OperationFactory.OperationType}
+         * Entry type can be value from {@link com.mateyinc.marko.matey.data.operations.OperationType}
          */
         public static final String COLUMN_ENTRY_TYPE = "entry_type";
 
