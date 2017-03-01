@@ -44,8 +44,8 @@ public class UserProfileAs extends AsyncTask<String, Void, String> {
     @Override
     protected void onPreExecute() {
 
-        if(mUserId == mOperationManager.getCurrentUserProfile().getUserId()){
-            mUserProfile.get().setData(mOperationManager.getCurrentUserProfile());
+        if(mUserId == MotherActivity.user_id){
+            mUserProfile.get().copy(MotherActivity.mCurrentUserProfile);
             notifyActivity();
             this.cancel(true);
             return;

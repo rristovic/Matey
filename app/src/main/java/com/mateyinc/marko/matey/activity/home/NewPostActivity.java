@@ -114,7 +114,7 @@ public class NewPostActivity extends MotherActivity {
             public void onClick(View v) {
                 OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
 
-                UserProfile profile = operationManager.getCurrentUserProfile();
+                UserProfile profile = MotherActivity.mCurrentUserProfile;
                 Bulletin b = new Bulletin(
                         operationManager.createNewActivityId(),
                         profile.getUserId(),

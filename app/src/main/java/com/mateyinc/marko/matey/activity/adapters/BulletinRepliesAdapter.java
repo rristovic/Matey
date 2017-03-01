@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
@@ -26,12 +27,15 @@ import java.util.LinkedList;
 import java.util.Locale;
 
 import static com.mateyinc.marko.matey.R.color.light_gray;
+import static com.mateyinc.marko.matey.R.id.tvDate;
 
-/**
- * Created by Sarma on 9/5/2016.
- */
+
 public class BulletinRepliesAdapter extends RecycleCursorAdapter {
     private final String TAG = BulletinRepliesAdapter.class.getSimpleName();
+
+    public interface RepliesPopupInterface {
+        void showPopupWindow(long postId);
+    }
 
     private RecyclerView mRecycleView;
     private UserProfile mCurUserProfile;
@@ -41,6 +45,9 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
     private int ITEM = 1;
     private int FIRST_ITEM = 0;
+
+    /** Used for showing popup windows for replying to reply **/
+    private RepliesPopupInterface showPopupInterface;
 
     public BulletinRepliesAdapter(MotherActivity context, RecyclerView view, LinkedList data) {
         mContext = context;
@@ -104,9 +111,9 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             linearLayout.addView(divider);
             linearLayout.addView(view);
 
-            return new ViewHolder(linearLayout, getViewHolderListener());
+            return new ViewHolder(linearLayout, getViewHolderListener(), showPopupInterface != null);
         } else {
-            return new ViewHolder(view, getViewHolderListener());
+            return new ViewHolder(view, getViewHolderListener(), showPopupInterface != null);
         }
     }
 
@@ -167,6 +174,12 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
                 i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getInt(BulletinViewActivity.COL_USER_ID));
                 mContext.startActivity(i);
             }
+
+            @Override
+            public void onReplyClick(View caller, int adapterViewPosition) {
+                mCursor.moveToPosition(adapterViewPosition);
+                showPopupInterface.showPopupWindow(mCursor.getLong(BulletinViewActivity.COL_REPLY_ID));
+            }
         };
     }
 
@@ -178,7 +191,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         if (getItemViewType(position) == FIRST_ITEM) {
             BulletinRepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
             ((TextView) holder.mView.findViewById(R.id.tvName)).setText(mCurBulletin.getFirstName().concat(" ").concat(mCurBulletin.getLastName()));
-            ((TextView) holder.mView.findViewById(R.id.tvDate)).setText(Util.getReadableDateText(mCurBulletin.getDate()));
+            ((TextView) holder.mView.findViewById(tvDate)).setText(Util.getReadableDateText(mCurBulletin.getDate()));
             ((TextView) holder.mView.findViewById(R.id.tvMessage)).setText(mCurBulletin.getMessage());
             LinearLayout llReply = (LinearLayout) holder.mView.findViewById(R.id.llReply);
 
@@ -218,9 +231,13 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
     }
 
-    public void showBulletinInfo(Bulletin b) {
+    public void showMainPostInfo(Bulletin b) {
         mCurBulletin = b;
         mOnlyShowReplies = false;
+    }
+
+    public void setReplyPopupInterface(RepliesPopupInterface repliesPopupInterface) {
+        showPopupInterface = repliesPopupInterface;
     }
 
 
@@ -229,18 +246,37 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         private static final String TAG_APPROVE = "approvebtn";
         private static final String TAG_SHOW_APPROVES = "showapprvs";
 
-        final View mView;
+
+        private static final String TV_MESSAGE = "tvMessage";
+        private static final String BTN_REPLY_TAG = "replytag";
+        private static final String BTN_ARR_TAG = "arrtag";
+
+        final LinearLayout mView;
         final TextView tvMessage;
-        final TextView tvName;
-        final TextView tvDate;
+        final TextView tvName, tvDate, tvStats;
         final ImageView ivProfilePic;
+        final LinearLayout btnReply, btnArr;
 
         private final ViewHolderClickListener mListener;
 
-        public ViewHolder(View view, ViewHolderClickListener listener) {
+        public ViewHolder(View view, ViewHolderClickListener listener, boolean showReplyButton) {
             super(view);
-            mView = view;
+            mView = (LinearLayout)view;
+            btnArr = (LinearLayout) view.findViewById(R.id.llArr);
+            btnReply = (LinearLayout) view.findViewById(R.id.llReply);
+            tvStats = (TextView) view.findViewById(R.id.tvReplyStats);
+            if (!showReplyButton) {
+                ((RelativeLayout)mView.findViewById(R.id.rlMainInfo)).removeView(btnReply);
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) tvStats.getLayoutParams();
+                params.addRule(RelativeLayout.RIGHT_OF, R.id.llArr);
+                params.addRule(RelativeLayout.END_OF, R.id.llArr);
+                tvStats.setLayoutParams(params);
+            } else {
+                btnReply.setTag(BTN_REPLY_TAG);
+            }
+
             tvMessage = (TextView) view.findViewById(R.id.tvMessage);
+            tvMessage.setTag(TV_MESSAGE);
             tvName = (TextView) view.findViewById(R.id.tvReplyName);
             tvDate = (TextView) view.findViewById(R.id.tvTime);
             ivProfilePic = (ImageView) view.findViewById(R.id.ivReplyProfilePic);
@@ -251,6 +287,9 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
             tvName.setOnClickListener(this);
             ivProfilePic.setOnClickListener(this);
+            tvMessage.setOnClickListener(this);
+            if (showReplyButton)
+                btnReply.setOnClickListener(this);
         }
 
         @Override
@@ -263,6 +302,10 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
                 mListener.onApproveClicked(v, mView);
             } else if (tag.equals(TAG_SHOW_APPROVES)) {
                 mListener.onShowApprovesClicked(v, mView);
+            } else if (tag.equals(BTN_REPLY_TAG)){
+                mListener.onReplyClick(v, getAdapterPosition());
+            } else if (tag.equals(TV_MESSAGE)) {
+                mListener.onReplyClick(v, getAdapterPosition());
             }
         }
 
@@ -272,6 +315,8 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             void onShowApprovesClicked(View caller, View rootView);
 
             void onNameClicked(View caller, View rootView);
+
+            void onReplyClick(View caller, int adapterViewPosition);
         }
     }
 }

@@ -72,18 +72,20 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
 
     // Projection for profile query
     private static final String[] PROFILE_DATA_PROJECTION = new String[]{
-            ProfileEntry.COLUMN_FULL_NAME,
             ProfileEntry.COLUMN_PROF_PIC,
             ProfileEntry.COLUMN_COVER_PIC,
             ProfileEntry.COLUMN_FOLLOWERS_NUM,
-            ProfileEntry.COLUMN_FOLLOWING_NUM
+            ProfileEntry.COLUMN_FOLLOWING_NUM,
+            ProfileEntry.COLUMN_NAME,
+            ProfileEntry.COLUMN_LAST_NAME
     };
     // Indices going with above projection
-    private static final int COL_FULL_NAME = 0;
-    private static final int COL_PROFILE_PIC = COL_FULL_NAME + 1;
+    private static final int COL_PROFILE_PIC = 0;
     private static final int COL_COVER_PIC = COL_PROFILE_PIC + 1;
     private static final int COL_FOLLOWERS_NUM = COL_COVER_PIC + 1;
     private static final int COL_FOLLOWING_NUM = COL_FOLLOWERS_NUM + 1;
+    private static final int COL_FIRST_NAME = COL_FOLLOWING_NUM + 1;
+    private static final int COL_LAST_NAME = COL_FIRST_NAME + 1;
 
     private TextView tvName, tvFollowersNum, tvFollowingNum;
     private ImageView ivProfilePic, ivCoverPic;
@@ -98,12 +100,16 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     private String mPicLink = "";
     private String mCoverLink = "";
     private long mUserId;
+
+    // Indicates if current user is viewing it's own profile
     private boolean isCurUser = false;
 
     // Position used for scroll control
     private float mBadgesPos;
 
     private OperationManager mOpManager;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +125,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         setChildSupportActionBar();
         init();
         setListeners();
+
         readData();
     }
 
@@ -127,7 +134,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         if (getIntent().hasExtra(EXTRA_PROFILE_ID))
             mUserId = getIntent().getLongExtra(EXTRA_PROFILE_ID, -1);
         else {
-            mUserId = OperationManager.getInstance(ProfileActivity.this).getCurrentUserProfile().getUserId();
+            mUserId = MotherActivity.user_id;
             isCurUser = true;
         }
 
@@ -341,6 +348,9 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         mPicLink = data.getString(COL_PROFILE_PIC);
         mCoverLink = data.getString(COL_COVER_PIC);
 
+        if (mPicLink == null) mPicLink = "";
+        if (mCoverLink == null) mCoverLink = "";
+
         if (mPicLink.equals(FLAG_CHANGED)) {
             mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
                     getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
@@ -377,7 +387,7 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
                         }
                     }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
 
-        tvName.setText(data.getString(COL_FULL_NAME));
+        tvName.setText(data.getString(COL_FIRST_NAME).concat(" ").concat(data.getString(COL_LAST_NAME)));
         tvFollowersNum.setText(Integer.toString(data.getInt(COL_FOLLOWERS_NUM)));
         tvFollowingNum.setText(Integer.toString(data.getInt(COL_FOLLOWING_NUM)));
 

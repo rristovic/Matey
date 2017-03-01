@@ -1,8 +1,5 @@
 package com.mateyinc.marko.matey.inall;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -10,22 +7,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
 
-import com.facebook.login.LoginManager;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.data.internet.procedures.LogoutAs;
+import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
-
-import java.util.Arrays;
 
 abstract public class MotherActivity extends AppCompatActivity {
 
-    public static long user_id;
-    public static String device_id;
-
     protected Toolbar toolbar;
 
+    // Static params used for session management
+    /** Id of current user */
+    public static long user_id;
+    /** Id of the device retrieved from the server */
+    public static String device_id;
     /** Access token used to authorise with the server */
     public static String access_token;
+    /** {@link UserProfile} of current user **/
+    public static UserProfile mCurrentUserProfile;
 
 
     private final Object mLock = new Object();
@@ -40,10 +38,6 @@ abstract public class MotherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (mSecurePreferences == null) {
-            mSecurePreferences = ((MyApplication) getApplication()).getSecurePreferences();
-        }
     }
 
     @Override
@@ -55,102 +49,11 @@ abstract public class MotherActivity extends AppCompatActivity {
 
     public SecurePreferences getSecurePreferences() {
         synchronized (mLock) {
+            if (mSecurePreferences == null) {
+                mSecurePreferences = ((MyApplication) getApplication()).getSecurePreferences();
+            }
             return mSecurePreferences;
         }
-    }
-
-    @Override
-    protected Dialog onCreateDialog(int id, Bundle bundle) {
-
-        switch (id) {
-
-            case 1000:
-                return new AlertDialog.Builder(this)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .setTitle("Hey mate, there's a problem!")
-                        .setMessage("Some error occurred.")
-                        .setPositiveButton("Try Again",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-//                                        startTommy();
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                })
-                        .create();
-
-            case 1002:
-                return new AlertDialog.Builder(this)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .setTitle("WOOHOO")
-                        .setMessage("You are logged in with email: " + mSecurePreferences.getString("email") + "!")
-                        .setPositiveButton("Log Out",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                        LogoutAs logoutAs = new LogoutAs(MotherActivity.this);
-                                        logoutAs.execute(mSecurePreferences.getString("email"),
-                                                mSecurePreferences.getString("uid"),
-                                                mSecurePreferences.getString("device_id"));
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                })
-                        .create();
-
-            case 1003:
-                return new AlertDialog.Builder(this)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .setTitle("Hey " + bundle.getString("name") + ", you are already here!")
-                        .setMessage("You have connected earlier with your facebook account. We recommend you to merge these two accounts!")
-                        .setPositiveButton("Merge Accounts",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-//                                        FB_REQUEST = 1;
-                                        LoginManager.getInstance().logInWithReadPermissions(MotherActivity.this, Arrays.asList("public_profile"));
-
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                })
-                        .create();
-
-            case 1004:
-                return new AlertDialog.Builder(this)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .setTitle("Hey mate, there's a problem!")
-                        .setMessage(bundle.getString("message"))
-                        .setPositiveButton("Ok",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                })
-                        .create();
-        }
-
-        return super.onCreateDialog(id);
-
     }
 
     protected void setSupportActionBar(){
@@ -174,5 +77,6 @@ abstract public class MotherActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }

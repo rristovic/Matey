@@ -80,7 +80,7 @@ public class Bulletin extends MModel {
         return mSubject;
     }
 
-    public void setmSubject(String mSubject) {
+    public void setSubject(String mSubject) {
         this.mSubject = mSubject;
     }
 

@@ -75,7 +75,7 @@ public class MenuFragment extends Fragment {
 //                        break;
 //                    }
                     case GROUPS_ITEM_ID: {
-                        Intent i = new Intent(MenuFragment.this.getContext(), GroupsActivity.class);
+                        Intent i = new Intent(MenuFragment.this.getContext(), GroupActivity.class);
                         startActivity(i);
                         break;
                     }

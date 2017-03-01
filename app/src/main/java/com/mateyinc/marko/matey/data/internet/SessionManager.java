@@ -41,8 +41,9 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.DummyData;
+import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -66,11 +67,12 @@ import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
+import static com.mateyinc.marko.matey.data.DataManager.setCurrentUserProfile;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 
 
 /**
- * Class for syncing with the server (e.g. LOGIN, LOGOUT, REGISTER and AUTHENTICATE)
+ * Class for syncing with the server  (e.g. LOGIN, LOGOUT, REGISTER and AUTHENTICATE)
  */
 public class SessionManager {
     private static final String TAG = SessionManager.class.getSimpleName();
@@ -181,7 +183,7 @@ public class SessionManager {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
 
         // If user is logged in, proceed to next activity
-        if(isUserLoggedIn(sharedPreferences)) {
+        if(isUserLoggedIn()) {
             loggedIn(activity);
             return;
         }
@@ -209,11 +211,9 @@ public class SessionManager {
     }
 
     /** Method to check if user is logged in */
-    private boolean isUserLoggedIn(SharedPreferences preferences) {
+    private boolean isUserLoggedIn() {
         // Only check if the id exists because on logout it gets deleted
-        long user_id = preferences.getLong(OperationManager.KEY_CUR_USER_ID, -1);
-
-        return  user_id != -1;
+        return  MotherActivity.user_id != Long.MIN_VALUE;
     }
 
     /**
@@ -710,7 +710,6 @@ public class SessionManager {
      */
     private void parseUserDataAndLogin(MainActivity context, OperationManager operationManager, SharedPreferences preferences, JSONObject object) throws JSONException{
         // Parse the data
-
         parseUserData(operationManager, preferences, object);
 
         // Check if the response object has suggested friends list
@@ -751,16 +750,10 @@ public class SessionManager {
                 object.getString(KEY_PROFILE_PICTURE));
 
         // Adding current user to the database
-//        Thread t = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                operationManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
-//            }
-//        });
-//        t.start();
+        userProfile.save(operationManager.getContext());
 
         // Adding current user to the memory
-        operationManager.setCurrentUserProfile(preferences, userProfile);
+        setCurrentUserProfile(preferences, userProfile);
     }
 
     /** Method for retrieving error description message collected from the server
@@ -914,10 +907,10 @@ public class SessionManager {
         OperationManager operationManager = OperationManager.getInstance(context);
 
         // Removing current user profile from db
-        operationManager.removeUserProfile(preferences.getLong(OperationManager.KEY_CUR_USER_ID, -1));
+        operationManager.removeUserProfile(preferences.getLong(DataManager.KEY_CUR_USER_ID, -1));
 
         // Removing current user  profile from prefs
-        operationManager.setCurrentUserProfile(preferences, null);
+        DataManager.setCurrentUserProfile(preferences, null);
 
         // Clearing user credentials
         securePreferences.removeValue(KEY_ACCESS_TOKEN);
@@ -1062,18 +1055,17 @@ public class SessionManager {
 
         // Saves the time when token is created
         final SharedPreferences preferences = getDefaultSharedPreferences(context);
-         preferences.edit().putLong(OperationManager.KEY_CUR_USER_ID, 666).apply();
+         preferences.edit().putLong(DataManager.KEY_CUR_USER_ID, 666).apply();
 
         // Adding current user to the database
-        OperationManager operationManager = OperationManager.getInstance(context);
         UserProfile userProfile = new UserProfile(666,
                 context.getString(R.string.dev_name),
                 context.getString(R.string.dev_lname),
                 context.getString(R.string.dev_email),
                 context.getString(R.string.dev_pic));
         userProfile.setNumOfFriends(40);
-//        operationManager.addOperation(new AddToDatabaseOp(userProfile)).performOperations();
-        operationManager.setCurrentUserProfile(preferences, userProfile);
+        userProfile.save(context);
+        DataManager.setCurrentUserProfile(preferences, userProfile);
 
         // Close progress dialog
         if (mProgDialog != null && mProgDialog.isShowing())

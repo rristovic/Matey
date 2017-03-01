@@ -116,7 +116,6 @@
     <dimen name="actionBar_icon_padding">12dp</dimen>
 
 
-
     <!-- Bulletin Reply dimens -->
     <dimen name="commentview_padding">12dp</dimen>
     <dimen name="commentview_pic_size">32dp</dimen>
@@ -140,6 +139,15 @@
 
     <!-- Upload new pic dimens -->
     <dimen name="rotate_btn_padding">60dp</dimen>
+
+    <!-- Group list item related - View size -->
+    <dimen name="group_listItem_size">70dp</dimen>
+    <dimen name="group_listItem_picPadding">7dp</dimen>
+    <dimen name="group_listItem_name_topMargin">10dp</dimen>
+    <dimen name="group_listItem_text_sideMargin">10dp</dimen>
+    <!-- Group list item related - Text size -->
+    <dimen name="group_listItem_textSize_name">@dimen/heading</dimen>
+    <dimen name="group_listItem_textSize_stats">@dimen/subHeading</dimen>
 
 
 </resources>

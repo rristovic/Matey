@@ -78,7 +78,8 @@ public abstract class Operations {
 
     // Download methods
     public abstract void startDownloadAction();
-    protected abstract void onDownloadSuccess(String response);
+    protected abstract void
+    onDownloadSuccess(String response);
     protected abstract void onDownloadFailed(VolleyError error);
     // Upload methods
     public abstract void startUploadAction();

@@ -7,7 +7,8 @@
     android:background="@color/gray_background_color"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context=".activity.view.BulletinViewActivity">
+    tools:context=".activity.view.BulletinViewActivity"
+    android:id="@+id/llmainFrame">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"

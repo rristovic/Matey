@@ -70,10 +70,9 @@ class DbHelper extends SQLiteOpenHelper {
                 ProfileEntry._ID + " INTEGER NOT NULL, " +
                 ProfileEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
-                ProfileEntry.COLUMN_FULL_NAME + " TEXT NOT NULL, " +
                 ProfileEntry.COLUMN_EMAIL + " TEXT NOT NULL, " +
-                ProfileEntry.COLUMN_PROF_PIC + " TEXT NOT NULL, " +
-                ProfileEntry.COLUMN_COVER_PIC + " TEXT NOT NULL, " +
+                ProfileEntry.COLUMN_PROF_PIC + " TEXT, " +
+                ProfileEntry.COLUMN_COVER_PIC + " TEXT, " +
                 ProfileEntry.COLUMN_FOLLOWERS_NUM + " INTEGER DEFAULT 0, " +
                 ProfileEntry.COLUMN_FOLLOWING_NUM + " INTEGER DEFAULT 0, " +
                 ProfileEntry.COLUMN_FOLLOWING + " BOOLEAN DEFAULT FALSE, " +
@@ -120,7 +119,7 @@ class DbHelper extends SQLiteOpenHelper {
                 ApproveEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 ApproveEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 ApproveEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
-                ApproveEntry.COLUMN_REPLY_ID + " INTEGER NOT NULL, " +
+                ApproveEntry.COLUMN_REPLY_ID + " INTEGER, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
                 "FOREIGN KEY (" + ApproveEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +

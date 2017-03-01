@@ -28,7 +28,7 @@
             android:layout_marginRight="5dp"
             android:padding="@dimen/bulletin_pic_padding"
             android:scaleType="centerCrop"
-            android:src="@drawable/empty_photo"
+            android:src="@color/gray"
             app:riv_border_color="@color/profile_pic_border"
             app:riv_border_width="0dp"
             app:riv_oval="true" />
@@ -86,7 +86,6 @@
                 android:textIsSelectable="false"
                 android:textSize="@dimen/bulletin_textSize_group" />
         </LinearLayout>
-
     </RelativeLayout>
 
     <RelativeLayout

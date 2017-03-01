@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -44,7 +45,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private SearchFragment mSearchFragment;
     private FragmentManager mFragmentManager;
     private BulletinsFragment mBulletinsFragment;
-    private NotificationsFragment mNotificationsFragment;
+    private GroupFragment mNotificationsFragment;
     private MessagesFragment mMessagesFragment;
     private FriendsFragment mFriendsFragment;
     private MenuFragment mMenuFragment;
@@ -96,6 +97,19 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
             values1.put(DataContract.ReplyEntry._ID, i);
             values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
             values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 1000);
+            values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");
+            values1.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, "Kraljevic");
+            values1.put(DataContract.ReplyEntry.COLUMN_DATE, new Date().getTime());
+            values1.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, new Random().nextInt(20));
+            values1.put(DataContract.ReplyEntry.COLUMN_TEXT, "Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla ");
+
+            resolver.insert(DataContract.ReplyEntry.CONTENT_URI, values1);
+        }
+        for (int i = 10; i < 21; i++) {
+            ContentValues values1 = new ContentValues(8);
+            values1.put(DataContract.ReplyEntry._ID, i);
+            values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
+            values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 2);
             values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");
             values1.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, "Kraljevic");
             values1.put(DataContract.ReplyEntry.COLUMN_DATE, new Date().getTime());
@@ -233,7 +247,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                 changeNavIconColor();
 
                 if (mNotificationsFragment == null) {
-                    mNotificationsFragment = new NotificationsFragment();
+                    mNotificationsFragment = new GroupFragment();
                 }
                 mFragmentManager.beginTransaction().replace(
                         R.id.homeContainer, mNotificationsFragment, NOTIF_FRAG_TAG
@@ -292,11 +306,19 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     }
 
-    /** Helper method for getting the current user profile in {@link OperationManager#mCurrentUserProfile} */
+    /** Helper method for getting the current user profile in {@link MotherActivity#mCurrentUserProfile} */
     private void getCurUser() {
-        if (!OperationManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this))) {
+        if (!DataManager.getInstance(this).setCurrentUserProfile()) {
             mSessionManager.logout(this, getSecurePreferences());
         }
+
+//        mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
+//        } else if (mSessionManager.getAccessToken().isEmpty())
+//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
+
+//        if (!OperationManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
+//            mSessionManager.logout(this, getSecurePreferences());
+
     }
 
     /** Helper method for downloading bulletin news feed */
@@ -317,10 +339,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     protected void onResume() {
         super.onResume();
 
-        Log.d(TAG, "entered onResume()");
-        Log.d(TAG,"Access token:" + access_token);
-
-        // Settings current user profile and access token in memory
+       // Settings current user profile and access token in memory
         if (mSessionManager == null) {
             mSessionManager = SessionManager.getInstance(this);
         }
@@ -328,8 +347,8 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 //        } else if (mSessionManager.getAccessToken().isEmpty())
 //            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
 
-        if (!OperationManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
-            mSessionManager.logout(this, getSecurePreferences());
+//        if (!OperationManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
+//            mSessionManager.logout(this, getSecurePreferences());
     }
 
     private void closeSearchView() {

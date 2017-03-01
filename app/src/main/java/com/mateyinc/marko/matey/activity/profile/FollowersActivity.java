@@ -20,8 +20,8 @@ import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
 import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.data.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -191,13 +191,13 @@ public class FollowersActivity extends MotherActivity {
 
     // Keys for json retrieved from the server
     private static final String KEY_ARRAY_NAME = "data";
-    private static final String KEY_USER_ID = UserProfileOp.KEY_ID;
-    private static final String KEY_FIRST_NAME = UserProfileOp.KEY_FIRST_NAME;
-    private static final String KEY_LAST_NAME = UserProfileOp.KEY_LAST_NAME;
-    private static final String KEY_FULL_NAME = UserProfileOp.KEY_FULL_NAME;
-    private static final String KEY_PICTURE_URL = UserProfileOp.KEY_PROFILE_PIC;
-    private static final String KEY_COVER_URL = UserProfileOp.KEY_COVER_PIC;
-    private static final String KEY_FOLLOWING = UserProfileOp.KEY_FOLLOWING;
+    private static final String KEY_USER_ID = UserProfile.KEY_ID;
+    private static final String KEY_FIRST_NAME = UserProfile.KEY_FIRST_NAME;
+    private static final String KEY_LAST_NAME = UserProfile.KEY_LAST_NAME;
+    private static final String KEY_FULL_NAME = UserProfile.KEY_FULL_NAME;
+    private static final String KEY_PICTURE_URL = UserProfile.KEY_PROFILE_PIC;
+    private static final String KEY_COVER_URL = UserProfile.KEY_COVER_PIC;
+    private static final String KEY_FOLLOWING = UserProfile.KEY_FOLLOWING;
     private static final String KEY_SIZE = "size";
     private static final String KEY_OFFSET = "offset";
     private static final String KEY_LIMIT = "limit";

@@ -19,10 +19,9 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
-
-import java.util.Date;
 
 import static com.mateyinc.marko.matey.data.OperationManager.COL_POST_ID;
 import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_RETRY_UPLOAD;
@@ -42,7 +41,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     /**
      * Used in long click to determine the position of clicked view
      */
-    public static int clickedPosition = -1;
     public static String clickedText = "";
     public static final int COPYTEXT_ID = 100;
 
@@ -93,7 +91,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 Intent i = new Intent(mContext, BulletinViewActivity.class);
                 i.putExtra(BulletinViewActivity.EXTRA_NEW_REPLY, true);
                 mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(COL_POST_ID));
                 i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
@@ -102,7 +100,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             public void onBodyClicked(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, BulletinViewActivity.class);
                 mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getInt(COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(COL_POST_ID));
                 i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
@@ -116,8 +114,28 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
             @Override
             public void onBoostClick(View caller, int adapterViewPosition) {
+                DataManager.getInstance(mContext).newPostLike(mCursor, adapterViewPosition);
 
-            }
+//Bulletin b = mManager.getBulletin(adapterViewPosition, mCursor);
+//                if (b.(mCurUserProfile.getUserId())) { // Unlike
+//                    // Remove approve from data and from database
+//                    for (UserProfile p : r.replyApproves) {
+//                        if (p.getUserId() == mCurUserProfile.getUserId())
+//                            r.replyApproves.remove(p);
+//                    }
+////                    mManager.addReply(r, mCurBulletin, );
+//
+//                    ((ImageView) caller).setColorFilter(mResources.getColor(light_gray)); // Changing the color of button
+//                    ((BulletinViewActivity) mContext).notifyBulletinFragment();
+//
+//                } else { // Like
+//                    // Add approve  to database
+//                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
+////                    mManager.addReply(r);
+//
+//                    ((BulletinViewActivity) mContext).notifyBulletinFragment();
+                }
+
 
 //            @Override
 //            public boolean onLongClick(View v, int adapterViewPosition) {
@@ -152,32 +170,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
                 try {
                     if (bulletin.getMessage().length() > CHAR_LIM) {
-                        // Setting text view message
-//                        SpannableString ss = new SpannableString(bulletin.getMessage().substring(0, CHAR_LIM - 1).concat(" ... ")
-//                                .concat(mContext.getString(R.string.continue_reading_message)));
-//
-//                        ClickableSpan clickableSpan = new ClickableSpan() {
-//                            @Override
-//                            public void onClick(View textView) {
-//                                Intent i = new Intent(mContext, BulletinViewActivity.class);
-//                                i.putExtra(BulletinViewActivity.EXTRA_SHOW_BULLETIN, true);
-//                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, bulletin.getPostID());
-//                                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, position);
-//                                mContext.startActivity(i);
-//                            }
-//
-//                            @Override
-//                            public void updateDrawState(TextPaint ds) {
-//                                super.updateDrawState(ds);
-//                                ds.setUnderlineText(false);
-//                            }
-//                        };
-//                        ss.setSpan(clickableSpan, CHAR_LIM + 4, ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//
-//                        // Set the message
-//                        holder.tvMessage.setMovementMethod(LinkMovementMethod.getInstance());
-//                        holder.tvMessage.setHighlightColor(Color.TRANSPARENT);
-//                        holder.tvMessage.setText(ss);
                         String text = bulletin.getMessage().substring(0, CHAR_LIM - 1).concat(" ... ")
                                 .concat(mContext.getString(R.string.continue_reading_message));
                         holder.tvMessage.setText(text);
@@ -192,19 +184,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 holder.tvSubject.setText(bulletin.getSubject());
                 holder.tvStats.setText(String.format(mContext.getString(R.string.statistics),
                         bulletin.getNumOfLikes(), bulletin.getNumOfReplies()));
+                holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
+                holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
 
-                try {
-                    holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
-                } catch (Exception e) {
-                    Log.e(TAG, e.getLocalizedMessage(), e);
-                    holder.tvName.setText(mContext.getString(R.string.error_message));
-                }
-                try {
-                    holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
-                } catch (Exception e) {
-                    Log.e(TAG, e.getLocalizedMessage(), e);
-                    holder.tvDate.setText(Util.getReadableDateText(new Date()));
-                }
 
 //                ((ViewHolder) mHolder).llReplies.removeAllViews(); // First reset the layout then add new views
 
@@ -392,6 +374,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
             btnReply.setOnClickListener(this);
             tvName.setOnClickListener(this);
+            btnBoost.setOnClickListener(this
+            );
 //            tvMessage.setOnCreateContextMenuListener(this);
         }
 

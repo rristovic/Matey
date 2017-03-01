@@ -27,9 +27,7 @@ import com.mateyinc.marko.matey.data.OperationManager;
 
 import java.util.Date;
 
-/**
- * Created by Sarma on 8/27/2016.
- */
+
 public class NotificationsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String TAG = NotificationsFragment.class.getSimpleName();

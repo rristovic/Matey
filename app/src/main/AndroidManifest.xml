@@ -93,7 +93,7 @@
             android:largeHeap="true"
             android:theme="@style/AppTheme.ActionBar.Transparent" />
         <activity
-            android:name=".activity.home.GroupsActivity"
+            android:name=".activity.home.GroupActivity"
             android:label="@string/title_activity_profile" />
         <activity
             android:name=".activity.home.FeedbackActivity"
@@ -141,6 +141,7 @@
         <activity
             android:name=".activity.profile.UploadNewPictureActivity"
             android:largeHeap="true" />
+        <activity android:name=".activity.view.RepliesViewActivity"></activity>
     </application>
 
 </manifest>

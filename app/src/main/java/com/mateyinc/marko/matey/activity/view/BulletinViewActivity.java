@@ -10,10 +10,15 @@ import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
@@ -31,15 +36,22 @@ import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
-import static com.mateyinc.marko.matey.data.OperationManager.REPLIES_LOADER;
 import static com.mateyinc.marko.matey.data.OperationManager.REPLIES_ORDER_BY;
 
-public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>, BulletinRepliesAdapter.RepliesPopupInterface {
 
     public static final String EXTRA_BULLETIN_ID = "post_id";
     public static final String EXTRA_BULLETIN_POS = "bulletin_adapter_pos";
     public static final String EXTRA_NEW_REPLY = "new_reply";
-    public static final String EXTRA_SHOW_BULLETIN = "show_bulletin";
+
+    /**
+     * Indicates if this activity should not show main bulletin that is being replied to
+     **/
+    public static final String EXTRA_NO_MAIN_POST = "no_main_post";
+    /**
+     * Argument for loader to indicate what replies should load from db
+     **/
+    private static final String ARG_REPLY_ID = "reply_id";
 
     public static final String[] REPLIES_COLUMNS = {
             "replies.".concat(ReplyEntry._ID),
@@ -65,14 +77,21 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
     public static int mBulletinPos = -1;
 
+    public static final int REPLIES_LOADER = 200;
+    public static final int REPLIES_OF_REPLIES_LOADER = 202;
+
+
     private BulletinRepliesAdapter mAdapter;
-    private RecyclerView rvList;
+    private RecyclerView rvList, mRepliesOfRepliesRecyclerView;
     private ImageButton ibBack;
-    private TextView tvHeading, etReplyText;
+    private TextView tvHeading, etReplyText, mRepliesHeader;
     private ImageView ivReply, ivOpenReplyScreen;
-    private OperationManager mManager;
+    private PopupWindow popWindow;
+    private LinearLayout mainlayout;
 
     private Bulletin mCurBulletin = null;
+    private OperationManager mManager;
+    private BulletinRepliesAdapter mRepliesAdapter;
 
 
     @Override
@@ -95,6 +114,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             finish();
         }
 
+        mainlayout = (LinearLayout) findViewById(R.id.llmainFrame);
         ibBack = (ImageButton) findViewById(R.id.ibBack);
         rvList = (RecyclerView) findViewById(R.id.rvBulletinRepliesList);
         tvHeading = (TextView) findViewById(R.id.tvReplyViewHeading);
@@ -120,23 +140,17 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             }
 
             private void enableButton(CharSequence s) {
-                if(s == null || s.length() == 0 ){
+                if (s == null || s.length() == 0) {
                     ivReply.setEnabled(false);
-                }else{
+                } else {
                     ivReply.setEnabled(true);
                 }
             }
         });
 
-
+        mAdapter.setReplyPopupInterface(this);
         rvList.setAdapter(mAdapter);
-
-        // Notifying the adapter to show bulletin info if it is required by the starting intent
-//        if (i.hasExtra(EXTRA_SHOW_BULLETIN)) {
-//            mAdapter.showBulletinInfo(mCurBulletin);
-//        }//
-      mAdapter.showBulletinInfo(mCurBulletin);
-
+        mAdapter.showMainPostInfo(mCurBulletin);
 
         // Init loader
         getSupportLoaderManager().initLoader(REPLIES_LOADER, null, this);
@@ -169,7 +183,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             public void onClick(View v) {
                 OperationManager dm = OperationManager.getInstance(BulletinViewActivity.this);
                 Reply r = new Reply();
-                UserProfile profile = mManager.getCurrentUserProfile();
+                UserProfile profile = MotherActivity.mCurrentUserProfile;
 
                 // Create new reply
                 r.userFirstName = profile.getFirstName();
@@ -201,7 +215,9 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivReply.setOnTouchListener(new OnTouchInterface(this));
     }
 
-    /** If some change is made, notify bulletins fragment and its adapter */
+    /**
+     * If some change is made, notify bulletins fragment and its adapter
+     */
     public void notifyBulletinFragment() {
         BulletinsFragment.mUpdatedPositions.add(mBulletinPos);
     }
@@ -235,21 +251,69 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     }
 
     @Override
+    public void showPopupWindow(long replyId) {
+        Bundle bundle = new Bundle();
+        bundle.putLong(ARG_REPLY_ID, replyId);
+//        getSupportLoaderManager().initLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
+        getSupportLoaderManager().restartLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
+
+        LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        // inflate the custom popup layout
+        View inflatedView = layoutInflater.inflate(R.layout.activity_replies_view, null, false);
+        // find the ListView in the popup layout
+        mRepliesOfRepliesRecyclerView = (RecyclerView) inflatedView.findViewById(R.id.rvReplies);
+        mRepliesHeader = (TextView) inflatedView.findViewById(R.id.tvHeading);
+
+        // Add adapter
+        mRepliesAdapter = new BulletinRepliesAdapter(BulletinViewActivity.this, mRepliesOfRepliesRecyclerView);
+        mRepliesOfRepliesRecyclerView.setAdapter(mRepliesAdapter);
+
+        // Get device size
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        int width = displayMetrics.widthPixels;
+        int height = displayMetrics.heightPixels;
+
+        // set height depends on the device size
+        popWindow = new PopupWindow(inflatedView, width, height - 50, true);
+        // set a background drawable with rounders corners
+        popWindow.setBackgroundDrawable(getResources().getDrawable(R.drawable.popup_bg));
+        popWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
+        popWindow.setAnimationStyle(R.style.PopupAnimation);
+
+        // show the popup at bottom of the screen and set some margin at bottom ie,
+        popWindow.showAtLocation(mainlayout, Gravity.BOTTOM, 0, 200);
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        return new CursorLoader(BulletinViewActivity.this,
-                DataContract.ReplyEntry.CONTENT_URI,
-                REPLIES_COLUMNS,
-                "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
-                new String[]{Integer.toString(getIntent().getIntExtra(EXTRA_BULLETIN_ID, -1))},
-                REPLIES_ORDER_BY);
-
+        if (id == REPLIES_LOADER)
+            return new CursorLoader(BulletinViewActivity.this,
+                    DataContract.ReplyEntry.CONTENT_URI,
+                    REPLIES_COLUMNS,
+                    "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
+                    new String[]{Long.toString(getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1))},
+                    REPLIES_ORDER_BY);
+        else
+            return new CursorLoader(BulletinViewActivity.this,
+                    ReplyEntry.CONTENT_URI,
+                    REPLIES_COLUMNS,
+                    "replies.".concat(ReplyEntry._ID) + " = ?",
+                    new String[]{Long.toString(args.getLong(ARG_REPLY_ID))},
+                    REPLIES_ORDER_BY);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdapter.swapCursor(data);
-        setHeadingText();
+
+        if (loader.getId() == REPLIES_LOADER) {
+            mAdapter.swapCursor(data);
+            setHeadingText();
+        } else {
+            mRepliesAdapter.swapCursor(data);
+            // TODO - set heading text
+        }
     }
 
 //    private void setBulletinData() {
@@ -269,6 +333,10 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.swapCursor(null);
+
+        if (loader.getId() == REPLIES_LOADER)
+            mAdapter.swapCursor(null);
+        else
+            mRepliesAdapter.swapCursor(null);
     }
 }

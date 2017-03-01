@@ -110,7 +110,6 @@ public class DataContract {
         // Adding columns DbHelper create table command  must be changed also
         public static final String COLUMN_NAME = "first_name";
         public static final String COLUMN_LAST_NAME = "last_name";
-        public static final String COLUMN_FULL_NAME = "full_name";
         public static final String COLUMN_EMAIL = "email";
         public static final String COLUMN_PROF_PIC = "picture";
         public static final String COLUMN_COVER_PIC = "cover_pic";

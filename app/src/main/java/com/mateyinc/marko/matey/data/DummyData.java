@@ -54,7 +54,6 @@ public class DummyData {
 
                     userValues.put(DataContract.ProfileEntry._ID, i);
                     userValues.put(DataContract.ProfileEntry.COLUMN_NAME, Util.names[r.nextInt(namesSize)]);
-                    userValues.put(DataContract.ProfileEntry.COLUMN_FULL_NAME, "Lorem Ipsum");
                     userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, Util.lastNames[r.nextInt(lNamesSize)]);
                     userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, mAppContext.getString(R.string.dev_email));
                     userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, mAppContext.getString(R.string.dev_nopic));

@@ -9,7 +9,7 @@ import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -25,30 +25,23 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mLock) {
-                    if (mSecurePreferences == null)
-                        mSecurePreferences = new SecurePreferences(MyApplication.this, "credentials", "1checkMate1717", true);
-                }
+        synchronized (mLock) {
+            if (mSecurePreferences == null)
+                mSecurePreferences = new SecurePreferences(MyApplication.this, "credentials", "1checkMate1717", true);
+        }
 
-                MotherActivity.access_token = mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN);
-                MotherActivity.device_id = mSecurePreferences.getString(SessionManager.KEY_DEVICE_ID);
-                MotherActivity.user_id = PreferenceManager.getDefaultSharedPreferences(MyApplication.this).getLong(OperationManager.KEY_CUR_USER_ID, Long.MIN_VALUE);
-            }
-        };
-        Thread t = new Thread(r);
-        t.start();
+        MotherActivity.access_token = mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN);
+        MotherActivity.device_id = mSecurePreferences.getString(SessionManager.KEY_DEVICE_ID);
+        MotherActivity.user_id = PreferenceManager.getDefaultSharedPreferences(MyApplication.this).getLong(DataManager.KEY_CUR_USER_ID, Long.MIN_VALUE);
     }
 
-    public SecurePreferences getSecurePreferences(){
-        synchronized (mLock){
-            return  mSecurePreferences;
+    public SecurePreferences getSecurePreferences() {
+        synchronized (mLock) {
+            return mSecurePreferences;
         }
     }
 
-    public  void printHash (Context context) {
+    public void printHash(Context context) {
         // Add code to print out the key hash
         try {
             PackageInfo info = context.getPackageManager().getPackageInfo(
@@ -63,8 +56,8 @@ public class MyApplication extends Application {
 
         } catch (NoSuchAlgorithmException e) {
 
-        }catch (NullPointerException e){
-            Log.e("HASH",e.getLocalizedMessage());
+        } catch (NullPointerException e) {
+            Log.e("HASH", e.getLocalizedMessage());
         }
     }
 
