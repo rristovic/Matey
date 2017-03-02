@@ -19,16 +19,16 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <ImageView
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/toolbar_mateyLogo_size"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:layout_marginEnd="@dimen/actionBar_icon_margin"
             android:layout_marginRight="@dimen/actionBar_icon_margin"
             android:background="@color/bg_transparent"
-            android:paddingTop="6dp"
-            android:scaleType="center"
-            android:src="@drawable/matey_logo"
-            android:id="@+id/ivHomeLogo" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/matey_logo_text"
+            android:id="@+id/ivHomeLogo"
+            android:paddingTop="8dp" />
 
         <ImageButton
             android:id="@+id/ibProfile"

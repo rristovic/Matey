@@ -160,11 +160,11 @@ public class SearchFragment extends Fragment {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return getString(R.string.search_posts);
+                    return getString(R.string.search_all);
                 case 1:
-                    return getString(R.string.search_messages);
+                    return getString(R.string.search_people);
                 case 2:
-                    return getString(R.string.search_friends);
+                    return getString(R.string.search_groups);
             }
             return null;
         }

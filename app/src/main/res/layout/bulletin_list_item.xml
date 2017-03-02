@@ -89,38 +89,42 @@
     </RelativeLayout>
 
     <RelativeLayout
+        android:id="@+id/rlBody"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/bulletin_body_margin"
         android:layout_marginLeft="@dimen/bulletin_body_margin"
         android:layout_marginRight="@dimen/bulletin_body_margin"
-        android:layout_marginStart="@dimen/bulletin_body_margin"
-        android:id="@+id/rlBody">
+        android:layout_marginStart="@dimen/bulletin_body_margin">
 
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_below="@+id/tvSubject"
             android:layout_marginBottom="10dp"
             android:layout_marginLeft="@dimen/bulletins_msg_margin"
             android:layout_marginStart="@dimen/bulletins_msg_margin"
+            android:text="Some details about subject"
             android:textColor="@color/blackDarkTransparent"
             android:textColorLink="@color/light_gray"
-            android:textSize="@dimen/bulletin_textSize_message"
-            android:text="Some details about subject" />
+            android:textSize="@dimen/bulletin_textSize_message" />
 
 
         <TextView
             android:id="@+id/tvSubject"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_marginBottom="10dp"
             android:layout_marginLeft="4dp"
+            android:text="Subject"
             android:textColor="@color/blackDarkTransparent"
             android:textColorLink="@color/light_gray"
-            android:textSize="@dimen/bulletin_textSize_subject"
-            android:text="Subject" />
+            android:textSize="@dimen/bulletin_textSize_subject" />
 
         <TextView
             android:id="@+id/tvStats"
@@ -135,6 +139,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/tvStats"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:fontFamily="@string/roboto_light"
             android:text="12:00 "
@@ -142,17 +147,16 @@
             android:textSize="@dimen/bulletin_textSize_time" />
 
 
-
     </RelativeLayout>
 
     <FrameLayout
+        android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="0.1dp"
         android:layout_marginLeft="@dimen/bulletin_body_margin"
         android:layout_marginRight="@dimen/bulletin_body_margin"
         android:layout_marginTop="@dimen/bulletin_bottomStats_margin"
-        android:background="@color/light_gray"
-        android:id="@+id/divider" />
+        android:background="@color/light_gray" />
 
     <LinearLayout
         android:id="@+id/llBottomButtons"

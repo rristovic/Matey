@@ -2,7 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/white">
 
 
     <ImageView
@@ -39,7 +40,9 @@
             android:text="crew number" />
         <ImageView
             android:id="@+id/icPirate"
-            android:layout_width="wrap_content"
+            android:layout_marginRight="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_width="@dimen/group_icPirate_size"
             android:layout_height="@dimen/group_icPirate_size"
             android:layout_alignBottom="@id/tvGroupCrewNum"
             android:src="@drawable/ic_pirate" />

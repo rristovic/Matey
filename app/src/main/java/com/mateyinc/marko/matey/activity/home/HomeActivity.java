@@ -10,7 +10,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -50,7 +49,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private FriendsFragment mFriendsFragment;
     private MenuFragment mMenuFragment;
     private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu, ibSearch, ibProfile;
-    private Toolbar toolbar;
     private SearchView searchView;
     private ImageView logo;
 
@@ -352,6 +350,9 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     }
 
     private void closeSearchView() {
+        // Close search fragment
+        getSupportFragmentManager().popBackStack();
+
         mSearchActive = false;
         toolbar.removeView(searchView);
         logo.setVisibility(View.VISIBLE);
@@ -364,9 +365,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }
-
-        // Close search fragment
-        getSupportFragmentManager().popBackStack();
     }
 
     private void changeNavIconColor() {

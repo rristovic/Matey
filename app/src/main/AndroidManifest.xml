@@ -40,108 +40,110 @@
             android:label="@string/app_name"
             android:largeHeap="true"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:theme="@style/AppTheme.ActionBar.Transparent"
+            android:windowSoftInputMode="stateHidden" >
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="com.facebook.FacebookActivity"
-            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait" />
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
 
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+    <activity
+        android:name="com.facebook.FacebookActivity"
+        android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+        android:label="@string/app_name"
+        android:screenOrientation="portrait" />
 
-                <category android:name="com.mateyinc.marko.matey.gcm" />
-            </intent-filter>
-        </receiver>
+    <receiver
+        android:name="com.google.android.gms.gcm.GcmReceiver"
+        android:exported="true"
+        android:permission="com.google.android.c2dm.permission.SEND">
+        <intent-filter>
+            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
 
-        <service
-            android:name=".gcm.MateyGcmListenerService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            </intent-filter>
-        </service>
-        <service
-            android:name=".gcm.MateyInstanceIDListenerService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.gms.iid.InstanceID" />
-            </intent-filter>
-        </service>
-        <service
-            android:name=".gcm.RegistrationIntentService"
-            android:exported="false" />
+            <category android:name="com.mateyinc.marko.matey.gcm" />
+        </intent-filter>
+    </receiver>
 
-        <activity
-            android:name=".activity.home.HomeActivity"
-            android:label="@string/title_activity_home"
-            android:largeHeap="true" />
-        <activity
-            android:name=".activity.profile.ProfileActivity"
-            android:label="@string/title_activity_profile"
-            android:largeHeap="true"
-            android:theme="@style/AppTheme.ActionBar.Transparent" />
-        <activity
-            android:name=".activity.home.GroupActivity"
-            android:label="@string/title_activity_profile" />
-        <activity
-            android:name=".activity.home.FeedbackActivity"
-            android:label="@string/title_activity_profile" />
-        <activity
-            android:name=".activity.home.InterestsActivity"
-            android:label="@string/title_activity_profile" />
-        <activity android:name=".activity.view.BulletinViewActivity" />
+    <service
+        android:name=".gcm.MateyGcmListenerService"
+        android:exported="false">
+        <intent-filter>
+            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+        </intent-filter>
+    </service>
+    <service
+        android:name=".gcm.MateyInstanceIDListenerService"
+        android:exported="false">
+        <intent-filter>
+            <action android:name="com.google.android.gms.iid.InstanceID" />
+        </intent-filter>
+    </service>
+    <service
+        android:name=".gcm.RegistrationIntentService"
+        android:exported="false" />
 
-        <provider
-            android:name=".data.DataProvider"
-            android:authorities="@string/content_authority"
-            android:exported="false"
-            android:syncable="true" />
+    <activity
+        android:name=".activity.home.HomeActivity"
+        android:label="@string/title_activity_home"
+        android:largeHeap="true" />
+    <activity
+        android:name=".activity.profile.ProfileActivity"
+        android:label="@string/title_activity_profile"
+        android:largeHeap="true"
+        android:theme="@style/AppTheme.ActionBar.Transparent" />
+    <activity
+        android:name=".activity.home.GroupActivity"
+        android:label="@string/title_activity_profile" />
+    <activity
+        android:name=".activity.home.FeedbackActivity"
+        android:label="@string/title_activity_profile" />
+    <activity
+        android:name=".activity.home.InterestsActivity"
+        android:label="@string/title_activity_profile" />
+    <activity android:name=".activity.view.BulletinViewActivity" />
 
-        <activity
-            android:name=".activity.home.NewPostActivity"
-            android:windowSoftInputMode="adjustResize|stateVisible" />
+    <provider
+        android:name=".data.DataProvider"
+        android:authorities="@string/content_authority"
+        android:exported="false"
+        android:syncable="true" />
 
-        <service android:name=".data.internet.MateyAuthenticatorService">
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator" />
-            </intent-filter>
+    <activity
+        android:name=".activity.home.NewPostActivity"
+        android:windowSoftInputMode="adjustResize|stateVisible" />
 
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/authenticator" />
-        </service>
-        <service
-            android:name=".data.internet.MateySyncService"
-            android:exported="true"
-            android:process=":sync">
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter" />
-            </intent-filter>
+    <service android:name=".data.internet.MateyAuthenticatorService">
+        <intent-filter>
+            <action android:name="android.accounts.AccountAuthenticator" />
+        </intent-filter>
 
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/syncadapter" />
-        </service>
+        <meta-data
+            android:name="android.accounts.AccountAuthenticator"
+            android:resource="@xml/authenticator" />
+    </service>
+    <service
+        android:name=".data.internet.MateySyncService"
+        android:exported="true"
+        android:process=":sync">
+        <intent-filter>
+            <action android:name="android.content.SyncAdapter" />
+        </intent-filter>
 
-        <activity android:name=".activity.AddFriendsActivity" />
-        <activity android:name=".activity.profile.FollowersActivity" />
-        <activity android:name=".activity.view.PictureViewActivity" />
-        <activity
-            android:name=".activity.profile.UploadNewPictureActivity"
-            android:largeHeap="true" />
-        <activity android:name=".activity.view.RepliesViewActivity"></activity>
-    </application>
+        <meta-data
+            android:name="android.content.SyncAdapter"
+            android:resource="@xml/syncadapter" />
+    </service>
 
-</manifest>
+    <activity android:name=".activity.AddFriendsActivity" />
+    <activity android:name=".activity.profile.FollowersActivity" />
+    <activity android:name=".activity.view.PictureViewActivity" />
+    <activity
+        android:name=".activity.profile.UploadNewPictureActivity"
+        android:largeHeap="true" />
+    <activity android:name=".activity.view.RepliesViewActivity"></activity>
+</application>
+
+    </manifest>

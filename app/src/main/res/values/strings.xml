@@ -90,9 +90,9 @@
     <string name="action_block">Block user</string>
 
     <!-- Search fragment related -->
-    <string name="search_posts">Posts</string>
-    <string name="search_messages">Messages</string>
-    <string name="search_friends">Friends</string>
+    <string name="search_all">All</string>
+    <string name="search_people">People</string>
+    <string name="search_groups">Groups</string>
 
     <!-- New post related -->
     <string name="post_to_matey">Post to Matey</string>

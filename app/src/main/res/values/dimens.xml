@@ -160,4 +160,8 @@
     <dimen name="group_textSize_groupInfo">@dimen/heading</dimen>
 
 
+    <!-- Toolbar related -->
+    <dimen name="toolbar_mateyLogo_size">100dp</dimen>
+
+
 </resources>

@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
@@ -83,7 +82,7 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAdapter = new MessageAdapter(mContext, null, 0);
+//        mAdapter = new MessageAdapter(mContext, null, 0);
         mManager = OperationManager.getInstance(mContext);
     }
 
@@ -91,22 +90,22 @@ public class MessagesFragment extends Fragment implements LoaderManager.LoaderCa
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notif_msg, container, false);
-
-        // Set the adapter
-        ListView listView = (ListView) view;
-        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) listView.getLayoutParams();
-        params.leftMargin = getPx(0);
-        params.rightMargin = getPx(0);
-        listView.setLayoutParams(params);
-
-        listView.setAdapter(mAdapter);
+//
+//        // Set the adapter
+//        ListView listView = (ListView) view;
+//        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) listView.getLayoutParams();
+//        params.leftMargin = getPx(0);
+//        params.rightMargin = getPx(0);
+//        listView.setLayoutParams(params);
+//
+//        listView.setAdapter(mAdapter);
 
         return view;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        getLoaderManager().initLoader(MESSAGE_LOADER, null, this);
+//        getLoaderManager().initLoader(MESSAGE_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
