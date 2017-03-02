@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#152d46</color>
-    <color name="colorPrimaryDark">#142a41</color>
+    <color name="colorPrimary">#036e87</color>
+    <color name="colorPrimaryDark">#06657b</color>
     <color name="colorAccent">#448aff</color>
     <!-- ////////////////////////////////////////////////////////////////// -->
 
@@ -41,7 +41,7 @@
     <color name="blue">#1976d2</color>
 
     <!-- Used in profile -->
-    <color name="mateyBlue">#4075b0</color>
+    <color name="mateyBlue">@color/colorPrimary</color>
 
     <color name="black_overlay">#66000000</color>
 

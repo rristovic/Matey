@@ -148,6 +148,16 @@
     <!-- Group list item related - Text size -->
     <dimen name="group_listItem_textSize_name">@dimen/heading</dimen>
     <dimen name="group_listItem_textSize_stats">@dimen/subHeading</dimen>
+    <!-- Group profile related - View size -->
+    <dimen name="group_image_size">200dp</dimen>
+    <dimen name="group_info_margin">16dp</dimen>
+    <dimen name="group_crewSize_marginTop">10dp</dimen>
+    <dimen name="group_btn_size">38dp</dimen>
+    <dimen name="group_icPirate_size">16dp</dimen>
+    <!-- Group profile related - Text size -->
+    <dimen name="group_textSize_groupName">@dimen/heading</dimen>
+    <dimen name="group_textSize_crewSize">@dimen/heading</dimen>
+    <dimen name="group_textSize_groupInfo">@dimen/heading</dimen>
 
 
 </resources>
