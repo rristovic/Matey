@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 
 import java.text.SimpleDateFormat;
@@ -99,6 +100,11 @@ public class Reply extends MModel{
         }
     }
 
+    @Override
+    protected void removeFromDb(Context context) {
+
+    }
+
 
     @Override
     public String toString() {
@@ -116,5 +122,35 @@ public class Reply extends MModel{
         }
         return String.format(Locale.US, "Reply: ID=%d; Text=%s; UserName=%s %s; UserId=%d; Date=%s",
                 _id, text, userFirstName, userLastName, userId, date);
+    }
+
+    @Override
+    public void onDownloadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onDownloadFailed(VolleyError error, Context c) {
+
+    }
+
+    @Override
+    public void onUploadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onUploadFailed(VolleyError error, Context c) {
+
+    }
+
+    @Override
+    protected void notifyDataChanged(Context context) {
+
+    }
+
+    @Override
+    void save(Context context) {
+
     }
 }

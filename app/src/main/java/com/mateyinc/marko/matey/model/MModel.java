@@ -1,5 +1,9 @@
 package com.mateyinc.marko.matey.model;
 
+import android.content.Context;
+
+import com.android.volley.VolleyError;
+
 public abstract class MModel {
 
     // Keys for JSON data from the server
@@ -32,5 +36,23 @@ public abstract class MModel {
     public void setServerStatus(int status) {
         mServerStatus = status;
     }
+
+
+    public abstract void onDownloadSuccess(String response, Context c);
+
+    public abstract void onDownloadFailed(VolleyError error, Context c);
+
+    public abstract void onUploadSuccess(String response, Context c);
+
+    public abstract void onUploadFailed(VolleyError error, Context c);
+
+    protected abstract void notifyDataChanged(Context context);
+
+    /** Saves model in database and start upload sequence. **/
+    abstract void save(Context context);
+
+    protected abstract void addToDb(Context context);
+    protected abstract void removeFromDb(Context context);
+
 }
 

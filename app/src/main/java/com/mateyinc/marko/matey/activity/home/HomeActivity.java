@@ -4,7 +4,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
@@ -18,11 +18,12 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.graphics.Color;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -50,6 +51,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private MenuFragment mMenuFragment;
     private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu, ibSearch, ibProfile;
     private SearchView searchView;
+
     private ImageView logo;
 
     /** Indicates if search view is visible or not */
@@ -68,6 +70,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        getWindow().getDecorView().setBackgroundColor(Color.WHITE);
 
         init();
         getCurUser();
@@ -160,6 +163,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     }
 
     private void setListeners() {
+
         ibSearch.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -174,23 +178,24 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
                 // Adding search view
                 searchView = new SearchView(HomeActivity.this);
-                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int)com.mateyinc.marko.matey.activity.Util.parseDp(40f,getResources())));
                 searchView.setIconified(false);
+                searchView.setQueryHint("Find mates and ships..");
 
                 // Setting search view style
                 try {
                     SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-                    searchAutoComplete.setHintTextColor(Color.BLACK);
-                    searchAutoComplete.setBackgroundColor(Color.WHITE);
-                    searchAutoComplete.setTextColor(Color.BLACK);
+                    searchAutoComplete.setHintTextColor(Color.WHITE);
+                    searchAutoComplete.setBackgroundColor(Color.TRANSPARENT);
+                    searchAutoComplete.setTextColor(Color.WHITE);
                     View searchplate = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate);
-                    searchplate.setBackgroundColor(Color.TRANSPARENT);
+                    searchplate.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.LIGHTEN);
                     ImageView searchCloseIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
                     searchCloseIcon.setColorFilter(Color.WHITE);
                     ImageView voiceIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_voice_btn);
-                    voiceIcon.setColorFilter(Color.WHITE);
+                    voiceIcon.setColorFilter(Color.TRANSPARENT);
                     ImageView searchIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
-                    searchIcon.setColorFilter(Color.WHITE);
+                    searchIcon.setColorFilter(Color.TRANSPARENT);
                 } catch (Exception e) {
                     searchView.setBackgroundColor(Color.WHITE);
                 }
@@ -306,7 +311,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     /** Helper method for getting the current user profile in {@link MotherActivity#mCurrentUserProfile} */
     private void getCurUser() {
-        if (!DataManager.getInstance(this).setCurrentUserProfile()) {
+        if (!DataAccess.getInstance(this).setCurrentUserProfile()) {
             mSessionManager.logout(this, getSecurePreferences());
         }
 
@@ -327,11 +332,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         else
             mOperationManager.downloadNewsFeed(this);
     }
-
-//    /** Helper method for uploading data that has failed to startUploadAction */
-//    private void uploadFailedData(){
-//        mSessionManager.uploadFailedData(HomeActivity.this);
-//    }
 
     @Override
     protected void onResume() {

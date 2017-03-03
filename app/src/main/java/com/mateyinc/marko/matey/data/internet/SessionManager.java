@@ -40,8 +40,8 @@ import com.mateyinc.marko.matey.activity.AddFriendsActivity;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.DataManager;
 import com.mateyinc.marko.matey.data.DummyData;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
@@ -67,7 +67,7 @@ import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
-import static com.mateyinc.marko.matey.data.DataManager.setCurrentUserProfile;
+import static com.mateyinc.marko.matey.data.DataAccess.setCurrentUserProfile;
 import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
 
 
@@ -907,10 +907,10 @@ public class SessionManager {
         OperationManager operationManager = OperationManager.getInstance(context);
 
         // Removing current user profile from db
-        operationManager.removeUserProfile(preferences.getLong(DataManager.KEY_CUR_USER_ID, -1));
+        operationManager.removeUserProfile(preferences.getLong(DataAccess.KEY_CUR_USER_ID, -1));
 
         // Removing current user  profile from prefs
-        DataManager.setCurrentUserProfile(preferences, null);
+        DataAccess.setCurrentUserProfile(preferences, null);
 
         // Clearing user credentials
         securePreferences.removeValue(KEY_ACCESS_TOKEN);
@@ -1055,7 +1055,7 @@ public class SessionManager {
 
         // Saves the time when token is created
         final SharedPreferences preferences = getDefaultSharedPreferences(context);
-         preferences.edit().putLong(DataManager.KEY_CUR_USER_ID, 666).apply();
+         preferences.edit().putLong(DataAccess.KEY_CUR_USER_ID, 666).apply();
 
         // Adding current user to the database
         UserProfile userProfile = new UserProfile(666,
@@ -1065,7 +1065,7 @@ public class SessionManager {
                 context.getString(R.string.dev_pic));
         userProfile.setNumOfFriends(40);
         userProfile.save(context);
-        DataManager.setCurrentUserProfile(preferences, userProfile);
+        DataAccess.setCurrentUserProfile(preferences, userProfile);
 
         // Close progress dialog
         if (mProgDialog != null && mProgDialog.isShowing())

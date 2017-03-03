@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.data.operations;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -11,7 +12,6 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.OperationProvider;
 import com.mateyinc.marko.matey.data.internet.MateyRequest;
-import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.lang.ref.WeakReference;
 
@@ -39,26 +39,26 @@ public abstract class Operations {
     // Network request used for networking
     protected MateyRequest mRequest;
     // Used for db control and to check if the provided context still exists
-    protected WeakReference<MotherActivity> mContextRef;
+    protected WeakReference<Context> mContextRef;
     // Used for networking and threading
     private OperationProvider mProvider;
 
-    Operations(MotherActivity context){
+    Operations(Context context){
         mOpType = OperationType.NO_OPERATION;
         this.mProvider = OperationManager.getInstance(context);
-        mContextRef = new WeakReference<MotherActivity>(context);
+        mContextRef = new WeakReference<>(context);
     }
 
-    Operations(MotherActivity context, OperationType operationType){
+    Operations(Context context, OperationType operationType){
         this.mOpType = operationType;
         this.mProvider = OperationManager.getInstance(context);
-        mContextRef = new WeakReference<MotherActivity>(context);
+        mContextRef = new WeakReference<>(context);
     }
 
-    Operations(OperationProvider provider, MotherActivity context, OperationType operationType){
+    Operations(OperationProvider provider, Context context, OperationType operationType){
         this.mOpType = operationType;
         this.mProvider = provider;
-        mContextRef = new WeakReference<MotherActivity>(context);
+        mContextRef = new WeakReference<>(context);
     }
 
     public void addSuccessListener(Response.Listener<String> listener){
@@ -83,13 +83,8 @@ public abstract class Operations {
     protected abstract void onDownloadFailed(VolleyError error);
     // Upload methods
     public abstract void startUploadAction();
-    protected void onUploadSuccess(String response){
-        Log.d(getTag(), "Upload has succeed.");
-    };
-    protected void onUploadFailed(VolleyError error){
-        Log.d(getTag(), "Upload has failed.");
-    };
-
+    protected abstract void onUploadSuccess(String response);
+    protected abstract void onUploadFailed(VolleyError error);
     /**
      * Method for creating new network request with provided parameters
      * @param url url to startDownloadAction from
@@ -106,7 +101,7 @@ public abstract class Operations {
                             return;
                         }
 
-                        MotherActivity c = mContextRef.get();
+                        Context c = mContextRef.get();
                         if (c != null){
                             Log.d(getTag(), "Download has succeed.");
                             onDownloadSuccess(response);
@@ -122,7 +117,7 @@ public abstract class Operations {
                             return;
                         }
 
-                        MotherActivity c = mContextRef.get();
+                        Context c = mContextRef.get();
                         if (c != null){
                             Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
                             onDownloadFailed(error);
@@ -142,10 +137,12 @@ public abstract class Operations {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if (successListener != null)
+                        if (successListener != null) {
                             successListener.onResponse(response);
+                            return;
+                        }
 
-                        MotherActivity c = mContextRef.get();
+                        Context c = mContextRef.get();
                         if (c != null) {
                             Log.d(getTag(), "Upload has succeed.");
                             onUploadSuccess(response);
@@ -155,10 +152,12 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (failedListener != null)
+                        if (failedListener != null) {
                             failedListener.onErrorResponse(error);
+                            return;
+                        }
 
-                        MotherActivity c = mContextRef.get();
+                        Context c = mContextRef.get();
                         if (c != null) {
                             Log.e(getTag(), "Upload has failed: " + error.getLocalizedMessage(), error);
                             onUploadFailed(error);

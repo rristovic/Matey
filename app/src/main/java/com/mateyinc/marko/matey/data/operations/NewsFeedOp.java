@@ -65,6 +65,16 @@ public class NewsfeedOp extends Operations{
     }
 
     @Override
+    protected void onUploadSuccess(String response) {
+
+    }
+
+    @Override
+    protected void onUploadFailed(VolleyError error) {
+
+    }
+
+    @Override
     protected String getTag() {
         return null;
     }

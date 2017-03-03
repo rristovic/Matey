@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.activity.home;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -29,16 +30,19 @@ import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
+import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.Random;
 
 import static com.mateyinc.marko.matey.data.OperationManager.BULLETIN_COLUMNS;
 
-public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private HomeActivity mContext;
     private BulletinsAdapter mAdapter;
@@ -110,8 +114,21 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         mMainFeedLayout.findViewById(R.id.fabNewPost).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, NewPostActivity.class);
-                mContext.startActivity(intent);
+//                Intent intent = new Intent(mContext, NewPostActivity.class);
+//                mContext.startActivity(intent);
+                ContentValues values1 = new ContentValues(8);
+                values1.put(DataContract.ReplyEntry._ID, 1561851);
+                values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
+                values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 1000);
+                values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");
+                values1.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, "Kraljevic");
+                values1.put(DataContract.ReplyEntry.COLUMN_DATE, new Date().getTime());
+                values1.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, new Random().nextInt(20));
+                values1.put(DataContract.ReplyEntry.COLUMN_TEXT, "Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla ");
+
+                mContext.getContentResolver().insert(DataContract.ReplyEntry.CONTENT_URI,values1);
+
+                getContext().getContentResolver().notifyChange(BulletinEntry.CONTENT_URI, null);
             }
         });
 
@@ -174,8 +191,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         return new CursorLoader(getActivity(),
                 BulletinEntry.CONTENT_URI,
                 BULLETIN_COLUMNS,
-                null,
-                null,
+                null,  null,
                 BulletinEntry.COLUMN_DATE + BulletinEntry.DEFAULT_SORT);
     }
 

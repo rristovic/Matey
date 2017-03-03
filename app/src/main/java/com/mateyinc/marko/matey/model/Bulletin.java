@@ -6,7 +6,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
+import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -205,6 +207,11 @@ public class Bulletin extends MModel {
         }
     }
 
+    @Override
+    protected void removeFromDb(Context context) {
+
+    }
+
     private void updateNullBulletin(final Context context) {
         ContentValues values = new ContentValues();
 
@@ -227,16 +234,16 @@ public class Bulletin extends MModel {
         }
     }
 
-    public static void decrementRepliesCount(long postId, Context context){
+    public static void decrementRepliesCount(long postId, Context context) {
         new Bulletin(postId).decrementRepliesCount(context);
     }
 
-    private void decrementRepliesCount(final Context context){
+    private void decrementRepliesCount(final Context context) {
         ContentValues values = new ContentValues(1);
         Cursor c = context.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, new String[]{DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES},
                 DataContract.BulletinEntry._ID + " = " + _id, null, null);
 
-        if (c != null && c.moveToFirst()){
+        if (c != null && c.moveToFirst()) {
             // Retrieve the value
             int count = c.getInt(0);
             // Close db
@@ -261,7 +268,7 @@ public class Bulletin extends MModel {
         Cursor c = context.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, new String[]{DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES},
                 DataContract.BulletinEntry._ID + " = " + _id, null, null);
 
-        if (c != null && c.moveToFirst()){
+        if (c != null && c.moveToFirst()) {
             // Retrieve the value
             int count = c.getInt(0);
             // Close db
@@ -278,20 +285,19 @@ public class Bulletin extends MModel {
     }
 
 
-
     @Override
     public String toString() {
         String message, date;
 
         try {
-            message = mText.substring(0,15).concat("...");
-        } catch (Exception e){
+            message = mText.substring(0, 15).concat("...");
+        } catch (Exception e) {
             message = mText;
         }
 
         try {
             date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(mDate);
-        } catch (Exception e){
+        } catch (Exception e) {
             date = mDate.toString();
         }
 
@@ -300,10 +306,55 @@ public class Bulletin extends MModel {
     }
 
 
+    public Bulletin() {
+    }
 
-    private Bulletin(){}
-    private Bulletin(long postId){
+    private Bulletin(long postId) {
         _id = postId;
+    }
+
+    public void like(final Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Approve approve = new Approve();
+                approve.postId = _id;
+                approve.userId = MotherActivity.user_id;
+
+                approve.save(context);
+                notifyDataChanged(context);
+            }
+        }).start();
+    }
+
+    @Override
+    public void onDownloadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onDownloadFailed(VolleyError error, Context c) {
+
+    }
+
+    @Override
+    public void onUploadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onUploadFailed(VolleyError error, Context c) {
+
+    }
+
+    @Override
+    protected void notifyDataChanged(Context context) {
+        context.getContentResolver().notifyChange(DataContract.BulletinEntry.CONTENT_URI, null);
+    }
+
+    @Override
+    void save(Context context) {
+
     }
 
     public class Attachment {

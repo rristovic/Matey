@@ -78,7 +78,16 @@ public class OperationManager implements OperationProvider {
             DataContract.BulletinEntry.COLUMN_SERVER_STATUS,
             DataContract.BulletinEntry.COLUMN_ATTACHMENTS,
             BulletinEntry.COLUMN_NUM_OF_LIKES,
-            BulletinEntry.COLUMN_SUBJECT
+            BulletinEntry.COLUMN_SUBJECT,
+            "(SELECT COUNT(" + DataContract.ReplyEntry.COLUMN_POST_ID +
+                    ") FROM " + DataContract.ReplyEntry.TABLE_NAME + " WHERE " +
+                    DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry.COLUMN_POST_ID + " = "
+                    + BulletinEntry.TABLE_NAME + "." + BulletinEntry._ID + ")",
+            "(SELECT COUNT(" + ApproveEntry._ID +
+                    ") FROM " + ApproveEntry.TABLE_NAME + " WHERE " +
+                    ApproveEntry.TABLE_NAME + "." + ApproveEntry.COLUMN_POST_ID + " = "
+                    + BulletinEntry.TABLE_NAME + "." + BulletinEntry._ID + ")"
+
     };
 
     // These indices are tied to BULLETIN_COLUMNS.  If BULLETIN_COLUMNS changes, these
@@ -89,11 +98,13 @@ public class OperationManager implements OperationProvider {
     public static final int COL_LAST_NAME = 3;
     public static final int COL_TEXT = 4;
     public static final int COL_DATE = 5;
-    public static final int COL_NUM_OF_REPLIES = 6;
+    public static final int COL_NUM_OF_REPLIESs = 6;
     public static final int COL_ON_SERVER = 7;
     public static final int COL_ATTCHS = 8;
-    public static final int COL_NUM_OF_LIKES = 9;
+    public static final int COL_NUM_OF_LIKESs = 9;
     public static final int COL_SUBJECT = 10;
+    public static final int COL_NUM_OF_REPLIES = 11;
+    public static final int COL_NUM_OF_LIKES = 12;
 
 
     public  final ImageLoader mImageLoader;

@@ -7,8 +7,6 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:editTextStyle">@style/EditTextStyle</item>
-        <item name="android:windowBackground">@drawable/loading_screen</item>
-
     </style>
 
     <style name="AppTheme.ActionBar.Transparent" parent="AppTheme">
@@ -17,6 +15,13 @@
         <item name="colorPrimary">@android:color/transparent</item>
     </style>
 
+    <!-- Used in main activity -->
+    <style name="MainActivityStyle" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/loading_screen</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="windowActionBarOverlay">true</item>
+        <item name="colorPrimary">@android:color/transparent</item>
+    </style>
 
     <style name="EditTextStyle" parent="Widget.AppCompat.EditText">
         <item name="colorControlNormal">@color/bg_transparent</item>
@@ -83,6 +88,12 @@
     <style name="PopupAnimation" parent="Widget.AppCompat.PopupWindow">
         <item name="android:windowEnterAnimation">@anim/bottom_up</item>
         <item name="android:windowExitAnimation">@anim/bottom_down</item>
+    </style>
+
+    <!-- Search view style -->
+    <style name="SearchViewMy" parent="Widget.AppCompat.Light.SearchView">
+        <item name="submitBackground">@color/white</item>
+        <item name="queryBackground">@color/white</item>
     </style>
 
 

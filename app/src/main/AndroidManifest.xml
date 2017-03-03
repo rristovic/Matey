@@ -40,7 +40,7 @@
             android:label="@string/app_name"
             android:largeHeap="true"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.ActionBar.Transparent"
+            android:theme="@style/MainActivityStyle"
             android:windowSoftInputMode="stateHidden" >
 
         <intent-filter>

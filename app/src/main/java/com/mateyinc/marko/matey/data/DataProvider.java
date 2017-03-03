@@ -177,6 +177,10 @@ public class DataProvider extends ContentProvider {
 //                        null,
 //                        sortOrder
 //                );
+//                retCursor =  mOpenHelper.getReadableDatabase().rawQuery(
+//                        "SELECT bulletins.*,(SELECT COUNT(post_id) FROM replies WHERE replies.post_id = bulletins._id GROUP BY replies.post_id) AS kurac from bulletins"
+//                        ,null,null);
+
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         DataContract.BulletinEntry.TABLE_NAME,
                         projection,

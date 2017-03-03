@@ -113,13 +113,15 @@ class DbHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_POST_ID + ") REFERENCES " +
-                BulletinEntry.TABLE_NAME + " (" + BulletinEntry._ID + "));";
+                BulletinEntry.TABLE_NAME + " (" + BulletinEntry._ID + ")," +
+                " UNIQUE (" + ReplyEntry._ID + ") ON CONFLICT REPLACE);";
+
 
         final String SQL_CREATE_APPROVES_TABLE = "CREATE TABLE " + ApproveEntry.TABLE_NAME + " (" +
                 ApproveEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 ApproveEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 ApproveEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
-                ApproveEntry.COLUMN_REPLY_ID + " INTEGER, " +
+                ApproveEntry.COLUMN_REPLY_ID + " INTEGER DEFAULT -1, " +
                 BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
                 "FOREIGN KEY (" + ApproveEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +

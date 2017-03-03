@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 
 import org.json.JSONException;
@@ -277,10 +278,44 @@ public class UserProfile extends MModel{
         }
     }
 
+    @Override
+    protected void addToDb(Context context) {
+
+    }
+
+    @Override
+    protected void removeFromDb(Context context) {
+
+    }
 
 
     @Override
     public String toString() {
         return String.format(Locale.US,"UserProfileOps: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", _id, firstName, lastName, email, profilePictureLink);
+    }
+
+    @Override
+    public void onDownloadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onDownloadFailed(VolleyError error, Context c) {
+
+    }
+
+    @Override
+    public void onUploadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onUploadFailed(VolleyError error, Context c) {
+
+    }
+
+    @Override
+    protected void notifyDataChanged(Context context) {
+
     }
 }

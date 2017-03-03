@@ -19,7 +19,7 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
@@ -58,7 +58,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
             switch (viewType) {
                 case ITEM:
-                default:{
+                default: {
                     View view = LayoutInflater.from(mContext) //Inflate the view
                             .inflate(R.layout.bulletin_list_item, parent, false);
 
@@ -114,27 +114,12 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
             @Override
             public void onBoostClick(View caller, int adapterViewPosition) {
-                DataManager.getInstance(mContext).newPostLike(mCursor, adapterViewPosition);
+//                DataAccess.getInstance(mContext).newPostLike(mCursor, adapterViewPosition);
 
-//Bulletin b = mManager.getBulletin(adapterViewPosition, mCursor);
-//                if (b.(mCurUserProfile.getUserId())) { // Unlike
-//                    // Remove approve from data and from database
-//                    for (UserProfile p : r.replyApproves) {
-//                        if (p.getUserId() == mCurUserProfile.getUserId())
-//                            r.replyApproves.remove(p);
-//                    }
-////                    mManager.addReply(r, mCurBulletin, );
-//
-//                    ((ImageView) caller).setColorFilter(mResources.getColor(light_gray)); // Changing the color of button
-//                    ((BulletinViewActivity) mContext).notifyBulletinFragment();
-//
-//                } else { // Like
-//                    // Add approve  to database
-//                    r.replyApproves.add(mCurUserProfile); // adding Reply to bulletin
-////                    mManager.addReply(r);
-//
-//                    ((BulletinViewActivity) mContext).notifyBulletinFragment();
-                }
+                Bulletin b = DataAccess.getBulletin(adapterViewPosition, mCursor);
+                if (b != null)
+                    b.like(mContext);
+            }
 
 
 //            @Override
@@ -270,6 +255,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
     /**
      * Setting the view to the normal mode
+     *
      * @param holder The view holder to be changed
      */
     private void setViewToNormal(ViewHolder holder) {
@@ -284,6 +270,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
     /**
      * Setting the view to the failed startUploadAction mode
+     *
      * @param holder   the view holder which will be changed
      * @param bulletin the bulletin to startUploadAction it's {@link Bulletin#mServerStatus}
      */
@@ -295,7 +282,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         }
 
         TextView textView = new TextView(mContext);
-        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int)Util.parseDp(30, mContext.getResources()));
+        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) Util.parseDp(30, mContext.getResources()));
         textView.setLayoutParams(params);
         textView.setText("Retry");
         textView.setTag("RetryTextView");
@@ -316,6 +303,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
     /**
      * Setting the view to the uploading mode
+     *
      * @param holder the view holder to be changed
      */
     private void setViewToUploading(ViewHolder holder) {

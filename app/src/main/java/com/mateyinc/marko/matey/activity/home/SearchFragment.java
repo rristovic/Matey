@@ -28,6 +28,7 @@ public class SearchFragment extends Fragment {
     // for childFragmentManager
     static {
         Field f = null;
+
         try {
             f = Fragment.class.getDeclaredField("mChildFragmentManager");
             f.setAccessible(true);

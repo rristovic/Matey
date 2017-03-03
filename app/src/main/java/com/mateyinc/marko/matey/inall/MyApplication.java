@@ -9,7 +9,7 @@ import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
-import com.mateyinc.marko.matey.data.DataManager;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.internet.SessionManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
@@ -32,7 +32,7 @@ public class MyApplication extends Application {
 
         MotherActivity.access_token = mSecurePreferences.getString(SessionManager.KEY_ACCESS_TOKEN);
         MotherActivity.device_id = mSecurePreferences.getString(SessionManager.KEY_DEVICE_ID);
-        MotherActivity.user_id = PreferenceManager.getDefaultSharedPreferences(MyApplication.this).getLong(DataManager.KEY_CUR_USER_ID, Long.MIN_VALUE);
+        MotherActivity.user_id = PreferenceManager.getDefaultSharedPreferences(MyApplication.this).getLong(DataAccess.KEY_CUR_USER_ID, Long.MIN_VALUE);
     }
 
     public SecurePreferences getSecurePreferences() {
