@@ -1,16 +1,15 @@
 package com.mateyinc.marko.matey.data;
 
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.util.Log;
 
+import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.model.Approve;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
@@ -71,40 +70,6 @@ public class DataAccess {
         }
 
         return mInstance;
-    }
-
-    ///// Approve methods //////
-
-    /**
-     * Method for saving new approve to db
-     * @param cursor cursor to the db
-     * @param position of the post in db
-     */
-    public void newPostLike(Cursor cursor, int position) {
-        cursor.moveToPosition(position);
-
-        ContentValues values = new ContentValues(2);
-
-        // Updates approve table
-        long postId = cursor.getLong(OperationManager.COL_POST_ID);
-        long userId = cursor.getLong(OperationManager.COL_USER_ID);
-        values.put(DataContract.ApproveEntry.COLUMN_POST_ID, postId);
-        values.put(DataContract.ApproveEntry.COLUMN_USER_ID, userId);
-        Uri uri = mContext.getContentResolver().insert(DataContract.ApproveEntry.CONTENT_URI, values);
-        if (uri == null) {
-            Log.e(TAG, String.format("Error adding new approve (post_id:%d, user_id:%d) to the database.",
-                    postId, userId));
-        } else {
-            // Update bulletin num of likes
-            values = new ContentValues(1);
-            values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_LIKES, cursor.getInt(OperationManager.COL_NUM_OF_LIKES) + 1);
-            int updated = mContext.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
-                    DataContract.BulletinEntry._ID + " = ?", new String[]{Long.toString(postId)});
-
-            if (updated == 0) {
-                Log.e(TAG, "Failed to updated num of likes for post with id:" + postId);
-            }
-        }
     }
 
     /**
@@ -182,7 +147,7 @@ public class DataAccess {
      *
      * @param index  the position of the bulletin in the database
      * @param cursor the provided cursor for the database
-     * @return the new instance of Bulletin from the database
+     * @return the new instance of {@link Bulletin} from the database
      */
     public static Bulletin getBulletin(int index, Cursor cursor) {
         Bulletin bulletin = null;
@@ -213,7 +178,7 @@ public class DataAccess {
      * Method for getting the bulletin from the database with the default cursor
      *
      * @param index the position of the bulletin in the database
-     * @return the new instance of Bulletin from the database
+     * @return the new instance of {@link Bulletin} from the database
      */
     public static Bulletin getBulletin(int index, Context context) {
         Cursor cursor = context.getContentResolver().query(
@@ -252,5 +217,44 @@ public class DataAccess {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return 0;
         }
+    }
+
+
+    ///// Reply methods //////
+    /////////////////////////
+    /**
+     * Method for getting the Reply from the database
+     *
+     * @param index  the position of the Reply in the database
+     * @param cursor the provided cursor for the database
+     * @return the new instance of {@link Reply} from the database
+     */
+    /**
+     * Method for getting the reply from the database
+     *
+     * @param index  the position of the bulletin in the database
+     * @param cursor the provided cursor for the database
+     * @return the new instance of Bulletin from the database
+     */
+    public static Reply getReply(int index, Cursor cursor) {
+        Reply reply = new Reply();
+
+        try {
+            cursor.moveToPosition(index);
+
+            reply._id = cursor.getLong(BulletinViewActivity.COL_REPLY_ID);
+            reply.setUserId(cursor.getLong(BulletinViewActivity.COL_USER_ID));
+            reply.setPostId(cursor.getInt(BulletinViewActivity.COL_POST_ID));
+            reply.setUserFirstName(cursor.getString(BulletinViewActivity.COL_FIRST_NAME));
+            reply.setUserLastName(cursor.getString(BulletinViewActivity.COL_LAST_NAME));
+            reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
+            reply.setReplyText(cursor.getString(BulletinViewActivity.COL_TEXT));
+            reply.setNumOfApprvs(cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS));
+//            reply.setNumOfReplies(cursor.getInt(BulletinViewActivity.COLNUM));
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return null;
+        }
+        return reply;
     }
 }

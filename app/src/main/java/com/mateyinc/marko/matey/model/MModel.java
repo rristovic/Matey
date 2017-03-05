@@ -2,8 +2,6 @@ package com.mateyinc.marko.matey.model;
 
 import android.content.Context;
 
-import com.android.volley.VolleyError;
-
 public abstract class MModel {
 
     // Keys for JSON data from the server
@@ -19,7 +17,7 @@ public abstract class MModel {
     static final String KEY_PROFILE_PIC = "profile_picture";
 
     protected int mServerStatus = 0;
-    public long _id;
+    public long _id = -1;
 
     public long getId() {
         return _id;
@@ -40,11 +38,11 @@ public abstract class MModel {
 
     public abstract void onDownloadSuccess(String response, Context c);
 
-    public abstract void onDownloadFailed(VolleyError error, Context c);
+    public abstract void onDownloadFailed(String error, Context c);
 
     public abstract void onUploadSuccess(String response, Context c);
 
-    public abstract void onUploadFailed(VolleyError error, Context c);
+    public abstract void onUploadFailed(String error, Context c);
 
     protected abstract void notifyDataChanged(Context context);
 

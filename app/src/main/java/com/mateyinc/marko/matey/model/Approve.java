@@ -5,26 +5,24 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.operations.ApproveOp;
-import com.mateyinc.marko.matey.data.operations.OperationType;
-
 import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
+import com.mateyinc.marko.matey.data.internet.operations.ApproveOp;
+import com.mateyinc.marko.matey.data.internet.operations.OperationType;
 
 import java.util.Locale;
 
-public class Approve extends MModel{
-    private static final String TAG  = Approve.class.getSimpleName();
+public class Approve extends MModel {
+    private static final String TAG = Approve.class.getSimpleName();
 
-    public Approve(long userId, long postId, long replyId){
+    public Approve(long userId, long postId, long replyId) {
         this.userId = userId;
         this.postId = postId;
         this.replyId = replyId;
     }
 
-    public Approve(){
+    public Approve() {
 
     }
 
@@ -34,8 +32,8 @@ public class Approve extends MModel{
 
 
     /**
-     * Like or unlike post/reply. See also {@link MModel#save(Context)}.
-     * @param context context used for db access
+     * Method to call when post/reply has been liked/unliked. See also {@link MModel#save(Context)}.*
+     * @param context context used for database communication.
      */
     @Override
     public void save(Context context) {
@@ -109,7 +107,7 @@ public class Approve extends MModel{
     }
 
     @Override
-    public void onDownloadFailed(VolleyError error, Context c) {
+    public void onDownloadFailed(String error, Context c) {
 
     }
 
@@ -119,7 +117,7 @@ public class Approve extends MModel{
     }
 
     @Override
-    public void onUploadFailed(VolleyError error, Context c) {
+    public void onUploadFailed(String error, Context c) {
 
     }
 

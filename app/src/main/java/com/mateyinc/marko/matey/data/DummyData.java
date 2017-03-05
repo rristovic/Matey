@@ -99,21 +99,21 @@ public class DummyData {
 
                         UserProfile friendReplied = getUserProfile(r.nextInt(mCurUserProfile.getNumOfFriends()));
                         Reply reply = new Reply();
-
-                        reply._id = Integer.parseInt(Long.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
-                        reply.userId = friendReplied.getUserId();
-                        reply.postId = bulletin.getPostID();
-                        reply.userFirstName = friendReplied.getFirstName();
-                        reply.userLastName = friendReplied.getLastName();
-                        reply.replyText = Util.loremIpsumShort;
-                        reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * OperationManager.mCurrentPage);
-
-                        for (int k = 0; k < r.nextInt(5); k++) {
-                            UserProfile profile = getUserProfile(r.nextInt(mCurUserProfile.getNumOfFriends()));
-                            reply.replyApproves.add(profile);
-                            approveList.add(new Approve(profile.getUserId(), bulletin.getPostID(), reply._id));
-                            reply.numOfApprvs++;
-                        }
+//
+//                        reply._id = Integer.parseInt(Long.toString(bulletin.getPostID()) + Integer.toString(j)); // replyId eg - 05: 0 - postId, 5 - replyId;
+//                        reply.userId = friendReplied.getUserId();
+//                        reply.postId = bulletin.getPostID();
+//                        reply.userFirstName = friendReplied.getFirstName();
+//                        reply.userLastName = friendReplied.getLastName();
+//                        reply.replyText = Util.loremIpsumShort;
+//                        reply.replyDate = new Date(date.getTime() - Util.ONE_MIN * j - Util.ONE_DAY * OperationManager.mCurrentPage);
+//
+//                        for (int k = 0; k < r.nextInt(5); k++) {
+//                            UserProfile profile = getUserProfile(r.nextInt(mCurUserProfile.getNumOfFriends()));
+//                            reply.replyApproves.add(profile);
+//                            approveList.add(new Approve(profile.getUserId(), bulletin.getPostID(), reply._id));
+//                            reply.numOfApprvs++;
+//                        }
 
                         repliesList.add(reply);
                     }
@@ -148,14 +148,14 @@ public class DummyData {
         for (Reply r : list) {
             ContentValues values = new ContentValues();
 
-            values.put(DataContract.ReplyEntry._ID, r._id);
-            values.put(DataContract.ReplyEntry.COLUMN_POST_ID, r.postId);
-            values.put(DataContract.ReplyEntry.COLUMN_USER_ID, r.userId);
-            values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, r.userFirstName);
-            values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, r.userLastName);
-            values.put(DataContract.ReplyEntry.COLUMN_TEXT, r.replyText);
-            values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate.getTime());
-            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, r.numOfApprvs);
+//            values.put(DataContract.ReplyEntry._ID, r._id);
+//            values.put(DataContract.ReplyEntry.COLUMN_POST_ID, r.postId);
+//            values.put(DataContract.ReplyEntry.COLUMN_USER_ID, r.userId);
+//            values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, r.userFirstName);
+//            values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, r.userLastName);
+//            values.put(DataContract.ReplyEntry.COLUMN_TEXT, r.replyText);
+//            values.put(DataContract.ReplyEntry.COLUMN_DATE, r.replyDate.getTime());
+//            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, r.numOfApprvs);
 
             cVVector.add(values);
             numReplies++;

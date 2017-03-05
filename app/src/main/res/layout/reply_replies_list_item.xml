@@ -22,7 +22,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/rlMainInfo">
+        android:id="@+id/rlReplyInfo">
 
         <TextView
             android:id="@+id/tvReplyName"
@@ -36,7 +36,7 @@
             android:textSize="@dimen/body" />
 
         <TextView
-            android:id="@+id/tvMessage"
+            android:id="@+id/tvReplyMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -47,12 +47,12 @@
 
 
         <TextView
-            android:id="@+id/tvTime"
+            android:id="@+id/tvReplyTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@id/tvMessage"
+            android:layout_below="@id/tvReplyMessage"
             android:fontFamily="@string/roboto_light"
             android:text="Time"
             android:textSize="@dimen/reply_textSize_time"
@@ -62,9 +62,9 @@
             android:id="@+id/tvReplyStats"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/reply_buttons"
-            android:layout_below="@id/tvTime"
-            android:layout_toEndOf="@id/llReply"
-            android:layout_toRightOf="@id/llReply"
+            android:layout_below="@id/tvReplyTime"
+            android:layout_toEndOf="@+id/llReReply"
+            android:layout_toRightOf="@+id/llReReply"
             android:gravity="center_vertical"
             android:text="Reply stats"
             android:textSize="@dimen/info" />
@@ -73,7 +73,7 @@
             android:id="@+id/llArr"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/reply_buttons"
-            android:layout_below="@id/tvTime"
+            android:layout_below="@id/tvReplyTime"
             android:layout_marginEnd="@dimen/reply_buttons_margin"
             android:layout_marginRight="@dimen/reply_buttons_margin"
             android:background="?attr/selectableItemBackground"
@@ -98,10 +98,10 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/llReply"
+            android:id="@+id/llReReply"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/reply_buttons"
-            android:layout_below="@id/tvTime"
+            android:layout_below="@id/tvReplyTime"
             android:layout_marginEnd="@dimen/reply_buttons_margin"
             android:layout_marginRight="@dimen/reply_buttons_margin"
             android:layout_toEndOf="@id/llArr"

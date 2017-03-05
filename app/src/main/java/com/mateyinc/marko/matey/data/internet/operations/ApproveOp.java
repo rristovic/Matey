@@ -1,10 +1,9 @@
-package com.mateyinc.marko.matey.data.operations;
+package com.mateyinc.marko.matey.data.internet.operations;
 
 
 import android.content.Context;
 
 import com.android.volley.VolleyError;
-import com.mateyinc.marko.matey.data.OperationProvider;
 import com.mateyinc.marko.matey.model.Approve;
 
 public class ApproveOp extends Operations {
@@ -14,14 +13,6 @@ public class ApproveOp extends Operations {
     public ApproveOp(Context context, Approve approve) {
         super(context);
         this.approve = approve;
-    }
-
-    public ApproveOp(Context context, OperationType operationType) {
-        super(context, operationType);
-    }
-
-    public ApproveOp(OperationProvider provider, Context context, OperationType operationType) {
-        super(provider, context, operationType);
     }
 
     @Override
@@ -43,7 +34,7 @@ public class ApproveOp extends Operations {
         Context c = mContextRef.get();
 
         if (c != null) {
-            approve.onDownloadFailed(error, c);
+            approve.onDownloadFailed(new String(error.networkResponse.data), c);
         }
     }
 
@@ -66,7 +57,7 @@ public class ApproveOp extends Operations {
         Context c = mContextRef.get();
 
         if (c != null) {
-            approve.onUploadFailed(error, c);
+            approve.onUploadFailed(new String(error.networkResponse.data), c);
         }
     }
 

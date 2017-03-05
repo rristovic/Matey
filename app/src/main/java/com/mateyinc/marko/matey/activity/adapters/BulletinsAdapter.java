@@ -19,11 +19,11 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import static com.mateyinc.marko.matey.data.OperationManager.COL_POST_ID;
+import static com.mateyinc.marko.matey.data.OperationManager.COL_USER_ID;
 import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_RETRY_UPLOAD;
 import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_SUCCESS;
 import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_UPLOADING;
@@ -108,17 +108,14 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             @Override
             public void onNameClick(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mManager.getBulletin(adapterViewPosition, mCursor).getUserID());
+                mCursor.moveToPosition(adapterViewPosition);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getLong(COL_USER_ID));
                 mContext.startActivity(i);
             }
 
             @Override
             public void onBoostClick(View caller, int adapterViewPosition) {
-//                DataAccess.getInstance(mContext).newPostLike(mCursor, adapterViewPosition);
-
-                Bulletin b = DataAccess.getBulletin(adapterViewPosition, mCursor);
-                if (b != null)
-                    b.like(mContext);
+                mManager.newPostLike(adapterViewPosition, mCursor, mContext);
             }
 
 
@@ -167,8 +164,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 }
 
                 holder.tvSubject.setText(bulletin.getSubject());
-                holder.tvStats.setText(String.format(mContext.getString(R.string.statistics),
-                        bulletin.getNumOfLikes(), bulletin.getNumOfReplies()));
+                holder.tvStats.setText(bulletin.getStatistics(mContext));
                 holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
                 holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
 
@@ -342,20 +338,20 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         private ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
-            tvMessage = (TextView) view.findViewById(R.id.tvMessage);
-            tvName = (TextView) view.findViewById(R.id.tvName);
+            tvMessage = (TextView) view.findViewById(R.id.tvBulletinMessage);
+            tvName = (TextView) view.findViewById(R.id.tvBulletinUserName);
             tvName.setTag(TV_NAME_TAG);
-            tvSubject = (TextView) view.findViewById(R.id.tvSubject);
-            tvDate = (TextView) view.findViewById(R.id.tvDate);
-            tvStats = (TextView) view.findViewById(R.id.tvStats);
+            tvSubject = (TextView) view.findViewById(R.id.tvBulletinSubject);
+            tvDate = (TextView) view.findViewById(R.id.tvBulletinDate);
+            tvStats = (TextView) view.findViewById(R.id.tvBulletinStats);
             rlBody = (RelativeLayout) view.findViewById(R.id.rlBody);
             rlBody.setTag(RL_BODY_TAG);
-            btnReply = (LinearLayout) view.findViewById(R.id.llReply);
+            btnReply = (LinearLayout) view.findViewById(R.id.llBulletinReply);
             btnReply.setTag(BTN_REPLY_TAG);
             btnBoost = (LinearLayout) view.findViewById(R.id.llBoost);
             btnBoost.setTag(BTN_BOOST_TAG);
-            ivBookmark = (ImageView) view.findViewById(R.id.ivBookmark);
-            ivShare = (ImageView) view.findViewById(R.id.ivShare);
+            ivBookmark = (ImageView) view.findViewById(R.id.ivBulletinBookmark);
+            ivShare = (ImageView) view.findViewById(R.id.ivBulletinShare);
             mListener = listener;
 
             rlBody.setOnClickListener(this);

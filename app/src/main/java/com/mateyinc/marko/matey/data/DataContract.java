@@ -38,7 +38,8 @@ public class DataContract {
     public static final String PATH_NOTIFICATIONS = "notifications";
     public static final String PATH_PROFILES = "profiles";
     public static final String PATH_BULLETINS = "bulletins";
-    public static final String PATH_REPLIES = "replies";
+    public static final String PATH_BULLETIN_REPLIES = "bulletin_replies";
+    public static final String PATH_REPLY_REPLIES = "reply_replies";
     public static final String PATH_APPROVES = "approves";
     public static final String PATH_NOT_UPLOADED = "not_uploaded";
 
@@ -162,12 +163,12 @@ public class DataContract {
 
     public static final class ReplyEntry implements MBaseColumns {
         public static final Uri CONTENT_URI =
-                BASE_CONTENT_URI.buildUpon().appendPath(PATH_REPLIES).build();
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_BULLETIN_REPLIES).build();
 
         public static final String CONTENT_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REPLIES;
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_BULLETIN_REPLIES;
         public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REPLIES;
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_BULLETIN_REPLIES;
 
         public static final String TABLE_NAME = "replies";
 
@@ -183,6 +184,10 @@ public class DataContract {
 
         public static Uri buildReplyUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildBulletinRepliesUri(long bulletin_id) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(bulletin_id)).build();
         }
     }
 
@@ -220,7 +225,7 @@ public class DataContract {
         public static final String TABLE_NAME = "not_uploaded_items";
 
         /**
-         * Entry type can be value from {@link com.mateyinc.marko.matey.data.operations.OperationType}
+         * Entry type can be value from {@link com.mateyinc.marko.matey.data.internet.operations.OperationType}
          */
         public static final String COLUMN_ENTRY_TYPE = "entry_type";
 

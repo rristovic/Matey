@@ -34,7 +34,7 @@
             app:riv_oval="true" />
 
         <com.mateyinc.marko.matey.activity.home.MediumTextView
-            android:id="@+id/tvName"
+            android:id="@+id/tvBulletinUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/bulletins_name_topMargin"
@@ -46,7 +46,7 @@
             android:textSize="@dimen/bulletin_textSize_userName" />
 
         <ImageView
-            android:id="@+id/ivShare"
+            android:id="@+id/ivBulletinShare"
             android:layout_width="@dimen/bulletin_topBtn"
             android:layout_height="@dimen/bulletin_topBtn"
             android:layout_alignParentEnd="true"
@@ -55,14 +55,14 @@
             android:src="@drawable/ic_share" />
 
         <ImageView
-            android:id="@+id/ivBookmark"
+            android:id="@+id/ivBulletinBookmark"
             android:layout_width="@dimen/bulletin_topBtn"
             android:layout_height="@dimen/bulletin_topBtn"
             android:layout_marginEnd="@dimen/bulletin_topBtn_margin"
             android:layout_marginRight="@dimen/bulletin_topBtn_margin"
             android:layout_marginTop="@dimen/bulletin_topBtn_topMargin"
-            android:layout_toLeftOf="@id/ivShare"
-            android:layout_toStartOf="@id/ivShare"
+            android:layout_toLeftOf="@id/ivBulletinShare"
+            android:layout_toStartOf="@id/ivBulletinShare"
             android:src="@drawable/ic_star" />
 
         <LinearLayout
@@ -98,12 +98,12 @@
         android:layout_marginStart="@dimen/bulletin_body_margin">
 
         <TextView
-            android:id="@+id/tvMessage"
+            android:id="@+id/tvBulletinMessage"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/tvSubject"
+            android:layout_below="@+id/tvBulletinSubject"
             android:layout_marginBottom="10dp"
             android:layout_marginLeft="@dimen/bulletins_msg_margin"
             android:layout_marginStart="@dimen/bulletins_msg_margin"
@@ -114,7 +114,7 @@
 
 
         <TextView
-            android:id="@+id/tvSubject"
+            android:id="@+id/tvBulletinSubject"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -127,18 +127,18 @@
             android:textSize="@dimen/bulletin_textSize_subject" />
 
         <TextView
-            android:id="@+id/tvStats"
+            android:id="@+id/tvBulletinStats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvMessage"
+            android:layout_below="@id/tvBulletinMessage"
             android:text="Statistics"
             android:textSize="@dimen/bulletin_textSize_message" />
 
         <TextView
-            android:id="@+id/tvDate"
+            android:id="@+id/tvBulletinDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/tvStats"
+            android:layout_alignBottom="@id/tvBulletinStats"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:fontFamily="@string/roboto_light"
@@ -199,12 +199,13 @@
                 android:clickable="false"
                 android:enabled="false"
                 android:text="Boost!"
+                android:fontFamily="@string/roboto_medium"
                 android:textColor="@color/gray"
                 android:textSize="@dimen/bulletin_textSize_buttons" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/llReply"
+            android:id="@+id/llBulletinReply"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -226,9 +227,6 @@
                 android:id="@+id/textView10"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
                 android:text="Reply"
                 android:textColor="@color/gray"
                 android:textSize="@dimen/bulletin_textSize_buttons" />

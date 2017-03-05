@@ -95,7 +95,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         ContentResolver resolver = getContentResolver();
         for (int i = 0; i < 10; i++) {
             ContentValues values1 = new ContentValues(8);
-            values1.put(DataContract.ReplyEntry._ID, i);
+//            values1.put(DataContract.ReplyEntry._ID, i);
             values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
             values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 1000);
             values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");
@@ -108,7 +108,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         }
         for (int i = 10; i < 21; i++) {
             ContentValues values1 = new ContentValues(8);
-            values1.put(DataContract.ReplyEntry._ID, i);
+//            values1.put(DataContract.ReplyEntry._ID, i);
             values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
             values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 2);
             values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");

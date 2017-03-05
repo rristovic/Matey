@@ -67,7 +67,7 @@
         </android.support.v7.widget.Toolbar>
 
         <RelativeLayout
-            android:id="@+id/rlMainInfo"
+            android:id="@+id/rlReplyInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/ivCoverPic"
@@ -289,7 +289,7 @@
             android:id="@+id/rvActivities"
             android:layout_width="match_parent"
             android:layout_height="400dp"
-            android:layout_below="@id/rlMainInfo" />
+            android:layout_below="@id/rlReplyInfo" />
 
 
     </RelativeLayout>

@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.operations;
+package com.mateyinc.marko.matey.data.internet.operations;
 
 import android.net.Uri;
 import android.util.Log;
@@ -10,7 +10,7 @@ import com.mateyinc.marko.matey.inall.MotherActivity;
 import static com.mateyinc.marko.matey.data.internet.UrlData.GET_NEWSFEED_ROUTE;
 import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_COUNT;
 import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_START_POS;
-import static com.mateyinc.marko.matey.data.operations.OperationType.DOWNLOAD_NEWS_FEED;
+import static com.mateyinc.marko.matey.data.internet.operations.OperationType.DOWNLOAD_NEWS_FEED;
 
 
 public class NewsfeedOp extends Operations{

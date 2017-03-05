@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.operations;
+package com.mateyinc.marko.matey.data.internet.operations;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -124,6 +124,7 @@ public class UserProfileOp extends Operations {
 
             default:{
                 url = "#";
+                Log.e(TAG, "No operation type has been specified!");
                 method = Request.Method.POST;
             }
         }

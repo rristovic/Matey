@@ -2,12 +2,13 @@ package com.mateyinc.marko.matey.model;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.internet.operations.BulletinOp;
+import com.mateyinc.marko.matey.data.internet.operations.OperationType;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
@@ -16,7 +17,7 @@ import org.json.JSONObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import static com.mateyinc.marko.matey.activity.Util.parseDate;
@@ -41,7 +42,20 @@ public class Bulletin extends MModel {
     private String mSubject;
     private int mNumOfReplies = 0;
     private int mNumOfLikes = 0;
-    private LinkedList<Attachment> mAttachments;
+    private List<String> mAttachments;
+
+
+    public Bulletin() {
+    }
+
+    public Bulletin(long user_id, String firstName, String lastName, String subject, String text, Date date) {
+        mUserID = user_id;
+        mFirstName = firstName;
+        mLastName = lastName;
+        mSubject = subject;
+        mText = text;
+        mDate = date;
+    }
 
     public Bulletin(long post_id, long user_id, String firstName, String lastName, String text, Date date) {
         _id = post_id;
@@ -62,6 +76,14 @@ public class Bulletin extends MModel {
         this.mServerStatus = serverStatus;
     }
 
+    public List<String> getAttachments() {
+        return mAttachments;
+    }
+
+    public void setAttachments(List<String> mAttachments) {
+        this.mAttachments = mAttachments;
+    }
+
     public int getNumOfReplies() {
         return mNumOfReplies;
     }
@@ -80,6 +102,11 @@ public class Bulletin extends MModel {
 
     public String getSubject() {
         return mSubject;
+    }
+
+    public String getStatistics(Context context) {
+        return String.format(context.getString(R.string.statistics),
+                mNumOfLikes, mNumOfReplies);
     }
 
     public void setSubject(String mSubject) {
@@ -154,10 +181,6 @@ public class Bulletin extends MModel {
         this.mDate = new Date(timeInMilis);
     }
 
-    public LinkedList<Attachment> getAttachments() {
-        return mAttachments;
-    }
-
     public void setAttachmentsFromJSON(String string) {
         return; // TODO - finish method
     }
@@ -182,6 +205,61 @@ public class Bulletin extends MModel {
         );
 
         return b;
+    }
+
+    /**
+     * Method to call when bulletin has been liked/unliked.*
+     * @param context context used for database communication.
+     */
+    public void like(final Context context) {
+        Approve approve = new Approve();
+        approve.postId = _id;
+        approve.userId = MotherActivity.user_id;
+
+        approve.save(context);
+        notifyDataChanged(context);
+    }
+
+    /**
+     * Method to call when new bulletin has been created.
+     * @param context context used for database communication.
+     */
+    @Override
+    public void save(Context context) {
+        BulletinOp bulletinOp = new BulletinOp(context, this);
+
+        if (mAttachments == null) {
+            // Use volley
+            bulletinOp.setOperationType(OperationType.POST_NEW_BULLETIN_NO_ATTCH);
+        } else {
+            // Send through OkHTTP
+            bulletinOp.setOperationType(OperationType.POST_NEW_BULLETIN_WITH_ATTCH);
+        }
+
+//        addToDb(context);
+        notifyDataChanged(context);
+
+        bulletinOp.startUploadAction();
+    }
+
+    @Override
+    public void onDownloadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onDownloadFailed(String error, Context c) {
+
+    }
+
+    @Override
+    public void onUploadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onUploadFailed(String error, Context c) {
+
     }
 
     public void addToDb(final Context c) {
@@ -212,78 +290,16 @@ public class Bulletin extends MModel {
 
     }
 
-    private void updateNullBulletin(final Context context) {
-        ContentValues values = new ContentValues();
+    @Override
+    protected void notifyDataChanged(Context context) {
+        context.getContentResolver().notifyChange(DataContract.BulletinEntry.CONTENT_URI, null);
+    }
 
-        values.put(DataContract.BulletinEntry.COLUMN_USER_ID, -1);
-        values.put(DataContract.BulletinEntry._ID, -1);
-        values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, "nn");
-        values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, "nn");
-        values.put(DataContract.BulletinEntry.COLUMN_TEXT, "nn");
-        values.put(DataContract.BulletinEntry.COLUMN_DATE, new Date().getTime());
+    public class Attachment {
 
-        Uri uri = context.getContentResolver().insert(
-                DataContract.BulletinEntry.CONTENT_URI,
-                values
-        );
-
-        if (uri != null) {
-            Log.d(TAG, "Null bulletin added.");
-        } else {
-            Log.e(TAG, "Failed to add null bulletin.");
+        public Attachment() {
         }
     }
-
-    public static void decrementRepliesCount(long postId, Context context) {
-        new Bulletin(postId).decrementRepliesCount(context);
-    }
-
-    private void decrementRepliesCount(final Context context) {
-        ContentValues values = new ContentValues(1);
-        Cursor c = context.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, new String[]{DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES},
-                DataContract.BulletinEntry._ID + " = " + _id, null, null);
-
-        if (c != null && c.moveToFirst()) {
-            // Retrieve the value
-            int count = c.getInt(0);
-            // Close db
-            c.close();
-            // Update db
-            values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, --count);
-            int i = context.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
-                    DataContract.BulletinEntry._ID + " = " + _id, null);
-            if (i == 1)
-                Log.d(TAG, "Bulletin replies count decremented: " + Bulletin.this);
-            else
-                Log.e(TAG, "Failed to decrement bulletin replies count: " + Bulletin.this);
-        }
-    }
-
-    public static void incrementRepliesCount(long postId, Context context) {
-        new Bulletin(postId).incrementRepliesCount(context);
-    }
-
-    private void incrementRepliesCount(Context context) {
-        ContentValues values = new ContentValues(1);
-        Cursor c = context.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, new String[]{DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES},
-                DataContract.BulletinEntry._ID + " = " + _id, null, null);
-
-        if (c != null && c.moveToFirst()) {
-            // Retrieve the value
-            int count = c.getInt(0);
-            // Close db
-            c.close();
-            // Update db
-            values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++count);
-            int i = context.getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values,
-                    DataContract.BulletinEntry._ID + " = " + _id, null);
-            if (i == 1)
-                Log.d(TAG, "Bulletin replies count incremented: " + Bulletin.this);
-            else
-                Log.e(TAG, "Failed to increment bulletin replies count: " + Bulletin.this);
-        }
-    }
-
 
     @Override
     public String toString() {
@@ -303,64 +319,6 @@ public class Bulletin extends MModel {
 
         return String.format(Locale.US, "Bulletin: ID=%d; Text=%s; UserName=%s %s; UserId=%d Date=%s; RepliesCount=%d",
                 _id, message, mFirstName, mLastName, mUserID, date, mNumOfReplies);
-    }
-
-
-    public Bulletin() {
-    }
-
-    private Bulletin(long postId) {
-        _id = postId;
-    }
-
-    public void like(final Context context) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Approve approve = new Approve();
-                approve.postId = _id;
-                approve.userId = MotherActivity.user_id;
-
-                approve.save(context);
-                notifyDataChanged(context);
-            }
-        }).start();
-    }
-
-    @Override
-    public void onDownloadSuccess(String response, Context c) {
-
-    }
-
-    @Override
-    public void onDownloadFailed(VolleyError error, Context c) {
-
-    }
-
-    @Override
-    public void onUploadSuccess(String response, Context c) {
-
-    }
-
-    @Override
-    public void onUploadFailed(VolleyError error, Context c) {
-
-    }
-
-    @Override
-    protected void notifyDataChanged(Context context) {
-        context.getContentResolver().notifyChange(DataContract.BulletinEntry.CONTENT_URI, null);
-    }
-
-    @Override
-    void save(Context context) {
-
-    }
-
-    public class Attachment {
-
-        public Attachment() {
-        }
     }
 
 }

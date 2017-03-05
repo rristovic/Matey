@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 
 import org.json.JSONException;
@@ -300,7 +299,7 @@ public class UserProfile extends MModel{
     }
 
     @Override
-    public void onDownloadFailed(VolleyError error, Context c) {
+    public void onDownloadFailed(String error, Context c) {
 
     }
 
@@ -310,7 +309,7 @@ public class UserProfile extends MModel{
     }
 
     @Override
-    public void onUploadFailed(VolleyError error, Context c) {
+    public void onUploadFailed(String error, Context c) {
 
     }
 

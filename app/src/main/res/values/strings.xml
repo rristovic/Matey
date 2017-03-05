@@ -30,6 +30,7 @@
     <string name="enter_pass_title">Enter password for email <xliff:g id="first_reply_name">%1$s</xliff:g></string>
     <string name="merge_acc_failed_msg">Account merging has failed</string>
     <string name="sail">Sail</string>
+    <string name="file_not_supported">Cannot that kind of file to server</string>
 
     <!-- Database and content mProvider authority string -->
     <string name="content_authority" translatable="false">com.mateyinc.marko.matey</string>
@@ -76,6 +77,7 @@
     <string name="reply_approve">approves</string>
     <string name="continue_reading_message">Continue reading</string>
     <string name="statistics"><xliff:g id="num_of_likes">%1$d</xliff:g> boosts • <xliff:g id="num_of_replies">%2$d</xliff:g> replies</string>
+    <string name="boost_statistics"><xliff:g id="num_of_likes">%1$d</xliff:g> boosts</string>
     <!-- Bulletin replies view related -->
     <string name="bulletin_repliesView_repliesText">Replies:</string>
     <string name="reply_sendReplyText"><i>Quick reply...</i></string>

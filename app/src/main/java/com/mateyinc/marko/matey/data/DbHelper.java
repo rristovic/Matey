@@ -26,7 +26,7 @@ import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
-import com.mateyinc.marko.matey.data.operations.Operations;
+import com.mateyinc.marko.matey.data.internet.operations.Operations;
 
 /**
  * Manages a local database.
@@ -100,7 +100,7 @@ class DbHelper extends SQLiteOpenHelper {
                 " UNIQUE (" + BulletinEntry._ID + ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_REPLY_TABLE = "CREATE TABLE " + ReplyEntry.TABLE_NAME + " (" +
-                ReplyEntry._ID + " INTEGER NOT NULL, " +
+                ReplyEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 ReplyEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 ReplyEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
                 ReplyEntry.COLUMN_FIRST_NAME + " TEXT NOT NULL, " +

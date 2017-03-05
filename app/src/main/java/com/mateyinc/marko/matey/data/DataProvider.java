@@ -40,28 +40,24 @@ public class DataProvider extends ContentProvider {
     static final int BULLETINS = 400;
     static final int BULLETIN_WITH_ID = 401;
     static final int BULLETIN_WITH_REPLIES_COUNT = 402;
-    static final int REPLIES = 500;
-    static final int REPLY_WITH_ID = 501;
+    static final int BULLETIN_REPLIES = 500;
+    static final int REPLY_REPLIES = 501;
     static final int APPROVES = 600;
     static final int APPROVE_WITH_ID = 601;
     static final int NOT_UPLOADED_ITEMS = 700;
 
-    private static final SQLiteQueryBuilder sRepliesWithApproves;
-    private static final SQLiteQueryBuilder sBulletinWithRepliesCount;
+    private static final SQLiteQueryBuilder sRepliesWithBulletin;
+    private static final SQLiteQueryBuilder sBulletinReplies;
 
     static{
-        sRepliesWithApproves = new SQLiteQueryBuilder();
-        sBulletinWithRepliesCount = new SQLiteQueryBuilder();
+        sRepliesWithBulletin = new SQLiteQueryBuilder();
+        sBulletinReplies = new SQLiteQueryBuilder();
 
-        sRepliesWithApproves.setTables(
-                DataContract.ReplyEntry.TABLE_NAME + " LEFT OUTER JOIN " + DataContract.ApproveEntry.TABLE_NAME +
-                        " ON " + DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry._ID +
-                        " = " + DataContract.ApproveEntry.TABLE_NAME + "." + DataContract.ApproveEntry.COLUMN_REPLY_ID);
-
-        sBulletinWithRepliesCount.setTables(
-                DataContract.BulletinEntry.TABLE_NAME + " LEFT OUTER JOIN" + DataContract.ReplyEntry.TABLE_NAME +
+        sRepliesWithBulletin.setTables(
+                DataContract.BulletinEntry.TABLE_NAME + " LEFT OUTER JOIN " + DataContract.ReplyEntry.TABLE_NAME +
                         " ON " + DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID +
                         " = " + DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry.COLUMN_POST_ID);
+
     }
 
 
@@ -96,10 +92,10 @@ public class DataProvider extends ContentProvider {
                 return DataContract.BulletinEntry.CONTENT_ITEM_TYPE;
             case BULLETIN_WITH_REPLIES_COUNT:
                 return DataContract.BulletinEntry.CONTENT_TYPE;
-            case REPLIES:
+            case BULLETIN_REPLIES:
                 return DataContract.ReplyEntry.CONTENT_TYPE;
-            case REPLY_WITH_ID:
-                return DataContract.ReplyEntry.CONTENT_ITEM_TYPE;
+            case REPLY_REPLIES:
+                return DataContract.ReplyEntry.CONTENT_TYPE;
             case APPROVES:
                 return DataContract.ApproveEntry.CONTENT_TYPE;
             default:
@@ -169,7 +165,7 @@ public class DataProvider extends ContentProvider {
                 break;
             } // "bulletins"
             case BULLETINS: {
-//                retCursor = sRepliesWithApproves.query(mOpenHelper.getReadableDatabase(),
+//                retCursor = sRepliesWithBulletin.query(mOpenHelper.getReadableDatabase(),
 //                        projection,
 //                        selection,
 //                        selectionArgs,
@@ -195,7 +191,7 @@ public class DataProvider extends ContentProvider {
             // "bulletins/*"
             case BULLETIN_WITH_ID: {
 //                retCursor = getBulletinByID(uri, projection, sortOrder);
-                retCursor = sRepliesWithApproves.query(mOpenHelper.getReadableDatabase(),
+                retCursor = sRepliesWithBulletin.query(mOpenHelper.getReadableDatabase(),
                         projection,
                         selection,
                         selectionArgs,
@@ -206,7 +202,7 @@ public class DataProvider extends ContentProvider {
                 break;
             }
             // "replies"
-            case REPLIES: {
+            case BULLETIN_REPLIES: {
 //                retCursor = mOpenHelper.getReadableDatabase().query(
 //                        DataContract.ReplyEntry.TABLE_NAME,
 //                        projection,
@@ -216,7 +212,7 @@ public class DataProvider extends ContentProvider {
 //                        null,
 //                        sortOrder
 //                );
-                retCursor = sRepliesWithApproves.query(mOpenHelper.getReadableDatabase(),
+                retCursor = sRepliesWithBulletin.query(mOpenHelper.getReadableDatabase(),
                         projection,
                         selection,
                         selectionArgs,
@@ -225,7 +221,7 @@ public class DataProvider extends ContentProvider {
                         sortOrder);
                 break;
             }
-            case REPLY_WITH_ID: {
+            case REPLY_REPLIES: {
                 retCursor = getReplyByID(uri, projection, sortOrder);
                 break;
             }
@@ -326,7 +322,7 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case REPLIES: {
+            case BULLETIN_REPLIES: {
                 long _id = db.insert(DataContract.ReplyEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = DataContract.ReplyEntry.buildReplyUri(_id);
@@ -381,7 +377,7 @@ public class DataProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         DataContract.BulletinEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-            case REPLIES:
+            case BULLETIN_REPLIES:
                 rowsDeleted = db.delete(
                         DataContract.ReplyEntry.TABLE_NAME, selection, selectionArgs);
                 break;
@@ -426,7 +422,7 @@ public class DataProvider extends ContentProvider {
                 rowsUpdated = db.update(DataContract.BulletinEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
-            case REPLIES:
+            case BULLETIN_REPLIES:
                 rowsUpdated = db.update(DataContract.ReplyEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
@@ -520,7 +516,7 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case REPLIES: {
+            case BULLETIN_REPLIES: {
                 db.beginTransaction();
                 int returnCount = 0;
                 try {
@@ -589,8 +585,8 @@ public class DataProvider extends ContentProvider {
         matcher.addURI(authority, DataContract.PATH_PROFILES + "/#", PROFILE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_BULLETINS, BULLETINS);
         matcher.addURI(authority, DataContract.PATH_BULLETINS + "/rcount/#", BULLETIN_WITH_REPLIES_COUNT);
-        matcher.addURI(authority, DataContract.PATH_REPLIES, REPLIES);
-        matcher.addURI(authority, DataContract.PATH_REPLIES + "/#", REPLY_WITH_ID);
+        matcher.addURI(authority, DataContract.PATH_BULLETIN_REPLIES, BULLETIN_REPLIES);
+        matcher.addURI(authority, DataContract.PATH_BULLETIN_REPLIES + "/#", BULLETIN_REPLIES);
         matcher.addURI(authority, DataContract.PATH_APPROVES, APPROVES);
         matcher.addURI(authority, DataContract.PATH_APPROVES + "/#", APPROVE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_NOT_UPLOADED, NOT_UPLOADED_ITEMS);

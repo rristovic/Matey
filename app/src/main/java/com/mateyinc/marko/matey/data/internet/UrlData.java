@@ -103,6 +103,8 @@ public abstract class UrlData {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+    // Upload picture url
+    public static final String POST_NEW_BULLETIN = ACCESS_BASE_URL.concat("/posts");
 
     // Register new user
     public static final String REGISTER_USER = BASE_URL.concat("/users/accounts");

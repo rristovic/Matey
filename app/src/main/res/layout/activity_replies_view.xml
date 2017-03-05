@@ -46,4 +46,40 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         app:layoutManager="LinearLayoutManager" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@color/navBar"
+        android:elevation="6dp"
+
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etNewReply"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginBottom="15dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_toLeftOf="@+id/ivSendReply"
+            android:layout_toStartOf="@id/ivSendReply"
+            android:gravity="center_vertical"
+            android:hint="@string/reply_sendReplyText"
+            android:maxLines="4" />
+
+        <ImageView
+            android:id="@+id/ivSendReply"
+            android:layout_width="?android:attr/actionBarSize"
+            android:layout_height="?android:attr/actionBarSize"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:cropToPadding="false"
+            android:padding="10dp"
+            android:src="@drawable/ic_bottle_send" />
+    </RelativeLayout>
 </LinearLayout>

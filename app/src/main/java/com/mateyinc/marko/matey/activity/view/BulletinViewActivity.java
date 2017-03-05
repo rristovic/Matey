@@ -15,6 +15,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -26,7 +27,6 @@ import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.adapters.BulletinRepliesAdapter;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.home.NewPostActivity;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -38,7 +38,7 @@ import java.util.Date;
 
 import static com.mateyinc.marko.matey.data.OperationManager.REPLIES_ORDER_BY;
 
-public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>, BulletinRepliesAdapter.RepliesPopupInterface {
+public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>, BulletinRepliesAdapter.ReplyClickedInterface {
 
     public static final String EXTRA_BULLETIN_ID = "post_id";
     public static final String EXTRA_BULLETIN_POS = "bulletin_adapter_pos";
@@ -54,14 +54,16 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     private static final String ARG_REPLY_ID = "reply_id";
 
     public static final String[] REPLIES_COLUMNS = {
-            "replies.".concat(ReplyEntry._ID),
-            "replies.".concat(ReplyEntry.COLUMN_USER_ID),
-            "replies.".concat(ReplyEntry.COLUMN_FIRST_NAME),
-            "replies.".concat(ReplyEntry.COLUMN_LAST_NAME),
-            "replies.".concat(ReplyEntry.COLUMN_TEXT),
-            "replies.".concat(ReplyEntry.COLUMN_DATE),
-            "replies.".concat(ReplyEntry.COLUMN_NUM_OF_LIKES),
-            "replies.".concat(ReplyEntry.COLUMN_POST_ID)
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry._ID),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_USER_ID),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_FIRST_NAME),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_LAST_NAME),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_TEXT),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_DATE),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_NUM_OF_LIKES),
+            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_POST_ID)
+
+//            DataContract.ApproveEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_POST_ID),
     };
 
     // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
@@ -122,7 +124,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivOpenReplyScreen = (ImageView) findViewById(R.id.ivOpenReplyScreen);
         ivReply = (ImageView) findViewById(R.id.ivSendReply);
         ivReply.setEnabled(false);
-        etReplyText = (TextView) findViewById(R.id.tvReply);
+        etReplyText = (TextView) findViewById(R.id.etNewReply);
         etReplyText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -154,9 +156,8 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
         // Init loader
         getSupportLoaderManager().initLoader(REPLIES_LOADER, null, this);
+
         setListeners();
-
-
     }
 
     private void updateCurBulletin() {
@@ -168,7 +169,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(BulletinViewActivity.this, NewPostActivity.class);
-                i.putExtra(NewPostActivity.EXTRA_REPLY_SUBJECT, mCurBulletin.getMessage());// TODO - finish instead of getMessage
+                i.putExtra(NewPostActivity.EXTRA_REPLY_SUBJECT, mCurBulletin.getSubject());// TODO - finish instead of getMessage
                 startActivity(i);
             }
         });
@@ -181,37 +182,24 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         ivReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OperationManager dm = OperationManager.getInstance(BulletinViewActivity.this);
                 Reply r = new Reply();
                 UserProfile profile = MotherActivity.mCurrentUserProfile;
 
                 // Create new reply
-                r.userFirstName = profile.getFirstName();
-                r.userLastName = profile.getLastName();
-                r.replyDate = new Date();
-                r.userId = profile.getUserId();
-                r.postId = mCurBulletin.getPostID();
-                r._id = dm.createNewActivityId();
-                r.replyText = etReplyText.getText().toString();
+                r.setUserFirstName(profile.getFirstName());
+                r.setUserLastName(profile.getLastName());
+                r.setDate(new Date());
+                r.setUserId(profile.getUserId());
+                r.setPostId(mCurBulletin.getPostID());
+                r.setReplyText(etReplyText.getText().toString());
 
                 // Update UI
-                mAdapter.notifyDataSetChanged();
-                setHeadingText();
                 etReplyText.setText(null);
 
-//                dm.addOperation(new UploadOp(r)).performOperations();
-//                SessionManager networkManager = SessionManager.getInstance(BulletinViewActivity.this);
-//                networkManager.uploadNewReply(r, mCurBulletin, OperationManager.getInstance(BulletinViewActivity.this),
-//                        MotherActivity.access_token, BulletinViewActivity.this);
-
-//                // Update number of replies in bulletin db
-//                ContentValues values = new ContentValues(1);
-//                int num = mCurBulletin.getNumOfReplies();
-//                values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, ++num);
-//                getContentResolver().update(DataContract.BulletinEntry.CONTENT_URI, values, DataContract.BulletinEntry._ID + " = " + mCurBulletin.getPostID(), null);
+                // Save and upload
+                mManager.postNewReply(r, mCurBulletin, BulletinViewActivity.this);
             }
         });
-
         ivReply.setOnTouchListener(new OnTouchInterface(this));
     }
 
@@ -224,15 +212,20 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
     private void setHeadingText() {
         String text = "";
-        int replyCount = mAdapter.getItemCount();
-        Cursor c = mAdapter.getCursor();
-        c.moveToFirst();
-        if (replyCount > 1) {
-            text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), Integer.toString(--replyCount));
-        } else if (replyCount == 1)
-            text = String.format(getString(R.string.bulletin_onereply_header), c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
+
+        if (mAdapter.isDataAvailable()) {
+            Cursor c = mAdapter.getCursor();
+            c.moveToFirst();
+            int replyCount = mAdapter.getItemCount();
+            if (replyCount == 1)
+                text = String.format(getString(R.string.bulletin_onereply_header), c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
+            else {
+                text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), Integer.toString(--replyCount));
+            }
+        } else
+            text = "No replies so far";
+
         tvHeading.setText(text);
-        c = null;
     }
 
     @Override
@@ -241,19 +234,25 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
         if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
             // Get focus on edit text and show keyboard
-            etReplyText.setFocusableInTouchMode(true);
-            etReplyText.requestFocus();
-
-            final InputMethodManager inputMethodManager = (InputMethodManager) this
-                    .getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputMethodManager.showSoftInput(etReplyText, InputMethodManager.SHOW_IMPLICIT);
+            showReplyKeyboard();
         }
     }
 
     @Override
-    public void showPopupWindow(long replyId) {
+    public void showReplyKeyboard() {
+        etReplyText.setFocusableInTouchMode(true);
+        etReplyText.requestFocus();
+
+        final InputMethodManager inputMethodManager = (InputMethodManager) this
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.showSoftInput(etReplyText, InputMethodManager.SHOW_IMPLICIT);
+
+    }
+
+    @Override
+    public void showPopupWindow(final Reply reply) {
         Bundle bundle = new Bundle();
-        bundle.putLong(ARG_REPLY_ID, replyId);
+        bundle.putLong(ARG_REPLY_ID, reply._id);
 //        getSupportLoaderManager().initLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
         getSupportLoaderManager().restartLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
 
@@ -264,6 +263,59 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         // find the ListView in the popup layout
         mRepliesOfRepliesRecyclerView = (RecyclerView) inflatedView.findViewById(R.id.rvReplies);
         mRepliesHeader = (TextView) inflatedView.findViewById(R.id.tvHeading);
+        final EditText etNewReReply = (EditText) inflatedView.findViewById(R.id.etNewReply);
+        final ImageView ivSendReply = (ImageView) inflatedView.findViewById(R.id.ivSendReply);
+
+        etNewReReply.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                enableButton(s);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                enableButton(s);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                enableButton(s);
+            }
+
+            private void enableButton(CharSequence s) {
+                if (s == null || s.length() == 0) {
+                    ivSendReply.setEnabled(false);
+                } else {
+                    ivSendReply.setEnabled(true);
+                }
+            }
+        });
+
+        ivSendReply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Reply r = new Reply();
+                UserProfile profile = MotherActivity.mCurrentUserProfile;
+
+                // Create new reply
+                r.setUserFirstName(profile.getFirstName());
+                r.setUserLastName(profile.getLastName());
+                r.setDate(new Date());
+                r.setUserId(profile.getUserId());
+                r.setPostId(mCurBulletin.getPostID());
+                r.setReReplyId(reply._id);
+                r.setReplyText(etReplyText.getText().toString());
+                r.isPostReply = false;
+
+                // Update UI
+                etNewReReply.setText(null);
+
+                // Save and upload
+                mManager.postNewReply(r, reply, BulletinViewActivity.this);
+                // Notify so ui can update
+                getContentResolver().notifyChange(ReplyEntry.CONTENT_URI, null);
+            }
+        });
 
         // Add adapter
         mRepliesAdapter = new BulletinRepliesAdapter(BulletinViewActivity.this, mRepliesOfRepliesRecyclerView);
@@ -290,7 +342,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
         if (id == REPLIES_LOADER)
             return new CursorLoader(BulletinViewActivity.this,
-                    DataContract.ReplyEntry.CONTENT_URI,
+                    ReplyEntry.CONTENT_URI,
                     REPLIES_COLUMNS,
                     "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
                     new String[]{Long.toString(getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1))},
@@ -308,6 +360,8 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
         if (loader.getId() == REPLIES_LOADER) {
+            updateCurBulletin();
+            mAdapter.setBulletin(mCurBulletin);
             mAdapter.swapCursor(data);
             setHeadingText();
         } else {

@@ -1,12 +1,14 @@
-package com.mateyinc.marko.matey.data.operations;
+package com.mateyinc.marko.matey.data.internet.operations;
 
 
 /**
  * Operation type that can be used in {@link Operations}
  */
 public enum OperationType {
+    // Bulletin operations
     DOWNLOAD_NEWS_FEED,
-    BULLETIN_OP,
+    POST_NEW_BULLETIN_NO_ATTCH,
+    POST_NEW_BULLETIN_WITH_ATTCH,
 
     // User profile operations
     DOWNLOAD_USER_PROFILE,
@@ -19,6 +21,10 @@ public enum OperationType {
     POST_UNLIKED,
     REPLY_UNLIKED,
     REPLY_LIKED,
+
+    // Reply operations
+    REPLY_ON_POST,
+    REPLY_ON_REPLY,
 
     NO_OPERATION
 }

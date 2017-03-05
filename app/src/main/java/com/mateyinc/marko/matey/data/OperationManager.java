@@ -1,12 +1,10 @@
 package com.mateyinc.marko.matey.data;
 
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
@@ -15,16 +13,14 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
-import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
-import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.operations.NewsfeedOp;
-import com.mateyinc.marko.matey.data.operations.OperationType;
-import com.mateyinc.marko.matey.data.operations.Operations;
-import com.mateyinc.marko.matey.data.operations.UserProfileOp;
+import com.mateyinc.marko.matey.data.internet.operations.NewsfeedOp;
+import com.mateyinc.marko.matey.data.internet.operations.OperationType;
+import com.mateyinc.marko.matey.data.internet.operations.Operations;
+import com.mateyinc.marko.matey.data.internet.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
@@ -37,6 +33,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -468,35 +465,7 @@ public class OperationManager implements OperationProvider {
     /**
      * Cursor sort order
      */
-    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " ASC";
-
-    /**
-     * Method for getting the reply from the database
-     *
-     * @param index  the position of the bulletin in the database
-     * @param cursor the provided cursor for the database
-     * @return the new instance of Bulletin from the database
-     */
-    public Reply getReply(int index, Cursor cursor) {
-        Reply reply = new Reply();
-
-        try {
-            cursor.moveToPosition(index);
-
-            reply._id = cursor.getInt(BulletinViewActivity.COL_REPLY_ID);
-            reply.userId = cursor.getInt(BulletinViewActivity.COL_USER_ID);
-            reply.postId = cursor.getInt(BulletinViewActivity.COL_POST_ID);
-            reply.userFirstName = cursor.getString(BulletinViewActivity.COL_FIRST_NAME);
-            reply.userLastName = cursor.getString(BulletinViewActivity.COL_LAST_NAME);
-            reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
-            reply.replyText = cursor.getString(BulletinViewActivity.COL_TEXT);
-            reply.numOfApprvs = cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS);
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
-        return reply;
-    }
+    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " DESC";
 
     public Context getContext() {
         return mAppContext;
@@ -509,6 +478,9 @@ public class OperationManager implements OperationProvider {
     private Response.Listener<String> mSuccessListener;
     private Response.ErrorListener mErrorListener;
 
+
+    /// Bulletins methods   ////
+    ////////////////////////////
     /**
      * Method for downloading and parsing news feed from the server, and all data around it
      * @param startPosition the start position of the bulletin
@@ -534,7 +506,85 @@ public class OperationManager implements OperationProvider {
         downloadNewsFeed(start, OperationManager.NUM_OF_BULLETINS_TO_DOWNLOAD, context);
     }
 
+    /**
+     * Helper method for posting new bulletin with attachments.
+     * @param subject bulletin's subject
+     * @param message bulletin's text
+     * @param attachments bulletin's attachment list that contains file paths.
+     */
+    public void postNewBulletin(String subject, String message, @Nullable List<String> attachments, Context context) {
+        Bulletin b = new Bulletin(MotherActivity.user_id, MotherActivity.mCurrentUserProfile.getFirstName(),
+                MotherActivity.mCurrentUserProfile.getLastName(), subject, message, new Date());
+        b.setAttachments(attachments); // TODO - set threading
+        b.save(context);
+    }
+
+    /**
+     * Helper method for posting new bulletin without attachments.
+     * @param subject bulletin's subject.
+     * @param message bulletin's text.
+     */
+    public void postNewBulletin(String subject, String message, Context context) {
+        postNewBulletin(subject, message, null, context);
+    }
+
+    /**
+     * Helper method for liking/unliking bulletin
+     * @param bulletinPosition position of bulletin in database
+     * @param cursor {@link Cursor} opened to the database
+     * @param context context for database communication
+     */
+    public void newPostLike(int bulletinPosition, Cursor cursor, Context context) {
+        Bulletin b = DataAccess.getBulletin(bulletinPosition, cursor);
+        if (b != null)
+            b.like(context);
+    }
+    /**
+     * Helper method for liking/unliking bulletin
+     * @param b bulletitn to be liked/unliked
+     * @param context context for database communication
+     */
+    public void newPostLike(Bulletin b, Context context) {
+        if (b != null)
+            b.like(context);
+    }
+
+    /**
+     * Helper method for liking/unliking reply
+     * @param replyPosition position of reply in database
+     * @param cursor {@link Cursor} opened to the database
+     * @param context context for database communication
+     */
+    public void newReplyLike(int replyPosition, Cursor cursor, Context context) {
+        Reply r = DataAccess.getReply(replyPosition, cursor);
+        if (r != null)
+            r.like(context);
+    }
+    //// Reply methods         /////
+    ////////////////////////////////
+
+    /**
+     * Helper method for posting new reply on bulletin
+     * @param bulletin {@link Bulletin} bulletin to reply on
+     * @param r {@link Reply} new reply object
+     * @param context context used for database communication
+     */
+    public void postNewReply(Reply r, Bulletin bulletin, Context context) {
+        r.reply(context, bulletin);
+    }
+
+    /**
+     * Helper method for posting new reply on reply
+     * @param reply {@link Reply} reply to reply on
+     * @param r {@link Reply} new reply object
+     * @param context context used for database communication
+     */
+    public void postNewReply(Reply r, Reply reply, Context context) {
+        r.reply(context, reply);
+    }
+
     //// User profile methods ///////
+    /////////////////////////////////
     /**
      * Helper method for downloading user profile data from the server;
      * @param userId id of the user profile
