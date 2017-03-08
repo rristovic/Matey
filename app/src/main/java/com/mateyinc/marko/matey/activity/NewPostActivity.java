@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.adapters.FilesAdapter;
 import com.mateyinc.marko.matey.data.FilePath;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -41,14 +44,14 @@ public class NewPostActivity extends MotherActivity {
     private static final String TAG = NewPostActivity.class.getSimpleName();
     private static final int MIN_CHAR_LIMIT = 5;
 
-
     private EditText etNewPostMsg, etNewPostSubject;
     private TextView tvPost, tvNewPostHeading;
     private ImageButton ibBack;
     private ImageView ivAddPhoto, ivAddLocation, ivAddFile, ivSend;
     private Toolbar mToolbar;
+    private RecyclerView rvFileList;
 
-    private ArrayList<String> mFilePaths = new ArrayList<>();
+    private FilesAdapter mFilesAdapter;
 
     /**
      * Contains the id of the post that is being replied to.
@@ -101,7 +104,14 @@ public class NewPostActivity extends MotherActivity {
         tvPost = (TextView) findViewById(R.id.tvPost);
         tvNewPostHeading = (TextView) findViewById(R.id.tvNewPostHeading);
         tvPost.setEnabled(false); // Can't post until something is typed in
-        // First place in list will be reserved for text
+
+        // Setup recycle view
+        rvFileList = (RecyclerView) findViewById(R.id.rvFileList);
+        mFilesAdapter = new FilesAdapter(NewPostActivity.this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(NewPostActivity.this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        rvFileList.setLayoutManager(linearLayoutManager);
+        rvFileList.setAdapter(mFilesAdapter);
 
         setClickListeners();
     }
@@ -194,7 +204,6 @@ public class NewPostActivity extends MotherActivity {
 
         });
 
-
         ibBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,8 +250,6 @@ public class NewPostActivity extends MotherActivity {
                 postNewPost();
             }
         });
-
-
     }
 
     /**
@@ -256,7 +263,7 @@ public class NewPostActivity extends MotherActivity {
         } else {
             OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
             operationManager.postNewBulletin(etNewPostSubject.getText().toString()
-                    , etNewPostMsg.getText().toString(), mFilePaths, NewPostActivity.this);
+                    , etNewPostMsg.getText().toString(), mFilesAdapter.getData(), NewPostActivity.this);
 
         }
         finish();
@@ -279,7 +286,7 @@ public class NewPostActivity extends MotherActivity {
             Log.i(TAG, "Selected File Path:" + selectedFilePath);
 
             if (selectedFilePath != null && !selectedFilePath.equals("")) {
-                mFilePaths.add(selectedFilePath);
+                mFilesAdapter.addData(selectedFilePath);
             } else {
                 Toast.makeText(this, R.string.file_not_supported, Toast.LENGTH_SHORT).show();
             }

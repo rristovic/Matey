@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/newPost_files_size"
+    android:layout_height="@dimen/newPost_files_size"
+    android:orientation="vertical"
+    android:padding="@dimen/newPost_files_padding">
+
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:textSize="8dp"
+        android:visibility="invisible" />
+
+</RelativeLayout>

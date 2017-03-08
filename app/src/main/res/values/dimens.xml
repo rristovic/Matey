@@ -107,6 +107,8 @@
     <!-- New post related - View size-->
     <dimen name="newPost_etSubject">48dp</dimen>
     <dimen name="newPost_divider_margin">16dp</dimen>
+    <dimen name="newPost_files_size">80dp</dimen>
+    <dimen name="newPost_files_padding">5dp</dimen>
 
 
     <!-- Action bar size -->
