@@ -4,11 +4,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.internet.operations.BulletinOp;
-import com.mateyinc.marko.matey.data.internet.operations.OperationType;
+import com.mateyinc.marko.matey.internet.operations.BulletinOp;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
@@ -236,7 +237,7 @@ public class Bulletin extends MModel {
             bulletinOp.setOperationType(OperationType.POST_NEW_BULLETIN_WITH_ATTCH);
         }
 
-//        addToDb(context);
+        addToDb(context);
         notifyDataChanged(context);
 
         bulletinOp.startUploadAction();
@@ -254,11 +255,13 @@ public class Bulletin extends MModel {
 
     @Override
     public void onUploadSuccess(String response, Context c) {
+        // Notify user
 
     }
 
     @Override
     public void onUploadFailed(String error, Context c) {
+        // Notify user
 
     }
 
@@ -269,8 +272,10 @@ public class Bulletin extends MModel {
         values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, mFirstName);
         values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, mLastName);
         values.put(DataContract.BulletinEntry.COLUMN_TEXT, mText);
+        values.put(DataContract.BulletinEntry.COLUMN_SUBJECT, mSubject);
         values.put(DataContract.BulletinEntry.COLUMN_DATE, mDate.getTime());
         values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, mNumOfReplies);
+        values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_LIKES, mNumOfLikes);
         values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, mServerStatus);
 
         // Add to db

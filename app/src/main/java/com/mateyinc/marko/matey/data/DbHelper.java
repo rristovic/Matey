@@ -26,7 +26,7 @@ import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
-import com.mateyinc.marko.matey.data.internet.operations.Operations;
+import com.mateyinc.marko.matey.internet.operations.Operations;
 
 /**
  * Manages a local database.
@@ -92,7 +92,7 @@ class DbHelper extends SQLiteOpenHelper {
                 BulletinEntry.COLUMN_DATE + " INT, " +
                 BulletinEntry.COLUMN_NUM_OF_REPLIES + " INTEGER DEFAULT 0, " +
                 BulletinEntry.COLUMN_NUM_OF_LIKES + " INTEGER DEFAULT 0, " +
-                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT " + Operations.ServerStatus.STATUS_UPLOADING.ordinal() + "," +
                 BulletinEntry.COLUMN_ATTACHMENTS + " TEXT, " +
                 // Set up the sender_id column as a foreign key to profile table.
                 "FOREIGN KEY (" + BulletinEntry.COLUMN_USER_ID + ") REFERENCES " +
@@ -107,7 +107,7 @@ class DbHelper extends SQLiteOpenHelper {
                 ReplyEntry.COLUMN_LAST_NAME + " TEXT NOT NULL, " +
                 ReplyEntry.COLUMN_TEXT + " TEXT NOT NULL, " +
                 ReplyEntry.COLUMN_DATE + " INT, " +
-                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
+                ReplyEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT " + Operations.ServerStatus.STATUS_UPLOADING.ordinal() + "," +
                 ReplyEntry.COLUMN_NUM_OF_LIKES + " INTEGER DEFAULT 0," +
                 ReplyEntry.COLUMN_NUM_OF_REPLIES + " INTEGER DEFAULT 0," +
                 "FOREIGN KEY (" + ReplyEntry.COLUMN_USER_ID + ") REFERENCES " +
@@ -122,7 +122,7 @@ class DbHelper extends SQLiteOpenHelper {
                 ApproveEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 ApproveEntry.COLUMN_POST_ID + " INTEGER NOT NULL, " +
                 ApproveEntry.COLUMN_REPLY_ID + " INTEGER DEFAULT -1, " +
-                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT 0, " +
+                BulletinEntry.COLUMN_SERVER_STATUS + " INTEGER DEFAULT " + Operations.ServerStatus.STATUS_UPLOADING.ordinal() + "," +
                 "FOREIGN KEY (" + ApproveEntry.COLUMN_USER_ID + ") REFERENCES " +
                 ProfileEntry.TABLE_NAME + " (" + ProfileEntry._ID + "), " +
                 "FOREIGN KEY (" + ApproveEntry.COLUMN_REPLY_ID + ") REFERENCES " +

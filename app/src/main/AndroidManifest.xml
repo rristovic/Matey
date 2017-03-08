@@ -113,10 +113,10 @@
         android:syncable="true" />
 
     <activity
-        android:name=".activity.home.NewPostActivity"
+        android:name=".activity.NewPostActivity"
         android:windowSoftInputMode="adjustResize|stateVisible" />
 
-    <service android:name=".data.internet.MateyAuthenticatorService">
+    <service android:name=".internet.MateyAuthenticatorService">
         <intent-filter>
             <action android:name="android.accounts.AccountAuthenticator" />
         </intent-filter>
@@ -126,7 +126,7 @@
             android:resource="@xml/authenticator" />
     </service>
     <service
-        android:name=".data.internet.MateySyncService"
+        android:name=".internet.MateySyncService"
         android:exported="true"
         android:process=":sync">
         <intent-filter>

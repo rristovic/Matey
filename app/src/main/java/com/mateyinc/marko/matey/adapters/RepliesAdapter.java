@@ -1,8 +1,9 @@
-package com.mateyinc.marko.matey.activity.adapters;
+package com.mateyinc.marko.matey.adapters;
 
 import android.content.Intent;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,11 +30,12 @@ import java.util.LinkedList;
 import static com.mateyinc.marko.matey.R.color.light_gray;
 
 
-public class BulletinRepliesAdapter extends RecycleCursorAdapter {
-    private final String TAG = BulletinRepliesAdapter.class.getSimpleName();
+public class RepliesAdapter extends RecycleCursorAdapter {
+    private final String TAG = RepliesAdapter.class.getSimpleName();
 
     public interface ReplyClickedInterface {
         void showPopupWindow(Reply reply);
+
         void showReplyKeyboard();
     }
 
@@ -41,17 +43,17 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
     private UserProfile mCurUserProfile;
     private Resources mResources;
     private boolean mOnlyShowReplies = true;
-    /** Indicates if there's no data to show, so only show main bulletin **/
-    private boolean mNoData = false;
     private Bulletin mCurBulletin;
 
     private int ITEM = 1;
     private int FIRST_ITEM = 0;
 
-    /** Used for showing popup windows for replying to reply **/
+    /**
+     * Used for showing popup windows for replying to reply
+     **/
     private ReplyClickedInterface showPopupInterface = null;
 
-    public BulletinRepliesAdapter(MotherActivity context, RecyclerView view, LinkedList data) {
+    public RepliesAdapter(MotherActivity context, RecyclerView view, LinkedList data) {
         mContext = context;
         mRecycleView = view;
         mManager = OperationManager.getInstance(context);
@@ -59,7 +61,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         init();
     }
 
-    public BulletinRepliesAdapter(MotherActivity context, RecyclerView view) {
+    public RepliesAdapter(MotherActivity context, RecyclerView view) {
         mContext = context;
         mRecycleView = view;
         mManager = OperationManager.getInstance(context);
@@ -79,21 +81,9 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         return position == 0 ? FIRST_ITEM : ITEM;
     }
 
-    public boolean isDataAvailable(){
-        return !mNoData;
-    }
-
     @Override
     public int getItemCount() {
-        // Tricking adapter to show only main bulletin info if there's no data
-        int count = super.getItemCount();
-        if (count == 0) {
-            mNoData = true;
-            return 1;
-        } else
-            mNoData = false;
-
-        return count;
+        return super.getItemCount();
     }
 
     @Override
@@ -107,30 +97,32 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             linearLayout.setOrientation(LinearLayout.VERTICAL);
             linearLayout.setLayoutParams(layoutParams);
 
+            // Bulletin view
             View topView = LayoutInflater.from(mContext)
                     .inflate(R.layout.bulletin_list_item, parent, false);
 
+            // Divider view
             FrameLayout divider = new FrameLayout(mContext);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) Util.parseDp(0.5f, mContext.getResources()));
             divider.setLayoutParams(params);
             divider.setBackgroundColor(mContext.getResources().getColor(R.color.light_gray));
 
+            // Label view
             TextView textView = new TextView(mContext);
             textView.setTag("repliestext");
             params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            textView.setTextSize(mContext.getResources().getDimensionPixelSize(R.dimen.bulletin_textSize_message));
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, R.dimen.bulletin_textSize_message);
             textView.setText(R.string.bulletin_repliesView_repliesText);
+            textView.setLayoutParams(params);
 
             if (android.os.Build.VERSION.SDK_INT >= 21) {
                 topView.setElevation(0f);
             }
 
             linearLayout.addView(topView);
-
-            if (mNoData) {
-                linearLayout.addView(divider);
-                linearLayout.addView(view);
-            }
+            linearLayout.addView(divider);
+            linearLayout.addView(textView);
+            linearLayout.addView(view);
 
             return new ViewHolder(linearLayout, getViewHolderListener(), showPopupInterface != null);
         } else {
@@ -157,29 +149,8 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             }
 
             @Override
-            public void onApproveClicked(View caller, View rootView) {
-                int position = mRecycleView.getChildAdapterPosition(rootView); // Get child position in adapter
-                mCursor.moveToPosition(position);
-                Reply r = DataAccess.getReply(position, mCursor);
-
-                if (r.hasReplyApproveWithId(mCurUserProfile.getUserId())) { // Unlike
-                    // Remove approve from data and from database
-                    for (UserProfile p : r.getReplyApproves()) {
-                        if (p.getUserId() == mCurUserProfile.getUserId())
-                            r.removeApprove(p);
-                    }
-//                    mManager.addReply(r, mCurBulletin, );
-
-                    ((ImageView) caller).setColorFilter(mResources.getColor(light_gray)); // Changing the color of button
-                    ((BulletinViewActivity) mContext).notifyBulletinFragment();
-
-                } else { // Like
-                    // Add approve  to database
-                    r.addApprove(mCurUserProfile); // adding Reply to bulletin
-//                    mManager.addReply(r);
-
-                    ((BulletinViewActivity) mContext).notifyBulletinFragment();
-                }
+            public void onApproveClicked(View caller, int position) {
+                mManager.newReplyLike(position, mCursor, mContext);
             }
 
             @Override
@@ -209,7 +180,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         if (getItemViewType(position) == FIRST_ITEM) {
-            BulletinRepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
+            RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
             ((TextView) holder.mView.findViewById(R.id.tvBulletinUserName)).setText(mCurBulletin.getFirstName().concat(" ").concat(mCurBulletin.getLastName()));
             ((TextView) holder.mView.findViewById(R.id.tvBulletinDate)).setText(Util.getReadableDateText(mCurBulletin.getDate()));
             ((TextView) holder.mView.findViewById(R.id.tvBulletinSubject)).setText(mCurBulletin.getSubject());
@@ -241,13 +212,9 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
                     mContext.startActivity(i);
                 }
             });
-
-            // If there's no data, show only main bulletin info
-            if (mNoData)
-                return;
         }
         final Reply reply = DataAccess.getReply(position, mCursor);
-        BulletinRepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
+        RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
 
         String text = reply.getUserFirstName() + " " + reply.getUserLastName();
         holder.tvName.setText(text);
@@ -260,6 +227,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
      * Tells adapter to show main post of replies as first post.
      * For viewing bulletin this method should be called to show bulletin first,
      * but when viewing replies of reply this method should not be called.
+     *
      * @param b {@link Bulletin} bulletin to show.
      */
     public void showMainPostInfo(Bulletin b) {
@@ -273,6 +241,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
     /**
      * Setting communication interface so popup window and keyboard can show up when clicked in reply button.
+     *
      * @param replyClickedInterface {@link ReplyClickedInterface} interface to setup in adapter
      */
     public void setReplyPopupInterface(ReplyClickedInterface replyClickedInterface) {
@@ -282,9 +251,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
     protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private static final String TAG_NAME = "name";
-        private static final String TAG_APPROVE = "approvebtn";
         private static final String TAG_SHOW_APPROVES = "showapprvs";
-
 
         private static final String TV_MESSAGE = "tvMessage";
         private static final String BTN_REPLY_TAG = "replytag";
@@ -300,12 +267,19 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
 
         public ViewHolder(View view, ViewHolderClickListener listener, boolean showReplyButton) {
             super(view);
-            mView = (LinearLayout)view;
+            mView = (LinearLayout) view;
+
+            // Like button
             btnArr = (LinearLayout) view.findViewById(R.id.llArr);
+            btnArr.setTag(BTN_ARR_TAG);
+            // Reply button
             btnReply = (LinearLayout) view.findViewById(R.id.llReReply);
+            btnReply.setTag(BTN_REPLY_TAG);
+            // Stats
             tvStats = (TextView) view.findViewById(R.id.tvReplyStats);
+            // Remove reply button when viewing replies of reply
             if (!showReplyButton) {
-                ((RelativeLayout)mView.findViewById(R.id.rlReplyInfo)).removeView(btnReply);
+                ((RelativeLayout) mView.findViewById(R.id.rlReplyInfo)).removeView(btnReply);
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) tvStats.getLayoutParams();
                 params.addRule(RelativeLayout.RIGHT_OF, R.id.llArr);
                 params.addRule(RelativeLayout.END_OF, R.id.llArr);
@@ -313,20 +287,23 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             } else {
                 btnReply.setTag(BTN_REPLY_TAG);
             }
-
+            // Text view message
             tvMessage = (TextView) view.findViewById(R.id.tvReplyMessage);
             tvMessage.setTag(TV_MESSAGE);
+            // text view name
             tvName = (TextView) view.findViewById(R.id.tvReplyName);
-            tvDate = (TextView) view.findViewById(R.id.tvReplyTime);
-            ivProfilePic = (ImageView) view.findViewById(R.id.ivReplyProfilePic);
-            mListener = listener;
-
             tvName.setTag(TAG_NAME);
+            // Date
+            tvDate = (TextView) view.findViewById(R.id.tvReplyTime);
+            // Profile pic
+            ivProfilePic = (ImageView) view.findViewById(R.id.ivReplyProfilePic);
             ivProfilePic.setTag(TAG_NAME);
 
+            mListener = listener;
             tvName.setOnClickListener(this);
             ivProfilePic.setOnClickListener(this);
             tvMessage.setOnClickListener(this);
+            btnArr.setOnClickListener(this);
             if (showReplyButton)
                 btnReply.setOnClickListener(this);
         }
@@ -337,11 +314,11 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
             String tag = v.getTag().toString();
             if (tag.equals(TAG_NAME)) {
                 mListener.onNameClicked(v, mView);
-            } else if (tag.equals(TAG_APPROVE)) {
-                mListener.onApproveClicked(v, mView);
+            } else if (tag.equals(BTN_ARR_TAG)) {
+                mListener.onApproveClicked(v, getAdapterPosition());
             } else if (tag.equals(TAG_SHOW_APPROVES)) {
                 mListener.onShowApprovesClicked(v, mView);
-            } else if (tag.equals(BTN_REPLY_TAG)){
+            } else if (tag.equals(BTN_REPLY_TAG)) {
                 mListener.onReplyClick(v, getAdapterPosition());
             } else if (tag.equals(TV_MESSAGE)) {
                 mListener.onReplyClick(v, getAdapterPosition());
@@ -349,7 +326,7 @@ public class BulletinRepliesAdapter extends RecycleCursorAdapter {
         }
 
         protected interface ViewHolderClickListener {
-            void onApproveClicked(View caller, View rootView);
+            void onApproveClicked(View caller, int adapterViewPosition);
 
             void onShowApprovesClicked(View caller, View rootView);
 

@@ -225,7 +225,7 @@ public class DataContract {
         public static final String TABLE_NAME = "not_uploaded_items";
 
         /**
-         * Entry type can be value from {@link com.mateyinc.marko.matey.data.internet.operations.OperationType}
+         * Entry type can be value from {@link com.mateyinc.marko.matey.internet.operations.OperationType}
          */
         public static final String COLUMN_ENTRY_TYPE = "entry_type";
 

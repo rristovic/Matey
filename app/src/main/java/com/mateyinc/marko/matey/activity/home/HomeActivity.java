@@ -25,7 +25,7 @@ import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.data.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.util.Date;

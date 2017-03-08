@@ -100,15 +100,14 @@
     <string name="post_to_matey">Post to Matey</string>
     <string name="post">Post</string>
     <string name="question">Title</string>
-    <string name="description">Decription</string>
-
+    <string name="description">Description</string>
+    <string name="new_post_heading">Reply on <xliff:g id="first_name"><b>%1$s</b></xliff:g> post</string>
 
     <string name="dev_name">Radovan</string>
     <string name="dev_lname">Ristovic</string>
     <string name="dev_email">radovanr995@gmail.com</string>
     <string name="dev_pic">https://scontent-amt2-1.xx.fbcdn.net/t31.0-8/13418666_1802825583286785_9080680072636685389_o.jpg</string>
     <string name="dev_nopic">https://www.colourbox.com/preview/3851270-no-user-profile-picture.jpg</string>
-
 
     <!-- Adding friends related -->
     <string name="add_all_btn_label">Add all</string>
@@ -133,8 +132,9 @@
     <string name="error_capture_image">Can\'t capture new image</string>
     <string name="uploading_pic_title">Uploading picture</string>
     <string name="failed_to_upload_img_msg">Failed to upload new image</string>
-    <string name="title_activity_scrolling">ScrollingActivity</string>
-    <string name="title_activity_main2">Main2Activity</string>
+    <string name="upload_started">Upload started.</string>
+    <string name="upload_failed">Upload failed.</string>
+    <string name="upload_success">Upload success.</string>
 
 
 </resources>

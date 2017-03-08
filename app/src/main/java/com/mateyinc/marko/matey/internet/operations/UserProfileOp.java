@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet.operations;
+package com.mateyinc.marko.matey.internet.operations;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,7 +9,7 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.internet.UrlData;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.UserProfile;
 

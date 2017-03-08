@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.adapters;
+package com.mateyinc.marko.matey.adapters;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -355,7 +355,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             mListener = listener;
 
             rlBody.setOnClickListener(this);
-            btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
+//            btnReply.setOnTouchListener(new OnTouchInterface(mView.getContext()));
             btnReply.setOnClickListener(this);
             tvName.setOnClickListener(this);
             btnBoost.setOnClickListener(this

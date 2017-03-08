@@ -2,13 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llmainFrame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/gray_background_color"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context=".activity.view.BulletinViewActivity"
-    android:id="@+id/llmainFrame">
+    tools:context=".activity.view.BulletinViewActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -40,13 +40,20 @@
     </android.support.v7.widget.Toolbar>
 
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rvBulletinRepliesList"
+    <RelativeLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/white"
-        app:layoutManager="LinearLayoutManager" />
+        android:layout_weight="1">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rvBulletinRepliesList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            app:layoutManager="LinearLayoutManager" />
+    </RelativeLayout>
+
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -59,8 +66,8 @@
             android:id="@+id/ivOpenReplyScreen"
             android:layout_width="?android:attr/actionBarSize"
             android:layout_height="?android:attr/actionBarSize"
-            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:cropToPadding="false"
             android:padding="10dp"
@@ -71,16 +78,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@+id/ivSendReply"
-            android:layout_toStartOf="@id/ivSendReply"
-            android:layout_toRightOf="@id/ivOpenReplyScreen"
             android:layout_toEndOf="@id/ivOpenReplyScreen"
+            android:layout_toLeftOf="@+id/ivSendReply"
+            android:layout_toRightOf="@id/ivOpenReplyScreen"
+            android:layout_toStartOf="@id/ivSendReply"
             android:gravity="center_vertical"
+            android:hint="@string/reply_sendReplyText"
             android:maxLines="4"
             android:minHeight="?android:attr/actionBarSize"
             android:paddingBottom="5dp"
-            android:paddingTop="5dp"
-            android:hint="@string/reply_sendReplyText" />
+            android:paddingTop="5dp" />
 
         <ImageView
             android:id="@+id/ivSendReply"

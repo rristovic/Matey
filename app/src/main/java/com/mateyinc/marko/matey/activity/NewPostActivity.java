@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.home;
+package com.mateyinc.marko.matey.activity;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -26,7 +26,6 @@ import com.mateyinc.marko.matey.data.FilePath;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -34,14 +33,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-
 import static com.mateyinc.marko.matey.inall.MyApplication.PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE;
 
 
 public class NewPostActivity extends MotherActivity {
 
     private static final String TAG = NewPostActivity.class.getSimpleName();
-
+    private static final int MIN_CHAR_LIMIT = 5;
 
 
     private EditText etNewPostMsg, etNewPostSubject;
@@ -53,11 +51,15 @@ public class NewPostActivity extends MotherActivity {
     private ArrayList<String> mFilePaths = new ArrayList<>();
 
     /**
-     * Contains the id of the post that is being replied to
+     * Contains the id of the post that is being replied to.
      **/
     public static final String EXTRA_POST_ID = "replied_postid";
     /**
-     * Contains text that is being replied to, thus indicating that this isn't new post
+     * Contains the user name who posted the bulletin.
+     **/
+    public static final String EXTRA_USER_NAME = "bulletin_user_name";
+    /**
+     * Contains text that is being replied to, thus indicating that this isn't new post.
      **/
     public static final String EXTRA_REPLY_SUBJECT = "post_subject";
 
@@ -68,6 +70,11 @@ public class NewPostActivity extends MotherActivity {
     private String selectedFilePath;
     private File mImageFile;
     private String mCurrentPhotoPath;
+
+    /**
+     * Indicates if this new post is reply on reply
+     */
+    private boolean mIsReplyOnBulletin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,13 +109,16 @@ public class NewPostActivity extends MotherActivity {
     private void setUI() {
         Intent i = getIntent();
 
+        // Setting ui if this is a reply on reply
         if (i.hasExtra(EXTRA_REPLY_SUBJECT)) {
+            mIsReplyOnBulletin = true;
             String text = i.getStringExtra(EXTRA_REPLY_SUBJECT);
             etNewPostSubject.setText(text);
             etNewPostSubject.setFocusable(false);
             etNewPostMsg.setHint(null);
             etNewPostMsg.requestFocus();
-            tvNewPostHeading.setText(null);
+            tvNewPostHeading.setText(String.format(Locale.US,getString(R.string.new_post_heading)
+                    , getIntent().getExtras().getString(EXTRA_USER_NAME)));
         }
     }
 
@@ -192,7 +202,7 @@ public class NewPostActivity extends MotherActivity {
             }
         });
 
-        etNewPostMsg.addTextChangedListener(new TextWatcher() {
+        etNewPostSubject.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 enableButton(s);
@@ -209,18 +219,26 @@ public class NewPostActivity extends MotherActivity {
             }
 
             private void enableButton(CharSequence s) {
-                if (s == null || s.length() == 0) {
+                if (s == null || s.length() < MIN_CHAR_LIMIT) {
                     tvPost.setEnabled(false);
+                    ivSend.setEnabled(false);
                 } else {
+                    ivSend.setEnabled(true);
                     tvPost.setEnabled(true);
                 }
             }
         });
 
+        ivSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                postNewPost();
+            }
+        });
         tvPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                postNewBulletin();
+                postNewPost();
             }
         });
 
@@ -230,17 +248,18 @@ public class NewPostActivity extends MotherActivity {
     /**
      * Helper method for posting new bulletin.
      */
-    private void postNewBulletin() {
-        OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
-        operationManager.postNewBulletin(etNewPostSubject.getText().toString()
-                , etNewPostMsg.getText().toString(), mFilePaths, NewPostActivity.this);
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                uploadFile();
-//
-//            }
-//        }).start();
+    private void postNewPost() {
+        if (mIsReplyOnBulletin) {
+            OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
+            operationManager.postNewReply(etNewPostMsg.getText().toString(),
+                    getIntent().getExtras().getLong(EXTRA_POST_ID), NewPostActivity.this);
+        } else {
+            OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
+            operationManager.postNewBulletin(etNewPostSubject.getText().toString()
+                    , etNewPostMsg.getText().toString(), mFilePaths, NewPostActivity.this);
+
+        }
+        finish();
     }
 
     @Override
@@ -250,7 +269,7 @@ public class NewPostActivity extends MotherActivity {
                 && (requestCode == PICK_FILE_REQ_CODE || requestCode == GALLERY_REQ_CODE
                 || requestCode == IMAGE_CAPTURE_REQ_CODE)) {
 
-            if (data == null) {
+            if (data == null || data.getData() == null) {
                 //no data present
                 return;
             }

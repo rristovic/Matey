@@ -46,7 +46,7 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.data.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 

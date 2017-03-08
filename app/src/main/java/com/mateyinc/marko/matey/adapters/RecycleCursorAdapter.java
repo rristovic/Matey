@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.adapters;
+package com.mateyinc.marko.matey.adapters;
 
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;

@@ -8,8 +8,8 @@ import android.util.Log;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
-import com.mateyinc.marko.matey.data.internet.operations.ApproveOp;
-import com.mateyinc.marko.matey.data.internet.operations.OperationType;
+import com.mateyinc.marko.matey.internet.operations.ApproveOp;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
 
 import java.util.Locale;
 

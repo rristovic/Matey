@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet;
+package com.mateyinc.marko.matey.internet;
 
 /**
  * Created by Sarma on 10/20/2016.

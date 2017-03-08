@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.adapters.GroupsAdapter;
+import com.mateyinc.marko.matey.adapters.GroupsAdapter;
 import com.mateyinc.marko.matey.activity.home.dummy.DummyContent.DummyItem;
 
 /**

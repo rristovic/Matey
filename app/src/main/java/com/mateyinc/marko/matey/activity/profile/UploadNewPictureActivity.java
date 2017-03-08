@@ -42,8 +42,8 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.data.internet.MultipartRequest;
-import com.mateyinc.marko.matey.data.internet.UrlData;
+import com.mateyinc.marko.matey.internet.MultipartRequest;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.io.ByteArrayOutputStream;

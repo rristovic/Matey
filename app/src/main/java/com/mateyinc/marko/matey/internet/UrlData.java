@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet;
+package com.mateyinc.marko.matey.internet;
 
 public abstract class UrlData {
     /** Server API version */

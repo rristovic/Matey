@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.adapters;
+package com.mateyinc.marko.matey.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +12,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView;
-import com.mateyinc.marko.matey.data.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.LinkedList;

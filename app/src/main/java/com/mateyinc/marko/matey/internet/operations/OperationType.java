@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet.operations;
+package com.mateyinc.marko.matey.internet.operations;
 
 
 /**

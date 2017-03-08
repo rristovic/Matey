@@ -7,8 +7,8 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.internet.operations.OperationType;
-import com.mateyinc.marko.matey.data.internet.operations.ReplyOp;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
+import com.mateyinc.marko.matey.internet.operations.ReplyOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.text.SimpleDateFormat;
@@ -37,14 +37,14 @@ public class Reply extends MModel {
      */
     private long postId;
     /**
-     * The ID of the post/bulletin that has been replied on
+     * The ID of the reply that has been replied on
      */
     private long reReplyId;
 
     public boolean isPostReply = true;
     private String userFirstName;
     private String userLastName;
-    private Date replyDate;
+    private Date replyDate = new Date();
     private String replyText;
     private int numOfApprvs, numOfReplies;
     private LinkedList<UserProfile> replyApproves;// Not in DB
@@ -198,12 +198,14 @@ public class Reply extends MModel {
     /**
      * Method to call when replying on bulletin.
      *
-     * @param bulletin {@link Bulletin} bulletin to reply on
+     * @param postId id of bulletin that is being replied on
      * @param context  context used for database communication
      */
-    public void reply(Context context, Bulletin bulletin) {
+    public void reply(Context context, long postId) {
         ReplyOp replyOp = new ReplyOp(context, this);
         replyOp.setOperationType(OperationType.REPLY_ON_POST);
+
+        this.postId = postId;
 
         // Save reply
         addToDb(context);

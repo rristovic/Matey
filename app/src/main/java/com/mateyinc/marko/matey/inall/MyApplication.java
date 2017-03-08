@@ -10,8 +10,9 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
+
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

@@ -17,11 +17,11 @@ import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.DataContract.NotUploadedEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.internet.operations.NewsfeedOp;
-import com.mateyinc.marko.matey.data.internet.operations.OperationType;
-import com.mateyinc.marko.matey.data.internet.operations.Operations;
-import com.mateyinc.marko.matey.data.internet.operations.UserProfileOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.operations.NewsfeedOp;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
+import com.mateyinc.marko.matey.internet.operations.Operations;
+import com.mateyinc.marko.matey.internet.operations.UserProfileOp;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -48,10 +48,14 @@ public class OperationManager implements OperationProvider {
 
     public static final int CACHE_SIZE_MB = 100; // Max cache size on disk for storing data
 
-    /** Number of bulletins to startDownloadAction from the server */
+    /**
+     * Number of bulletins to startDownloadAction from the server
+     */
     public static int NO_OF_BULLETIN_TO_DOWNLOAD = 40; // TODO - define how much bulletin will be downloaded at once;
 
-    /** The current page of bulletins in the database */
+    /**
+     * The current page of bulletins in the database
+     */
     public static int mCurrentPage = 0;
 
     // One day in milliseconds
@@ -59,11 +63,15 @@ public class OperationManager implements OperationProvider {
     // One minute in milliseconds
     public static final int ONE_MIN = 60000;
 
-    /** Loader identifiers for data */
+    /**
+     * Loader identifiers for data
+     */
     public static final int BULLETINS_LOADER = 100;
     public static final int BULLETIN_LOADER = 101;
 
-    /** Columns that bulletin cursor loaders will load up */
+    /**
+     * Columns that bulletin cursor loaders will load up
+     */
     public static final String[] BULLETIN_COLUMNS = {
             DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID,
             DataContract.BulletinEntry.COLUMN_USER_ID,
@@ -83,7 +91,10 @@ public class OperationManager implements OperationProvider {
             "(SELECT COUNT(" + ApproveEntry._ID +
                     ") FROM " + ApproveEntry.TABLE_NAME + " WHERE " +
                     ApproveEntry.TABLE_NAME + "." + ApproveEntry.COLUMN_POST_ID + " = "
-                    + BulletinEntry.TABLE_NAME + "." + BulletinEntry._ID + ")"
+                    + BulletinEntry.TABLE_NAME + "." + BulletinEntry._ID + " AND " +
+                    // -1 because reply_id default value in apprv table is -1, that means that no reply_id is provided thus that's bulletin approve
+                    ApproveEntry.TABLE_NAME + "." + ApproveEntry.COLUMN_REPLY_ID + " = -1)"
+
 
     };
 
@@ -104,7 +115,7 @@ public class OperationManager implements OperationProvider {
     public static final int COL_NUM_OF_LIKES = 12;
 
 
-    public  final ImageLoader mImageLoader;
+    public final ImageLoader mImageLoader;
 
     @Override
     public void submitRequest(Request request) {
@@ -126,9 +137,13 @@ public class OperationManager implements OperationProvider {
     }
 
     public interface ServerStatus {
-        /** Activity startUploadAction status that is saved in database, and used for UI control */
+        /**
+         * Activity startUploadAction status that is saved in database, and used for UI control
+         */
         int STATUS_RETRY_UPLOAD = -1;
-        /** @see #STATUS_RETRY_UPLOAD */
+        /**
+         * @see #STATUS_RETRY_UPLOAD
+         */
         int STATUS_UPLOADING = 0;
         /**
          * Activity startUploadAction status that is saved in database, and used for UI control;
@@ -137,7 +152,9 @@ public class OperationManager implements OperationProvider {
         int STATUS_SUCCESS = 1;
     }
 
-    /** Used for new post that doesn't yet have the post_id */
+    /**
+     * Used for new post that doesn't yet have the post_id
+     */
     public static final int NO_POST_ID = -1;
 
 
@@ -146,17 +163,17 @@ public class OperationManager implements OperationProvider {
     public static final String REPLIES_LIST = "replieslist";
 
     // For broadcast IntentFilters
-    public static final String BULLETIN_LIST_LOAD_FAILED = "com.mateyinc.marko.matey.data.internet.home.bulletins_load_failed";
-    public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.data.internet.home.bulletins_loaded";
-    public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.data.internet.home.bulletins_loaded_count";
+    public static final String BULLETIN_LIST_LOAD_FAILED = "com.mateyinc.marko.matey.internet.home.bulletins_load_failed";
+    public static final String BULLETIN_LIST_LOADED = "com.mateyinc.marko.matey.internet.home.bulletins_loaded";
+    public static final String EXTRA_ITEM_DOWNLOADED_COUNT = "com.mateyinc.marko.matey.internet.home.bulletins_loaded_count";
 
     // Global instance fields
-    private  final Object mLock = new Object(); // for synchronised blocks
-    private static OperationManager mInstance ;
+    private final Object mLock = new Object(); // for synchronised blocks
+    private static OperationManager mInstance;
     private Context mAppContext;
     private ExecutorService mExecutor = Executors.newFixedThreadPool(10);
 
-//    private UserProfile mCurrentUserProfile;
+    //    private UserProfile mCurrentUserProfile;
     private int newPostID;
 
     /**
@@ -166,13 +183,13 @@ public class OperationManager implements OperationProvider {
      * @return the OperationManager instance
      */
     public static synchronized OperationManager getInstance(Context context) {
-            if (mInstance == null) {
-                mInstance = new OperationManager(context.getApplicationContext());
+        if (mInstance == null) {
+            mInstance = new OperationManager(context.getApplicationContext());
 //                mInstance.addNullBulletin();
-                Log.d(TAG, "New instance of OperationManager created.");
-            }
+            Log.d(TAG, "New instance of OperationManager created.");
+        }
 
-            return mInstance;
+        return mInstance;
     }
 
     private OperationManager(Context context) {
@@ -209,7 +226,7 @@ public class OperationManager implements OperationProvider {
         long id = -2;
 
         if (c != null) {
-            int count = c.getCount()+1;
+            int count = c.getCount() + 1;
             id = -(count + 1);
             c.close();
         }
@@ -236,7 +253,7 @@ public class OperationManager implements OperationProvider {
     /**
      * Method for adding list of user profile to the database
      *
-     * @param list the list of user profiles ready for the database
+     * @param list        the list of user profiles ready for the database
      * @param areFollowed indicates if these profiles are followed by the current user
      */
     public void addUserProfiles(ArrayList<UserProfile> list, boolean areFollowed) {
@@ -252,7 +269,7 @@ public class OperationManager implements OperationProvider {
             userValues.put(ProfileEntry.COLUMN_PROF_PIC, profile.getProfilePictureLink());
             userValues.put(ProfileEntry.COLUMN_FOLLOWING, profile.isFriend() ? 1 : 0);
             userValues.put(ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
-            if(areFollowed)
+            if (areFollowed)
                 userValues.put(ProfileEntry.COLUMN_FOLLOWING, true);
 
             cVVector.add(userValues);
@@ -481,11 +498,13 @@ public class OperationManager implements OperationProvider {
 
     /// Bulletins methods   ////
     ////////////////////////////
+
     /**
      * Method for downloading and parsing news feed from the server, and all data around it
+     *
      * @param startPosition the start position of the bulletin
-     * @param count the total bulletin count that needs to be downloaded in a single burst
-     * @param context the Context used for notifying when the parsing result is complete
+     * @param count         the total bulletin count that needs to be downloaded in a single burst
+     * @param context       the Context used for notifying when the parsing result is complete
      */
     public void downloadNewsFeed(int startPosition, int count, MotherActivity context) {
         NewsfeedOp newsfeedOp = new NewsfeedOp(this, context);
@@ -508,8 +527,9 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for posting new bulletin with attachments.
-     * @param subject bulletin's subject
-     * @param message bulletin's text
+     *
+     * @param subject     bulletin's subject
+     * @param message     bulletin's text
      * @param attachments bulletin's attachment list that contains file paths.
      */
     public void postNewBulletin(String subject, String message, @Nullable List<String> attachments, Context context) {
@@ -521,6 +541,7 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for posting new bulletin without attachments.
+     *
      * @param subject bulletin's subject.
      * @param message bulletin's text.
      */
@@ -530,18 +551,21 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for liking/unliking bulletin
+     *
      * @param bulletinPosition position of bulletin in database
-     * @param cursor {@link Cursor} opened to the database
-     * @param context context for database communication
+     * @param cursor           {@link Cursor} opened to the database
+     * @param context          context for database communication
      */
     public void newPostLike(int bulletinPosition, Cursor cursor, Context context) {
         Bulletin b = DataAccess.getBulletin(bulletinPosition, cursor);
         if (b != null)
             b.like(context);
     }
+
     /**
      * Helper method for liking/unliking bulletin
-     * @param b bulletitn to be liked/unliked
+     *
+     * @param b       bulletitn to be liked/unliked
      * @param context context for database communication
      */
     public void newPostLike(Bulletin b, Context context) {
@@ -549,34 +573,87 @@ public class OperationManager implements OperationProvider {
             b.like(context);
     }
 
+
+    //// Reply methods         /////
+    ////////////////////////////////
+
+
     /**
      * Helper method for liking/unliking reply
+     *
      * @param replyPosition position of reply in database
-     * @param cursor {@link Cursor} opened to the database
-     * @param context context for database communication
+     * @param cursor        {@link Cursor} opened to the database
+     * @param context       context for database communication
      */
     public void newReplyLike(int replyPosition, Cursor cursor, Context context) {
         Reply r = DataAccess.getReply(replyPosition, cursor);
         if (r != null)
             r.like(context);
     }
-    //// Reply methods         /////
-    ////////////////////////////////
 
     /**
      * Helper method for posting new reply on bulletin
-     * @param bulletin {@link Bulletin} bulletin to reply on
-     * @param r {@link Reply} new reply object
+     *
+     * @param postId  id of bulletin that is beign replied on
+     * @param r       {@link Reply} new reply object
      * @param context context used for database communication
      */
+    public void postNewReply(Reply r, long postId, Context context) {
+        r.reply(context, postId);
+    }
+
+    /**
+     * Helper method for posting new reply on bulletin
+     *
+     * @param bulletin {@link Bulletin} bulletin to reply on
+     * @param r        {@link Reply} new reply object
+     * @param context  context used for database communication
+     */
     public void postNewReply(Reply r, Bulletin bulletin, Context context) {
-        r.reply(context, bulletin);
+        r.reply(context, bulletin.getPostID());
+    }
+
+    /**
+     * Helper method for posting new reply on bulletin
+     *
+     * @param bulletin {@link Bulletin} bulletin to reply on
+     * @param text     reply text
+     * @param context  context used for database communication
+     */
+    public void postNewReply(String text, Bulletin bulletin, Context context) {
+        Reply r = new Reply();
+        r.setUserId(MotherActivity.user_id);
+        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
+        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
+        r.setReplyText(text);
+        r.setPostId(bulletin.getPostID());
+
+        postNewReply(r, bulletin, context);
+    }
+
+    /**
+     * Helper method for posting new reply on bulletin
+     *
+     * @param postId  id of bulletin to reply on
+     * @param text    reply text
+     * @param context context used for database communication
+     */
+    public void postNewReply(String text, long postId, Context context) {
+        Reply r = new Reply();
+        r.setUserId(MotherActivity.user_id);
+        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
+        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
+        r.setReplyText(text);
+        r.setPostId(postId);
+
+        postNewReply(r, postId, context);
     }
 
     /**
      * Helper method for posting new reply on reply
-     * @param reply {@link Reply} reply to reply on
-     * @param r {@link Reply} new reply object
+     *
+     * @param reply   {@link Reply} reply to reply on
+     * @param r       {@link Reply} new reply object
      * @param context context used for database communication
      */
     public void postNewReply(Reply r, Reply reply, Context context) {
@@ -585,8 +662,10 @@ public class OperationManager implements OperationProvider {
 
     //// User profile methods ///////
     /////////////////////////////////
+
     /**
      * Helper method for downloading user profile data from the server;
+     *
      * @param userId id of the user profile
      */
     public void downloadUserProfile(long userId, MotherActivity context) {
@@ -598,8 +677,9 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for downloading user followers.
-     * @param offset starting position of followers;
-     * @param count offset indicates how much will be downloaded;
+     *
+     * @param offset  starting position of followers;
+     * @param count   offset indicates how much will be downloaded;
      * @param context {@link MotherActivity} context used for download/save ops;
      */
     public void downloadFollowers(int offset, int count, long id, MotherActivity context) {
@@ -613,7 +693,8 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method to use when new user profile has been followed.
      * Updates followed user profile database.
-     * @param userId id of the user being followed;
+     *
+     * @param userId  id of the user being followed;
      * @param context {@link MotherActivity} context used for upload/save operations;
      */
     public void followNewUser(long userId, MotherActivity context) {
@@ -626,7 +707,8 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method to use when user profile has been unfollowed.
      * Updates unfollowed user profile database.
-     * @param userId id of unfollowed user
+     *
+     * @param userId  id of unfollowed user
      * @param context {@link MotherActivity} context used for upload/save operations;
      */
     public void unfollowUser(long userId, MotherActivity context) {
@@ -638,25 +720,28 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Method for adding custom success download/upload listener
+     *
      * @param listener listener to be added
      */
-    public void addSuccessListener(Response.Listener<String> listener){
+    public void addSuccessListener(Response.Listener<String> listener) {
         mSuccessListener = listener;
     }
 
     /**
      * Method for adding custom error download/upload listener
+     *
      * @param listener listener to be added
      */
-    public void addErrorListener(Response.ErrorListener listener){
+    public void addErrorListener(Response.ErrorListener listener) {
         mErrorListener = listener;
     }
 
     /**
      * Method for setting operation listeners if they exits, otherwise they will be set by default
+     *
      * @param operation {@link Operations} to set listeners on
      */
-    private void setListeners(Operations operation){
+    private void setListeners(Operations operation) {
         if (null != mSuccessListener)
             operation.addSuccessListener(mSuccessListener);
 

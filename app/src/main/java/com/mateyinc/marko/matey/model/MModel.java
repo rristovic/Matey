@@ -2,6 +2,8 @@ package com.mateyinc.marko.matey.model;
 
 import android.content.Context;
 
+import com.mateyinc.marko.matey.internet.operations.Operations;
+
 public abstract class MModel {
 
     // Keys for JSON data from the server
@@ -16,7 +18,7 @@ public abstract class MModel {
     static final String KEY_LASTNAME = "last_name";
     static final String KEY_PROFILE_PIC = "profile_picture";
 
-    protected int mServerStatus = 0;
+    protected int mServerStatus = Operations.ServerStatus.STATUS_UPLOADING.ordinal();
     public long _id = -1;
 
     public long getId() {

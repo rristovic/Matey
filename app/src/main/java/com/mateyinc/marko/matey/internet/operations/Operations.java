@@ -1,9 +1,11 @@
-package com.mateyinc.marko.matey.data.internet.operations;
+package com.mateyinc.marko.matey.internet.operations;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -11,7 +13,7 @@ import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.OperationProvider;
-import com.mateyinc.marko.matey.data.internet.MateyRequest;
+import com.mateyinc.marko.matey.internet.MateyRequest;
 
 import java.lang.ref.WeakReference;
 
@@ -249,6 +251,16 @@ public abstract class Operations {
         } else {
             Log.d(getTag(), String.format("%s (with ID=%d) server status updated to %s.", mOpType.name(), id, serverStatus.name()));
         }
+    }
+
+    protected void notifyUI(final int stringId) {
+        Handler handler =  new Handler(mContextRef.get().getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(mContextRef.get(), stringId, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**

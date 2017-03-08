@@ -250,7 +250,6 @@ public class DataAccess {
             reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
             reply.setReplyText(cursor.getString(BulletinViewActivity.COL_TEXT));
             reply.setNumOfApprvs(cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS));
-//            reply.setNumOfReplies(cursor.getInt(BulletinViewActivity.COLNUM));
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return null;

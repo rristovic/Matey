@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet;
+package com.mateyinc.marko.matey.internet;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -11,7 +11,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.mateyinc.marko.matey.data.internet.UrlData.PARAM_AUTH_TYPE;
+import static com.mateyinc.marko.matey.internet.UrlData.PARAM_AUTH_TYPE;
 
 
 

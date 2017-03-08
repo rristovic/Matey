@@ -28,10 +28,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.adapters.BulletinsAdapter;
+import com.mateyinc.marko.matey.activity.NewPostActivity;
+import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.data.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;

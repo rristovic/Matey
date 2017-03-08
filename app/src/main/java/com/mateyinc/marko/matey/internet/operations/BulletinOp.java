@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet.operations;
+package com.mateyinc.marko.matey.internet.operations;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,8 +6,9 @@ import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
-import com.mateyinc.marko.matey.data.internet.UrlData;
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 import org.json.JSONException;
@@ -89,7 +90,13 @@ public class BulletinOp extends Operations {
             }
             case POST_NEW_BULLETIN_WITH_ATTCH: {
                 // Using OkHTTP for sending files
-                uploadFile();
+
+                submitRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        uploadFile();
+                    }
+                });
                 return;
             }
             default: {
@@ -129,7 +136,12 @@ public class BulletinOp extends Operations {
     public void uploadFile() {
 //        String[] parts = selectedFilePath.split("/");
 //        final String fileName = parts[parts.length - 1];
+
+
         List<String> mFilePaths = bulletin.getAttachments();
+        LinkedList<File> files = new LinkedList<>();
+
+        // Create list of valid files
         Iterator i = mFilePaths.iterator();
         while (i.hasNext()) {
             // Checking to see if file paths are valid, if not just dismiss them
@@ -137,14 +149,12 @@ public class BulletinOp extends Operations {
             File selectedFile = new File(s);
             if (!selectedFile.isFile()) {
                 Toast.makeText(mContextRef.get(), "Source file doesn't exits: " + selectedFile, Toast.LENGTH_LONG).show();
-            }
+                i.remove();
+            } else
+                files.add(new File(s));
         }
 
-        LinkedList<File> files = new LinkedList<>();
-        for (String s : mFilePaths) {
-            files.add(new File(s));
-        }
-
+        // Create first part for multipart that contains text
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put(TITLE_FIELD_NAME, bulletin.getSubject());
@@ -153,40 +163,57 @@ public class BulletinOp extends Operations {
             e.printStackTrace();
         }
 
+        // Create builder and add first file
         final OkHttpClient client = new OkHttpClient();
-        RequestBody requestBody = new MultipartBody.Builder()
+        MultipartBody.Builder requestBodyBuilder = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("json_data", null,
-                        RequestBody.create(MediaType.parse("application/json"), jsonObject.toString()))
-                .addFormDataPart(files.get(0).toString(), "slika.jpeg",
-                        RequestBody.create(MediaType.parse("image/jpeg"),
-                                files.get(0)))
-                .build();
+                        RequestBody.create(MediaType.parse("application/json"), jsonObject.toString()));
 
+        // Add attachments
+        Iterator it = files.iterator();
+        while (it.hasNext()) {
+            File file = (File) it.next();
+            // Substring last segment and get file name
+            String fileName = file.toString().substring(
+                    file.toString().lastIndexOf("/") + 1);
+
+            requestBodyBuilder.addFormDataPart(file.toString(), fileName,
+                    RequestBody.create(MediaType.parse("image/jpeg"),
+                            file));
+        }
+
+        // Create network request
         final okhttp3.Request request = new okhttp3.Request.Builder()
                 .header(UrlData.PARAM_AUTH_TYPE, "Bearer " + MotherActivity.access_token)
                 .url(UrlData.POST_NEW_BULLETIN)
-                .post(requestBody)
+                .post(requestBodyBuilder.build())
                 .build();
 
+        try {
+            // Notify user
+            Context c = mContextRef.get();
 
-        submitRunnable(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Response response = client.newCall(request).execute();
-                    if (!response.isSuccessful())
-                        bulletin.onUploadFailed(response.body().toString(), mContextRef.get());
-                    else
-                        bulletin.onUploadSuccess(response.body().toString(), mContextRef.get());
+            if (c != null)
+                notifyUI(R.string.upload_started);
 
-                    // TODO - finish response parsing
+            Response response = client.newCall(request).execute();
+            if (c != null) {
+                if (!response.isSuccessful()) {
+                    bulletin.onUploadFailed(response.body().toString(), c);
+                    notifyUI(R.string.upload_failed);
+                } else {
+                    bulletin.onUploadSuccess(response.body().toString(), c);
+                    notifyUI(R.string.upload_success);
 
-                    System.out.println(response.body().string());
-                } catch (IOException e) {
-                    Log.e(TAG, e.getLocalizedMessage(), e);
                 }
             }
-        });
+            // TODO - finish response parsing
+
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+        }
+
     }
 }

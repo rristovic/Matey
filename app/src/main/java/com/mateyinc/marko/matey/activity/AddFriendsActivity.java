@@ -7,10 +7,10 @@ import android.view.View;
 import android.widget.Button;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.adapters.AddFriendsAdapter;
+import com.mateyinc.marko.matey.adapters.AddFriendsAdapter;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.data.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.UserProfile;
 

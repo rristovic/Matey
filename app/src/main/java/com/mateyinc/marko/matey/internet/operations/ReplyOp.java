@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.data.internet.operations;
+package com.mateyinc.marko.matey.internet.operations;
 
 
 import android.content.Context;
@@ -47,12 +47,12 @@ public class ReplyOp extends Operations{
         int method;
         switch (mOpType){
             case REPLY_ON_POST: {
-                url = "";
+                url = "#";
                 method = Request.Method.POST;
                 break;
             }
             case REPLY_ON_REPLY: {
-                url = "";
+                url = "#";
                 method = Request.Method.POST;
                 break;
             }
@@ -82,8 +82,17 @@ public class ReplyOp extends Operations{
     protected void onUploadFailed(VolleyError error) {
         Context c = mContextRef.get();
 
+        String errorDesc;
+
+        try{
+            errorDesc = new String(error.networkResponse.data);
+        } catch (Exception e){
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return;
+        }
+
         if (c != null) {
-            reply.onUploadFailed(new String(error.networkResponse.data), c);
+            reply.onUploadFailed(errorDesc, c);
         }
     }
 
