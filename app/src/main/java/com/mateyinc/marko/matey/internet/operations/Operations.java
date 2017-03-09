@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.data.OperationProvider;
@@ -51,7 +52,7 @@ public abstract class Operations {
     // Network request used for networking
     protected MateyRequest mRequest;
     // Used for db control and to check if the provided context still exists
-    protected WeakReference<Context> mContextRef;
+    protected final WeakReference<Context> mContextRef;
     // Used for networking and threading
     private OperationProvider mProvider;
 
@@ -160,6 +161,8 @@ public abstract class Operations {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        notifyUI(R.string.upload_success);
+
                         if (successListener != null) {
                             successListener.onResponse(response);
                             return;
@@ -175,6 +178,8 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        notifyUI(R.string.upload_failed);
+
                         if (failedListener != null) {
                             failedListener.onErrorResponse(error);
                             return;
@@ -259,6 +264,15 @@ public abstract class Operations {
             @Override
             public void run() {
                 Toast.makeText(mContextRef.get(), stringId, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    protected void notifyUI(final String message) {
+        Handler handler =  new Handler(mContextRef.get().getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(mContextRef.get(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }

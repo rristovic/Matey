@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.model.Reply;
 
 public class ReplyOp extends Operations{
@@ -64,6 +65,7 @@ public class ReplyOp extends Operations{
             }
         }
 
+        notifyUI(R.string.upload_started);
         createNewUploadReq(url, method);
         startUpload();
 

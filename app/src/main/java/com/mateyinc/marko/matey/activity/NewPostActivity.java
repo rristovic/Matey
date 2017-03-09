@@ -107,7 +107,7 @@ public class NewPostActivity extends MotherActivity {
 
         // Setup recycle view
         rvFileList = (RecyclerView) findViewById(R.id.rvFileList);
-        mFilesAdapter = new FilesAdapter(NewPostActivity.this);
+        mFilesAdapter = new FilesAdapter(NewPostActivity.this, rvFileList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(NewPostActivity.this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         rvFileList.setLayoutManager(linearLayoutManager);

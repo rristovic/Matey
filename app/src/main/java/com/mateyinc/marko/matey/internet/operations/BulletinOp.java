@@ -10,6 +10,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.utils.ImageCompress;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -137,6 +138,9 @@ public class BulletinOp extends Operations {
 //        String[] parts = selectedFilePath.split("/");
 //        final String fileName = parts[parts.length - 1];
 
+        if (mContextRef.get() != null)
+            notifyUI(R.string.upload_started);
+
 
         List<String> mFilePaths = bulletin.getAttachments();
         LinkedList<File> files = new LinkedList<>();
@@ -148,7 +152,7 @@ public class BulletinOp extends Operations {
             String s = (String) i.next();
             File selectedFile = new File(s);
             if (!selectedFile.isFile()) {
-                Toast.makeText(mContextRef.get(), "Source file doesn't exits: " + selectedFile, Toast.LENGTH_LONG).show();
+//                Toast.makeText(mContextRef.get(), "Source file doesn't exits: " + selectedFile, Toast.LENGTH_LONG).show();
                 i.remove();
             } else
                 files.add(new File(s));
@@ -180,7 +184,7 @@ public class BulletinOp extends Operations {
 
             requestBodyBuilder.addFormDataPart(file.toString(), fileName,
                     RequestBody.create(MediaType.parse("image/jpeg"),
-                            file));
+                            ImageCompress.compressImageToFile(file, mContextRef.get())));
         }
 
         // Create network request
@@ -193,9 +197,6 @@ public class BulletinOp extends Operations {
         try {
             // Notify user
             Context c = mContextRef.get();
-
-            if (c != null)
-                notifyUI(R.string.upload_started);
 
             Response response = client.newCall(request).execute();
             if (c != null) {

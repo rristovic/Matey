@@ -95,7 +95,8 @@
         android:id="@+id/rvFileList"
         android:layout_width="match_parent"
         android:layout_height="@dimen/newPost_files_size"
-        android:layout_above="@+id/buttons" />
+        android:layout_above="@+id/buttons"
+        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/buttons"

@@ -23,14 +23,24 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileHolder> 
     private static final String TAG = FilesAdapter.class.getSimpleName();
     List<String> mData;
     Context mContext;
+    RecyclerView mRecycleView;
 
-    public FilesAdapter(Context context) {
+    public FilesAdapter(Context context, RecyclerView view) {
+        mRecycleView = view;
         mData = new ArrayList<>();
         mContext = context;
     }
 
     public void addData(String filePath) {
         mData.add(filePath);
+        refreshData();
+    }
+
+    public void refreshData() {
+        if (getItemCount() == 0)
+            mRecycleView.setVisibility(View.GONE);
+        else
+            mRecycleView.setVisibility(View.VISIBLE);
         notifyDataSetChanged();
     }
 
@@ -47,7 +57,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileHolder> 
             @Override
             public void onDeleteClicked(int position) {
                 mData.remove(position);
-                notifyDataSetChanged();
+                refreshData();
             }
         });
 
