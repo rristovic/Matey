@@ -164,6 +164,9 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private void setListeners() {
 
+
+
+
         ibSearch.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -181,7 +184,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                 searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int)com.mateyinc.marko.matey.activity.Util.parseDp(40f,getResources())));
                 searchView.setIconified(false);
                 searchView.setQueryHint("Find mates and ships..");
-
                 // Setting search view style
                 try {
                     SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);

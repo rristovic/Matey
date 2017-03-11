@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 public class MyApplication extends Application {
 
     public static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 6666;
+    public static final int PERMISSIONS_REQUEST_ACCESS_LOCATION = 6667;
 
     private SecurePreferences mSecurePreferences;
     private Object mLock = new Object();

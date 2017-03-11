@@ -2,7 +2,6 @@ package com.mateyinc.marko.matey.internet.operations;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
@@ -12,11 +11,13 @@ import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +43,10 @@ public class BulletinOp extends Operations {
     /**
      * Content json data field - post message
      **/
-    private static final String CONTENT_FIELD_NAME = "text";
+    private static final String CONTENT_FIELD_NAME = "text"; /**
+     * Content json data field - post message
+     **/
+    private static final String LOCATIONS_FIELD_NAME = "locations";
 
 
     Bulletin bulletin;
@@ -143,6 +147,7 @@ public class BulletinOp extends Operations {
 
 
         List<String> mFilePaths = bulletin.getAttachments();
+        List<String> mMarkers = new ArrayList<>();
         LinkedList<File> files = new LinkedList<>();
 
         // Create list of valid files
@@ -153,7 +158,7 @@ public class BulletinOp extends Operations {
             File selectedFile = new File(s);
             if (!selectedFile.isFile()) {
 //                Toast.makeText(mContextRef.get(), "Source file doesn't exits: " + selectedFile, Toast.LENGTH_LONG).show();
-                i.remove();
+                mMarkers.add(s);
             } else
                 files.add(new File(s));
         }
@@ -162,7 +167,18 @@ public class BulletinOp extends Operations {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put(TITLE_FIELD_NAME, bulletin.getSubject());
-            jsonObject.put(CONTENT_FIELD_NAME, bulletin.getMessage());
+            String message = bulletin.getMessage();
+            if (!message.isEmpty()) // Is there is no message, send just the subject
+                jsonObject.put(CONTENT_FIELD_NAME, bulletin.getMessage());
+
+            if(mMarkers.size() != 0){ // Add locations
+                JSONArray array = new JSONArray();
+                for (String s :
+                        mMarkers) {
+                    array.put(s);
+                }
+                jsonObject.put(LOCATIONS_FIELD_NAME, array);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -4,13 +4,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.operations.BulletinOp;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
-import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -130,8 +129,12 @@ public class Bulletin extends MModel {
         this.mUserID = mUserID;
     }
 
+    /**
+     * Return empty string if there's is no mesasge
+     * @return string object
+     */
     public String getMessage() {
-        return mText;
+        return mText == null ? "" : mText;
     }
 
     public void setMessage(String mMessage) {

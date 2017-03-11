@@ -1,6 +1,5 @@
 package com.mateyinc.marko.matey.activity;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,15 +23,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.maps.MapsActivity;
 import com.mateyinc.marko.matey.adapters.FilesAdapter;
 import com.mateyinc.marko.matey.data.FilePath;
 import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -66,9 +68,16 @@ public class NewPostActivity extends MotherActivity {
      **/
     public static final String EXTRA_REPLY_SUBJECT = "post_subject";
 
+    /**
+     * Contains marked position on the map (lat,long,title).
+     **/
+    public static final String EXTRA_MAP_POSITIONS = "map_position";
+
+
     private static final int IMAGE_CAPTURE_REQ_CODE = 1002;
     private static final int PICK_FILE_REQ_CODE = 1000;
     private static final int GALLERY_REQ_CODE = 1001;
+    private static final int MAPS_REQ_CODE = 1003;
 
     private String selectedFilePath;
     private File mImageFile;
@@ -127,13 +136,38 @@ public class NewPostActivity extends MotherActivity {
             etNewPostSubject.setFocusable(false);
             etNewPostMsg.setHint(null);
             etNewPostMsg.requestFocus();
-            tvNewPostHeading.setText(String.format(Locale.US,getString(R.string.new_post_heading)
+            tvNewPostHeading.setText(String.format(Locale.US, getString(R.string.new_post_heading)
                     , getIntent().getExtras().getString(EXTRA_USER_NAME)));
         }
     }
 
 
+    @SuppressWarnings({"ApiCall"})
     private void setClickListeners() {
+        ivAddLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+//                boolean isMarshMallow = Build.VERSION.SDK_INT >= 23;
+//                if (isMarshMallow && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+//                        != PackageManager.PERMISSION_GRANTED) {
+//
+//                    // Should we show an explanation?
+//                    if (shouldShowRequestPermissionRationale(
+//                            Manifest.permission.ACCESS_FINE_LOCATION)) {
+//                        // Explain to the user why we need to read the contacts
+//                    }
+//
+//                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                            PERMISSIONS_REQUEST_ACCESS_LOCATION);
+//
+//                    return;
+//                }
+                Intent i = new Intent(NewPostActivity.this, MapsActivity.class);
+                startActivityForResult(i, MAPS_REQ_CODE);
+            }
+        });
+
         ivAddFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -272,25 +306,34 @@ public class NewPostActivity extends MotherActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK
-                && (requestCode == PICK_FILE_REQ_CODE || requestCode == GALLERY_REQ_CODE
-                || requestCode == IMAGE_CAPTURE_REQ_CODE)) {
+        if (resultCode == RESULT_OK)
+            if ((requestCode == PICK_FILE_REQ_CODE || requestCode == GALLERY_REQ_CODE
+                    || requestCode == IMAGE_CAPTURE_REQ_CODE)) {
 
-            if (data == null || data.getData() == null) {
-                //no data present
-                return;
+                if (data == null || data.getData() == null) {
+                    //no data present
+                    return;
+                }
+
+                Uri selectedFileUri = data.getData();
+                selectedFilePath = FilePath.getPath(this, selectedFileUri);
+                Log.i(TAG, "Selected File Path:" + selectedFilePath);
+
+                if (selectedFilePath != null && !selectedFilePath.equals("")) {
+                    mFilesAdapter.addData(selectedFilePath);
+                } else {
+                    Toast.makeText(this, R.string.file_not_supported, Toast.LENGTH_SHORT).show();
+                }
+            } else if (requestCode == MAPS_REQ_CODE) {
+                try {
+                    JSONArray array = new JSONArray(data.getStringExtra(EXTRA_MAP_POSITIONS));
+                    for (int i = 0; i<array.length(); i++){
+                        mFilesAdapter.addData(array.getJSONObject(i).toString());
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, e.getLocalizedMessage(), e);
+                }
             }
-
-            Uri selectedFileUri = data.getData();
-            selectedFilePath = FilePath.getPath(this, selectedFileUri);
-            Log.i(TAG, "Selected File Path:" + selectedFilePath);
-
-            if (selectedFilePath != null && !selectedFilePath.equals("")) {
-                mFilesAdapter.addData(selectedFilePath);
-            } else {
-                Toast.makeText(this, R.string.file_not_supported, Toast.LENGTH_SHORT).show();
-            }
-        }
 
     }
 

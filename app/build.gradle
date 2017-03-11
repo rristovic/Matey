@@ -29,22 +29,26 @@ repositories {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile files('libs/ImageUtil.jar')
     compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile 'com.android.support:appcompat-v7:25.1.1'
+    compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.facebook.android:facebook-android-sdk:4.1.0'
     compile 'com.google.android.gms:play-services-gcm:9.8.0'
-    compile 'com.android.support:design:25.1.1'
-    compile 'com.android.support:recyclerview-v7:25.1.1'
-    compile 'com.android.support:support-v13:25.1.1'
-    compile 'com.android.support:percent:25.1.1'
+    compile 'com.google.android.gms:play-services-maps:9.8.0'
+    compile 'com.android.support:design:25.2.0'
+    compile 'com.android.support:recyclerview-v7:25.2.0'
+    compile 'com.android.support:support-v13:25.2.0'
+    compile 'com.android.support:percent:25.2.0'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'id.zelory:compressor:1.0.4'
+    compile 'com.google.android.gms:play-services:9.8.0'
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
     testCompile 'junit:junit:4.12'
-    compile files('libs/ImageUtil.jar')
 }
 
 apply plugin: 'com.google.gms.google-services'
+
 
 
 
