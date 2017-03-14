@@ -3,7 +3,7 @@ package com.mateyinc.marko.matey.adapters;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 public abstract class RecycleCursorAdapter extends RecyclerView.Adapter {

@@ -1,10 +1,7 @@
-package com.mateyinc.marko.matey.data;
+package com.mateyinc.marko.matey.internet;
 
 import com.android.volley.Request;
 
-/**
- * Created by Sarma on 11/30/2016.
- */
 
 /**
  * Interface for operations to provide {@link com.android.volley.RequestQueue}
@@ -14,4 +11,5 @@ public interface OperationProvider {
     void submitRequest(Request request);
     void submitRunnable(Runnable runnable);
     String getAccessToken();
+    long generateId();
 }

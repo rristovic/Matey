@@ -14,7 +14,7 @@ public abstract class EndlessScrollListener extends RecyclerView.OnScrollListene
     // The total number of items in the dataset after the last load
     private int mPreviousTotalItemCount = 0;
     // True if we are still waiting for the last set of data to load.
-    public boolean mLoading = true;
+    private boolean mLoading = false;
     // Sets the starting page index
     private int mStartingPageIndex = 0;
 
@@ -64,9 +64,16 @@ public abstract class EndlessScrollListener extends RecyclerView.OnScrollListene
 
         if (!mLoading && (lastVisibleItemPosition + mVisibleThreshold) > totalItemCount) {
             mCurrentPage++;
-            onLoadMore(mCurrentPage, totalItemCount);
             mLoading = true;
+            onLoadMore(mCurrentPage, totalItemCount);
         }
+    }
+
+    /**
+     * Call this when data has been downloaded
+     */
+    public void onDownloadFinished(){
+        this.mLoading = false;
     }
 
     public abstract void onLoadMore(int page, int totalItemsCount);

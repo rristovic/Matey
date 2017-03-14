@@ -1,9 +1,8 @@
 package com.mateyinc.marko.matey.activity.home;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,18 +17,13 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.graphics.Color;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-
-import java.util.Date;
-import java.util.Random;
+import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.SessionManager;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
 
@@ -54,7 +48,9 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private ImageView logo;
 
-    /** Indicates if search view is visible or not */
+    /**
+     * Indicates if search view is visible or not
+     */
     public boolean mSearchActive;
 
     /**
@@ -75,61 +71,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         init();
         getCurUser();
         getNewsfeed();
-        addDummyData();
-//        uploadFailedData();
-    }
-
-    private void addDummyData() {
-        ContentValues values = new ContentValues(8);
-        values.put(DataContract.BulletinEntry._ID, 1000);
-        values.put(DataContract.BulletinEntry.COLUMN_USER_ID, 1000);
-        values.put(DataContract.BulletinEntry.COLUMN_SERVER_STATUS, OperationManager.ServerStatus.STATUS_SUCCESS);
-        values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, "Radovan");
-        values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, "Ristovic");
-        values.put(DataContract.BulletinEntry.COLUMN_TEXT, "Bla bla bla bla blaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBlaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBlblaBla bla bla bla blaBla bla bla bla blaBla bla bla bla blaBla bla bla bla blaBla bla bla bla blaBla bla bla bla bla");
-        values.put(DataContract.BulletinEntry.COLUMN_SUBJECT, "Ovo je novo pitanje?");
-        values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_LIKES, 10);
-        values.put(DataContract.BulletinEntry.COLUMN_NUM_OF_REPLIES, 10);
-        getContentResolver().insert(DataContract.BulletinEntry.CONTENT_URI, values);
-
-        ContentResolver resolver = getContentResolver();
-        for (int i = 0; i < 10; i++) {
-            ContentValues values1 = new ContentValues(8);
-//            values1.put(DataContract.ReplyEntry._ID, i);
-            values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
-            values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 1000);
-            values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");
-            values1.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, "Kraljevic");
-            values1.put(DataContract.ReplyEntry.COLUMN_DATE, new Date().getTime());
-            values1.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, new Random().nextInt(20));
-            values1.put(DataContract.ReplyEntry.COLUMN_TEXT, "Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla ");
-
-            resolver.insert(DataContract.ReplyEntry.CONTENT_URI, values1);
-        }
-        for (int i = 10; i < 21; i++) {
-            ContentValues values1 = new ContentValues(8);
-//            values1.put(DataContract.ReplyEntry._ID, i);
-            values1.put(DataContract.ReplyEntry.COLUMN_USER_ID, 666);
-            values1.put(DataContract.ReplyEntry.COLUMN_POST_ID, 2);
-            values1.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME,"Marko");
-            values1.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, "Kraljevic");
-            values1.put(DataContract.ReplyEntry.COLUMN_DATE, new Date().getTime());
-            values1.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, new Random().nextInt(20));
-            values1.put(DataContract.ReplyEntry.COLUMN_TEXT, "Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla ");
-
-            resolver.insert(DataContract.ReplyEntry.CONTENT_URI, values1);
-        }
-
-        values.put(DataContract.BulletinEntry._ID, 1001);
-        getContentResolver().insert(DataContract.BulletinEntry.CONTENT_URI, values);
-
-        values.put(DataContract.BulletinEntry._ID, 1002);
-        getContentResolver().insert(DataContract.BulletinEntry.CONTENT_URI, values);
-
-        values.put(DataContract.BulletinEntry._ID, 1003);
-        getContentResolver().insert(DataContract.BulletinEntry.CONTENT_URI, values);
-
-        Log.d(TAG, "Dummy data is added.");
     }
 
     private void init() {
@@ -165,8 +106,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private void setListeners() {
 
 
-
-
         ibSearch.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -181,7 +120,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
                 // Adding search view
                 searchView = new SearchView(HomeActivity.this);
-                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int)com.mateyinc.marko.matey.activity.Util.parseDp(40f,getResources())));
+                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) com.mateyinc.marko.matey.activity.Util.parseDp(40f, getResources())));
                 searchView.setIconified(false);
                 searchView.setQueryHint("Find mates and ships..");
                 // Setting search view style
@@ -311,44 +250,20 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     }
 
-    /** Helper method for getting the current user profile in {@link MotherActivity#mCurrentUserProfile} */
+    /**
+     * Helper method for getting the current user profile in {@link MotherActivity#mCurrentUserProfile}
+     */
     private void getCurUser() {
         if (!DataAccess.getInstance(this).setCurrentUserProfile()) {
             mSessionManager.logout(this, getSecurePreferences());
         }
-
-//        mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
-//        } else if (mSessionManager.getAccessToken().isEmpty())
-//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
-
-//        if (!OperationManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
-//            mSessionManager.logout(this, getSecurePreferences());
-
     }
 
-    /** Helper method for downloading bulletin news feed */
+    /**
+     * Helper method for downloading bulletin news feed
+     */
     private void getNewsfeed() {
-        if (isDebug()) {
-            mSessionManager.createDummyData(this);
-        }
-        else
-            mOperationManager.downloadNewsFeed(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-       // Settings current user profile and access token in memory
-        if (mSessionManager == null) {
-            mSessionManager = SessionManager.getInstance(this);
-        }
-//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
-//        } else if (mSessionManager.getAccessToken().isEmpty())
-//            mSessionManager.setAccessToken(getSecurePreferences().getString(SessionManager.KEY_ACCESS_TOKEN));
-
-//        if (!OperationManager.getInstance(this).setCurrentUserProfile(PreferenceManager.getDefaultSharedPreferences(this)))
-//            mSessionManager.logout(this, getSecurePreferences());
+        mOperationManager.downloadNewsFeed(this);
     }
 
     private void closeSearchView() {

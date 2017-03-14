@@ -43,7 +43,7 @@ import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_COVER_PATH;

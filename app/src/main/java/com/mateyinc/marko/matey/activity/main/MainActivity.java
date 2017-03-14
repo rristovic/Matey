@@ -239,11 +239,6 @@ public class MainActivity extends MotherActivity {
                     String pass = etPass.getText().toString();
                     email = email.trim();
 
-                    if (email.equals("sarma@nis.com") && pass.equals("radovan")) {
-                        mSessionManager.debugLogin(getSecurePreferences(), MainActivity.this);
-                        return;
-                    }
-
                     Bundle bundle = new Bundle();
 
                     if (!isValidEmailAddress(email)) {
@@ -620,17 +615,6 @@ public class MainActivity extends MotherActivity {
 
                     }
                 });
-    }
-
-
-
-    /** Method to call when login process is finished and has suggested friends list*/
-    public void loggedInWithSuggestedFriends() {
-
-    }
-
-    public void loggedIn() {
-
     }
 
     //////////////////////////////////////////////////////////////////////////

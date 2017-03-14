@@ -4,6 +4,7 @@ package com.mateyinc.marko.matey.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
@@ -14,7 +15,6 @@ import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
-import static com.mateyinc.marko.matey.data.OperationManager.BULLETIN_ORDER;
 
 /**
  * Class used for storing and retrieving data from the local database
@@ -37,20 +37,21 @@ public class DataAccess {
             DataContract.BulletinEntry.COLUMN_NUM_OF_LIKES,
             DataContract.BulletinEntry.COLUMN_SUBJECT
     };
-
     // These indices are tied to BULLETIN_COLUMNS.  If BULLETIN_COLUMNS changes, these
     // must change.
     public static final int COL_POST_ID = 0;
-    public static final int COL_USER_ID = 1;
-    public static final int COL_FIRST_NAME = 2;
-    public static final int COL_LAST_NAME = 3;
-    public static final int COL_TEXT = 4;
-    public static final int COL_DATE = 5;
-    public static final int COL_NUM_OF_REPLIES = 6;
-    public static final int COL_ON_SERVER = 7;
-    public static final int COL_ATTCHS = 8;
-    public static final int COL_NUM_OF_LIKES = 9;
-    public static final int COL_SUBJECT = 10;
+    public static final int COL_USER_ID = COL_POST_ID + 1;
+    public static final int COL_FIRST_NAME = COL_USER_ID + 1;
+    public static final int COL_LAST_NAME = COL_FIRST_NAME + 1;
+    public static final int COL_TEXT = COL_LAST_NAME + 1;
+    public static final int COL_DATE = COL_TEXT + 1;
+    public static final int COL_NUM_OF_REPLIES = COL_DATE + 1;
+    public static final int COL_ON_SERVER = COL_NUM_OF_REPLIES + 1;
+    public static final int COL_ATTCHS = COL_ON_SERVER + 1;
+    public static final int COL_NUM_OF_LIKES = COL_ATTCHS + 1;
+    public static final int COL_SUBJECT = COL_NUM_OF_LIKES + 1;
+
+    public static final String BULLETIN_ORDER = DataContract.BulletinEntry.COLUMN_DATE + " DESC";
 
     private static DataAccess mInstance;
 
@@ -132,7 +133,7 @@ public class DataAccess {
      * @param context context used for db access
      * @return true if approve exists
      */
-    public static boolean isApproveInDb(long post_id, long replyId, Context context) {
+    public static boolean isApproveInDb(long post_id, @Nullable long replyId, Context context) {
         Cursor c = context.getContentResolver().query(DataContract.ApproveEntry.CONTENT_URI,
                 new String[]{DataContract.ApproveEntry._ID}, DataContract.ApproveEntry.COLUMN_POST_ID + " = ? AND "
                 + DataContract.ApproveEntry.COLUMN_USER_ID + " = ? AND " + DataContract.ApproveEntry.COLUMN_REPLY_ID + " = ?",
@@ -162,7 +163,7 @@ public class DataAccess {
                     cursor.getString(COL_TEXT),
                     new Date(cursor.getLong(COL_DATE)));
 
-            bulletin.setmNumOfLikes(cursor.getInt(COL_NUM_OF_LIKES));
+            bulletin.setNumOfLikes(cursor.getInt(COL_NUM_OF_LIKES));
             bulletin.setSubject(cursor.getString(COL_SUBJECT));
 
             bulletin.setServerStatus(cursor.getInt(COL_ON_SERVER));
@@ -226,9 +227,32 @@ public class DataAccess {
      * Method for getting the Reply from the database
      *
      * @param index  the position of the Reply in the database
-     * @param cursor the provided cursor for the database
+     * @param context context used for db access
      * @return the new instance of {@link Reply} from the database
      */
+    public static Reply getReply(int index, Context context) {
+        Cursor cursor = context.getContentResolver().query(
+                DataContract.ReplyEntry.CONTENT_URI,
+                BulletinViewActivity.REPLIES_COLUMNS,
+                null,
+                null,
+                BulletinViewActivity.REPLIES_ORDER_BY);
+
+        Reply reply = null;
+        try {
+            reply = getReply(index, cursor);
+
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return null;
+        }
+
+        if (cursor != null)
+            cursor.close();
+
+        return reply;
+    }
+
     /**
      * Method for getting the reply from the database
      *
@@ -256,4 +280,18 @@ public class DataAccess {
         }
         return reply;
     }
+
+    ////// USER PROFILE METHODS //////
+    //////////////////////////////////
+    public static void removeUserProfile(long user_id, Context context) {
+        int numOfRows = context.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI,
+                DataContract.ProfileEntry._ID + " = ?", new String[]{Long.toString(user_id)});
+
+        if (numOfRows == 1) {
+            Log.d(TAG, "User profile with id=" + user_id + " has been successfully removed from db.");
+        } else {
+            Log.d(TAG, "Error deleting user profile with id=" + user_id);
+        }
+    }
+
 }

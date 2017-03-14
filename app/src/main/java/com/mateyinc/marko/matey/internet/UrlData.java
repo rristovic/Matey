@@ -28,10 +28,10 @@ public abstract class UrlData {
     public static final String PARAM_OLD_GCM_ID = "old_gcm";
 
     /////////////////////////////////////////////////////////////////////////////////////
-    // Data download params and urls ////////////////////////////////////////////////////
+    // News feed ////////////////////////////////////////////////////
 
     /** Url for downloading news feed */
-    public static final String GET_NEWSFEED_ROUTE = ACCESS_BASE_URL.concat("/newsfeed");
+    public static final String GET_NEWSFEED_ROUTE = ACCESS_BASE_URL.concat("/deck");
 
     /** Position parameter of the post in the database for route {@link UrlData#GET_NEWSFEED_ROUTE} */
     public static final String PARAM_START_POS = "start";
@@ -103,8 +103,11 @@ public abstract class UrlData {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    // Upload picture url
+    //////// BULLETIN UrlData //////////////
     public static final String POST_NEW_BULLETIN = ACCESS_BASE_URL.concat("/posts");
+
+    ///////////////////////////////////////////
+
 
     // Register new user
     public static final String REGISTER_USER = BASE_URL.concat("/users/accounts");

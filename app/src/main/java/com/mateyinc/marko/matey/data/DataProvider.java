@@ -49,7 +49,7 @@ public class DataProvider extends ContentProvider {
     private static final SQLiteQueryBuilder sRepliesWithBulletin;
     private static final SQLiteQueryBuilder sBulletinReplies;
 
-    static{
+    static {
         sRepliesWithBulletin = new SQLiteQueryBuilder();
         sBulletinReplies = new SQLiteQueryBuilder();
 
@@ -57,7 +57,6 @@ public class DataProvider extends ContentProvider {
                 DataContract.BulletinEntry.TABLE_NAME + " LEFT OUTER JOIN " + DataContract.ReplyEntry.TABLE_NAME +
                         " ON " + DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID +
                         " = " + DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry.COLUMN_POST_ID);
-
     }
 
 
@@ -222,7 +221,15 @@ public class DataProvider extends ContentProvider {
                 break;
             }
             case REPLY_REPLIES: {
-                retCursor = getReplyByID(uri, projection, sortOrder);
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        DataContract.ReReplyEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
                 break;
             }
             case APPROVES: {
@@ -330,6 +337,14 @@ public class DataProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case REPLY_REPLIES: {
+                long _id = db.insert(DataContract.ReReplyEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = DataContract.ReplyEntry.buildReplyUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
             case APPROVES: {
                 long _id = db.insert(DataContract.ApproveEntry.TABLE_NAME, null, values);
                 if (_id > 0)
@@ -381,6 +396,10 @@ public class DataProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         DataContract.ReplyEntry.TABLE_NAME, selection, selectionArgs);
                 break;
+            case REPLY_REPLIES:
+                rowsDeleted = db.delete(
+                        DataContract.ReReplyEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             case APPROVES:
                 rowsDeleted = db.delete(
                         DataContract.ApproveEntry.TABLE_NAME, selection, selectionArgs);
@@ -424,6 +443,10 @@ public class DataProvider extends ContentProvider {
                 break;
             case BULLETIN_REPLIES:
                 rowsUpdated = db.update(DataContract.ReplyEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case REPLY_REPLIES:
+                rowsUpdated = db.update(DataContract.ReReplyEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             case APPROVES:
@@ -533,6 +556,23 @@ public class DataProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
+            case REPLY_REPLIES: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(DataContract.ReReplyEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
             case APPROVES: {
                 db.beginTransaction();
                 int returnCount = 0;
@@ -578,19 +618,13 @@ public class DataProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, DataContract.PATH_MESSAGES, MESSAGES);
-        matcher.addURI(authority, DataContract.PATH_MESSAGES + "/#", MESSAGE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS, NOTIFICATIONS);
-        matcher.addURI(authority, DataContract.PATH_NOTIFICATIONS + "/#", NOTIFICATION_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_PROFILES, PROFILES);
-        matcher.addURI(authority, DataContract.PATH_PROFILES + "/#", PROFILE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_BULLETINS, BULLETINS);
-        matcher.addURI(authority, DataContract.PATH_BULLETINS + "/rcount/#", BULLETIN_WITH_REPLIES_COUNT);
         matcher.addURI(authority, DataContract.PATH_BULLETIN_REPLIES, BULLETIN_REPLIES);
-        matcher.addURI(authority, DataContract.PATH_BULLETIN_REPLIES + "/#", BULLETIN_REPLIES);
+        matcher.addURI(authority, DataContract.PATH_REPLY_REPLIES, REPLY_REPLIES);
         matcher.addURI(authority, DataContract.PATH_APPROVES, APPROVES);
-        matcher.addURI(authority, DataContract.PATH_APPROVES + "/#", APPROVE_WITH_ID);
         matcher.addURI(authority, DataContract.PATH_NOT_UPLOADED, NOT_UPLOADED_ITEMS);
-
 
         return matcher;
     }

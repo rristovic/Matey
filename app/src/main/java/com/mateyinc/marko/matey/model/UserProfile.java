@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,12 +55,53 @@ public class UserProfile extends MModel{
     public UserProfile() {
     }
 
+    public UserProfile(long userId, String firstName, String lastName, String picture) {
+        this._id = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.profilePictureLink = picture;
+    }
+
     public UserProfile(long userId, String firstName, String lastName, String email, String picture) {
         this._id = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.profilePictureLink = picture;
+    }
+
+    /**
+     * Method for parsing JSON response into new {@link UserProfile}
+     *
+     * @param response string response retrieved from the server
+     * @return A user profile object made from JSON data
+     */
+    public static UserProfile parseUserProfile(String response) throws JSONException {
+        JSONObject object = new JSONObject(response);
+
+        UserProfile profile = new UserProfile(
+                object.getLong(KEY_USER_ID),
+                object.getString(KEY_FIRST_NAME),
+                object.getString(KEY_LAST_NAME),
+                object.getString(KEY_PROFILE_PIC)
+        );
+
+         return profile;
+    }
+
+    /**
+     * Method for parsing bulletin data to {@link ContentValues} object ready for db.
+     */
+    public ContentValues toValues() {
+        ContentValues values = new ContentValues();
+
+        values.put(ProfileEntry._ID, _id);
+        values.put(ProfileEntry.COLUMN_NAME, _id);
+        values.put(ProfileEntry.COLUMN_LAST_NAME, _id);
+        values.put(ProfileEntry.COLUMN_PROF_PIC, _id);
+        values.put(ProfileEntry.COLUMN_COVER_PIC, _id);
+
+        return values;
     }
 
     public String getEmail() {

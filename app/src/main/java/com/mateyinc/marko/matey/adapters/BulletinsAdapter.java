@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,19 +15,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.OnTouchInterface;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.data.DataAccess;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
-import static com.mateyinc.marko.matey.data.OperationManager.COL_POST_ID;
-import static com.mateyinc.marko.matey.data.OperationManager.COL_USER_ID;
-import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_RETRY_UPLOAD;
-import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_SUCCESS;
-import static com.mateyinc.marko.matey.data.OperationManager.ServerStatus.STATUS_UPLOADING;
 
 public class BulletinsAdapter extends RecycleCursorAdapter {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
@@ -91,7 +87,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 Intent i = new Intent(mContext, BulletinViewActivity.class);
                 i.putExtra(BulletinViewActivity.EXTRA_NEW_REPLY, true);
                 mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(DataAccess.COL_POST_ID));
                 i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
@@ -100,7 +96,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             public void onBodyClicked(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, BulletinViewActivity.class);
                 mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(DataAccess.COL_POST_ID));
                 i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
@@ -109,13 +105,13 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             public void onNameClick(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
                 mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getLong(COL_USER_ID));
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getLong(DataAccess.COL_USER_ID));
                 mContext.startActivity(i);
             }
 
             @Override
             public void onBoostClick(View caller, int adapterViewPosition) {
-                mManager.newPostLike(adapterViewPosition, mCursor, mContext);
+                mManager.newPostLike(adapterViewPosition, mContext);
             }
 
 
@@ -131,24 +127,11 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         switch (getItemViewType(position)) {
-//             Parsing data to views if available
-//            case FIRST_ITEM: {
-//                BulletinsAdapter.ViewHolderFirst holder = (ViewHolderFirst) mHolder;
-//                holder.ivProfilePic.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        Intent i = new Intent(mContext, ProfileActivity.class);
-//                        mContext.startActivity(i);
-//                    }
-//                });
-//                holder.ibAttachment.setOnTouchListener((HomeActivity) mContext);
-//                holder.ibLocation.setOnTouchListener((HomeActivity) mContext);
-//            }
 
             case FIRST_ITEM:
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
-                final Bulletin bulletin = mManager.getBulletin(position, mCursor);
+                final Bulletin bulletin = DataAccess.getBulletin(position, mCursor);
 
                 try {
                     if (bulletin.getMessage().length() > CHAR_LIM) {
@@ -167,63 +150,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 holder.tvStats.setText(bulletin.getStatistics(mContext));
                 holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
                 holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
-
-
-//                ((ViewHolder) mHolder).llReplies.removeAllViews(); // First reset the layout then add new views
-
-//                // Adding replies programmatically
-//                try {
-//                    Resources resources = mContext.getResources();
-//                    int repliesCount = bulletin.getNumOfReplies();
-//                    int margin = 0;
-//                    int marginIncrease = Util.parseDp(15, resources);
-//                    int height = Util.parseDp(24, resources);
-
-//                    // Adding image view
-//                    RoundedImageView imageView = null;
-//                    for (int i = 0; i < repliesCount; i++) {
-//                        if (i == 3) break; // Add no more than 3 views
-//                        imageView = new RoundedImageView(mContext);
-//
-//                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(height, height);
-//                        params.addRule(RelativeLayout.CENTER_VERTICAL);
-//                        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-//                        params.addRule(RelativeLayout.ALIGN_PARENT_START);
-//                        params.leftMargin = margin;
-//                        margin += marginIncrease; // increasing margin for next view
-//
-//                        imageView.setImageResource(R.drawable.empty_photo);
-//                        imageView.setOval(true);
-//                        imageView.setBorderWidth(0);
-//                        imageView.setLayoutParams(params);
-//                        imageView.setId(i);
-//
-////                        holder.llReplies.addView(imageView);
-//                    }
-//
-//
-//                    // Adding text view
-//                    TextView textView = null;
-//                    if (repliesCount > 3) {
-//                        textView = new TextView(mContext);
-//
-//                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//                        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
-//                        layoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
-//                        layoutParams.leftMargin = Util.parseDp(2, mContext.getResources());
-//                        textView.setLayoutParams(layoutParams);
-//
-//                        textView.setGravity(Gravity.CENTER_VERTICAL);
-//                        String text = String.format(mContext.getString(R.string.bulletin_reply_text), Integer.toString(repliesCount - 3));
-//                        textView.setText(text);
-//
-////                        holder.llReplies.addView(textView);
-//
-//                    }
-//
-//                } catch (Exception e) {
-//                    Log.e(TAG, e.getLocalizedMessage(), e);
-//                }
 
                 switch (bulletin.getServerStatus()) {
                     case STATUS_UPLOADING: {
@@ -249,19 +175,36 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         }
     }
 
+    private static final String TAG_UPLOADING = "uploading_textview";
+    private static final String TAG_FAILED = "failed_textview";
+
     /**
      * Setting the view to the normal mode
      *
      * @param holder The view holder to be changed
      */
     private void setViewToNormal(ViewHolder holder) {
-        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null)
-            ((LinearLayout) holder.mView).removeViewAt(0);
-
-        for (int i = 0; i < ((LinearLayout) holder.mView).getChildCount(); i++) {
-            ((LinearLayout) holder.mView).getChildAt(i).setAlpha(1f);
+        // First update view based on past state
+        switch (holder.stateFlag) {
+            case ViewHolder.STATE_FAILED: {
+                holder.llBottom.removeView(holder.llBottom.findViewWithTag(TAG_FAILED));
+                break;
+            }
+            case ViewHolder.STATE_UPLOADING: { // view was in uploading, remove unnecessary views
+                holder.llBottom.removeView(holder.llBottom.findViewWithTag(TAG_UPLOADING));
+                break;
+            }
+            default:break;
         }
 
+        if (holder.stateFlag != ViewHolder.STATE_UPLOADED) {
+            holder.rlInfo.setClickable(true);
+            holder.rlInfo.setAlpha(1f);
+            holder.rlBody.setClickable(true);
+            holder.rlBody.setAlpha(1f);
+            holder.btnBoost.setVisibility(View.VISIBLE);
+            holder.btnReply.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -271,29 +214,40 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
      * @param bulletin the bulletin to startUploadAction it's {@link Bulletin#mServerStatus}
      */
     private void setViewToUploadFailed(ViewHolder holder, final Bulletin bulletin) {
-        // If mView already has retry text view, don't add it again
-        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null &&
-                ((LinearLayout) holder.mView).getChildAt(0).getTag().equals("RetryTextView")) {
-            return;
+
+        // First update view based on past state
+        switch (holder.stateFlag) {
+            case ViewHolder.STATE_UPLOADED: {
+                holder.rlInfo.setClickable(false);
+                holder.rlInfo.setAlpha(0.5f);
+                holder.rlBody.setClickable(false);
+                holder.rlBody.setAlpha(0.5f);
+                holder.btnBoost.setVisibility(View.GONE);
+                holder.btnReply.setVisibility(View.GONE);
+                break;
+            }
+            case ViewHolder.STATE_UPLOADING: { // view was in uploading, remove unnecessary views
+                View view = holder.llBottom.findViewWithTag(TAG_UPLOADING);
+                holder.llBottom.removeView(view);
+            }
         }
 
-        TextView textView = new TextView(mContext);
-        ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) Util.parseDp(30, mContext.getResources()));
-        textView.setLayoutParams(params);
-        textView.setText("Retry");
-        textView.setTag("RetryTextView");
-
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                SessionManager.getInstance(mContext).uploadNewBulletin(bulletin, MotherActivity.access_token, mContext);
-//                mManager.updateBulletinServerStatus(bulletin, STATUS_UPLOADING);
-            }
-        });
-        ((LinearLayout) holder.mView).addView(textView, 0);
-
-        for (int i = 1; i < ((LinearLayout) holder.mView).getChildCount(); i++) {
-            ((LinearLayout) holder.mView).getChildAt(i).setAlpha(0.4f);
+        // Update view to failed state only if not in failed mode already
+        if (holder.stateFlag != ViewHolder.STATE_FAILED) {
+            TextView textView = new TextView(mContext);
+            ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            textView.setLayoutParams(params);
+            textView.setText("Failed to upload. Click to try again.");
+            textView.setGravity(Gravity.CENTER);
+            textView.setTag(TAG_FAILED);
+            holder.llBottom.addView(textView);
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mManager.uploadFailedData(Bulletin.class.getSimpleName(), bulletin, mContext);
+                }
+            });
+            holder.stateFlag = ViewHolder.STATE_FAILED;
         }
     }
 
@@ -303,11 +257,36 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
      * @param holder the view holder to be changed
      */
     private void setViewToUploading(ViewHolder holder) {
-        if (((LinearLayout) holder.mView).getChildAt(0).getTag() != null)
-            ((LinearLayout) holder.mView).removeViewAt(0);
 
-        for (int i = 0; i < ((LinearLayout) holder.mView).getChildCount(); i++) {
-            ((LinearLayout) holder.mView).getChildAt(i).setAlpha(0.4f);
+        // First update view based on past state
+        switch (holder.stateFlag) {
+            case ViewHolder.STATE_UPLOADED: {
+                holder.rlInfo.setClickable(false);
+                holder.rlInfo.setAlpha(0.5f);
+                holder.rlBody.setClickable(false);
+                holder.rlBody.setAlpha(0.5f);
+                holder.btnBoost.setVisibility(View.GONE);
+                holder.btnReply.setVisibility(View.GONE);
+                break;
+            }
+            case ViewHolder.STATE_FAILED: { // view was in failed, remove unnecessary views
+                View view = holder.llBottom.findViewWithTag(TAG_FAILED);
+                holder.llBottom.removeView(view);
+            }
+            default:
+                break;
+        }
+
+        // Update view to uploading state only if not in uplading mode already
+        if (holder.stateFlag != ViewHolder.STATE_UPLOADING) {
+            TextView textView = new TextView(mContext);
+            ViewGroup.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            textView.setLayoutParams(params);
+            textView.setText("Uploading");
+            textView.setGravity(Gravity.CENTER);
+            textView.setTag(TAG_UPLOADING);
+            holder.llBottom.addView(textView);
+            holder.stateFlag = ViewHolder.STATE_UPLOADING;
         }
     }
 
@@ -322,12 +301,18 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
 
     private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
 
+        private static final int STATE_UPLOADING = 0;
+        private static final int STATE_FAILED = -1;
+        private static final int STATE_UPLOADED = 1;
+
         private final View mView;
         private final TextView tvMessage;
         private final TextView tvName, tvDate, tvStats, tvSubject;
-        private final RelativeLayout rlBody;
-        private final LinearLayout btnReply, btnBoost;
+        private final RelativeLayout rlBody, rlInfo;
+        private final LinearLayout btnReply, btnBoost, llBottom;
         private final ImageView ivBookmark, ivShare;
+        private int stateFlag = STATE_UPLOADED;
+
         ViewHolderClickListener mListener;
 
         private static final String BTN_REPLY_TAG = "replytag";
@@ -338,6 +323,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
         private ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
+            llBottom = (LinearLayout) view.findViewById(R.id.llBottomButtons);
+            rlInfo = (RelativeLayout) view.findViewById(R.id.rlInfo);
             tvMessage = (TextView) view.findViewById(R.id.tvBulletinMessage);
             tvName = (TextView) view.findViewById(R.id.tvBulletinUserName);
             tvName.setTag(TV_NAME_TAG);

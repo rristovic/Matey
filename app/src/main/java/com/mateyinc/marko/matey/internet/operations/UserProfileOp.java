@@ -9,8 +9,9 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Locale;

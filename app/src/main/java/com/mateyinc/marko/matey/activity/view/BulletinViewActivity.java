@@ -30,17 +30,16 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.adapters.RepliesAdapter;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
-import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
-
-import static com.mateyinc.marko.matey.data.OperationManager.REPLIES_ORDER_BY;
 
 public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>, RepliesAdapter.ReplyClickedInterface {
 
@@ -84,6 +83,12 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     public static final int COL_POST_ID = COL_DATE + 1;
 //    public static final int COL_NUM_OF_REPLIES = COL_POST_ID + 1;
     public static final int COL_NUM_OF_APPRVS = COL_POST_ID + 1;
+
+    /**
+     * Cursor sort order
+     */
+    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " DESC";
+
 
     public static int mBulletinPos = -1;
 
@@ -171,7 +176,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
     }
 
     private void updateCurBulletin() {
-        mCurBulletin = mManager.getBulletin(mBulletinPos);
+        mCurBulletin = DataAccess.getBulletin(mBulletinPos, BulletinViewActivity.this);
     }
 
     private void setListeners() {
@@ -209,7 +214,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 etReplyText.setText(null);
 
                 // Save and upload
-                mManager.postNewReply(r, mCurBulletin, BulletinViewActivity.this);
+                mManager.postNewReply(r, mCurBulletin.getPostID(), BulletinViewActivity.this);
             }
         });
         ivReply.setOnTouchListener(new OnTouchInterface(this));

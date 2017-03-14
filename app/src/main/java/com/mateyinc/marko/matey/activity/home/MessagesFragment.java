@@ -24,7 +24,7 @@ import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.MessageEntry;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 
 /**
  * Created by Sarma on 8/27/2016.

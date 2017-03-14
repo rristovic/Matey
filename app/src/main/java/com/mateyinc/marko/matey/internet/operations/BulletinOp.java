@@ -3,7 +3,6 @@ package com.mateyinc.marko.matey.internet.operations;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -43,13 +42,14 @@ public class BulletinOp extends Operations {
     /**
      * Content json data field - post message
      **/
-    private static final String CONTENT_FIELD_NAME = "text"; /**
+    private static final String CONTENT_FIELD_NAME = "text";
+    /**
      * Content json data field - post message
      **/
     private static final String LOCATIONS_FIELD_NAME = "locations";
 
 
-    Bulletin bulletin;
+    final Bulletin bulletin;
 
     public BulletinOp(Context context, Bulletin bulletin) {
         super(context);
@@ -88,11 +88,7 @@ public class BulletinOp extends Operations {
         int method;
 
         switch (mOpType) {
-            case POST_NEW_BULLETIN_NO_ATTCH: {
-                url = "#";
-                method = Request.Method.POST;
-                break;
-            }
+            default:
             case POST_NEW_BULLETIN_WITH_ATTCH: {
                 // Using OkHTTP for sending files
 
@@ -104,15 +100,10 @@ public class BulletinOp extends Operations {
                 });
                 return;
             }
-            default: {
-                Log.e(TAG, "No operation type has been specified!");
-                url = "#";
-                method = Request.Method.POST;
-            }
         }
 
-        createNewUploadReq(url, method);
-        startUploadAction();
+//        createNewUploadReq(url, method);
+//        startUploadAction();
     }
 
     @Override
@@ -129,8 +120,16 @@ public class BulletinOp extends Operations {
     }
 
     @Override
-    protected void onUploadFailed(VolleyError error) {
+    protected void onUploadFailed(final VolleyError error) {
+        final Context c = mContextRef.get();
 
+        if (c != null)
+            submitRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    bulletin.onUploadFailed(error.toString(), c);
+                }
+            });
     }
 
     @Override
@@ -171,7 +170,7 @@ public class BulletinOp extends Operations {
             if (!message.isEmpty()) // Is there is no message, send just the subject
                 jsonObject.put(CONTENT_FIELD_NAME, bulletin.getMessage());
 
-            if(mMarkers.size() != 0){ // Add locations
+            if (mMarkers.size() != 0) { // Add locations
                 JSONArray array = new JSONArray();
                 for (String s :
                         mMarkers) {
@@ -217,10 +216,14 @@ public class BulletinOp extends Operations {
             Response response = client.newCall(request).execute();
             if (c != null) {
                 if (!response.isSuccessful()) {
-                    bulletin.onUploadFailed(response.body().toString(), c);
+                    String s = response.body().string();
+                    Log.e(TAG, "Upload failed: " + s);
+                    bulletin.onUploadFailed(s, c);
                     notifyUI(R.string.upload_failed);
                 } else {
-                    bulletin.onUploadSuccess(response.body().toString(), c);
+                    String s = response.body().string();
+                    Log.d(TAG, "Upload success: " + s);
+                    bulletin.onUploadSuccess(s, c);
                     notifyUI(R.string.upload_success);
 
                 }

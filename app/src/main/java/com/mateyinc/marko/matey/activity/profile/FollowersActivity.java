@@ -14,13 +14,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
-import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.json.JSONArray;
@@ -75,43 +74,43 @@ public class FollowersActivity extends MotherActivity {
     }
 
     public void getData() {
-        if (mScrollListener != null)
-            mScrollListener.mLoading = true;
-        int offset = 0;
-        int count = 20;
+//        if (mScrollListener != null)
+//            mScrollListener.mLoading = true;
+//        int offset = 0;
+//        int count = 20;
 
-        OperationManager manager = OperationManager.getInstance(FollowersActivity.this);
-        manager.addSuccessListener(new Response.Listener<String>() {
-            @Override
-            public void onResponse(final String response) {
-                if (mScrollListener != null)
-                    mScrollListener.mLoading = false;
-                OperationManager.getInstance(FollowersActivity.this).submitRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        final LinkedList<Object[]> list = parseData(response);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mProgress != null)
-                                    mProgress.setVisibility(View.GONE);
-                                setData(list);
-                            }
-                        });
-                    }
-                });
-            }
-        });
-        manager.addErrorListener(new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (mScrollListener != null)
-                    mScrollListener.mLoading = false;
-            }
-        });
-
-        manager.downloadFollowers(offset, count,
-                getIntent().getLongExtra(EXTRA_PROFILE_ID, -1), FollowersActivity.this);
+//        OperationManager manager = OperationManager.getInstance(FollowersActivity.this);
+//        manager.addSuccessListener(new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(final String response) {
+//                if (mScrollListener != null)
+////                    mScrollListener.mLoading = false;
+//                OperationManager.getInstance(FollowersActivity.this).submitRunnable(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        final LinkedList<Object[]> list = parseData(response);
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                if (mProgress != null)
+//                                    mProgress.setVisibility(View.GONE);
+//                                setData(list);
+//                            }
+//                        });
+//                    }
+//                });
+//            }
+//        });
+//        manager.addErrorListener(new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                if (mScrollListener != null)
+//                    mScrollListener.mLoading = false;
+//            }
+//        });
+//
+//        manager.downloadFollowers(offset, count,
+//                getIntent().getLongExtra(EXTRA_PROFILE_ID, -1), FollowersActivity.this);
 
 //        Intent i = getIntent();
 //        if (i.getAction().equals(ACTION_FOLLOWERS)) {

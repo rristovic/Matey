@@ -27,19 +27,21 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
 import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
-import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.internet.SessionManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static com.mateyinc.marko.matey.data.OperationManager.BULLETIN_COLUMNS;
+import static com.mateyinc.marko.matey.data.DataAccess.BULLETIN_COLUMNS;
 
-public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, Response.Listener<String>, Response.ErrorListener {
+    public static final int BULLETINS_LOADER = 100;
 
     private HomeActivity mContext;
     private BulletinsAdapter mAdapter;
@@ -53,12 +55,11 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
      */
     public static ArrayList<Integer> mUpdatedPositions = new ArrayList<>();
 
-    private SessionManager mSessionManager;
-    public static final int BULLETINS_LOADER = 100;
     private LinearLayout llNoData;
     private LinearLayout rlNewPostView;
     private ProgressBar mProgressBar;
     private CoordinatorLayout mMainFeedLayout;
+    private OperationManager mOperationManager;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -71,7 +72,9 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = (HomeActivity) context;
-        mSessionManager = SessionManager.getInstance(context);
+        mOperationManager = OperationManager.getInstance(context);
+        mOperationManager.addSuccessListener(this);
+        mOperationManager.addErrorListener(this);
 
         getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
     }
@@ -80,11 +83,6 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mMainFeedLayout = (CoordinatorLayout) inflater.inflate(R.layout.fragment_bulletins, container, false);
-
-//        llNoData = (LinearLayout) mMainFeedLayout.findViewById(R.id.llNoData);
-//        rlNewPostView = (LinearLayout) mMainFeedLayout.findViewById(R.id.rlNewPostView);
-//        rlNewPostView.removeViewAt(1);
-//        mProgressBar = (ProgressBar) mMainFeedLayout.findViewById(R.id.pbDataLoading);
 
         // Programmatically creating recycle view
         mRecycleView = new RecyclerView(getContext());
@@ -104,7 +102,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-//                mSessionManager.downloadNewsFeed(mContext);
+                mOperationManager.downloadNewsFeed(mContext);
             }
         };
 
@@ -113,7 +111,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, NewPostActivity.class);
                 mContext.startActivity(intent);
-     }
+            }
         });
 
         return mMainFeedLayout;
@@ -127,8 +125,8 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         // If items are updated, notify adapter
         if (mUpdatedPositions.size() != 0) {
             Iterator i = mUpdatedPositions.iterator();
-            while(i.hasNext()){
-                int pos = (Integer)i.next();
+            while (i.hasNext()) {
+                int pos = (Integer) i.next();
                 mAdapter.notifyItemChanged(pos);
                 i.remove();
             }
@@ -142,7 +140,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
             @Override
             public void onReceive(Context context, Intent intent) {
                 OperationManager.mCurrentPage++; // Update curPage
-                mScrollListener.mLoading = false;
+//                mScrollListener.mLoading = false;
                 Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + OperationManager.mCurrentPage);
             }
         }, new IntentFilter(OperationManager.BULLETIN_LIST_LOADED));
@@ -157,16 +155,13 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case BulletinsAdapter.COPYTEXT_ID:
-                ClipboardManager clipboard = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(getString(R.string.clipboard_copiedtext_label), BulletinsAdapter.clickedText);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(mContext, R.string.toast_textcopied, Toast.LENGTH_LONG).show();
-                break;
-        }
-        return super.onContextItemSelected(item);
+    public void onResponse(String response) {
+        mScrollListener.onDownloadFinished();
+    }
+
+    @Override
+    public void onErrorResponse(VolleyError error) {
+        mScrollListener.onDownloadFinished();
     }
 
     @Override
@@ -174,7 +169,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         return new CursorLoader(getActivity(),
                 BulletinEntry.CONTENT_URI,
                 BULLETIN_COLUMNS,
-                null,  null,
+                null, null,
                 BulletinEntry.COLUMN_DATE + BulletinEntry.DEFAULT_SORT);
     }
 
@@ -213,23 +208,21 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
                 mMainFeedLayout.removeView(view);
             }
         }
-//        if (dataCount == 0) {
-//            // First remove recycle view if it's present, then no data view
-//            if (mMainFeedLayout.getChildAt(0) instanceof RelativeLayout) {
-//                mMainFeedLayout.removeAllViews();
-//
-//                // Add linear layout to the view
-//                mMainFeedLayout.addView(llNoData);
-//            }
-//            // TODO - finish error loading data
-//        } else {
-//            // There is data to display, show RecycleView instead of empty view
-//            // First remove linear layout ('no data') then add recycle view
-//            if (mMainFeedLayout.getChildAt(0) instanceof LinearLayout) {
-//                mMainFeedLayout.removeAllViews();
-//                // Add recycle view
-//                mMainFeedLayout.addView(mRecycleView);
-//            }
-//        }
     }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case BulletinsAdapter.COPYTEXT_ID:
+                ClipboardManager clipboard = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText(getString(R.string.clipboard_copiedtext_label), BulletinsAdapter.clickedText);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(mContext, R.string.toast_textcopied, Toast.LENGTH_LONG).show();
+                break;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+
+
 }

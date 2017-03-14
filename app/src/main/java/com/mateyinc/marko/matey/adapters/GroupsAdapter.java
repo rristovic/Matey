@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.home.GroupActivity;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Group;
 
 import java.util.ArrayList;

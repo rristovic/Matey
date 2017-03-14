@@ -26,7 +26,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.maps.MapsActivity;
 import com.mateyinc.marko.matey.adapters.FilesAdapter;
 import com.mateyinc.marko.matey.data.FilePath;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONArray;

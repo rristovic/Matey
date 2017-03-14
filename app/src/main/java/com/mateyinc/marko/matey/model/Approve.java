@@ -23,7 +23,10 @@ public class Approve extends MModel {
     }
 
     public Approve() {
+    }
 
+    public Approve(long _id) {
+        this._id = _id;
     }
 
     public long userId = -1;
@@ -37,9 +40,13 @@ public class Approve extends MModel {
      */
     @Override
     public void save(Context context) {
+       save(context, DataAccess.isApproveInDb(postId, replyId, context));
+    }
+
+    public void save(Context context, boolean approveExists) {
         ApproveOp op = new ApproveOp(context, this);
 
-        if (DataAccess.isApproveInDb(postId, replyId, context)) { // Unlike
+        if (approveExists) { // Unlike
             if (replyId != -1)
                 op.setOperationType(OperationType.REPLY_UNLIKED);
             else
@@ -57,6 +64,8 @@ public class Approve extends MModel {
             addToDb(context);
         }
 
+        // Save to not uploaded
+        addToNotUploaded(TAG, context);
         op.startUploadAction();
     }
 
@@ -64,10 +73,11 @@ public class Approve extends MModel {
     protected void addToDb(Context context) {
         ContentValues values = new ContentValues();
 
-        values.put(DataContract.ApproveEntry.COLUMN_POST_ID, postId);
-        values.put(DataContract.ApproveEntry.COLUMN_REPLY_ID, replyId);
-        values.put(DataContract.ApproveEntry.COLUMN_USER_ID, userId);
-        values.put(DataContract.ApproveEntry.COLUMN_SERVER_STATUS, mServerStatus);
+        values.put(ApproveEntry._ID, this._id);
+        values.put(ApproveEntry.COLUMN_POST_ID, postId);
+        values.put(ApproveEntry.COLUMN_REPLY_ID, replyId);
+        values.put(ApproveEntry.COLUMN_USER_ID, userId);
+        values.put(ApproveEntry.COLUMN_SERVER_STATUS, mServerStatus.ordinal());
 
         // Add to db
         Uri insertedUri = context.getContentResolver().insert(
@@ -128,7 +138,7 @@ public class Approve extends MModel {
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "Approve: UserId=%d; ReplyId=%d; PostId=%d", userId, replyId, postId);
+        return String.format(Locale.US, "Approve(%d): UserId=%d; ReplyId=%d; PostId=%d", this._id, userId, replyId, postId);
     }
 
 }

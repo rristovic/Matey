@@ -42,8 +42,6 @@ import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.DummyData;
-import com.mateyinc.marko.matey.data.OperationManager;
 import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -60,9 +58,6 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
@@ -113,10 +108,6 @@ public class SessionManager {
     private RequestQueue mRequestQueue;
     private ProgressDialog mProgDialog;
 
-    private final Object mLock = new Object();
-    private final BlockingQueue<Runnable> mDecodeWorkQueue;
-    private final ThreadPoolExecutor mExecutor;
-
     // Threading constants
     private static int NUMBER_OF_CORES =
             Runtime.getRuntime().availableProcessors();
@@ -138,15 +129,6 @@ public class SessionManager {
 
     private SessionManager(Context context) {
         mRequestQueue = Volley.newRequestQueue(context);
-        mDecodeWorkQueue = new LinkedBlockingQueue<Runnable>();
-
-        // Creates a thread pool manager
-        mExecutor = new ThreadPoolExecutor(
-                NUMBER_OF_CORES,       // Initial pool size
-                NUMBER_OF_CORES,       // Max pool size
-                KEEP_ALIVE_TIME,
-                KEEP_ALIVE_TIME_UNIT,
-                mDecodeWorkQueue);
 
         mImageLoader = new ImageLoader(mRequestQueue,
                 new ImageLoader.ImageCache() {
@@ -180,7 +162,6 @@ public class SessionManager {
                     });
             return;
         }
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
 
         // If user is logged in, proceed to next activity
         if(isUserLoggedIn()) {
@@ -188,6 +169,7 @@ public class SessionManager {
             return;
         }
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         if (!RegistrationIntentService.isRunning && checkPlayServices(activity)) {
             // Because this is the initial creation of the app, we'll want to be certain we have
             // a token. If we do not, then we will start the IntentService that will register this
@@ -210,7 +192,7 @@ public class SessionManager {
         }
     }
 
-    /** Method to check if user is logged in */
+    /** Helper method to check if user is logged in */
     private boolean isUserLoggedIn() {
         // Only check if the id exists because on logout it gets deleted
         return  MotherActivity.user_id != Long.MIN_VALUE;
@@ -258,8 +240,8 @@ public class SessionManager {
                 MateyRequest stringRequest = new MateyRequest(Request.Method.POST, UrlData.REGISTER_DEVICE, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if (mProgDialog != null)
-                            dismissProgressDialog(mProgDialog);
+                        dismissProgressDialog(mProgDialog);
+
                         MainActivity activity = reference.get();
                         SecurePreferences securePreferences = prefRef.get();
                         try {
@@ -321,9 +303,7 @@ public class SessionManager {
      */
     public void registerWithVolley(final MainActivity context, String firstName, String lastName, final String email, String pass) {
         // Showing progress dialog
-        mProgDialog = new ProgressDialog(context);
-        mProgDialog.setMessage(context.getResources().getString(R.string.registering_dialog_message));
-        mProgDialog.show();
+        showProgressDialog(context, context.getResources().getString(R.string.registering_dialog_message));
 
         // Making new request and contacting the server
         MateyRequest request = new MateyRequest(Request.Method.POST, UrlData.REGISTER_USER,
@@ -651,6 +631,7 @@ public class SessionManager {
                     dismissProgressDialog(mProgDialog);
                 } catch (JSONException e) {
                     Log.e(TAG, e.getLocalizedMessage(), e);
+                    dismissProgressDialog(mProgDialog);
                 }
             }
         }, new Response.ErrorListener() {
@@ -790,7 +771,7 @@ public class SessionManager {
 
     /** Helper method for dismissing progress dialog */
     private void dismissProgressDialog(ProgressDialog mProgDialog) {
-        if (mProgDialog.isShowing())
+        if (mProgDialog != null && mProgDialog.isShowing())
             mProgDialog.dismiss();
     }
 
@@ -821,7 +802,7 @@ public class SessionManager {
      * @param message the message string
      */
     private void dismissProgressAndShowAlert(final MainActivity context, String message){
-        if (mProgDialog.isShowing())
+        if (mProgDialog != null && mProgDialog.isShowing())
             mProgDialog.dismiss();
 
         Util.showAlertDialog(context, message, null,
@@ -904,10 +885,9 @@ public class SessionManager {
 
     public static void clearUserCredentials(Context context, SecurePreferences securePreferences) {
         SharedPreferences preferences = getDefaultSharedPreferences(context);
-        OperationManager operationManager = OperationManager.getInstance(context);
 
         // Removing current user profile from db
-        operationManager.removeUserProfile(preferences.getLong(DataAccess.KEY_CUR_USER_ID, -1));
+        DataAccess.removeUserProfile(preferences.getLong(DataAccess.KEY_CUR_USER_ID, -1), context);
 
         // Removing current user  profile from prefs
         DataAccess.setCurrentUserProfile(preferences, null);
@@ -979,17 +959,6 @@ public class SessionManager {
         return request.setTag(TAG_COUNTER++);
     }
 
-
-    /** Method for uploading failed data to the server
-     *
-     * @param context used to start the startUploadAction service if it isn't started
-     */
-    public void uploadFailedData(Context context) {
-        Log.d(TAG, "Uploading failed data.");
-    }
-
-
-
     /**
      * Helper method used to startUploadAction followed friends list, by the current user, to the server;
      * @param addedFriends list of friends to be uploaded
@@ -1039,54 +1008,4 @@ public class SessionManager {
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////// DEBUG/TEST //////////////////////////////////////////////////////////////////////////////////////
-
-    public void debugLogin(SecurePreferences securePreferences, MainActivity context) {
-        ArrayList<KVPair> list = new ArrayList<KVPair>();
-        list.add(new KVPair(KEY_ACCESS_TOKEN, "radovan"));
-        list.add(new KVPair(KEY_EXPIRES_IN, "100000000000"));
-        list.add(new KVPair(KEY_REFRESH_TOKEN, "radovan"));
-        list.add(new KVPair(KEY_TOKEN_TYPE, "rade"));
-        securePreferences.putValues(list);
-
-        // Saves the time when token is created
-        final SharedPreferences preferences = getDefaultSharedPreferences(context);
-         preferences.edit().putLong(DataAccess.KEY_CUR_USER_ID, 666).apply();
-
-        // Adding current user to the database
-        UserProfile userProfile = new UserProfile(666,
-                context.getString(R.string.dev_name),
-                context.getString(R.string.dev_lname),
-                context.getString(R.string.dev_email),
-                context.getString(R.string.dev_pic));
-        userProfile.setNumOfFriends(40);
-        userProfile.save(context);
-        DataAccess.setCurrentUserProfile(preferences, userProfile);
-
-        // Close progress dialog
-        if (mProgDialog != null && mProgDialog.isShowing())
-            mProgDialog.dismiss();
-
-        // Close activity and proceed to HomeActivity
-        Intent intent = new Intent(context, HomeActivity.class);
-        getDefaultSharedPreferences(context).edit().putBoolean("IS_DEBUG", true).apply();
-        context.startActivity(intent);
-        context.finish();
-    }
-
-    public void createDummyData(HomeActivity homeActivity) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(homeActivity);
-
-        if(!preferences.getBoolean("DATA_CREATED",false)) {
-            DummyData d = new DummyData();
-            d.createDummyData(homeActivity);
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

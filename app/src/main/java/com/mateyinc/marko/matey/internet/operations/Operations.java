@@ -12,9 +12,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.OperationManager;
-import com.mateyinc.marko.matey.data.OperationProvider;
+import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.internet.MateyRequest;
+import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationProvider;
 
 import java.lang.ref.WeakReference;
 
@@ -23,6 +24,36 @@ import java.lang.ref.WeakReference;
  */
 public abstract class Operations {
 
+    /**
+     * JSON key for data object in server response, contains every data that has been required.
+     */
+    public static final String KEY_DATA = "data";
+    /**
+     * JSON key for pagination object in server response, contains information about pages that are available to request and download.
+     */
+    protected static final String KEY_PAGINATION = "pagination";
+    /**
+     * JSON key for json object in server response, contains url and data for url of next page ready to download.
+     */
+    protected static final String KEY_LINKS = "_links";
+    /**
+     * JSON key for url string in server response, contains url for next page of data ready for download.
+     */
+    protected static final String KEY_NEXT_URL = "next";
+    /**
+     * JSON key for type of activity object in data array object
+     */
+    protected static final String KEY_ACTIVITY_TYPE = "activity_type";
+    /**
+     * JSON Value for post type of activity in data array object
+     */
+    protected static final String VALUE_ATYPE_POST = "POST";
+    /**
+     * JSON key for activity object containing activity data
+     */
+    protected static final String KEY_ACTIVITY_OBJECT = "activity_object";
+
+
     private Response.Listener<String> successListener;
     private Response.ErrorListener failedListener;
 
@@ -30,24 +61,6 @@ public abstract class Operations {
      * Indicates what kind of operations this is, used for general db control in {@link #addNotUploadedActivity(long)}
      */
     protected OperationType mOpType;
-
-    /**
-     * Activity startUploadAction status that is saved in database, and used for UI control
-     */
-    public enum ServerStatus {
-        /**
-         * Indicates that the data startUploadAction to the server has failed
-         */
-        STATUS_RETRY_UPLOAD,
-        /**
-         * Indicates that the data is currently being uploaded to the server
-         */
-        STATUS_UPLOADING,
-        /**
-         * Indicates that data is successfully uploaded to the server
-         */
-        STATUS_SUCCESS
-    }
 
     // Network request used for networking
     protected MateyRequest mRequest;
@@ -95,8 +108,7 @@ public abstract class Operations {
     // Download methods
     public abstract void startDownloadAction();
 
-    protected abstract void
-    onDownloadSuccess(String response);
+    protected abstract void onDownloadSuccess(String response);
 
     protected abstract void onDownloadFailed(VolleyError error);
 
@@ -121,7 +133,6 @@ public abstract class Operations {
                         if (successListener != null) {
                             successListener.onResponse(response);
                             Log.d(getTag(), "Download has succeed.");
-                            return;
                         }
 
                         Context c = mContextRef.get();
@@ -137,7 +148,6 @@ public abstract class Operations {
                         if (failedListener != null) {
                             failedListener.onErrorResponse(error);
                             Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
-                            return;
                         }
 
                         Context c = mContextRef.get();
@@ -165,7 +175,6 @@ public abstract class Operations {
 
                         if (successListener != null) {
                             successListener.onResponse(response);
-                            return;
                         }
 
                         Context c = mContextRef.get();
@@ -182,7 +191,6 @@ public abstract class Operations {
 
                         if (failedListener != null) {
                             failedListener.onErrorResponse(error);
-                            return;
                         }
 
                         Context c = mContextRef.get();
@@ -259,7 +267,7 @@ public abstract class Operations {
     }
 
     protected void notifyUI(final int stringId) {
-        Handler handler =  new Handler(mContextRef.get().getMainLooper());
+        Handler handler = new Handler(mContextRef.get().getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -267,8 +275,9 @@ public abstract class Operations {
             }
         });
     }
+
     protected void notifyUI(final String message) {
-        Handler handler =  new Handler(mContextRef.get().getMainLooper());
+        Handler handler = new Handler(mContextRef.get().getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {

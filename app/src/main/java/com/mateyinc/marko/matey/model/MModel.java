@@ -1,8 +1,13 @@
 package com.mateyinc.marko.matey.model;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 
-import com.mateyinc.marko.matey.internet.operations.Operations;
+import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.MBaseColumns;
+import com.mateyinc.marko.matey.data.ServerStatus;
 
 public abstract class MModel {
 
@@ -13,13 +18,14 @@ public abstract class MModel {
     static final String KEY_PARENT_ID = "parent_id";
     static final String KEY_PARENT_TYPE = "parent_type";
     static final String KEY_ACTIVITY_TYPE = "activity_type";
-    static final String KEY_DATE_ADDED = "activity_time";
+    static final String KEY_DATE_ADDED = "time_c";
     static final String KEY_FIRSTNAME = "first_name";
     static final String KEY_LASTNAME = "last_name";
     static final String KEY_PROFILE_PIC = "profile_picture";
 
-    protected int mServerStatus = Operations.ServerStatus.STATUS_UPLOADING.ordinal();
+    protected ServerStatus mServerStatus = ServerStatus.STATUS_UPLOADING;
     public long _id = -1;
+    public Uri mUri;
 
     public long getId() {
         return _id;
@@ -29,14 +35,41 @@ public abstract class MModel {
         this._id = _id;
     }
 
-    public int getServerStatus() {
+    public ServerStatus getServerStatus() {
         return mServerStatus;
     }
 
-    public void setServerStatus(int status) {
+    public void setServerStatus(ServerStatus status) {
         mServerStatus = status;
     }
 
+    public void setServerStatus(int status) {
+        mServerStatus = ServerStatus.fromInteger(status);
+    }
+
+    public void addToNotUploaded(String name, Context context) {
+        ContentValues values = new ContentValues(2);
+        values.put(DataContract.NotUploadedEntry._ID, _id);
+        values.put(DataContract.NotUploadedEntry.COLUMN_ENTRY_TYPE, name);
+        Uri uri = context.getContentResolver().insert(DataContract.NotUploadedEntry.CONTENT_URI, values);
+        if (uri != null)
+            Log.d("MMODEL", "Added to not uploaded table with id = " + _id);
+        else
+            Log.e("MMODEL", "Fail to add to not uploaded table with id = " + _id);
+    }
+
+    public void updateServerStatus(Context context) {
+        ContentValues values = new ContentValues(2);
+        values.put(MBaseColumns.COLUMN_SERVER_STATUS, mServerStatus.ordinal());
+        values.put(MBaseColumns._ID, _id);
+
+        int rows = context.getContentResolver().update(mUri, values,
+                MBaseColumns._ID + " = ?", new String[]{Long.toString(_id)});
+        if (rows != 1)
+            Log.d("MMODEL", String.format("Failed to update server status at uri %s, with model id %d.", mUri.toString(), _id));
+        else
+            Log.e("MMODEL", String.format("Updated server status at uri %s, model id %d.", mUri.toString(), _id));
+    }
 
     public abstract void onDownloadSuccess(String response, Context c);
 
@@ -48,10 +81,13 @@ public abstract class MModel {
 
     protected abstract void notifyDataChanged(Context context);
 
-    /** Saves model in database and start upload sequence. **/
+    /**
+     * Saves model in database and start upload sequence.
+     **/
     abstract void save(Context context);
 
     protected abstract void addToDb(Context context);
+
     protected abstract void removeFromDb(Context context);
 
 }

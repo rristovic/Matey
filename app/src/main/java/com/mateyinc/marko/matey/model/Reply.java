@@ -6,10 +6,14 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.internet.operations.ReplyOp;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+
+import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -206,11 +210,14 @@ public class Reply extends MModel {
         replyOp.setOperationType(OperationType.REPLY_ON_POST);
 
         this.postId = postId;
+        this._id = OperationManager.getInstance(context).generateId();
 
         // Save reply
         addToDb(context);
         // Notify observers
         context.getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
+        // Save to not uploaded
+        addToNotUploaded(TAG, context);
         // Start upload
         replyOp.startUploadAction();
     }
@@ -225,10 +232,14 @@ public class Reply extends MModel {
         ReplyOp replyOp = new ReplyOp(context, this);
         replyOp.setOperationType(OperationType.REPLY_ON_REPLY);
 
+        this._id = OperationManager.getInstance(context).generateId();
+
         // Save reply
         addToDb(context);
         // Notify observers
         context.getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
+        // Save to not uploaded
+        addToNotUploaded(TAG, context);
         // Start upload
         replyOp.startUploadAction();
     }
@@ -239,18 +250,64 @@ public class Reply extends MModel {
      * @param context used for db communication.
      */
     public void like(final Context context) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-                Approve approve = new Approve();
-                approve.postId = postId;
-                approve.replyId = _id;
-                approve.userId = MotherActivity.user_id;
+        Approve approve = new Approve(OperationManager.getInstance(context).generateId());
+        approve.postId = _id;
+        approve.userId = MotherActivity.user_id;
+        boolean isInDb = DataAccess.isApproveInDb(postId, _id, context);
+        approve.save(context, isInDb);
 
-                approve.save(context);
-                notifyDataChanged(context);
-//            }
-//        }).start();
+        updateNumOfApprvs(!isInDb, context); // if approve is in db, then decrement num of likes
+        notifyDataChanged(context);
+    }
+
+    /**
+     * Method for incrementing reply's number of likes.
+     *
+     * @param context   context object required for db access.
+     * @param increment boolean indicating if this reply is liked.
+     */
+    public void updateNumOfApprvs(boolean increment, Context context) {
+        int num;
+        if (increment)
+            num = ++this.numOfApprvs;
+        else
+            num = --this.numOfApprvs;
+
+        ContentValues values = new ContentValues(1);
+        values.put(ReplyEntry.COLUMN_NUM_OF_LIKES, num);
+        int rows = context.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
+                ReplyEntry._ID + " = ?", new String[]{Long.toString(this._id)});
+
+        if (rows == 1) {
+            Log.d(TAG, String.format("Updated reply's(_id=%d) number of likes to %d.", this._id, this.numOfApprvs));
+        } else {
+            Log.e(TAG, String.format("Failed to update reply's(_id=%d) number of likes.", this._id));
+        }
+    }
+
+    /**
+     * Method for incrementing reply's number of replies.
+     *
+     * @param context   context object required for db access.
+     * @param newReply boolean indicating if new reply on reply has been posted.
+     */
+    public void updateNumOfReplies(boolean newReply, Context context) {
+        int num;
+        if (newReply)
+            num = ++this.numOfReplies;
+        else
+            num = --this.numOfReplies;
+
+        ContentValues values = new ContentValues(1);
+        values.put(ReplyEntry.COLUMN_NUM_OF_REPLIES, num);
+        int rows = context.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
+                ReplyEntry._ID + " = ?", new String[]{Long.toString(this._id)});
+
+        if (rows == 1) {
+            Log.d(TAG, String.format("Updated reply's(_id=%d) number of replies to %d.", this._id, this.numOfReplies));
+        } else {
+            Log.e(TAG, String.format("Failed to update reply's(_id=%d) number of replies.", this._id));
+        }
     }
 
 
@@ -259,7 +316,7 @@ public class Reply extends MModel {
         Uri insertedUri = null;
 
         if (isPostReply) { // Add to post replies database
-//            values.put(DataContract.ReplyEntry._ID, _id);
+            values.put(DataContract.ReplyEntry._ID, _id);
             values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
             values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
             values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, userFirstName);
@@ -268,7 +325,7 @@ public class Reply extends MModel {
             values.put(DataContract.ReplyEntry.COLUMN_DATE, replyDate.getTime());
             values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, numOfApprvs);
             values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_REPLIES, numOfReplies);
-            values.put(DataContract.ReplyEntry.COLUMN_SERVER_STATUS, mServerStatus);
+            values.put(DataContract.ReplyEntry.COLUMN_SERVER_STATUS, mServerStatus.ordinal());
 
             // Add to db
             insertedUri = c.getContentResolver().insert(

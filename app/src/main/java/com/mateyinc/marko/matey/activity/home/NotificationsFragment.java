@@ -23,7 +23,7 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 
 import java.util.Date;
 

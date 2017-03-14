@@ -5,8 +5,12 @@ package com.mateyinc.marko.matey.internet.operations;
  * Operation type that can be used in {@link Operations}
  */
 public enum OperationType {
-    // Bulletin operations
+
+    // Newsfeed operation
     DOWNLOAD_NEWS_FEED,
+    DOWNLOAD_NEWS_FEED_NEXT,
+
+    // Bulletin operation
     POST_NEW_BULLETIN_NO_ATTCH,
     POST_NEW_BULLETIN_WITH_ATTCH,
 

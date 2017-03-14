@@ -19,15 +19,13 @@ import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.data.OperationManager;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.LinkedList;
-
-import static com.mateyinc.marko.matey.R.color.light_gray;
 
 
 public class RepliesAdapter extends RecycleCursorAdapter {
@@ -150,7 +148,7 @@ public class RepliesAdapter extends RecycleCursorAdapter {
 
             @Override
             public void onApproveClicked(View caller, int position) {
-                mManager.newReplyLike(position, mCursor, mContext);
+                mManager.newReplyLike(position, mContext);
             }
 
             @Override

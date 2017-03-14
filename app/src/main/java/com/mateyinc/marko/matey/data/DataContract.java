@@ -161,6 +161,31 @@ public class DataContract {
         }
     }
 
+    public static final class ReReplyEntry implements MBaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_REPLY_REPLIES).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REPLY_REPLIES;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REPLY_REPLIES;
+
+        public static final String TABLE_NAME = "re_replies";
+
+        // Adding columns DbHelper create table command  must be changed also
+        public static final String COLUMN_REPLY_ID = "post_id";
+        public static final String COLUMN_USER_ID = "user_id";
+        public static final String COLUMN_FIRST_NAME = "first_name";
+        public static final String COLUMN_LAST_NAME = "last_name";
+        public static final String COLUMN_TEXT = "re_reply_text";
+        public static final String COLUMN_DATE = "re_reply_date";
+        public static final String COLUMN_NUM_OF_LIKES = "re_reply_num_of_likes";
+
+        public static Uri buildReReplyUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
     public static final class ReplyEntry implements MBaseColumns {
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_BULLETIN_REPLIES).build();
@@ -225,7 +250,7 @@ public class DataContract {
         public static final String TABLE_NAME = "not_uploaded_items";
 
         /**
-         * Entry type can be value from {@link com.mateyinc.marko.matey.internet.operations.OperationType}
+         * Entry type value can be class name from model package
          */
         public static final String COLUMN_ENTRY_TYPE = "entry_type";
 
