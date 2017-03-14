@@ -14,6 +14,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -55,8 +56,8 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
      */
     public static ArrayList<Integer> mUpdatedPositions = new ArrayList<>();
 
-    private LinearLayout llNoData;
-    private LinearLayout rlNewPostView;
+    private LinearLayout llNoData, rlNewPostView;
+    private SwipeRefreshLayout mRefreshLayout;
     private ProgressBar mProgressBar;
     private CoordinatorLayout mMainFeedLayout;
     private OperationManager mOperationManager;
@@ -97,7 +98,14 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         mRecycleView.setAdapter(mAdapter);
 
         // Add the view
-        mMainFeedLayout.addView(mRecycleView);
+        mRefreshLayout = (SwipeRefreshLayout) mMainFeedLayout.findViewById(R.id.swiperefresh);
+        mRefreshLayout.addView(mRecycleView);
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mOperationManager.downloadNewsFeed(true, mContext);
+            }
+        });
 
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
@@ -157,11 +165,13 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onResponse(String response) {
         mScrollListener.onDownloadFinished();
+        mRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void onErrorResponse(VolleyError error) {
         mScrollListener.onDownloadFinished();
+        mRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -222,7 +232,6 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         }
         return super.onContextItemSelected(item);
     }
-
 
 
 }

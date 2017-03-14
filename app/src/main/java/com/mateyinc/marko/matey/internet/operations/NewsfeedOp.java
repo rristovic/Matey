@@ -61,11 +61,9 @@ public class NewsfeedOp extends Operations {
                 url = builder.build().toString();
                 break;
             }
-            case DOWNLOAD_NEWS_FEED_NEXT: {
+            case DOWNLOAD_NEWS_FEED_NEW: {
                 Log.d(TAG, "Downloading news feed.");
-
-                Uri.Builder builder = Uri.parse(ACCESS_BASE_URL).buildUpon();
-                builder.appendEncodedPath(mNextUrl);
+                Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
                 url = builder.build().toString();
                 break;
             }

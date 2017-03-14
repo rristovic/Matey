@@ -217,11 +217,13 @@ public class OperationManager implements OperationProvider {
     /**
      * Method for downloading and parsing news feed from the server, and all data around it
      *
-     * @param pageNum page number required for download
-     * @param context       the Context used for notifying when the parsing result is complete
+     * @param requestNewData boolean to indicate is new data should be downloaded and old cleared.
+     * @param context        the Context used for notifying when the parsing result is complete
      */
-    public void downloadNewsFeed(int pageNum, MotherActivity context) {
+    public void downloadNewsFeed(boolean requestNewData, MotherActivity context) {
         NewsfeedOp newsfeedOp = new NewsfeedOp(this, context);
+        if (requestNewData)
+            newsfeedOp.setOperationType(OperationType.DOWNLOAD_NEWS_FEED_NEW);
         newsfeedOp.addFailedListener(mErrorListener);
         newsfeedOp.addSuccessListener(mSuccessListener);
         newsfeedOp.startDownloadAction();
@@ -235,7 +237,7 @@ public class OperationManager implements OperationProvider {
      * @param context the context of activity which is calling this method
      */
     public void downloadNewsFeed(final MotherActivity context) {
-        downloadNewsFeed(0, context);
+        downloadNewsFeed(false, context);
     }
 
     /**

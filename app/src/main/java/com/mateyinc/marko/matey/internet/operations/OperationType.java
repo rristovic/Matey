@@ -9,6 +9,7 @@ public enum OperationType {
     // Newsfeed operation
     DOWNLOAD_NEWS_FEED,
     DOWNLOAD_NEWS_FEED_NEXT,
+    DOWNLOAD_NEWS_FEED_NEW,
 
     // Bulletin operation
     POST_NEW_BULLETIN_NO_ATTCH,
