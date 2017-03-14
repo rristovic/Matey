@@ -63,6 +63,7 @@ public class NewsfeedOp extends Operations {
             }
             case DOWNLOAD_NEWS_FEED_NEW: {
                 Log.d(TAG, "Downloading news feed.");
+                mClearData = true;
                 Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
                 url = builder.build().toString();
                 break;

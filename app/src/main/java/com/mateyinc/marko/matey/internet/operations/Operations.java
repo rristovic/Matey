@@ -130,30 +130,30 @@ public abstract class Operations {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if (successListener != null) {
-                            successListener.onResponse(response);
-                            Log.d(getTag(), "Download has succeed.");
-                        }
-
                         Context c = mContextRef.get();
                         if (c != null) {
                             Log.d(getTag(), "Download has succeed.");
                             onDownloadSuccess(response);
+                        }
+
+                        if (successListener != null) {
+                            successListener.onResponse(response);
+                            Log.d(getTag(), "Download has succeed.");
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        if (failedListener != null) {
-                            failedListener.onErrorResponse(error);
-                            Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
-                        }
-
                         Context c = mContextRef.get();
                         if (c != null) {
                             Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
                             onDownloadFailed(error);
+                        }
+
+                        if (failedListener != null) {
+                            failedListener.onErrorResponse(error);
+                            Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
                         }
                     }
                 });
