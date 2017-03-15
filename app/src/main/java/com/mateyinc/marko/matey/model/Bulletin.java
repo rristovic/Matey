@@ -43,10 +43,8 @@ public class Bulletin extends MModel {
     public static final String KEY_FILE_URL = "file_url";
     public static final String KEY_REPLIES = "replies";
 
-    private long mUserID;
+    private UserProfile mUserProfile;
     private Date mDate;
-    private String mFirstName;
-    private String mLastName;
     private String mText;
     private String mSubject;
 
@@ -58,6 +56,7 @@ public class Bulletin extends MModel {
     private List<Approve> mApproves;
     private boolean isBoosted;
 
+
     public Bulletin() {
     }
 
@@ -65,40 +64,34 @@ public class Bulletin extends MModel {
         this._id = _id;
     }
 
-    public Bulletin(long postId, long userId, String title, String text, Date date) {
+    public Bulletin(long postId, UserProfile user, String title, String text, Date date) {
         this._id = postId;
-        this.mUserID = userId;
+        this.mUserProfile = user;
         this.mSubject = title;
         this.mText = text;
         this.mDate = date;
         this.mUri = BulletinEntry.CONTENT_URI;
     }
 
-    public Bulletin(long user_id, String firstName, String lastName, String subject, String text, Date date) {
-        mUserID = user_id;
-        mFirstName = firstName;
-        mLastName = lastName;
+    public Bulletin(UserProfile user, String subject, String text, Date date) {
+        this.mUserProfile = user;
         mSubject = subject;
         mText = text;
         mDate = date;
         this.mUri = BulletinEntry.CONTENT_URI;
     }
 
-    public Bulletin(long post_id, long user_id, String firstName, String lastName, String title, Date date) {
+    public Bulletin(long post_id, UserProfile user, String title, Date date) {
         _id = post_id;
-        mUserID = user_id;
-        mFirstName = firstName;
-        mLastName = lastName;
+        this.mUserProfile = user;
         mSubject = title;
         mDate = date;
         this.mUri = BulletinEntry.CONTENT_URI;
     }
 
-    public Bulletin(long post_id, long user_id, String firstName, String lastName, String title, Date date, int serverStatus) {
+    public Bulletin(long post_id, UserProfile user, String title, Date date, int serverStatus) {
         _id = post_id;
-        mUserID = user_id;
-        mFirstName = firstName;
-        mLastName = lastName;
+        this.mUserProfile = user;
         mSubject = title;
         mDate = date;
         setServerStatus(serverStatus);
@@ -124,6 +117,14 @@ public class Bulletin extends MModel {
 
     public void setApproves(List<Approve> mApproves) {
         this.mApproves = mApproves;
+    }
+
+    public UserProfile getUserProfile() {
+        return mUserProfile;
+    }
+
+    public void setUserProfile(UserProfile mUserProfile) {
+        this.mUserProfile = mUserProfile;
     }
 
     public List<String> getAttachments() {
@@ -177,13 +178,6 @@ public class Bulletin extends MModel {
         this._id = mPostID;
     }
 
-    public long getUserID() {
-        return mUserID;
-    }
-
-    public void setUserID(long mUserID) {
-        this.mUserID = mUserID;
-    }
 
     /**
      * Return empty string if there's is no mesasge
@@ -198,21 +192,6 @@ public class Bulletin extends MModel {
         this.mText = mMessage;
     }
 
-    public String getFirstName() {
-        return mFirstName;
-    }
-
-    public void setFirstName(String mFirstName) {
-        this.mFirstName = mFirstName;
-    }
-
-    public String getLastName() {
-        return mLastName;
-    }
-
-    public void setLastName(String mLastName) {
-        this.mLastName = mLastName;
-    }
 
     public Date getDate() {
         return mDate;
@@ -256,9 +235,7 @@ public class Bulletin extends MModel {
     public Bulletin parse(JSONObject object) throws JSONException {
 
         // Parse requireed fields
-        JSONObject user = object.getJSONObject(KEY_USER_PROFILE);
         this._id = object.getLong(KEY_POST_ID);
-        this.mUserID = user.getLong(KEY_USER_ID);
         this.mSubject = object.getString(KEY_SUBJECT);
         this.mText = object.getString(KEY_TEXT);
         this.mDate = parseDate(object.getString(KEY_DATE_ADDED));
@@ -274,6 +251,7 @@ public class Bulletin extends MModel {
                 int size = repliesList.length();
                 for (int i = 0; i < size; i++) {
                     Reply reply = new Reply().parse(repliesList.getJSONObject(i));
+                    reply.setUserProfile(this.mUserProfile);
                     mReplyList.add(reply);
                 }
             } catch (JSONException e) {
@@ -319,9 +297,9 @@ public class Bulletin extends MModel {
         ContentValues values = new ContentValues();
 
         values.put(DataContract.BulletinEntry._ID, _id);
-        values.put(DataContract.BulletinEntry.COLUMN_USER_ID, mUserID);
-        values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, mFirstName);
-        values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, mLastName);
+//        values.put(DataContract.BulletinEntry.COLUMN_USER_ID, mUserID);
+//        values.put(DataContract.BulletinEntry.COLUMN_FIRST_NAME, mFirstName);
+//        values.put(DataContract.BulletinEntry.COLUMN_LAST_NAME, mLastName);
         values.put(DataContract.BulletinEntry.COLUMN_TEXT, mText);
         values.put(DataContract.BulletinEntry.COLUMN_SUBJECT, mSubject);
         values.put(DataContract.BulletinEntry.COLUMN_DATE, mDate.getTime());
@@ -482,8 +460,8 @@ public class Bulletin extends MModel {
             date = mDate.toString();
         }
 
-        return String.format(Locale.US, "Bulletin: ID=%d; Text=%s; UserName=%s %s; UserId=%d Date=%s; RepliesCount=%d",
-                _id, message, mFirstName, mLastName, mUserID, date, mNumOfReplies);
+        return String.format(Locale.US, "Bulletin: ID=%d; Text=%s; User={%s} Date=%s; RepliesCount=%d",
+                _id, message, mUserProfile, date, mNumOfReplies);
     }
 
     public void addReply(Reply reply) {

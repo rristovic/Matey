@@ -217,13 +217,10 @@ public class DataAccess {
         try {
             cursor.moveToPosition(index);
 
-            bulletin = new Bulletin(
-                    cursor.getInt(COL_POST_ID),
-                    cursor.getInt(COL_USER_ID),
-                    cursor.getString(COL_FIRST_NAME),
-                    cursor.getString(COL_LAST_NAME),
-                    cursor.getString(COL_TEXT),
-                    new Date(cursor.getLong(COL_DATE)));
+//            bulletin = new Bulletin(
+//                    cursor.getInt(COL_POST_ID),
+//                    cursor.getString(COL_TEXT),
+//                    new Date(cursor.getLong(COL_DATE)));
 
             bulletin.setNumOfLikes(cursor.getInt(COL_NUM_OF_LIKES));
             bulletin.setSubject(cursor.getString(COL_SUBJECT));

@@ -90,14 +90,14 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
             @Override
             public void onNameClick(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(adapterViewPosition).getUserID());
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(adapterViewPosition).getUserProfile().getUserId());
                 mContext.startActivity(i);
             }
 
             @Override
-            public void onBoostClick(View caller, int adapterViewPosition) {
+            public void onBoostClick(TextView tvStats, int adapterViewPosition) {
                 mManager.boostPost(adapterViewPosition, mContext);
-                notifyItemChanged(adapterViewPosition);
+                tvStats.setText(mData.get(adapterViewPosition).getStatistics(mContext));
             }
 
         };
@@ -128,7 +128,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
 
                 holder.tvSubject.setText(bulletin.getSubject());
                 holder.tvStats.setText(bulletin.getStatistics(mContext));
-                holder.tvName.setText(bulletin.getFirstName() + " " + bulletin.getLastName());
+                holder.tvName.setText(bulletin.getUserProfile().getFullName());
                 holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
 
                 switch (bulletin.getServerStatus()) {
@@ -339,7 +339,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
                 }
 
                 case BTN_BOOST_TAG: {
-                    mListener.onBoostClick(v, position);
+                    mListener.onBoostClick(tvStats, position);
                     break;
                 }
 
@@ -379,7 +379,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
 
 //            boolean onLongClick(View caller, int adapterViewPosition);
 
-            void onBoostClick(View caller, int adapterViewPosition);
+            void onBoostClick(TextView tvStats, int adapterViewPosition);
         }
     }
 

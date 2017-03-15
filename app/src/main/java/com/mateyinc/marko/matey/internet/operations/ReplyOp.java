@@ -7,8 +7,6 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Reply;
@@ -185,20 +183,23 @@ public class ReplyOp extends Operations {
                             }
                         });
 
-                    for (Reply r :
-                            DataAccess.getInstance(c).getBulletinById(this.reply.getPostId()).getReplies()) {
-                        if (r.equals(this.reply))
-                            r.setServerStatus(ServerStatus.STATUS_RETRY_UPLOAD);
-                    }
+//                    for (Reply r :
+//                            DataAccess.getInstance(c).getBulletinById(this.reply.getPostId()).getReplies()) {
+//                        if (r.equals(this.reply))
+//                            r.setServerStatus(ServerStatus.STATUS_RETRY_UPLOAD);
+//                    }
+                    reply.onUploadFailed(s, c);
+
 //                    notifyUI(R.string.upload_failed);
                 } else {
                     String s = response.body().string();
                     Log.d(TAG, "Upload success: " + s);
-                    for (Reply r :
-                            DataAccess.getInstance(c).getBulletinById(this.reply.getPostId()).getReplies()) {
-                        if (r.equals(this.reply))
-                            r.setServerStatus(ServerStatus.STATUS_SUCCESS);
-                    }
+//                    for (Reply r :
+//                            DataAccess.getInstance(c).getBulletinById(this.reply.getPostId()).getReplies()) {
+//                        if (r.equals(this.reply))
+//                            r.setServerStatus(ServerStatus.STATUS_SUCCESS);
+//                    }
+                    reply.onUploadSuccess(s, c);
                     if (mUploadListener != null)
                         runOnUiThread(new Runnable() {
                             @Override

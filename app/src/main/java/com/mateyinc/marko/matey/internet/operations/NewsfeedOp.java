@@ -96,6 +96,7 @@ public class NewsfeedOp extends Operations {
             int length = data.length();
 //            Vector<ContentValues> bulletinList = new Vector<>(length);
             List<Bulletin> bulletinList = new ArrayList<>();
+            List<UserProfile> userList = new ArrayList<>();
 //            Vector<ContentValues> userList = new Vector<>();
             for (int i = 0; i < length; i++) {
                 // Get first object in array
@@ -106,14 +107,18 @@ public class NewsfeedOp extends Operations {
                     // Parse it and add to values array
                     try {
                         JSONObject activityObj = object.getJSONObject(Operations.KEY_ACTIVITY_OBJECT);
+                        // Parse bulletin
                         Bulletin b = new Bulletin().parse(activityObj);
                         b.setServerStatus(ServerStatus.STATUS_SUCCESS);
+                        // Parse user profile
                         UserProfile userProfile = UserProfile.parseUserProfile(
                                 activityObj.getString(Bulletin.KEY_USER_PROFILE));
                         userProfile.setServerStatus(ServerStatus.STATUS_SUCCESS);
-                        b.setFirstName(userProfile.getFirstName());
-                        b.setLastName(userProfile.getLastName());
+                        // Set bulletin's user
+                        b.setUserProfile(userProfile);
 //                        userList.add(userProfile.toValues());
+                        // Add data to list
+//                        userList.add(userProfile);
                         bulletinList.add(b);
                     } catch (JSONException e) { // Failed parsing this bulletin
                         e.printStackTrace();
@@ -128,6 +133,7 @@ public class NewsfeedOp extends Operations {
                 if (mClearData)
                     dataAccess.clearData();
                 dataAccess.addBulletins(bulletinList);
+//                dataAccess.addUserProfile(bulletinList);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

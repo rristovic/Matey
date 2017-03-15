@@ -65,8 +65,11 @@ public class BulletinOp extends Operations {
     protected void onDownloadSuccess(String response) {
         try {
             JSONObject object = new JSONObject(response);
-            Bulletin b = new Bulletin().parse(object.getJSONObject(KEY_DATA));
-            UserProfile profile = new UserProfile().parse(object.getJSONObject(KEY_DATA).getJSONObject(Bulletin.KEY_USER_PROFILE));
+            Bulletin b = new Bulletin();
+            UserProfile profile = new UserProfile().parse(
+                    object.getJSONObject(KEY_DATA).getJSONObject(Bulletin.KEY_USER_PROFILE));
+            b.setUserProfile(profile);
+            b.parse(object.getJSONObject(KEY_DATA));
             DataAccess.getInstance(mContextRef.get()).addBulletin(b);
             DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
 

@@ -28,7 +28,6 @@ import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.adapters.RepliesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.DownloadListener;
@@ -36,7 +35,6 @@ import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.UploadListener;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
-import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
@@ -156,7 +154,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
                 Intent i = new Intent(BulletinViewActivity.this, NewPostActivity.class);
                 i.putExtra(NewPostActivity.EXTRA_REPLY_SUBJECT, mCurBulletin.getSubject());
                 i.putExtra(NewPostActivity.EXTRA_POST_ID, mCurBulletin.getId());
-                i.putExtra(NewPostActivity.EXTRA_USER_NAME, mCurBulletin.getFirstName());
+                i.putExtra(NewPostActivity.EXTRA_USER_NAME, mCurBulletin.getUserProfile().getFirstName());
                 startActivity(i);
             }
         });
@@ -170,13 +168,12 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
             @Override
             public void onClick(View v) {
                 Reply r = new Reply();
-                UserProfile profile = MotherActivity.mCurrentUserProfile;
-
                 // Create new reply
-                r.setUserFirstName(profile.getFirstName());
-                r.setUserLastName(profile.getLastName());
+//                r.setUserFirstName(profile.getFirstName());
+//                r.setUserLastName(profile.getLastName());
+                r.setUserProfile(MotherActivity.mCurrentUserProfile);
                 r.setDate(new Date());
-                r.setUserId(profile.getUserId());
+//                r.setUserId(profile.getUserId());
                 r.setPostId(mCurBulletin.getId());
                 r.setReplyText(etReplyText.getText().toString());
 
@@ -205,9 +202,9 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
         if (mAdapter.getItemCount() != 0) {
             int replyCount = mAdapter.getItemCount();
             if (replyCount == 1)
-                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getFirstName(), mCurBulletin.getLastName());
+                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getUserProfile().getFirstName(), mCurBulletin.getUserProfile().getLastName() );
             else {
-                text = String.format(getString(R.string.bulletin_reply_header), mCurBulletin.getFirstName(), Integer.toString(--replyCount));
+                text = String.format(getString(R.string.bulletin_reply_header), mCurBulletin.getUserProfile().getFirstName(), Integer.toString(--replyCount));
             }
         } else
             text = "No replies so far";
@@ -282,13 +279,10 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
             @Override
             public void onClick(View v) {
                 Reply r = new Reply();
-                UserProfile profile = MotherActivity.mCurrentUserProfile;
 
                 // Create new reply
-                r.setUserFirstName(profile.getFirstName());
-                r.setUserLastName(profile.getLastName());
+                r.setUserProfile(MotherActivity.mCurrentUserProfile);
                 r.setDate(new Date());
-                r.setUserId(profile.getUserId());
                 r.setPostId(mCurBulletin.getId());
                 r.setReReplyId(reply._id);
                 r.setReplyText(etReplyText.getText().toString());
@@ -382,7 +376,6 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
                     @Override
                     public void onClick(View v) {
                         mManager.boostPost(mCurBulletin, BulletinViewActivity.this);
-                        getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
                         updateUI();
                     }
                 });
@@ -391,7 +384,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
                     @Override
                     public void onClick(View v) {
                         Intent i = new Intent(BulletinViewActivity.this, ProfileActivity.class);
-                        i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCurBulletin.getUserID());
+                        i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCurBulletin.getUserProfile().getUserId());
                         BulletinViewActivity.this.startActivity(i);
                     }
                 });
@@ -402,7 +395,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
                 rlContainer.addView(bulletinView);
 
             // Set data
-            ((TextView) bulletinView.findViewById(R.id.tvBulletinUserName)).setText(mCurBulletin.getFirstName().concat(" ").concat(mCurBulletin.getLastName()));
+            ((TextView) bulletinView.findViewById(R.id.tvBulletinUserName)).setText(mCurBulletin.getUserProfile().getFullName());
             ((TextView) bulletinView.findViewById(R.id.tvBulletinDate)).setText(Util.getReadableDateText(mCurBulletin.getDate()));
             ((TextView) bulletinView.findViewById(R.id.tvBulletinSubject)).setText(mCurBulletin.getSubject());
             ((TextView) bulletinView.findViewById(R.id.tvBulletinMessage)).setText(mCurBulletin.getMessage());

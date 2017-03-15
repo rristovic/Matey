@@ -278,8 +278,7 @@ public class OperationManager implements OperationProvider {
      */
     public void postNewBulletin(String subject, String message, @Nullable List<String> attachments, final Context context) {
 
-        final Bulletin b = new Bulletin(MotherActivity.user_id, MotherActivity.mCurrentUserProfile.getFirstName(),
-                MotherActivity.mCurrentUserProfile.getLastName(), subject, message, new Date());
+        final Bulletin b = new Bulletin(MotherActivity.mCurrentUserProfile, subject, message, new Date());
         b.setAttachments(attachments);
         b.setId(mIdGenerator.generateId());
         mDataAccess.addBulletin(b);
@@ -394,9 +393,9 @@ public class OperationManager implements OperationProvider {
      */
     public void postNewReply(String text, Bulletin bulletin, Context context) {
         Reply r = new Reply();
-        r.setUserId(MotherActivity.user_id);
-        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
-        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
+//        r.setUserId(MotherActivity.user_id);
+//        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
+//        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
         r.setReplyText(text);
         r.setPostId(bulletin.getId());
 
@@ -412,9 +411,10 @@ public class OperationManager implements OperationProvider {
      */
     public void postNewReply(String text, long postId, Context context) {
         Reply r = new Reply();
-        r.setUserId(MotherActivity.user_id);
-        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
-        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
+//        r.setUserId(MotherActivity.user_id);
+//        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
+//        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
+        r.setUserProfile(MotherActivity.mCurrentUserProfile);
         r.setReplyText(text);
         r.setPostId(postId);
 

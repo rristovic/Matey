@@ -6,9 +6,11 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
@@ -25,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import static com.mateyinc.marko.matey.model.Bulletin.KEY_POST_ID;
+
 public class Reply extends MModel {
     private static final String TAG = Reply.class.getSimpleName();
 
@@ -38,10 +42,8 @@ public class Reply extends MModel {
     public static final String KEY_TEXT = "reply_text";
     public static final String KEY_REPLY_APPRVS = "reply_approves";
 
-    /**
-     * The ID of the user that has replied
-     */
-    private long userId;
+
+
     /**
      * The ID of the post/bulletin that has been replied on
      */
@@ -51,9 +53,8 @@ public class Reply extends MModel {
      */
     private long reReplyId;
 
+    private UserProfile mUserProfile;
     public boolean isPostReply = true;
-    private String userFirstName;
-    private String userLastName;
     private Date replyDate;
     private String replyText;
 
@@ -67,12 +68,12 @@ public class Reply extends MModel {
     public Reply() {
     }
 
-    public long getUserId() {
-        return userId;
+    public UserProfile getUserProfile() {
+        return mUserProfile;
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setUserProfile(UserProfile profile) {
+        this.mUserProfile = profile;
     }
 
     public long getPostId() {
@@ -107,22 +108,6 @@ public class Reply extends MModel {
             return String.format(context.getString(R.string.boost_statistics),
                     mNumOfLikes);
 
-    }
-
-    public String getUserFirstName() {
-        return userFirstName;
-    }
-
-    public void setUserFirstName(String userFirstName) {
-        this.userFirstName = userFirstName;
-    }
-
-    public String getUserLastName() {
-        return userLastName;
-    }
-
-    public void setUserLastName(String userLastName) {
-        this.userLastName = userLastName;
     }
 
     public Date getReplyDate() {
@@ -279,10 +264,6 @@ public class Reply extends MModel {
 
         if (isPostReply) { // Add to post replies database
             values.put(DataContract.ReplyEntry._ID, _id);
-            values.put(DataContract.ReplyEntry.COLUMN_USER_ID, userId);
-            values.put(DataContract.ReplyEntry.COLUMN_POST_ID, postId);
-            values.put(DataContract.ReplyEntry.COLUMN_FIRST_NAME, userFirstName);
-            values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, userFirstName);
             values.put(DataContract.ReplyEntry.COLUMN_TEXT, replyText);
             values.put(DataContract.ReplyEntry.COLUMN_DATE, replyDate.getTime());
 //            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, numOfApprvs);
@@ -325,8 +306,8 @@ public class Reply extends MModel {
         } catch (Exception e) {
             date = replyDate.toString();
         }
-        return String.format(Locale.US, "Reply: ID=%d; Text=%s; UserName=%s %s; UserId=%d; Date=%s",
-                _id, text, userFirstName, userLastName, userId, date);
+        return String.format(Locale.US, "Reply: ID=%d; Text=%s; User:{%s} Date=%s",
+                _id, text, mUserProfile.toString(), date);
     }
 
     @Override
@@ -341,12 +322,23 @@ public class Reply extends MModel {
 
     @Override
     public void onUploadSuccess(String response, Context c) {
+        JSONObject jsonObject;
+        try {
+            jsonObject = new JSONObject(response);
+            jsonObject = jsonObject.getJSONObject(Operations.KEY_DATA);
 
+            this.replyDate = Util.parseDate(jsonObject.getString(MModel.KEY_DATE_ADDED));
+            this._id = jsonObject.getLong(KEY_REPLY_ID);
+            this.mServerStatus = ServerStatus.STATUS_SUCCESS;
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing reply id and date: " + e.getLocalizedMessage(), e);
+        }
     }
 
     @Override
     public void onUploadFailed(String error, Context c) {
 //        DataAccess.getInstance(c).getBulletinById(postId).removeReply(this);
+        this.mServerStatus = ServerStatus.STATUS_RETRY_UPLOAD;
     }
 
     @Override
@@ -357,7 +349,7 @@ public class Reply extends MModel {
     @Override
     public Reply parse(JSONObject object) throws JSONException {
         this.setId(object.getLong(KEY_REPLY_ID));
-        this.setPostId(object.getLong(Bulletin.KEY_POST_ID));
+        this.setPostId(object.getLong(KEY_POST_ID));
         this.setReplyText(object.getString(Bulletin.KEY_TEXT));
 
         this.setNumOfReplies(object.getInt(Bulletin.KEY_NUM_OF_REPLIES));

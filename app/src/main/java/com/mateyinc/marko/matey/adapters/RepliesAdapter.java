@@ -16,7 +16,6 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
@@ -36,7 +35,6 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
         void showReplyKeyboard();
     }
 
-    private RecyclerView mRecycleView;
     private UserProfile mCurUserProfile;
     private Resources mResources;
     private boolean mOnlyShowReplies = true;
@@ -141,11 +139,10 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
             }
 
             @Override
-            public void onNameClicked(View caller, View rootView) {
-                int position = mRecycleView.getChildAdapterPosition(rootView);
+            public void onNameClicked(View caller, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                Reply reply = (Reply) mData.get(position);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, reply.getUserId());
+                Reply reply = (Reply) mData.get(adapterViewPosition);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, reply.getUserProfile().getUserId());
                 mContext.startActivity(i);
             }
 
@@ -161,14 +158,14 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder mHolder, final int position) {
         if (getItemViewType(position) == FIRST_ITEM) {
-            RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
-            ((TextView) holder.mView.findViewById(R.id.tvBulletinUserName)).setText(mCurBulletin.getFirstName().concat(" ").concat(mCurBulletin.getLastName()));
+            final RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
+            ((TextView) holder.mView.findViewById(R.id.tvBulletinUserName)).setText(mCurBulletin.getUserProfile().getFullName());
             ((TextView) holder.mView.findViewById(R.id.tvBulletinDate)).setText(Util.getReadableDateText(mCurBulletin.getDate()));
             ((TextView) holder.mView.findViewById(R.id.tvBulletinSubject)).setText(mCurBulletin.getSubject());
             ((TextView) holder.mView.findViewById(R.id.tvBulletinMessage)).setText(mCurBulletin.getMessage());
             ((TextView) holder.mView.findViewById(R.id.tvBulletinStats)).setText(mCurBulletin.getStatistics(mContext));
             LinearLayout llReply = (LinearLayout) holder.mView.findViewById(R.id.llBulletinReply);
-            LinearLayout llBoost = (LinearLayout) holder.mView.findViewById(R.id.llBoost);
+            final LinearLayout llBoost = (LinearLayout) holder.mView.findViewById(R.id.llBoost);
 
             llReply.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -181,7 +178,8 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
                 @Override
                 public void onClick(View v) {
                     mManager.boostPost(mCurBulletin, mContext);
-                    mContext.getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
+//                    notifyItemChanged(0);
+                    ((TextView) holder.mView.findViewById(R.id.tvBulletinStats)).setText(mCurBulletin.getStatistics(mContext));
                 }
             });
 
@@ -189,15 +187,16 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(mContext, ProfileActivity.class);
-                    i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCurBulletin.getUserID());
+                    i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCurBulletin.getUserProfile().getUserId());
                     mContext.startActivity(i);
                 }
             });
         }
         Reply reply = (Reply) mData.get(position);
+//        UserProfile profile = DataAccess.getInstance(mContext).getUserProfile(reply.getUserProfile().getUserId());
         RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
 
-        String text = reply.getUserFirstName() + " " + reply.getUserLastName();
+        String text = reply.getUserProfile().getFullName();
         holder.tvName.setText(text);
         holder.tvDate.setText(Util.getReadableDateText(reply.getReplyDate()));
         holder.tvMessage.setText(reply.getReplyText());
@@ -301,7 +300,7 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
 
             String tag = v.getTag().toString();
             if (tag.equals(TAG_NAME)) {
-                mListener.onNameClicked(v, mView);
+                mListener.onNameClicked(v, getAdapterPosition());
             } else if (tag.equals(BTN_ARR_TAG)) {
                 mListener.onApproveClicked(v, getAdapterPosition());
             } else if (tag.equals(TAG_SHOW_APPROVES)) {
@@ -318,7 +317,7 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
 
             void onShowApprovesClicked(View caller, View rootView);
 
-            void onNameClicked(View caller, View rootView);
+            void onNameClicked(View caller, int adapterViewPosition);
 
             void onReplyClick(View caller, int adapterViewPosition);
         }
