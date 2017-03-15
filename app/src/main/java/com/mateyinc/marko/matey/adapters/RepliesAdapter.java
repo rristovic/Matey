@@ -16,20 +16,19 @@ import android.widget.TextView;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
-import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
-import java.util.LinkedList;
 
-
-public class RepliesAdapter extends RecycleCursorAdapter {
+public class RepliesAdapter extends RecycleNoSQLAdapter {
     private final String TAG = RepliesAdapter.class.getSimpleName();
+
+    public RepliesAdapter(MotherActivity context) {
+        super(context);
+    }
 
     public interface ReplyClickedInterface {
         void showPopupWindow(Reply reply);
@@ -51,21 +50,6 @@ public class RepliesAdapter extends RecycleCursorAdapter {
      **/
     private ReplyClickedInterface showPopupInterface = null;
 
-    public RepliesAdapter(MotherActivity context, RecyclerView view, LinkedList data) {
-        mContext = context;
-        mRecycleView = view;
-        mManager = OperationManager.getInstance(context);
-
-        init();
-    }
-
-    public RepliesAdapter(MotherActivity context, RecyclerView view) {
-        mContext = context;
-        mRecycleView = view;
-        mManager = OperationManager.getInstance(context);
-
-        init();
-    }
 
     private void init() {
         mCurUserProfile = new UserProfile();
@@ -160,15 +144,14 @@ public class RepliesAdapter extends RecycleCursorAdapter {
             public void onNameClicked(View caller, View rootView) {
                 int position = mRecycleView.getChildAdapterPosition(rootView);
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                mCursor.moveToPosition(position);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getInt(BulletinViewActivity.COL_USER_ID));
+                Reply reply = (Reply) mData.get(position);
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, reply.getUserId());
                 mContext.startActivity(i);
             }
 
             @Override
             public void onReplyClick(View caller, int adapterViewPosition) {
-                mCursor.moveToPosition(adapterViewPosition);
-                Reply r = DataAccess.getReply(adapterViewPosition, mCursor);
+                Reply r = (Reply) mData.get(adapterViewPosition);
                 showPopupInterface.showPopupWindow(r);
             }
         };
@@ -197,7 +180,7 @@ public class RepliesAdapter extends RecycleCursorAdapter {
             llBoost.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mManager.newPostLike(mCurBulletin, mContext);
+                    mManager.boostPost(mCurBulletin, mContext);
                     mContext.getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
                 }
             });
@@ -211,7 +194,7 @@ public class RepliesAdapter extends RecycleCursorAdapter {
                 }
             });
         }
-        final Reply reply = DataAccess.getReply(position, mCursor);
+        Reply reply = (Reply) mData.get(position);
         RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
 
         String text = reply.getUserFirstName() + " " + reply.getUserLastName();
@@ -233,8 +216,15 @@ public class RepliesAdapter extends RecycleCursorAdapter {
         mOnlyShowReplies = false;
     }
 
+    /**
+     * Method to call when new data has been downloaded
+     *
+     * @param b {@link Bulletin} object that contains parsed replies
+     */
     public void setBulletin(Bulletin b) {
         mCurBulletin = b;
+        mData = b.getReplies();
+        notifyDataSetChanged();
     }
 
     /**

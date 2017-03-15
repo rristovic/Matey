@@ -1,7 +1,6 @@
 package com.mateyinc.marko.matey.adapters;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -16,15 +15,13 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 
-public class BulletinsAdapter extends RecycleCursorAdapter {
+public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
     private static final String TAG = BulletinsAdapter.class.getSimpleName();
 
     // Maximum number of character in a post
@@ -40,9 +37,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     public static String clickedText = "";
     public static final int COPYTEXT_ID = 100;
 
-    public BulletinsAdapter(HomeActivity context) {
-        mContext = context;
-        mManager = OperationManager.getInstance(context);
+    public BulletinsAdapter(MotherActivity context) {
+        super(context);
     }
 
     @Override
@@ -57,17 +53,9 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 default: {
                     View view = LayoutInflater.from(mContext) //Inflate the view
                             .inflate(R.layout.bulletin_list_item, parent, false);
-
-//
                     // Implementing ViewHolderClickListener and returning view holder
                     return new ViewHolder(view, getViewHolderListener());
                 }
-//                case FIRST_ITEM: {
-//                    View view = LayoutInflater.from(mContext)
-//                            .inflate(R.layout.bulletin_first_list_item, parent, false);
-//
-//                    return new ViewHolderFirst(view, getViewHolderListener());
-//                }
             }
         } else {
             throw new RuntimeException("Not bound to RecyclerView");
@@ -86,8 +74,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             public void onReplyClick(View caller, int adapterViewPosition) {
                 Intent i = new Intent(mContext, BulletinViewActivity.class);
                 i.putExtra(BulletinViewActivity.EXTRA_NEW_REPLY, true);
-                mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(DataAccess.COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mData.get(adapterViewPosition).getId());
                 i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
@@ -95,8 +82,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             @Override
             public void onBodyClicked(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, BulletinViewActivity.class);
-                mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mCursor.getLong(DataAccess.COL_POST_ID));
+                i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, mData.get(adapterViewPosition).getId());
                 i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_POS, adapterViewPosition);
                 mContext.startActivity(i);
             }
@@ -104,22 +90,16 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             @Override
             public void onNameClick(View view, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                mCursor.moveToPosition(adapterViewPosition);
-                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCursor.getLong(DataAccess.COL_USER_ID));
+                i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mData.get(adapterViewPosition).getUserID());
                 mContext.startActivity(i);
             }
 
             @Override
             public void onBoostClick(View caller, int adapterViewPosition) {
-                mManager.newPostLike(adapterViewPosition, mContext);
+                mManager.boostPost(adapterViewPosition, mContext);
+                notifyItemChanged(adapterViewPosition);
             }
 
-
-//            @Override
-//            public boolean onLongClick(View v, int adapterViewPosition) {
-//                clickedText = ((TextView) v).getText().toString();
-//                return false;
-//            }
         };
     }
 
@@ -131,7 +111,7 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
             case FIRST_ITEM:
             case ITEM: {
                 BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
-                final Bulletin bulletin = DataAccess.getBulletin(position, mCursor);
+                final Bulletin bulletin = mData.get(position);
 
                 try {
                     if (bulletin.getMessage().length() > CHAR_LIM) {
@@ -194,7 +174,8 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
                 holder.llBottom.removeView(holder.llBottom.findViewWithTag(TAG_UPLOADING));
                 break;
             }
-            default:break;
+            default:
+                break;
         }
 
         if (holder.stateFlag != ViewHolder.STATE_UPLOADED) {
@@ -293,10 +274,6 @@ public class BulletinsAdapter extends RecycleCursorAdapter {
     @Override
     public int getItemViewType(int position) {
         return position == 0 ? FIRST_ITEM : ITEM;
-    }
-
-    public void swapCursor(Cursor newCursor) {
-        super.swapCursor(newCursor);
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {

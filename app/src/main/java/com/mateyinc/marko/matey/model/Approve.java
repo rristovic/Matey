@@ -8,8 +8,9 @@ import android.util.Log;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ApproveEntry;
-import com.mateyinc.marko.matey.internet.operations.ApproveOp;
-import com.mateyinc.marko.matey.internet.operations.OperationType;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Locale;
 
@@ -44,29 +45,29 @@ public class Approve extends MModel {
     }
 
     public void save(Context context, boolean approveExists) {
-        ApproveOp op = new ApproveOp(context, this);
-
-        if (approveExists) { // Unlike
-            if (replyId != -1)
-                op.setOperationType(OperationType.REPLY_UNLIKED);
-            else
-                op.setOperationType(OperationType.POST_UNLIKED);
-
-            // Remove post form db. If upload fail, put it back in
-            removeFromDb(context);
-        } else {
-            if (replyId != -1)
-                op.setOperationType(OperationType.REPLY_LIKED);
-            else
-                op.setOperationType(OperationType.POST_LIKED);
-
-            // Add to db
-            addToDb(context);
-        }
-
-        // Save to not uploaded
-        addToNotUploaded(TAG, context);
-        op.startUploadAction();
+//        ApproveOp op = new ApproveOp(context, this);
+//
+//        if (approveExists) { // Unlike
+//            if (replyId != -1)
+//                op.setOperationType(OperationType.REPLY_UNLIKED);
+//            else
+//                op.setOperationType(OperationType.POST_UNLIKED);
+//
+//            // Remove post form db. If upload fail, put it back in
+//            removeFromDb(context);
+//        } else {
+//            if (replyId != -1)
+//                op.setOperationType(OperationType.REPLY_LIKED);
+//            else
+//                op.setOperationType(OperationType.POST_LIKED);
+//
+//            // Add to db
+//            addToDb(context);
+//        }
+//
+//        // Save to not uploaded
+//        addToNotUploaded(TAG, context);
+//        op.startUploadAction();
     }
 
     @Override
@@ -134,6 +135,11 @@ public class Approve extends MModel {
     @Override
     protected void notifyDataChanged(Context context) {
 
+    }
+
+    @Override
+    public MModel parse(JSONObject object) throws JSONException {
+        return null;
     }
 
     @Override

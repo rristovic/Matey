@@ -5,14 +5,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,22 +23,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
 import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
-import com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
+import com.mateyinc.marko.matey.data.DataAccess;
+import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static com.mateyinc.marko.matey.data.DataAccess.BULLETIN_COLUMNS;
-
-public class BulletinsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, Response.Listener<String>, Response.ErrorListener {
-    public static final int BULLETINS_LOADER = 100;
-
+public class BulletinsFragment extends Fragment implements DownloadListener {
     private HomeActivity mContext;
     private BulletinsAdapter mAdapter;
     private BroadcastReceiver mDataDownloaded;
@@ -74,10 +64,8 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         super.onAttach(context);
         mContext = (HomeActivity) context;
         mOperationManager = OperationManager.getInstance(context);
-        mOperationManager.addSuccessListener(this);
-        mOperationManager.addErrorListener(this);
-
-        getLoaderManager().initLoader(BULLETINS_LOADER, null, this);
+        mOperationManager.setDownloadListener(this);
+        mOperationManager.downloadNewsFeed(true, mContext);
     }
 
     @Override
@@ -129,6 +117,7 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     public void onResume() {
         super.onResume();
         Log.d("BulletinsFragment", "onResume is called.");
+        mOperationManager.setDownloadListener(this);
 
         // If items are updated, notify adapter
         if (mUpdatedPositions.size() != 0) {
@@ -142,16 +131,6 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
 
         // Settings list scroll listener
         mRecycleView.addOnScrollListener(mScrollListener);
-
-        // Whole list downloaded broadcast
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mDataDownloaded = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                OperationManager.mCurrentPage++; // Update curPage
-//                mScrollListener.mLoading = false;
-                Log.d("BulletinsFragment", "Bulletin downloaded broadcast received. Current page=" + OperationManager.mCurrentPage);
-            }
-        }, new IntentFilter(OperationManager.BULLETIN_LIST_LOADED));
     }
 
     @Override
@@ -163,35 +142,16 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onResponse(String response) {
+    public void onDownloadSuccess() {
+        mAdapter.setData(DataAccess.getInstance(getContext()).getBulletins());
         mScrollListener.onDownloadFinished();
         mRefreshLayout.setRefreshing(false);
     }
 
     @Override
-    public void onErrorResponse(VolleyError error) {
+    public void onDownloadFailed() {
         mScrollListener.onDownloadFinished();
         mRefreshLayout.setRefreshing(false);
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(),
-                BulletinEntry.CONTENT_URI,
-                BULLETIN_COLUMNS,
-                null, null,
-                BulletinEntry.COLUMN_DATE + BulletinEntry.DEFAULT_SORT);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        updateEmptyView(data.getCount());
-        mAdapter.swapCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.swapCursor(null);
     }
 
 
@@ -232,6 +192,5 @@ public class BulletinsFragment extends Fragment implements LoaderManager.LoaderC
         }
         return super.onContextItemSelected(item);
     }
-
 
 }

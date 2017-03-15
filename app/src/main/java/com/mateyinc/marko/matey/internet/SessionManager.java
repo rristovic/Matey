@@ -36,7 +36,6 @@ import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.AddFriendsActivity;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
@@ -830,9 +829,9 @@ public class SessionManager {
      * @param context the context used to start new activity
      */
     private void loggedInWithSuggestedFriends(MainActivity context) {
-        Intent intent = new Intent(context, AddFriendsActivity.class);
-        context.startActivity(intent);
-        context.finish();
+//        Intent intent = new Intent(context, AddFriendsActivity.class);
+//        context.startActivity(intent);
+//        context.finish();
     }
 
 
@@ -847,11 +846,6 @@ public class SessionManager {
         clearUserCredentials(context, securePreferences);
         clearDatabase(context);
         sendLogOutReq(context, MotherActivity.device_id, MotherActivity.access_token);
-
-        if (context.isDebug()) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            preferences.edit().remove("IS_DEBUG").remove("DATA_CREATED").apply();
-        }
 
         Intent i = new Intent(context, MainActivity.class);
         context.startActivity(i);

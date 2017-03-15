@@ -8,29 +8,35 @@ import android.util.Log;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
+import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
+import com.mateyinc.marko.matey.internet.operations.Operations;
 import com.mateyinc.marko.matey.internet.operations.ReplyOp;
-import com.mateyinc.marko.matey.inall.MotherActivity;
 
-import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 public class Reply extends MModel {
     private static final String TAG = Reply.class.getSimpleName();
 
     // Keys for JSON data
-    public static final String REPLY_ID = "reply_id";
-    public static final String FIRST_NAME = "reply_username";
-    public static final String LAST_NAME = "reply_lastname";
-    public static final String USER_ID = "reply_userid";
-    public static final String DATE = "reply_date";
-    public static final String TEXT = "reply_text";
-    public static final String REPLY_APPRVS = "reply_approves";
+    public static final String KEY_REPLY_ID = "reply_id";
+    public static final String KEY_NUM_OF_APPROVES = "num_of_approves";
+    public static final String KEY_FIRST_NAME = "reply_username";
+    public static final String KEY_LAST_NAME = "reply_lastname";
+    public static final String KEY_USER_ID = "reply_userid";
+    public static final String KEY_DATE = "reply_date";
+    public static final String KEY_TEXT = "reply_text";
+    public static final String KEY_REPLY_APPRVS = "reply_approves";
 
     /**
      * The ID of the user that has replied
@@ -48,13 +54,17 @@ public class Reply extends MModel {
     public boolean isPostReply = true;
     private String userFirstName;
     private String userLastName;
-    private Date replyDate = new Date();
+    private Date replyDate;
     private String replyText;
-    private int numOfApprvs, numOfReplies;
-    private LinkedList<UserProfile> replyApproves;// Not in DB
+
+    private int mNumOfReplies = 0;
+    private int mNumOfLikes = 0;
+    private int mNumOfAttachs = 0;
+    private List<String> mAttchList;
+    private List<Reply> mReplyList;
+    private List<Approve> mApproveList;
 
     public Reply() {
-        replyApproves = new LinkedList<>();
     }
 
     public long getUserId() {
@@ -92,10 +102,10 @@ public class Reply extends MModel {
     public String getStatistics(Context context) {
         if (isPostReply)
             return String.format(context.getString(R.string.statistics),
-                    numOfApprvs, numOfReplies);
+                    mNumOfLikes, mNumOfReplies);
         else
             return String.format(context.getString(R.string.boost_statistics),
-                    numOfApprvs);
+                    mNumOfLikes);
 
     }
 
@@ -132,42 +142,6 @@ public class Reply extends MModel {
     }
 
 
-    public int getNumOfApprvs() {
-        return numOfApprvs;
-    }
-
-    public void setNumOfApprvs(int numOfApprvs) {
-        this.numOfApprvs = numOfApprvs;
-    }
-
-    public int getNumOfReplies() {
-        return numOfReplies;
-    }
-
-    public void setNumOfReplies(int numOfReplies) {
-        this.numOfReplies = numOfReplies;
-    }
-
-    public LinkedList<UserProfile> getReplyApproves() {
-        return replyApproves;
-    }
-
-    public void setReplyApproves(LinkedList<UserProfile> replyApproves) {
-        this.replyApproves = replyApproves;
-    }
-
-    public boolean hasReplyApproveWithId(long id) {
-        if (replyApproves == null)
-            return false;
-
-        for (UserProfile p :
-                replyApproves) {
-            if (p != null && p.getUserId() == id)
-                return true;
-        }
-        return false;
-    }
-
     public void setDate(String mDateString) {
 
         try {
@@ -191,33 +165,21 @@ public class Reply extends MModel {
         replyDate = new Date(timeInMilis);
     }
 
-    public void removeApprove(UserProfile profile) {
-        replyApproves.remove(profile);
-    }
-
-    public void addApprove(UserProfile profile) {
-        replyApproves.add(profile);
-    }
 
     /**
      * Method to call when replying on bulletin.
      *
-     * @param postId id of bulletin that is being replied on
-     * @param context  context used for database communication
+     * @param bulletin {@link Bulletin} object that is being replied on.
+     * @param context  context used for database communication.
      */
-    public void reply(Context context, long postId) {
+    public void reply(Context context, Bulletin bulletin) {
         ReplyOp replyOp = new ReplyOp(context, this);
         replyOp.setOperationType(OperationType.REPLY_ON_POST);
 
-        this.postId = postId;
+        this.postId = bulletin.getId();
         this._id = OperationManager.getInstance(context).generateId();
+        bulletin.addReply(this);
 
-        // Save reply
-        addToDb(context);
-        // Notify observers
-        context.getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
-        // Save to not uploaded
-        addToNotUploaded(TAG, context);
         // Start upload
         replyOp.startUploadAction();
     }
@@ -268,47 +230,47 @@ public class Reply extends MModel {
      */
     public void updateNumOfApprvs(boolean increment, Context context) {
         int num;
-        if (increment)
-            num = ++this.numOfApprvs;
-        else
-            num = --this.numOfApprvs;
+//        if (increment)
+//            num = ++this.numOfApprvs;
+//        else
+//            num = --this.numOfApprvs;
 
         ContentValues values = new ContentValues(1);
-        values.put(ReplyEntry.COLUMN_NUM_OF_LIKES, num);
+        values.put(ReplyEntry.COLUMN_NUM_OF_LIKES, 1);
         int rows = context.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
                 ReplyEntry._ID + " = ?", new String[]{Long.toString(this._id)});
 
         if (rows == 1) {
-            Log.d(TAG, String.format("Updated reply's(_id=%d) number of likes to %d.", this._id, this.numOfApprvs));
+            Log.d(TAG, String.format("Updated reply's(_id=%d) number of likes to %d.", this._id, this.mNumOfLikes));
         } else {
             Log.e(TAG, String.format("Failed to update reply's(_id=%d) number of likes.", this._id));
         }
     }
 
-    /**
-     * Method for incrementing reply's number of replies.
-     *
-     * @param context   context object required for db access.
-     * @param newReply boolean indicating if new reply on reply has been posted.
-     */
-    public void updateNumOfReplies(boolean newReply, Context context) {
-        int num;
-        if (newReply)
-            num = ++this.numOfReplies;
-        else
-            num = --this.numOfReplies;
-
-        ContentValues values = new ContentValues(1);
-        values.put(ReplyEntry.COLUMN_NUM_OF_REPLIES, num);
-        int rows = context.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
-                ReplyEntry._ID + " = ?", new String[]{Long.toString(this._id)});
-
-        if (rows == 1) {
-            Log.d(TAG, String.format("Updated reply's(_id=%d) number of replies to %d.", this._id, this.numOfReplies));
-        } else {
-            Log.e(TAG, String.format("Failed to update reply's(_id=%d) number of replies.", this._id));
-        }
-    }
+//    /**
+//     * Method for incrementing reply's number of replies.
+//     *
+//     * @param context   context object required for db access.
+//     * @param newReply boolean indicating if new reply on reply has been posted.
+//     */
+//    public void updateNumOfReplies(boolean newReply, Context context) {
+//        int num;
+//        if (newReply)
+//            num = ++this.numOfReplies;
+//        else
+//            num = --this.numOfReplies;
+//
+//        ContentValues values = new ContentValues(1);
+//        values.put(ReplyEntry.COLUMN_NUM_OF_REPLIES, num);
+//        int rows = context.getContentResolver().update(ReplyEntry.CONTENT_URI, values,
+//                ReplyEntry._ID + " = ?", new String[]{Long.toString(this._id)});
+//
+//        if (rows == 1) {
+//            Log.d(TAG, String.format("Updated reply's(_id=%d) number of replies to %d.", this._id, this.numOfReplies));
+//        } else {
+//            Log.e(TAG, String.format("Failed to update reply's(_id=%d) number of replies.", this._id));
+//        }
+//    }
 
 
     public void addToDb(Context c) {
@@ -323,8 +285,8 @@ public class Reply extends MModel {
             values.put(DataContract.ReplyEntry.COLUMN_LAST_NAME, userFirstName);
             values.put(DataContract.ReplyEntry.COLUMN_TEXT, replyText);
             values.put(DataContract.ReplyEntry.COLUMN_DATE, replyDate.getTime());
-            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, numOfApprvs);
-            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_REPLIES, numOfReplies);
+//            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_LIKES, numOfApprvs);
+//            values.put(DataContract.ReplyEntry.COLUMN_NUM_OF_REPLIES, numOfReplies);
             values.put(DataContract.ReplyEntry.COLUMN_SERVER_STATUS, mServerStatus.ordinal());
 
             // Add to db
@@ -384,7 +346,7 @@ public class Reply extends MModel {
 
     @Override
     public void onUploadFailed(String error, Context c) {
-
+//        DataAccess.getInstance(c).getBulletinById(postId).removeReply(this);
     }
 
     @Override
@@ -393,7 +355,126 @@ public class Reply extends MModel {
     }
 
     @Override
+    public Reply parse(JSONObject object) throws JSONException {
+        this.setId(object.getLong(KEY_REPLY_ID));
+        this.setPostId(object.getLong(Bulletin.KEY_POST_ID));
+        this.setReplyText(object.getString(Bulletin.KEY_TEXT));
+
+        this.setNumOfReplies(object.getInt(Bulletin.KEY_NUM_OF_REPLIES));
+        if (mNumOfReplies > 0) {
+            mReplyList = new ArrayList<>(mNumOfReplies);
+            // Try parsing reply list if it is present
+            try {
+                JSONObject replies = object.getJSONObject(Bulletin.KEY_REPLIES);
+                JSONArray repliesList = replies.getJSONArray(Operations.KEY_DATA);
+                int size = repliesList.length();
+                for (int i = 0; i < size; i++) {
+                    Reply r = new Reply().parse(repliesList.getJSONObject(i));
+                    mReplyList.add(r);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "No reply list for replies count = " + mNumOfReplies);
+            }
+        }
+        int attchs = object.getInt(Bulletin.KEY_NUM_OF_ATTACHMENTS);
+        int locations = object.getInt(Bulletin.KEY_NUM_OF_LOCATIONS);
+        setNumOfAttachs(attchs + locations);
+        if (locations > 0) {
+            mAttchList = new ArrayList<>(attchs + locations);
+
+            // Try parsing location list if it's present
+            try {
+                JSONArray locationList = object.getJSONArray(Bulletin.KEY_LOCATIONS);
+                for (int i = 0; i < locationList.length(); i++)
+                    mAttchList.add(locationList.get(i).toString());
+            } catch (JSONException e) {
+                Log.e(TAG, "No location list for  locations count = " + locations);
+            }
+        }
+        if (attchs > 0) {
+            if (mAttchList == null)
+                mAttchList = new ArrayList<>(attchs);
+
+            // Try parsing attachment list if it's present
+            try {
+                JSONArray locationList = object.getJSONArray(Bulletin.KEY_ATTACHMENTS);
+                for (int i = 0; i < locationList.length(); i++)
+                    mAttchList.add(locationList.getJSONObject(i).getString(Bulletin.KEY_FILE_URL));
+            } catch (JSONException e) {
+                Log.e(TAG, "No attch list for attch count = " + locations);
+            }
+        }
+        setNumOfLikes(object.getInt(KEY_NUM_OF_APPROVES));
+
+        return this;
+    }
+
+    @Override
     void save(Context context) {
 
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            Reply r = (Reply) obj;
+            return r.getId() == this.getId();
+        } catch (ClassCastException e) {
+            return false;
+        }
+    }
+
+    public int getNumOfReplies() {
+        return mNumOfReplies;
+    }
+
+    public void setNumOfReplies(int mNumOfReplies) {
+        this.mNumOfReplies = mNumOfReplies;
+    }
+
+    public int getNumOfLikes() {
+        return mNumOfLikes;
+    }
+
+    public void setNumOfLikes(int mNumOfLikes) {
+        this.mNumOfLikes = mNumOfLikes;
+    }
+
+    public int getNumOfAttachs() {
+        return mNumOfAttachs;
+    }
+
+    public void setNumOfAttachs(int mNumOfAttachs) {
+        this.mNumOfAttachs = mNumOfAttachs;
+    }
+
+    public List<String> getAttachments() {
+        if (mAttchList == null)
+            mAttchList = new ArrayList<>();
+        return mAttchList;
+    }
+
+    public void setAttachments(List<String> mAttachments) {
+        this.mAttchList = mAttachments;
+    }
+
+    public List<Reply> getReplyList() {
+        if (mReplyList == null)
+            mReplyList = new ArrayList<>();
+        return mReplyList;
+    }
+
+    public void setReplyList(List<Reply> mReplyList) {
+        this.mReplyList = mReplyList;
+    }
+
+    public List<Approve> getApproveList() {
+        if (mApproveList == null)
+            mApproveList = new ArrayList<>();
+        return mApproveList;
+    }
+
+    public void setApproveList(List<Approve> mApproveList) {
+        this.mApproveList = mApproveList;
     }
 }

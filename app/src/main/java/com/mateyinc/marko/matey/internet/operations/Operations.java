@@ -10,12 +10,13 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
+import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.OperationProvider;
+import com.mateyinc.marko.matey.internet.UploadListener;
 
 import java.lang.ref.WeakReference;
 
@@ -23,6 +24,23 @@ import java.lang.ref.WeakReference;
  * An operation class which define actions that can be performed on defined data models
  */
 public abstract class Operations {
+
+    /**
+     * Field name for multi part post request body for json data
+     **/
+    protected static final String JSON_DATA_FIELD_NAME = "json_data";
+    /**
+     * Required json data field - title
+     **/
+    protected static final String TITLE_FIELD_NAME = "title";
+    /**
+     * Content json data field - post message
+     **/
+    protected static final String CONTENT_FIELD_NAME = "text";
+    /**
+     * Content json data field - post message
+     **/
+    protected static final String LOCATIONS_FIELD_NAME = "locations";
 
     /**
      * JSON key for data object in server response, contains every data that has been required.
@@ -54,9 +72,6 @@ public abstract class Operations {
     protected static final String KEY_ACTIVITY_OBJECT = "activity_object";
 
 
-    private Response.Listener<String> successListener;
-    private Response.ErrorListener failedListener;
-
     /**
      * Indicates what kind of operations this is, used for general db control in {@link #addNotUploadedActivity(long)}
      */
@@ -69,6 +84,8 @@ public abstract class Operations {
     // Used for networking and threading
     private OperationProvider mProvider;
 
+    protected DownloadListener mDownloadListener;
+    protected UploadListener mUploadListener;
 
     Operations(Context context) {
         mOpType = OperationType.NO_OPERATION;
@@ -88,12 +105,12 @@ public abstract class Operations {
         mContextRef = new WeakReference<>(context);
     }
 
-    public void addSuccessListener(Response.Listener<String> listener) {
-        successListener = listener;
+    public void addDownloadListener(DownloadListener listener) {
+        mDownloadListener = listener;
     }
 
-    public void addFailedListener(Response.ErrorListener listener) {
-        failedListener = listener;
+    public void addUploadListener(UploadListener listener) {
+        mUploadListener = listener;
     }
 
     /**
@@ -135,11 +152,6 @@ public abstract class Operations {
                             Log.d(getTag(), "Download has succeed.");
                             onDownloadSuccess(response);
                         }
-
-                        if (successListener != null) {
-                            successListener.onResponse(response);
-                            Log.d(getTag(), "Download has succeed.");
-                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -149,11 +161,6 @@ public abstract class Operations {
                         if (c != null) {
                             Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
                             onDownloadFailed(error);
-                        }
-
-                        if (failedListener != null) {
-                            failedListener.onErrorResponse(error);
-                            Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
                         }
                     }
                 });
@@ -171,11 +178,11 @@ public abstract class Operations {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        notifyUI(R.string.upload_success);
+//                        notifyUI(R.string.upload_success);
 
-                        if (successListener != null) {
-                            successListener.onResponse(response);
-                        }
+//                        if (successListener != null) {
+//                            successListener.onResponse(response);
+//                        }
 
                         Context c = mContextRef.get();
                         if (c != null) {
@@ -187,11 +194,11 @@ public abstract class Operations {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        notifyUI(R.string.upload_failed);
+//                        notifyUI(R.string.upload_failed);
 
-                        if (failedListener != null) {
-                            failedListener.onErrorResponse(error);
-                        }
+//                        if (failedListener != null) {
+//                            failedListener.onErrorResponse(error);
+//                        }
 
                         Context c = mContextRef.get();
                         if (c != null) {
@@ -264,6 +271,11 @@ public abstract class Operations {
         } else {
             Log.d(getTag(), String.format("%s (with ID=%d) server status updated to %s.", mOpType.name(), id, serverStatus.name()));
         }
+    }
+
+    protected void runOnUiThread(Runnable r) {
+        Handler handler = new Handler(mContextRef.get().getMainLooper());
+        handler.post(r);
     }
 
     protected void notifyUI(final int stringId) {

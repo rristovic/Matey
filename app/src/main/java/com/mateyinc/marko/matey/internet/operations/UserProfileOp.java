@@ -7,12 +7,16 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.UserProfile;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Locale;
 
@@ -33,9 +37,9 @@ public class UserProfileOp extends Operations {
     public void startDownloadAction() {
         String url;
 
-        switch (mOpType){
-            case DOWNLOAD_FOLLOWERS:{
-                Uri uri =  Uri.parse(UrlData.createFollowersListUrl(mUserId)).buildUpon()
+        switch (mOpType) {
+            case DOWNLOAD_FOLLOWERS: {
+                Uri uri = Uri.parse(UrlData.createFollowersListUrl(mUserId)).buildUpon()
                         .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mCount))
                         .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mOffset))
                         .build();
@@ -51,12 +55,12 @@ public class UserProfileOp extends Operations {
 //                url = uri.toString();
 //                break;
 //            }
-            case DOWNLOAD_USER_PROFILE:{
+            case DOWNLOAD_USER_PROFILE: {
                 url = UrlData.createProfileDataUrl(mUserId);
                 break;
             }
 
-            default:{
+            default: {
                 Log.e(TAG, "No operation type has been specified!");
                 url = "#";
             }
@@ -69,7 +73,15 @@ public class UserProfileOp extends Operations {
     @Override
     public void onDownloadSuccess(final String response) {
         final Context c = mContextRef.get();
-        final String parsedResponse;
+
+        try {
+            UserProfile profile = new UserProfile().parse(new JSONObject(response));
+            DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        mDownloadListener.onDownloadSuccess();
 
 //        switch (mNetworkAction.getDownloadAction()){
 //            case GET_USER_PROFILE:{
@@ -81,17 +93,20 @@ public class UserProfileOp extends Operations {
 //            }
 //        }
 
-        submitRunnable(new Runnable() {
-            @Override
-            public void run() {
-                UserProfile.saveToDb(response, c);
-            }
-        });
     }
 
     @Override
     public void onDownloadFailed(VolleyError error) {
+        String errorMsg ;
 
+        try {
+            errorMsg = new String(error.networkResponse.data);
+            Log.e(TAG, errorMsg);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse volley error:" + error.toString());
+        }
+
+        mDownloadListener.onDownloadFailed();
     }
 
 
@@ -99,7 +114,7 @@ public class UserProfileOp extends Operations {
     public void startUploadAction() {
         String url;
         int method;
-        switch (mOpType){
+        switch (mOpType) {
             case FOLLOW_USER_PROFILE: {
                 url = UrlData.createFollowUrl(mUserId);
                 method = Request.Method.POST;
@@ -123,7 +138,7 @@ public class UserProfileOp extends Operations {
                 break;
             }
 
-            default:{
+            default: {
                 url = "#";
                 Log.e(TAG, "No operation type has been specified!");
                 method = Request.Method.POST;
@@ -157,6 +172,7 @@ public class UserProfileOp extends Operations {
     /**
      * Method for updating db with the followed or unfollowed user profile.
      * Updates user profile column {@link ProfileEntry#COLUMN_FOLLOWED} to provided boolean;
+     *
      * @param isFollowed indicates if the user is followed or not
      */
     private void saveFollowedUser(boolean isFollowed) {
@@ -176,9 +192,9 @@ public class UserProfileOp extends Operations {
     }
 
 
-
     /**
      * Settings user id param for upload/download operation.
+     *
      * @param userId user id param
      * @return {@link UserProfileOp} instance
      */
@@ -190,6 +206,7 @@ public class UserProfileOp extends Operations {
     /**
      * Setting count for user profile list download.
      * Indicates how much of user profiles to download from server.
+     *
      * @param count count number to download
      * @return {@link UserProfileOp} instance
      */
@@ -202,6 +219,7 @@ public class UserProfileOp extends Operations {
      * Setting offset for user profile list download.
      * Indicates from what position to download the list.
      * Set it relative to how much of profiles has already been downloaded.
+     *
      * @param offset offset number
      * @return {@link UserProfileOp} instance
      */
@@ -213,8 +231,8 @@ public class UserProfileOp extends Operations {
     /**
      * Helper method for creating debug text string
      */
-    public String getString(long id, String name, String lastName, String email, String picLink){
-        return String.format(Locale.US,"UserProfile: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", id, name, lastName, email, picLink);
+    public String getString(long id, String name, String lastName, String email, String picLink) {
+        return String.format(Locale.US, "UserProfile: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", id, name, lastName, email, picLink);
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.mateyinc.marko.matey.internet.operations;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
 import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -17,7 +17,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.mateyinc.marko.matey.internet.UrlData.ACCESS_BASE_URL;
 import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
@@ -85,16 +86,17 @@ public class NewsfeedOp extends Operations {
             try {
                 mNextUrl = pagination.getString(KEY_NEXT_URL);
                 mNextUrl = mNextUrl.substring(mNextUrl.lastIndexOf("/") + 1);// save next url
-            } catch (Exception e){
-                Log.d(TAG,"No value for next link.");
+            } catch (Exception e) {
+                Log.d(TAG, "No value for next link.");
                 mNextUrl = "#";
             }
 
             JSONArray data = object.getJSONArray(Operations.KEY_DATA);
             // Parsing
             int length = data.length();
-            Vector<ContentValues> bulletinList = new Vector<>(length);
-            Vector<ContentValues> userList = new Vector<>();
+//            Vector<ContentValues> bulletinList = new Vector<>(length);
+            List<Bulletin> bulletinList = new ArrayList<>();
+//            Vector<ContentValues> userList = new Vector<>();
             for (int i = 0; i < length; i++) {
                 // Get first object in array
                 object = data.getJSONObject(i);
@@ -104,48 +106,69 @@ public class NewsfeedOp extends Operations {
                     // Parse it and add to values array
                     try {
                         JSONObject activityObj = object.getJSONObject(Operations.KEY_ACTIVITY_OBJECT);
-                        Bulletin b = Bulletin.parseBulletin(activityObj.toString());
+                        Bulletin b = new Bulletin().parse(activityObj);
                         b.setServerStatus(ServerStatus.STATUS_SUCCESS);
                         UserProfile userProfile = UserProfile.parseUserProfile(
                                 activityObj.getString(Bulletin.KEY_USER_PROFILE));
                         userProfile.setServerStatus(ServerStatus.STATUS_SUCCESS);
                         b.setFirstName(userProfile.getFirstName());
                         b.setLastName(userProfile.getLastName());
-                        userList.add(userProfile.toValues());
-                        bulletinList.add(b.toValues());
+//                        userList.add(userProfile.toValues());
+                        bulletinList.add(b);
                     } catch (JSONException e) { // Failed parsing this bulletin
                         e.printStackTrace();
                     }
                 }
             }
 
-            if (mClearData)
-                clearDb(mContextRef.get());
-
-            // Save
             Context c = mContextRef.get();
+
             if (c != null) {
-                ContentValues[] values = new ContentValues[bulletinList.size()];
-                int entries = c.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI,
-                        bulletinList.toArray(values));
-                if (entries != 0) {
-                    Log.d(TAG, String.format("Inserted %d bulletins out of %d into db.", entries, length));
-                } else {
-                    Log.e(TAG, String.format("Failed to insert %d bulletins.", length));
-                }
+                DataAccess dataAccess = DataAccess.getInstance(c);
+                if (mClearData)
+                    dataAccess.clearData();
+                dataAccess.addBulletins(bulletinList);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDownloadListener.onDownloadSuccess();
+                    }
+                });
             }
-            if (c != null) {
-                ContentValues[] values = new ContentValues[userList.size()];
-                int entries = c.getContentResolver().bulkInsert(DataContract.ProfileEntry.CONTENT_URI,
-                        userList.toArray(values));
-                if (entries != 0) {
-                    Log.d(TAG, String.format("Inserted %d user profiles out of %d.", entries, userList.size()));
-                } else {
-                    Log.e(TAG, String.format("Failed to insert %d profiles.", userList.size()));
-                }
-            }
+
+
+//
+
+//            // Save
+//            Context c = mContextRef.get();
+//            if (c != null) {
+//                ContentValues[] values = new ContentValues[bulletinList.size()];
+//                int entries = c.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI,
+//                        bulletinList.toArray(values));
+//                if (entries != 0) {
+//                    Log.d(TAG, String.format("Inserted %d bulletins out of %d into db.", entries, length));
+//                } else {
+//                    Log.e(TAG, String.format("Failed to insert %d bulletins.", length));
+//                }
+//            }
+//            if (c != null) {
+//                ContentValues[] values = new ContentValues[userList.size()];
+//                int entries = c.getContentResolver().bulkInsert(DataContract.ProfileEntry.CONTENT_URI,
+//                        userList.toArray(values));
+//                if (entries != 0) {
+//                    Log.d(TAG, String.format("Inserted %d user profiles out of %d.", entries, userList.size()));
+//                } else {
+//                    Log.e(TAG, String.format("Failed to insert %d profiles.", userList.size()));
+//                }
+//            }
 
         } catch (JSONException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDownloadListener.onDownloadFailed();
+                }
+            });
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
     }
@@ -167,7 +190,12 @@ public class NewsfeedOp extends Operations {
 
     @Override
     protected void onDownloadFailed(VolleyError error) {
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDownloadListener.onDownloadFailed();
+            }
+        });
     }
 
     @Override
@@ -187,6 +215,6 @@ public class NewsfeedOp extends Operations {
 
     @Override
     protected String getTag() {
-        return null;
+        return NewsfeedOp.class.getSimpleName();
     }
 }

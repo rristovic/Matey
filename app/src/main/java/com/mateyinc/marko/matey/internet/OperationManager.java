@@ -17,9 +17,11 @@ import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.IdGenerator;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.operations.ApproveOp;
+import com.mateyinc.marko.matey.internet.operations.BulletinOp;
 import com.mateyinc.marko.matey.internet.operations.NewsfeedOp;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
-import com.mateyinc.marko.matey.internet.operations.Operations;
+import com.mateyinc.marko.matey.internet.operations.ReplyOp;
 import com.mateyinc.marko.matey.internet.operations.UserProfileOp;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.MModel;
@@ -73,6 +75,7 @@ public class OperationManager implements OperationProvider {
     private RequestQueue mRequestQueue;
     private Response.Listener<String> mSuccessListener;
     private Response.ErrorListener mErrorListener;
+    private DataAccess mDataAccess;
 
 
     /**
@@ -94,6 +97,7 @@ public class OperationManager implements OperationProvider {
     private OperationManager(Context context) {
         mIdGenerator = new IdGenerator(context);
         mAppContext = context.getApplicationContext();
+        mDataAccess = DataAccess.getInstance(context);
         mRequestQueue = Volley.newRequestQueue(context);
 
         mImageLoader = new ImageLoader(mRequestQueue,
@@ -211,6 +215,18 @@ public class OperationManager implements OperationProvider {
         return mAppContext;
     }
 
+
+    private DownloadListener mDownloadListener;
+    private UploadListener mUploadListener;
+
+    public void setDownloadListener(DownloadListener listener) {
+        mDownloadListener = listener;
+    }
+
+    public void addUploadListener(UploadListener listener) {
+        mUploadListener = listener;
+    }
+
     /// Bulletins methods   ////
     ////////////////////////////
 
@@ -224,8 +240,7 @@ public class OperationManager implements OperationProvider {
         NewsfeedOp newsfeedOp = new NewsfeedOp(this, context);
         if (requestNewData)
             newsfeedOp.setOperationType(OperationType.DOWNLOAD_NEWS_FEED_NEW);
-        newsfeedOp.addFailedListener(mErrorListener);
-        newsfeedOp.addSuccessListener(mSuccessListener);
+        newsfeedOp.addDownloadListener(mDownloadListener);
         newsfeedOp.startDownloadAction();
     }
 
@@ -240,6 +255,19 @@ public class OperationManager implements OperationProvider {
         downloadNewsFeed(false, context);
     }
 
+
+    public void downloadBulletinInfo(final long postId, final MotherActivity context) {
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                BulletinOp bulletinOp = new BulletinOp(context, new Bulletin(postId));
+                bulletinOp.setOperationType(OperationType.DOWNLOAD_BULLETIN);
+                bulletinOp.addDownloadListener(mDownloadListener);
+                bulletinOp.startDownloadAction();
+            }
+        });
+    }
+
     /**
      * Helper method for posting new bulletin with attachments.
      * <p><u>NOTE:</u> Method is async.</p>
@@ -249,15 +277,18 @@ public class OperationManager implements OperationProvider {
      * @param attachments bulletin's attachment list that contains file paths.
      */
     public void postNewBulletin(String subject, String message, @Nullable List<String> attachments, final Context context) {
+
         final Bulletin b = new Bulletin(MotherActivity.user_id, MotherActivity.mCurrentUserProfile.getFirstName(),
                 MotherActivity.mCurrentUserProfile.getLastName(), subject, message, new Date());
         b.setAttachments(attachments);
         b.setId(mIdGenerator.generateId());
+        mDataAccess.addBulletin(b);
 
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                b.save(context);
+                BulletinOp bulletinOp = new BulletinOp(context, b);
+                bulletinOp.startUploadAction();
             }
         });
     }
@@ -280,12 +311,17 @@ public class OperationManager implements OperationProvider {
      * @param b       bulletitn to be liked/unliked
      * @param context context for database communication
      */
-    public void newPostLike(final Bulletin b, final Context context) {
+    public void boostPost(final Bulletin b, final Context context) {
+        final boolean isBoosted = b.boost();
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                if (b != null)
-                    b.like(context);
+                ApproveOp approveOp = new ApproveOp(context, b);
+                if (isBoosted)
+                    approveOp.setOperationType(OperationType.POST_LIKED);
+                else
+                    approveOp.setOperationType(OperationType.POST_UNLIKED);
+                approveOp.startUploadAction();
             }
         });
     }
@@ -297,10 +333,9 @@ public class OperationManager implements OperationProvider {
      * @param bulletinPosition position of bulletin in database
      * @param context          context for database communication
      */
-    public void newPostLike(int bulletinPosition, Context context) {
-        Bulletin b = DataAccess.getBulletin(bulletinPosition, context);
-        newPostLike(b, context);
-
+    public void boostPost(int bulletinPosition, Context context) {
+        Bulletin b = mDataAccess.getBulletin(bulletinPosition);
+        boostPost(b, context);
     }
 
 
@@ -328,12 +363,26 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for posting new reply on bulletin
      *
-     * @param postId  id of bulletin that is beign replied on
-     * @param r       {@link Reply} new reply object
-     * @param context context used for database communication
+     * @param bulletin bulletin that is being replied to
+     * @param r        {@link Reply} new reply object
+     * @param context  context used for database communication
      */
-    public void postNewReply(Reply r, long postId, Context context) {
-        r.reply(context, postId);
+    public void postNewReply(final Reply r, final Bulletin bulletin, final Context context) {
+        bulletin.addReply(r);
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                ReplyOp replyOp = new ReplyOp(context, r);
+                replyOp.setOperationType(OperationType.REPLY_ON_POST);
+                replyOp.addUploadListener(mUploadListener);
+
+                r.setPostId(bulletin.getId());
+                r.setId(generateId());
+
+                // Start upload
+                replyOp.startUploadAction();
+            }
+        });
     }
 
     /**
@@ -349,9 +398,9 @@ public class OperationManager implements OperationProvider {
         r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
         r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
         r.setReplyText(text);
-        r.setPostId(bulletin.getPostID());
+        r.setPostId(bulletin.getId());
 
-        postNewReply(r, bulletin.getPostID(), context);
+        postNewReply(r, bulletin, context);
     }
 
     /**
@@ -369,7 +418,7 @@ public class OperationManager implements OperationProvider {
         r.setReplyText(text);
         r.setPostId(postId);
 
-        postNewReply(r, postId, context);
+        postNewReply(r, mDataAccess.getBulletinById(postId), context);
     }
 
     /**
@@ -393,8 +442,8 @@ public class OperationManager implements OperationProvider {
      */
     public void downloadUserProfile(long userId, MotherActivity context) {
         UserProfileOp op = new UserProfileOp(context);
-        setListeners(op);
         op.setOperationType(OperationType.DOWNLOAD_USER_PROFILE);
+        op.addDownloadListener(mDownloadListener);
         op.setUserId(userId).startDownloadAction();
     }
 
@@ -407,7 +456,6 @@ public class OperationManager implements OperationProvider {
      */
     public void downloadFollowers(int offset, int count, long id, MotherActivity context) {
         UserProfileOp op = new UserProfileOp(context);
-        setListeners(op);
         op.setOperationType(OperationType.DOWNLOAD_FOLLOWERS);
         op.setCount(count).setOffset(offset).setUserId(id)
                 .startDownloadAction();
@@ -422,7 +470,6 @@ public class OperationManager implements OperationProvider {
      */
     public void followNewUser(long userId, MotherActivity context) {
         UserProfileOp operation = new UserProfileOp(context);
-        setListeners(operation);
         operation.setOperationType(OperationType.FOLLOW_USER_PROFILE);
         operation.setUserId(userId).startUploadAction();
     }
@@ -436,40 +483,9 @@ public class OperationManager implements OperationProvider {
      */
     public void unfollowUser(long userId, MotherActivity context) {
         UserProfileOp operation = new UserProfileOp(context);
-        setListeners(operation);
         operation.setOperationType(OperationType.UNFOLLOW_USER_PROFILE);
         operation.setUserId(userId).startUploadAction();
     }
 
-    /**
-     * Method for adding custom success download/upload listener
-     *
-     * @param listener listener to be added
-     */
-    public void addSuccessListener(Response.Listener<String> listener) {
-        mSuccessListener = listener;
-    }
-
-    /**
-     * Method for adding custom error download/upload listener
-     *
-     * @param listener listener to be added
-     */
-    public void addErrorListener(Response.ErrorListener listener) {
-        mErrorListener = listener;
-    }
-
-    /**
-     * Method for setting operation listeners if they exits, otherwise they will be set by default
-     *
-     * @param operation {@link Operations} to set listeners on
-     */
-    private void setListeners(Operations operation) {
-        if (null != mSuccessListener)
-            operation.addSuccessListener(mSuccessListener);
-
-        if (null != mErrorListener)
-            operation.addFailedListener(mErrorListener);
-    }
 }
 

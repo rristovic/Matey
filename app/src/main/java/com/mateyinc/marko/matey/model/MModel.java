@@ -9,6 +9,9 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.MBaseColumns;
 import com.mateyinc.marko.matey.data.ServerStatus;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public abstract class MModel {
 
     // Keys for JSON data from the server
@@ -81,14 +84,17 @@ public abstract class MModel {
 
     protected abstract void notifyDataChanged(Context context);
 
-    /**
-     * Saves model in database and start upload sequence.
-     **/
+    abstract public MModel parse(JSONObject object) throws JSONException;
+
+        /**
+         * Saves model in database and start upload sequence.
+         **/
     abstract void save(Context context);
 
     protected abstract void addToDb(Context context);
 
     protected abstract void removeFromDb(Context context);
+
 
 }
 

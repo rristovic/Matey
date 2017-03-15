@@ -4,16 +4,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.util.LruCache;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -42,15 +38,17 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
-import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.DownloadListener;
+import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.model.UserProfile;
 
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_COVER_PATH;
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_PROF_PIC_PATH;
 
 
-public class ProfileActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ProfileActivity extends MotherActivity implements DownloadListener {
     private static final String TAG = ProfileActivity.class.getSimpleName();
 
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
@@ -69,23 +67,6 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     public static final String FLAG_CHANGED = TAG + ".changed";
     private static final String FLAG_PROFILE_CHANGED = "profile_changed";
     private static final String FLAG_COVER_CHANGED = "cover_changed";
-
-    // Projection for profile query
-    private static final String[] PROFILE_DATA_PROJECTION = new String[]{
-            ProfileEntry.COLUMN_PROF_PIC,
-            ProfileEntry.COLUMN_COVER_PIC,
-            ProfileEntry.COLUMN_FOLLOWERS_NUM,
-            ProfileEntry.COLUMN_FOLLOWING_NUM,
-            ProfileEntry.COLUMN_NAME,
-            ProfileEntry.COLUMN_LAST_NAME
-    };
-    // Indices going with above projection
-    private static final int COL_PROFILE_PIC = 0;
-    private static final int COL_COVER_PIC = COL_PROFILE_PIC + 1;
-    private static final int COL_FOLLOWERS_NUM = COL_COVER_PIC + 1;
-    private static final int COL_FOLLOWING_NUM = COL_FOLLOWERS_NUM + 1;
-    private static final int COL_FIRST_NAME = COL_FOLLOWING_NUM + 1;
-    private static final int COL_LAST_NAME = COL_FIRST_NAME + 1;
 
     private TextView tvName, tvFollowersNum, tvFollowingNum;
     private ImageView ivProfilePic, ivCoverPic;
@@ -110,7 +91,6 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     private OperationManager mOpManager;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,7 +105,6 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         setChildSupportActionBar();
         init();
         setListeners();
-
         readData();
     }
 
@@ -138,7 +117,8 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
             isCurUser = true;
         }
 
-         mOpManager = OperationManager.getInstance(this);
+        mOpManager = OperationManager.getInstance(this);
+        mOpManager.setDownloadListener(this);
 
         // UI bounding
         svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
@@ -162,6 +142,64 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         rvActivities.setAdapter(new Adatpter());
         final LayoutManager layoutManager = new LayoutManager(ProfileActivity.this);
         rvActivities.setLayoutManager(layoutManager);
+    }
+
+    @Override
+    public void onDownloadSuccess() {
+        UserProfile profile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
+        mPicLink = profile.getProfilePictureLink();
+        mCoverLink = profile.getProfilePictureLink();
+
+        if (mPicLink == null) mPicLink = "";
+        if (mCoverLink == null) mCoverLink = "";
+
+        if (mPicLink.equals(FLAG_CHANGED)) {
+            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
+            loadTempPic(FLAG_PROFILE_CHANGED);
+        } else
+            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
+                    new ImageLoader.ImageListener() {
+                        @Override
+                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                            ivProfilePic.setImageBitmap(response.getBitmap());
+                        }
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, error.getLocalizedMessage(), error);
+                        }
+                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
+
+        if (mCoverLink.equals(FLAG_CHANGED)) {
+            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
+            loadTempPic(FLAG_COVER_CHANGED);
+        } else
+            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
+                    new ImageLoader.ImageListener() {
+                        @Override
+                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                            ivCoverPic.setImageBitmap(response.getBitmap());
+                        }
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, error.getLocalizedMessage(), error);
+                        }
+                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
+
+        tvName.setText(profile.getFullName());
+        tvFollowersNum.setText(Integer.toString(profile.getFollowersNum()));
+        tvFollowingNum.setText(Integer.toString(profile.getFollowingNum()));
+
+        Log.d("ProfileActivity", "Data is set.");
+
+    }
+
+    @Override
+    public void onDownloadFailed() {
+
     }
 
     private class LayoutManager extends LinearLayoutManager {
@@ -313,8 +351,6 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
      * Helper method for downloading and saving data to database
      */
     private void readData() {
-        // Initialise LoaderManager
-        getSupportLoaderManager().initLoader(0, null, this);
         // Download new data
         mOpManager.downloadUserProfile(mUserId, this);
     }
@@ -329,70 +365,70 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
     }
 
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(this,
-                ProfileEntry.CONTENT_URI,
-                PROFILE_DATA_PROJECTION,
-                ProfileEntry._ID + " = ?",
-                new String[]{Long.toString(mUserId)},
-                null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d(TAG, "Entered onLoadFinished()");
-        if (data == null || !data.moveToFirst())
-            return;
-
-        mPicLink = data.getString(COL_PROFILE_PIC);
-        mCoverLink = data.getString(COL_COVER_PIC);
-
-        if (mPicLink == null) mPicLink = "";
-        if (mCoverLink == null) mCoverLink = "";
-
-        if (mPicLink.equals(FLAG_CHANGED)) {
-            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
-            loadTempPic(FLAG_PROFILE_CHANGED);
-        } else
-            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
-                    new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivProfilePic.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.getLocalizedMessage(), error);
-                        }
-                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
-
-        if (mCoverLink.equals(FLAG_CHANGED)) {
-            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
-            loadTempPic(FLAG_COVER_CHANGED);
-        } else
-            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
-                    new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivCoverPic.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.getLocalizedMessage(), error);
-                        }
-                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
-
-        tvName.setText(data.getString(COL_FIRST_NAME).concat(" ").concat(data.getString(COL_LAST_NAME)));
-        tvFollowersNum.setText(Integer.toString(data.getInt(COL_FOLLOWERS_NUM)));
-        tvFollowingNum.setText(Integer.toString(data.getInt(COL_FOLLOWING_NUM)));
-
-        Log.d("ProfileActivity", "Data is set.");
-    }
+//    @Override
+//    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+//        return new CursorLoader(this,
+//                ProfileEntry.CONTENT_URI,
+//                PROFILE_DATA_PROJECTION,
+//                ProfileEntry._ID + " = ?",
+//                new String[]{Long.toString(mUserId)},
+//                null);
+//    }
+//
+//    @Override
+//    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+//        Log.d(TAG, "Entered onLoadFinished()");
+//        if (data == null || !data.moveToFirst())
+//            return;
+//
+//        mPicLink = data.getString(COL_PROFILE_PIC);
+//        mCoverLink = data.getString(COL_COVER_PIC);
+//
+//        if (mPicLink == null) mPicLink = "";
+//        if (mCoverLink == null) mCoverLink = "";
+//
+//        if (mPicLink.equals(FLAG_CHANGED)) {
+//            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+//                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
+//            loadTempPic(FLAG_PROFILE_CHANGED);
+//        } else
+//            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
+//                    new ImageLoader.ImageListener() {
+//                        @Override
+//                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+//                            ivProfilePic.setImageBitmap(response.getBitmap());
+//                        }
+//
+//                        @Override
+//                        public void onErrorResponse(VolleyError error) {
+//                            Log.e(TAG, error.getLocalizedMessage(), error);
+//                        }
+//                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
+//
+//        if (mCoverLink.equals(FLAG_CHANGED)) {
+//            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+//                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
+//            loadTempPic(FLAG_COVER_CHANGED);
+//        } else
+//            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
+//                    new ImageLoader.ImageListener() {
+//                        @Override
+//                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+//                            ivCoverPic.setImageBitmap(response.getBitmap());
+//                        }
+//
+//                        @Override
+//                        public void onErrorResponse(VolleyError error) {
+//                            Log.e(TAG, error.getLocalizedMessage(), error);
+//                        }
+//                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
+//
+//        tvName.setText(data.getString(COL_FIRST_NAME).concat(" ").concat(data.getString(COL_LAST_NAME)));
+//        tvFollowersNum.setText(Integer.toString(data.getInt(COL_FOLLOWERS_NUM)));
+//        tvFollowingNum.setText(Integer.toString(data.getInt(COL_FOLLOWING_NUM)));
+//
+//        Log.d("ProfileActivity", "Data is set.");
+//    }
 
     /**
      * Method for loading temporary picture, until picture is uploaded
@@ -452,9 +488,9 @@ public class ProfileActivity extends MotherActivity implements LoaderManager.Loa
         }, width, height);
     }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-    }
+//    @Override
+//    public void onLoaderReset(Loader<Cursor> loader) {
+//    }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,

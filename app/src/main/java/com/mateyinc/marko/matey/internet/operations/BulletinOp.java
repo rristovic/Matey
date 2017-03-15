@@ -5,9 +5,11 @@ import android.util.Log;
 
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
 import org.json.JSONArray;
@@ -31,23 +33,6 @@ public class BulletinOp extends Operations {
 
     private static final String TAG = BulletinOp.class.getSimpleName();
 
-    /**
-     * Field name for multi part post request body for json data
-     **/
-    private static final String JSON_DATA_FIELD_NAME = "json_data";
-    /**
-     * Required json data field - title
-     **/
-    private static final String TITLE_FIELD_NAME = "title";
-    /**
-     * Content json data field - post message
-     **/
-    private static final String CONTENT_FIELD_NAME = "text";
-    /**
-     * Content json data field - post message
-     **/
-    private static final String LOCATIONS_FIELD_NAME = "locations";
-
 
     final Bulletin bulletin;
 
@@ -61,6 +46,10 @@ public class BulletinOp extends Operations {
         String url;
 
         switch (mOpType) {
+            case DOWNLOAD_BULLETIN: {
+                url = UrlData.buildGetBulletinUrl(bulletin.getId());
+                break;
+            }
 
             default: {
                 Log.e(TAG, "No operation type has been specified!");
@@ -74,12 +63,38 @@ public class BulletinOp extends Operations {
 
     @Override
     protected void onDownloadSuccess(String response) {
+        try {
+            JSONObject object = new JSONObject(response);
+            Bulletin b = new Bulletin().parse(object.getJSONObject(KEY_DATA));
+            UserProfile profile = new UserProfile().parse(object.getJSONObject(KEY_DATA).getJSONObject(Bulletin.KEY_USER_PROFILE));
+            DataAccess.getInstance(mContextRef.get()).addBulletin(b);
+            DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
 
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDownloadListener.onDownloadSuccess();
+                }
+            });
+        } catch (JSONException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDownloadListener.onDownloadFailed();
+                }
+            });
+            Log.e(TAG, "Failed to parse bulletin. " + e.getLocalizedMessage(), e);
+        }
     }
 
     @Override
     protected void onDownloadFailed(VolleyError error) {
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDownloadListener.onDownloadFailed();
+            }
+        });
     }
 
     @Override
@@ -91,14 +106,7 @@ public class BulletinOp extends Operations {
             default:
             case POST_NEW_BULLETIN_WITH_ATTCH: {
                 // Using OkHTTP for sending files
-
-                submitRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        uploadFile();
-                    }
-                });
-                return;
+                uploadFile();
             }
         }
 
@@ -111,12 +119,8 @@ public class BulletinOp extends Operations {
         final Context c = mContextRef.get();
 
         if (c != null)
-            submitRunnable(new Runnable() {
-                @Override
-                public void run() {
-                    bulletin.onUploadSuccess(response, c);
-                }
-            });
+            bulletin.onUploadSuccess(response, c);
+
     }
 
     @Override
@@ -124,18 +128,9 @@ public class BulletinOp extends Operations {
         final Context c = mContextRef.get();
 
         if (c != null)
-            submitRunnable(new Runnable() {
-                @Override
-                public void run() {
-                    bulletin.onUploadFailed(error.toString(), c);
-                }
-            });
+            bulletin.onUploadFailed(error.toString(), c);
     }
 
-    @Override
-    protected String getTag() {
-        return null;
-    }
 
     public void uploadFile() {
 //        String[] parts = selectedFilePath.split("/");
@@ -236,4 +231,10 @@ public class BulletinOp extends Operations {
         }
 
     }
+
+    @Override
+    protected String getTag() {
+        return BulletinOp.class.getSimpleName();
+    }
+
 }

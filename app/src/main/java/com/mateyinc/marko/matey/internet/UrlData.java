@@ -102,13 +102,6 @@ public abstract class UrlData {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    //////// BULLETIN UrlData //////////////
-    public static final String POST_NEW_BULLETIN = ACCESS_BASE_URL.concat("/posts");
-
-    ///////////////////////////////////////////
-
-
     // Register new user
     public static final String REGISTER_USER = BASE_URL.concat("/users/accounts");
     public static final String PARAM_USER_FIRST_NAME = "first_name";
@@ -167,9 +160,25 @@ public abstract class UrlData {
         return GET_FOLLOWERS.replace(":userId", Long.toString(userId));
     }
 
-    // News feed method
-    public static String createDownloadNewsfeedUrl(long userId){
-        // TODO - finish
-        return "";
+    //////// BULLETIN UrlData //////////////
+    public static final String POST_NEW_BULLETIN = ACCESS_BASE_URL.concat("/posts");
+
+    private static final String GET_BULLETIN = ACCESS_BASE_URL.concat("/posts/:postId");
+    public static final String buildGetBulletinUrl(long postId){
+        return GET_BULLETIN.replace(":postId", Long.toString(postId));
     }
+
+    private static final String PUT_BULLETIN_APPROVE = ACCESS_BASE_URL.concat("/posts/:postId/boosts");
+    public static final String buildBulletinBoostUrl(long postId){
+        return PUT_BULLETIN_APPROVE.replace(":postId", Long.toString(postId));
+    }
+    ///////////////////////////////////////////
+
+    //////// Reply UrlData //////////////
+    private static final String POST_NEW_BULLETIN_REPLY = ACCESS_BASE_URL.concat("/posts/:postId/replies");
+    public static final String buildNewBulletinReplyUrl(long postId){
+        return POST_NEW_BULLETIN_REPLY.replace(":postId", Long.toString(postId));
+    }
+    ///////////////////////////////////////////
+
 }

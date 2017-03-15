@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.maps;
+package com.mateyinc.marko.matey.model;
 
 
 import android.util.Log;

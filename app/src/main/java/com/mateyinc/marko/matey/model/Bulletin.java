@@ -7,18 +7,17 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
-import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.operations.BulletinOp;
 import com.mateyinc.marko.matey.internet.operations.Operations;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -33,14 +32,16 @@ public class Bulletin extends MModel {
     public static final String KEY_POST_ID = "post_id";
     public static final String KEY_SUBJECT = "title";
     public static final String KEY_TEXT = "text";
-    public static final String KEY_DATE = "time_c";
+    private static final String KEY_IS_BOOSTED = "boosted";
     public static final String KEY_USER_PROFILE = "user";
     public static final String KEY_NUM_OF_REPLIES = "num_of_replies";
-    public static final String KEY_NUM_OF_BOOSTS = "num_of_boosts";
+    private static final String KEY_NUM_OF_BOOSTS = "num_of_boosts";
     public static final String KEY_NUM_OF_ATTACHMENTS = "attachs_num";
     public static final String KEY_NUM_OF_LOCATIONS = "locations_num";
     public static final String KEY_LOCATIONS = "locations";
     public static final String KEY_ATTACHMENTS = "attachs";
+    public static final String KEY_FILE_URL = "file_url";
+    public static final String KEY_REPLIES = "replies";
 
     private long mUserID;
     private Date mDate;
@@ -48,13 +49,21 @@ public class Bulletin extends MModel {
     private String mLastName;
     private String mText;
     private String mSubject;
+
     private int mNumOfReplies = 0;
     private int mNumOfLikes = 0;
-
-
     private int mNumOfAttachs = 0;
     private List<String> mAttachments;
+    private List<Reply> mReplyList;
+    private List<Approve> mApproves;
+    private boolean isBoosted;
 
+    public Bulletin() {
+    }
+
+    public Bulletin(long _id) {
+        this._id = _id;
+    }
 
     public Bulletin(long postId, long userId, String title, String text, Date date) {
         this._id = postId;
@@ -96,7 +105,30 @@ public class Bulletin extends MModel {
         this.mUri = BulletinEntry.CONTENT_URI;
     }
 
+
+    public List<Reply> getReplies() {
+        if (mReplyList == null)
+            mReplyList = new ArrayList<>();
+        return mReplyList;
+    }
+
+    public void setReplies(List<Reply> mReplies) {
+        this.mReplyList = mReplies;
+    }
+
+    public List<Approve> getApproves() {
+        if (mApproves == null)
+            mApproves = new ArrayList<>();
+        return mApproves;
+    }
+
+    public void setApproves(List<Approve> mApproves) {
+        this.mApproves = mApproves;
+    }
+
     public List<String> getAttachments() {
+        if (mAttachments == null)
+            mAttachments = new ArrayList<>();
         return mAttachments;
     }
 
@@ -139,10 +171,6 @@ public class Bulletin extends MModel {
 
     public void setSubject(String mSubject) {
         this.mSubject = mSubject;
-    }
-
-    public long getPostID() {
-        return _id;
     }
 
     public void setPostID(long mPostID) {
@@ -218,28 +246,70 @@ public class Bulletin extends MModel {
         return; // TODO - finish method
     }
 
+    @Override
     /**
      * Method for parsing JSON response into new {@link Bulletin}
      *
-     * @param response string response retrieved from the server
+     * @param object string response retrieved from the server
      * @return A Bulletin object made from JSON data
      */
-    public static Bulletin parseBulletin(String response) throws JSONException {
-        JSONObject object = new JSONObject(response);
+    public Bulletin parse(JSONObject object) throws JSONException {
 
+        // Parse requireed fields
         JSONObject user = object.getJSONObject(KEY_USER_PROFILE);
-        Bulletin b = new Bulletin(
-                object.getLong(KEY_POST_ID),
-                user.getLong(KEY_USER_ID),
-                object.getString(KEY_SUBJECT),
-                object.getString(KEY_TEXT),
-                parseDate(object.getString(KEY_DATE_ADDED))
-        );
+        this._id = object.getLong(KEY_POST_ID);
+        this.mUserID = user.getLong(KEY_USER_ID);
+        this.mSubject = object.getString(KEY_SUBJECT);
+        this.mText = object.getString(KEY_TEXT);
+        this.mDate = parseDate(object.getString(KEY_DATE_ADDED));
+        this.isBoosted = object.getBoolean(KEY_IS_BOOSTED);
 
-        b.setNumOfReplies(object.getInt(KEY_NUM_OF_REPLIES));
-        b.setNumOfLikes(object.getInt(KEY_NUM_OF_BOOSTS));
-        b.setNumOfAttachs(object.getInt(KEY_NUM_OF_ATTACHMENTS) + object.getInt(KEY_NUM_OF_LOCATIONS));
-        return b;
+        setNumOfReplies(object.getInt(KEY_NUM_OF_REPLIES));
+        if (getNumOfReplies() > 0) {
+            mReplyList = new ArrayList<>(mNumOfReplies);
+            // Try parsing reply list if it is present
+            try {
+                JSONObject replies = object.getJSONObject(KEY_REPLIES);
+                JSONArray repliesList = replies.getJSONArray(Operations.KEY_DATA);
+                int size = repliesList.length();
+                for (int i = 0; i < size; i++) {
+                    Reply reply = new Reply().parse(repliesList.getJSONObject(i));
+                    mReplyList.add(reply);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "No reply list for replies count = " + mNumOfReplies);
+            }
+        }
+        int attchs = object.getInt(KEY_NUM_OF_ATTACHMENTS);
+        int locations = object.getInt(KEY_NUM_OF_LOCATIONS);
+        setNumOfAttachs(attchs + locations);
+        if (locations > 0) {
+            mAttachments = new ArrayList<>(attchs + locations);
+
+            // Try parsing location list if it's present
+            try {
+                JSONArray locationList = object.getJSONArray(KEY_LOCATIONS);
+                for (int i = 0; i < locationList.length(); i++)
+                    mAttachments.add(locationList.get(i).toString());
+            } catch (JSONException e) {
+                Log.e(TAG, "No location list for  locations count = " + locations);
+            }
+        }
+        if (attchs > 0) {
+            if (mAttachments == null)
+                mAttachments = new ArrayList<>(attchs);
+
+            // Try parsing attachment list if it's present
+            try {
+                JSONArray locationList = object.getJSONArray(KEY_ATTACHMENTS);
+                for (int i = 0; i < locationList.length(); i++)
+                    mAttachments.add(locationList.getJSONObject(i).getString(KEY_FILE_URL));
+            } catch (JSONException e) {
+                Log.e(TAG, "No attch list for attch count = " + locations);
+            }
+        }
+        setNumOfLikes(object.getInt(KEY_NUM_OF_BOOSTS));
+        return this;
     }
 
     /**
@@ -262,22 +332,6 @@ public class Bulletin extends MModel {
         return values;
     }
 
-
-    /**
-     * Method to call when bulletin has been liked/unliked.*
-     *
-     * @param context context used for database communication.
-     */
-    public void like(final Context context) {
-        Approve approve = new Approve(OperationManager.getInstance(context).generateId());
-        approve.postId = _id;
-        approve.userId = MotherActivity.user_id;
-        boolean isInDb = DataAccess.isApproveInDb(_id, -1, context); // -1 if default value
-        approve.save(context, isInDb);
-
-        updateNumOfApprvs(!isInDb, context); // if approve is in db, then decrement num of likes
-        notifyDataChanged(context);
-    }
 
     /**
      * Method for incrementing bulletin number of likes.
@@ -347,10 +401,10 @@ public class Bulletin extends MModel {
 //            bulletinOp.setOperationType(OperationType.POST_NEW_BULLETIN_WITH_ATTCH);
 //        }
 
-        addToDb(context);
-        notifyDataChanged(context);
-        addToNotUploaded(TAG, context);
-        bulletinOp.startUploadAction();
+//        addToDb(context);
+//        notifyDataChanged(context);
+//        addToNotUploaded(TAG, context);
+//        bulletinOp.startUploadAction();
     }
 
     @Override
@@ -371,22 +425,9 @@ public class Bulletin extends MModel {
             jsonObject = new JSONObject(response);
             jsonObject = jsonObject.getJSONObject(Operations.KEY_DATA);
 
-            ContentValues values = new ContentValues(3);
-            Date date = Util.parseDate(jsonObject.getString(MModel.KEY_DATE_ADDED));
-            values.put(BulletinEntry.COLUMN_DATE, date.getTime());
-            values.put(BulletinEntry._ID, jsonObject.getLong(KEY_POST_ID));
-            values.put(BulletinEntry.COLUMN_SERVER_STATUS, ServerStatus.STATUS_SUCCESS.ordinal());
-
-            int rows = c.getContentResolver().update(BulletinEntry.CONTENT_URI, values,
-                    BulletinEntry._ID + " = ?", new String[]{Long.toString(this._id)});
-
-            if (rows != 1) {
-                Log.e(TAG, "Failed to update bulletin data retrieved from server.");
-            } else
-                Log.d(TAG, String.format("Updated bulletin(id:%d) with id:%d and date:%s.", this._id,
-                        jsonObject.getLong(KEY_POST_ID), date));
-
-            notifyDataChanged(c);
+            this.mDate = Util.parseDate(jsonObject.getString(MModel.KEY_DATE_ADDED));
+            this._id = jsonObject.getLong(KEY_POST_ID);
+            this.mServerStatus = ServerStatus.STATUS_SUCCESS;
         } catch (JSONException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
@@ -397,7 +438,6 @@ public class Bulletin extends MModel {
     public void onUploadFailed(String error, Context c) {
         // Notify user
         this.mServerStatus = ServerStatus.STATUS_RETRY_UPLOAD;
-        updateServerStatus(c);
     }
 
     public void addToDb(final Context c) {
@@ -426,12 +466,6 @@ public class Bulletin extends MModel {
         context.getContentResolver().notifyChange(DataContract.BulletinEntry.CONTENT_URI, null);
     }
 
-    public class Attachment {
-
-        public Attachment() {
-        }
-    }
-
     @Override
     public String toString() {
         String message, date;
@@ -452,4 +486,27 @@ public class Bulletin extends MModel {
                 _id, message, mFirstName, mLastName, mUserID, date, mNumOfReplies);
     }
 
+    public void addReply(Reply reply) {
+        this.mNumOfReplies++;
+        this.mReplyList.add(reply);
+    }
+
+    public void removeReply(Reply reply) {
+        this.mReplyList.remove(reply);
+    }
+
+    /**
+     * Method to boost and unboost post.
+     *
+     * @return return true if post is boosted. False if post has been un boosted.
+     */
+    public boolean boost() {
+        if (isBoosted)
+            mNumOfLikes--;
+        else
+            mNumOfLikes++;
+
+        isBoosted = !isBoosted;
+        return isBoosted;
+    }
 }

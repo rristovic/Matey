@@ -39,6 +39,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.inall.MyApplication;
+import com.mateyinc.marko.matey.model.MarkerJSON;
 
 import java.io.IOException;
 import java.util.ArrayList;

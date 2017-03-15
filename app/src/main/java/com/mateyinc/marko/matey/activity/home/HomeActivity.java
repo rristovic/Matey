@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
@@ -70,13 +69,10 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         init();
         getCurUser();
-        getNewsfeed();
+//        getNewsfeed();
     }
 
     private void init() {
-        // Test/debug
-        ifTest();
-
         mSessionManager = SessionManager.getInstance(this);
         mOperationManager = OperationManager.getInstance(this);
 
@@ -259,12 +255,12 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         }
     }
 
-    /**
-     * Helper method for downloading bulletin news feed
-     */
-    private void getNewsfeed() {
-        mOperationManager.downloadNewsFeed(this);
-    }
+//    /**
+//     * Helper method for downloading bulletin news feed
+//     */
+//    private void getNewsfeed() {
+//        mOperationManager.downloadNewsFeed(this);
+//    }
 
     private void closeSearchView() {
         // Close search fragment
@@ -362,26 +358,5 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     @Override
     protected void onDestroy() {
         super.onDestroy();
-    }
-
-    //////////////////////////////////////////////////////////////////////
-    private boolean mIsDebug;
-
-    /**
-     * Testing/debugging
-     */
-    private void ifTest() {
-        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("IS_DEBUG", false)) {
-            mIsDebug = true;
-        }
-    }
-
-    /**
-     * Testing/debugging
-     *
-     * @return true if it's debug mode, false otherwise
-     */
-    public boolean isDebug() {
-        return mIsDebug;
     }
 }

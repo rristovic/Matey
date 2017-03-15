@@ -7,13 +7,17 @@ import android.database.Cursor;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+//import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 
 
 /**
@@ -23,7 +27,9 @@ public class DataAccess {
 
     private static final String TAG = DataAccess.class.getSimpleName();
 
-    /** Columns that bulletin cursor loaders will load up */
+    /**
+     * Columns that bulletin cursor loaders will load up
+     */
     public static final String[] BULLETIN_COLUMNS = {
             DataContract.BulletinEntry.TABLE_NAME + "." + DataContract.BulletinEntry._ID,
             DataContract.BulletinEntry.COLUMN_USER_ID,
@@ -55,15 +61,20 @@ public class DataAccess {
 
     private static DataAccess mInstance;
 
+    private List<Bulletin> mBulletinList;
+    private List<UserProfile> mProfilesList;
+
     private final Object mLock = new Object();
     private Context mContext;
 //    private UserProfile mCurrentUserProfile;
 
-    private DataAccess(Context context){
+    private DataAccess(Context context) {
+        mBulletinList = new ArrayList<>();
+        mProfilesList = new ArrayList<>();
         mContext = context;
     }
 
-    public static synchronized DataAccess getInstance(Context context){
+    public static synchronized DataAccess getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new DataAccess(context);
 
@@ -73,12 +84,59 @@ public class DataAccess {
         return mInstance;
     }
 
+    public void addUserProfile(UserProfile profile) {
+        mProfilesList.add(profile);
+    }
+
+    public UserProfile getUserProfile(long _id) {
+        for (UserProfile p :
+                mProfilesList) {
+            if (p.getUserId() == _id)
+                return p;
+        }
+
+        return null;
+    }
+
+    public void addBulletins(List<Bulletin> list) {
+        synchronized (mLock) {
+            mBulletinList.addAll(list);
+        }
+    }
+
+    public void setBulletins(List<Bulletin> list) {
+        mBulletinList = list;
+    }
+
+    public List<Bulletin> getBulletins() {
+        synchronized (mLock) {
+            return mBulletinList;
+        }
+    }
+
+    public void addBulletin(Bulletin bulletin) {
+        synchronized (mLock) {
+            Iterator i = mBulletinList.iterator();
+
+            while (i.hasNext()) {
+                Bulletin b = (Bulletin) i.next();
+                if (b.getId() == bulletin.getId()) {
+                    b.setReplies(bulletin.getReplies());
+                    return;
+                }
+            }
+        }
+
+        mBulletinList.add(0, bulletin);
+    }
+
     /**
      * Set's the {@link MotherActivity#mCurrentUserProfile} from {@link SharedPreferences}
+     *
      * @return true if settings current user profile was successful
      */
     public boolean setCurrentUserProfile() {
-        if  (MotherActivity.mCurrentUserProfile != null)
+        if (MotherActivity.mCurrentUserProfile != null)
             return true;
 
         Cursor c = mContext.getContentResolver().query(DataContract.ProfileEntry.CONTENT_URI, null,
@@ -97,13 +155,16 @@ public class DataAccess {
                 Log.e("MotherActivity", "Error setting current user profile from shared prefs.");
                 c.close();
                 return false;
-            } else
+            }
+        else
             return false;
 
         return true;
     }
 
-    /** Key for storing user pref file id in shared prefs */
+    /**
+     * Key for storing user pref file id in shared prefs
+     */
     public static final String KEY_CUR_USER_ID = "cur_userprofile_id";
 
     /**
@@ -128,6 +189,7 @@ public class DataAccess {
 
     /**
      * Helper method for checking if approve exists in database
+     *
      * @param post_id id of post liked
      * @param replyId id of reply liked
      * @param context context used for db access
@@ -136,8 +198,8 @@ public class DataAccess {
     public static boolean isApproveInDb(long post_id, @Nullable long replyId, Context context) {
         Cursor c = context.getContentResolver().query(DataContract.ApproveEntry.CONTENT_URI,
                 new String[]{DataContract.ApproveEntry._ID}, DataContract.ApproveEntry.COLUMN_POST_ID + " = ? AND "
-                + DataContract.ApproveEntry.COLUMN_USER_ID + " = ? AND " + DataContract.ApproveEntry.COLUMN_REPLY_ID + " = ?",
-                new String[]{Long.toString(post_id), Long.toString(MotherActivity.user_id), Long.toString(replyId)},null);
+                        + DataContract.ApproveEntry.COLUMN_USER_ID + " = ? AND " + DataContract.ApproveEntry.COLUMN_REPLY_ID + " = ?",
+                new String[]{Long.toString(post_id), Long.toString(MotherActivity.user_id), Long.toString(replyId)}, null);
 
         return (c != null && c.getCount() != 0);
     }
@@ -176,32 +238,29 @@ public class DataAccess {
     }
 
     /**
-     * Method for getting the bulletin from the database with the default cursor
+     * Method for getting the bulletin from the database.
      *
      * @param index the position of the bulletin in the database
      * @return the new instance of {@link Bulletin} from the database
      */
-    public static Bulletin getBulletin(int index, Context context) {
-        Cursor cursor = context.getContentResolver().query(
-                DataContract.BulletinEntry.CONTENT_URI,
-                BULLETIN_COLUMNS,
-                null,
-                null,
-                BULLETIN_ORDER);
+    public Bulletin getBulletin(int index) {
+        return mBulletinList.get(index);
+    }
 
-        Bulletin bulletin = null;
-        try {
-            bulletin = getBulletin(index, cursor);
-
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return null;
+    /**
+     * Method for getting the bulletin from the database with the default cursor
+     *
+     * @param postId the position of the bulletin in the database
+     * @return the new instance of {@link Bulletin} from the database
+     */
+    public Bulletin getBulletinById(long postId) {
+        for (Bulletin b :
+                mBulletinList) {
+            if (b.getId() == postId)
+                return b;
         }
 
-        if (cursor != null)
-            cursor.close();
-
-        return bulletin;
+        return null;
     }
 
     /**
@@ -223,34 +282,35 @@ public class DataAccess {
 
     ///// Reply methods //////
     /////////////////////////
+
     /**
      * Method for getting the Reply from the database
      *
-     * @param index  the position of the Reply in the database
+     * @param index   the position of the Reply in the database
      * @param context context used for db access
      * @return the new instance of {@link Reply} from the database
      */
     public static Reply getReply(int index, Context context) {
-        Cursor cursor = context.getContentResolver().query(
-                DataContract.ReplyEntry.CONTENT_URI,
-                BulletinViewActivity.REPLIES_COLUMNS,
-                null,
-                null,
-                BulletinViewActivity.REPLIES_ORDER_BY);
+//        Cursor cursor = context.getContentResolver().query(
+//                DataContract.ReplyEntry.CONTENT_URI,
+//                BulletinViewActivity.REPLIES_COLUMNS,
+//                null,
+//                null,
+//                BulletinViewActivity.REPLIES_ORDER_BY);
+//
+//        Reply reply = null;
+//        try {
+//            reply = getReply(index, cursor);
+//
+//        } catch (NullPointerException e) {
+//            Log.e(TAG, e.getLocalizedMessage(), e);
+//            return null;
+//        }
+//
+//        if (cursor != null)
+//            cursor.close();
 
-        Reply reply = null;
-        try {
-            reply = getReply(index, cursor);
-
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
-
-        if (cursor != null)
-            cursor.close();
-
-        return reply;
+        return null;
     }
 
     /**
@@ -266,14 +326,14 @@ public class DataAccess {
         try {
             cursor.moveToPosition(index);
 
-            reply._id = cursor.getLong(BulletinViewActivity.COL_REPLY_ID);
-            reply.setUserId(cursor.getLong(BulletinViewActivity.COL_USER_ID));
-            reply.setPostId(cursor.getInt(BulletinViewActivity.COL_POST_ID));
-            reply.setUserFirstName(cursor.getString(BulletinViewActivity.COL_FIRST_NAME));
-            reply.setUserLastName(cursor.getString(BulletinViewActivity.COL_LAST_NAME));
-            reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
-            reply.setReplyText(cursor.getString(BulletinViewActivity.COL_TEXT));
-            reply.setNumOfApprvs(cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS));
+//            reply._id = cursor.getLong(BulletinViewActivity.COL_REPLY_ID);
+//            reply.setUserId(cursor.getLong(BulletinViewActivity.COL_USER_ID));
+//            reply.setPostId(cursor.getInt(BulletinViewActivity.COL_POST_ID));
+//            reply.setUserFirstName(cursor.getString(BulletinViewActivity.COL_FIRST_NAME));
+//            reply.setUserLastName(cursor.getString(BulletinViewActivity.COL_LAST_NAME));
+//            reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
+//            reply.setReplyText(cursor.getString(BulletinViewActivity.COL_TEXT));
+//            reply.setNumOfApprvs(cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS));
         } catch (NullPointerException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return null;
@@ -294,4 +354,8 @@ public class DataAccess {
         }
     }
 
+
+    public void clearData() {
+        mBulletinList.clear();
+    }
 }

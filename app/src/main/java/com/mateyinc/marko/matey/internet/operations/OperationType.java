@@ -14,6 +14,7 @@ public enum OperationType {
     // Bulletin operation
     POST_NEW_BULLETIN_NO_ATTCH,
     POST_NEW_BULLETIN_WITH_ATTCH,
+    DOWNLOAD_BULLETIN,
 
     // User profile operations
     DOWNLOAD_USER_PROFILE,

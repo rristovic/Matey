@@ -12,9 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
-import java.util.Vector;
 
-public class UserProfile extends MModel{
+public class UserProfile extends MModel {
     private static final String TAG = UserProfile.class.getSimpleName();
 
     public static final String USER_ID = "userid";
@@ -51,8 +50,14 @@ public class UserProfile extends MModel{
     private int numOfPosts;
     private int numOfFriends;
     private boolean mIsFriend = false;
+    private int followersNum;
+    private int followingNum;
 
     public UserProfile() {
+    }
+
+    public UserProfile(long userId) {
+        this._id = userId;
     }
 
     public UserProfile(long userId, String firstName, String lastName, String picture) {
@@ -86,7 +91,7 @@ public class UserProfile extends MModel{
                 object.getString(KEY_PROFILE_PIC)
         );
 
-         return profile;
+        return profile;
     }
 
     /**
@@ -142,6 +147,9 @@ public class UserProfile extends MModel{
 
     public void setProfilePictureLink(String profilePictureLink) {
         this.profilePictureLink = profilePictureLink;
+    }
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 
     public String getCoverPictureLink() {
@@ -220,6 +228,14 @@ public class UserProfile extends MModel{
         return mIsFriend;
     }
 
+    public int getFollowersNum(){
+        return followersNum;
+    }
+
+    public int getFollowingNum(){
+        return followingNum;
+    }
+
     public void setFriend(boolean isFriend) {
         mIsFriend = isFriend;
     }
@@ -241,48 +257,56 @@ public class UserProfile extends MModel{
         this._id = currentUserProfile._id;
     }
 
-    /**
-     * Method for saving multiple values into the database
-     * @param cVVector {@link Vector} object which contains {@link ContentValues} object values;
-     * @param c context used for db control
-     * @param isNew boolean that indicates if this data is new or not, thus updates it or just inerts it into db
-     */
-    public void saveToDbMultiple(Vector<ContentValues> cVVector, Context c, boolean isNew){
+    @Override
+    public UserProfile parse(JSONObject object) throws JSONException {
+        // Parsing
+        this._id = object.getLong(KEY_ID);
+        this.firstName = object.getString(KEY_FIRST_NAME);
+        this.lastName = object.getString(KEY_LAST_NAME);
+        this.profilePictureLink = object.getString(KEY_PROFILE_PIC);
+
+        try {
+            this.email = object.getString(KEY_EMAIL);
+        } catch (JSONException e){
+            Log.w(TAG,"No email address.");
+        }
+
+        try {
+            this.coverPictureLink = object.getString(KEY_COVER_PIC);
+        } catch (JSONException e) {
+            Log.w(TAG, "No cover picture link.");
+        }
+
+        try {
+            this.followersNum = object.getInt(KEY_FOLLOWERS_NUM);
+            this.followingNum = object.getInt(KEY_FOLLOWING_NUM);
+        } catch (JSONException e){
+            Log.w(TAG, "No stats available for this usedprofile");
+        }
+
+        return this;
     }
 
     public static void saveToDb(String response, Context c) {
-        try {
-            JSONObject object =  new JSONObject(response);
+//        try {
 
-            // Parsing
-            Long id = object.getLong(KEY_ID);
-            String name = object.getString(KEY_FIRST_NAME);
-            String lastName = object.getString(KEY_LAST_NAME);
-            String fullName = object.getString(KEY_FULL_NAME);
-            String email = object.getString(KEY_EMAIL);
-            String picLink = object.getString(KEY_PROFILE_PIC);
-            String coverLink = object.getString(KEY_COVER_PIC);
-            int followersNum = object.getInt(KEY_FOLLOWERS_NUM);
-            int followingNum = object.getInt(KEY_FOLLOWING_NUM);
-//            boolean verified = object.getBoolean(KEY_VERIFIED);
-
-            // Saving
-            ContentValues userValues = new ContentValues();
-            userValues.put(DataContract.ProfileEntry._ID, id);
-            userValues.put(DataContract.ProfileEntry.COLUMN_NAME, name);
-            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
-            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-            userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picLink);
-            userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverLink);
-            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
-            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
+//            // Saving
+//            ContentValues userValues = new ContentValues();
+//            userValues.put(DataContract.ProfileEntry._ID, id);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_NAME, name);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picLink);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverLink);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
+//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
 
 //            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
 //            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
-
-            // Add to db
-            Uri uri = c.getContentResolver().insert(
-                    DataContract.ProfileEntry.CONTENT_URI, userValues);
+//
+//            // Add to db
+//            Uri uri = c.getContentResolver().insert(
+//                    DataContract.ProfileEntry.CONTENT_URI, userValues);
 
 //            // Debug
 //            String debugString = toString();
@@ -291,9 +315,9 @@ public class UserProfile extends MModel{
 //            } else {
 //                Log.d(TAG, "New profile added: " + debugString);
 //            }
-        } catch (JSONException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-        }
+//        } catch (JSONException e) {
+//            Log.e(TAG, e.getLocalizedMessage(), e);
+//        }
     }
 
     public void save(Context c) {
@@ -332,7 +356,7 @@ public class UserProfile extends MModel{
 
     @Override
     public String toString() {
-        return String.format(Locale.US,"UserProfileOps: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", _id, firstName, lastName, email, profilePictureLink);
+        return String.format(Locale.US, "UserProfileOps: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", _id, firstName, lastName, email, profilePictureLink);
     }
 
     @Override
@@ -359,4 +383,6 @@ public class UserProfile extends MModel{
     protected void notifyDataChanged(Context context) {
 
     }
+
+
 }

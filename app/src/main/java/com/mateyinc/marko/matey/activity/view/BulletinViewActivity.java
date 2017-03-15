@@ -2,11 +2,7 @@ package com.mateyinc.marko.matey.activity.view;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
@@ -34,14 +31,16 @@ import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.UploadListener;
+import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.Date;
 
-public class BulletinViewActivity extends MotherActivity implements LoaderManager.LoaderCallbacks<Cursor>, RepliesAdapter.ReplyClickedInterface {
+public class BulletinViewActivity extends MotherActivity implements RepliesAdapter.ReplyClickedInterface, DownloadListener, UploadListener {
 
     public static final String EXTRA_BULLETIN_ID = "post_id";
     public static final String EXTRA_BULLETIN_POS = "bulletin_adapter_pos";
@@ -56,44 +55,9 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
      **/
     private static final String ARG_REPLY_ID = "reply_id";
 
-    public static final String[] REPLIES_COLUMNS = {
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry._ID),
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_USER_ID),
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_FIRST_NAME),
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_LAST_NAME),
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_TEXT),
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_DATE),
-            ReplyEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_POST_ID),
-            "(SELECT COUNT(" + DataContract.ApproveEntry._ID +
-                    ") FROM " + DataContract.ApproveEntry.TABLE_NAME + " WHERE " +
-                    DataContract.ApproveEntry.TABLE_NAME + "." + DataContract.ApproveEntry.COLUMN_REPLY_ID + " = "
-                    + DataContract.ReplyEntry.TABLE_NAME + "." + DataContract.ReplyEntry._ID + ")"
-
-//            DataContract.ApproveEntry.TABLE_NAME.concat(".").concat(ReplyEntry.COLUMN_POST_ID),
-    };
-
-    // These indices are tied to MSG_COLUMNS.  If MSG_COLUMNS changes, these
-    // must change.
-    public static final int COL_REPLY_ID = 0;
-    public static final int COL_USER_ID = 1;
-    public static final int COL_FIRST_NAME = 2;
-    public static final int COL_LAST_NAME = 3;
-    public static final int COL_TEXT = 4;
-    public static final int COL_DATE = 5;
-    public static final int COL_POST_ID = COL_DATE + 1;
-//    public static final int COL_NUM_OF_REPLIES = COL_POST_ID + 1;
-    public static final int COL_NUM_OF_APPRVS = COL_POST_ID + 1;
-
-    /**
-     * Cursor sort order
-     */
-    public static final String REPLIES_ORDER_BY = DataContract.ReplyEntry.COLUMN_DATE + " DESC";
-
 
     public static int mBulletinPos = -1;
-
-    public static final int REPLIES_LOADER = 200;
-    public static final int REPLIES_OF_REPLIES_LOADER = 202;
+    public static long mBulletinId = -1;
 
     private RepliesAdapter mAdapter;
     private RecyclerView rvList, mRepliesOfRepliesRecyclerView;
@@ -120,22 +84,26 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 
     private void init() {
         Intent i = getIntent();
-        mManager = OperationManager.getInstance(BulletinViewActivity.this);
-
         if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
             mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
-            if (null == mCurBulletin)
-                updateCurBulletin();
+            mBulletinId = getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1);
         } else {
             finish();
         }
+
+        mManager = OperationManager.getInstance(BulletinViewActivity.this);
+        mManager.setDownloadListener(this);
+        mManager.addUploadListener(this);
+        mManager.downloadBulletinInfo(mBulletinId, BulletinViewActivity.this);
 
         rlContainer = (RelativeLayout) findViewById(R.id.container);
         mainlayout = (LinearLayout) findViewById(R.id.llmainFrame);
         ibBack = (ImageButton) findViewById(R.id.ibBack);
         rvList = (RecyclerView) findViewById(R.id.rvBulletinRepliesList);
         tvHeading = (TextView) findViewById(R.id.tvReplyViewHeading);
-        mAdapter = new RepliesAdapter(this, rvList);
+        mAdapter = new RepliesAdapter(this);
+        if (null == mCurBulletin)
+            updateCurBulletin();
         ivOpenReplyScreen = (ImageView) findViewById(R.id.ivOpenReplyScreen);
         ivReply = (ImageView) findViewById(R.id.ivSendReply);
         ivReply.setEnabled(false);
@@ -169,14 +137,16 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         rvList.setAdapter(mAdapter);
         mAdapter.showMainPostInfo(mCurBulletin);
 
-        // Init loader
-        getSupportLoaderManager().initLoader(REPLIES_LOADER, null, this);
-
         setListeners();
     }
 
+    /**
+     * Helper method for updating field {@link #mCurBulletin} with new data and passing it to adapter.
+     */
     private void updateCurBulletin() {
-        mCurBulletin = DataAccess.getBulletin(mBulletinPos, BulletinViewActivity.this);
+        mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletin(mBulletinPos);
+        mAdapter.setBulletin(mCurBulletin);
+        updateUI();
     }
 
     private void setListeners() {
@@ -185,7 +155,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             public void onClick(View v) {
                 Intent i = new Intent(BulletinViewActivity.this, NewPostActivity.class);
                 i.putExtra(NewPostActivity.EXTRA_REPLY_SUBJECT, mCurBulletin.getSubject());
-                i.putExtra(NewPostActivity.EXTRA_POST_ID, mCurBulletin.getPostID());
+                i.putExtra(NewPostActivity.EXTRA_POST_ID, mCurBulletin.getId());
                 i.putExtra(NewPostActivity.EXTRA_USER_NAME, mCurBulletin.getFirstName());
                 startActivity(i);
             }
@@ -207,14 +177,16 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 r.setUserLastName(profile.getLastName());
                 r.setDate(new Date());
                 r.setUserId(profile.getUserId());
-                r.setPostId(mCurBulletin.getPostID());
+                r.setPostId(mCurBulletin.getId());
                 r.setReplyText(etReplyText.getText().toString());
 
                 // Update UI
                 etReplyText.setText(null);
 
                 // Save and upload
-                mManager.postNewReply(r, mCurBulletin.getPostID(), BulletinViewActivity.this);
+                mManager.postNewReply(r, mCurBulletin, BulletinViewActivity.this);
+                updateCurBulletin();
+
             }
         });
         ivReply.setOnTouchListener(new OnTouchInterface(this));
@@ -231,13 +203,11 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         String text = "";
 
         if (mAdapter.getItemCount() != 0) {
-            Cursor c = mAdapter.getCursor();
-            c.moveToFirst();
             int replyCount = mAdapter.getItemCount();
             if (replyCount == 1)
-                text = String.format(getString(R.string.bulletin_onereply_header), c.getString(COL_FIRST_NAME), c.getString(COL_LAST_NAME));
+                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getFirstName(), mCurBulletin.getLastName());
             else {
-                text = String.format(getString(R.string.bulletin_reply_header), c.getString(COL_FIRST_NAME), Integer.toString(--replyCount));
+                text = String.format(getString(R.string.bulletin_reply_header), mCurBulletin.getFirstName(), Integer.toString(--replyCount));
             }
         } else
             text = "No replies so far";
@@ -271,7 +241,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         Bundle bundle = new Bundle();
         bundle.putLong(ARG_REPLY_ID, reply._id);
 //        getSupportLoaderManager().initLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
-        getSupportLoaderManager().restartLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
+//        getSupportLoaderManager().restartLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
 
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -319,7 +289,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 r.setUserLastName(profile.getLastName());
                 r.setDate(new Date());
                 r.setUserId(profile.getUserId());
-                r.setPostId(mCurBulletin.getPostID());
+                r.setPostId(mCurBulletin.getId());
                 r.setReReplyId(reply._id);
                 r.setReplyText(etReplyText.getText().toString());
                 r.isPostReply = false;
@@ -335,7 +305,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         });
 
         // Add adapter
-        mRepliesAdapter = new RepliesAdapter(BulletinViewActivity.this, mRepliesOfRepliesRecyclerView);
+        mRepliesAdapter = new RepliesAdapter(BulletinViewActivity.this);
         mRepliesOfRepliesRecyclerView.setAdapter(mRepliesAdapter);
 
         // Get device size
@@ -354,38 +324,38 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
         popWindow.showAtLocation(mainlayout, Gravity.BOTTOM, 0, 200);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
-        if (id == REPLIES_LOADER)
-            return new CursorLoader(BulletinViewActivity.this,
-                    ReplyEntry.CONTENT_URI,
-                    REPLIES_COLUMNS,
-                    "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
-                    new String[]{Long.toString(getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1))},
-                    REPLIES_ORDER_BY);
-        else
-            return new CursorLoader(BulletinViewActivity.this,
-                    ReplyEntry.CONTENT_URI,
-                    REPLIES_COLUMNS,
-                    "replies.".concat(ReplyEntry._ID) + " = ?",
-                    new String[]{Long.toString(args.getLong(ARG_REPLY_ID))},
-                    REPLIES_ORDER_BY);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-        if (loader.getId() == REPLIES_LOADER) {
-            updateCurBulletin();
-            mAdapter.setBulletin(mCurBulletin);
-            mAdapter.swapCursor(data);
-            updateUI();
-        } else {
-            mRepliesAdapter.swapCursor(data);
-            // TODO - set heading text
-        }
-    }
+//    @Override
+//    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+//
+//        if (id == REPLIES_LOADER)
+//            return new CursorLoader(BulletinViewActivity.this,
+//                    ReplyEntry.CONTENT_URI,
+//                    REPLIES_COLUMNS,
+//                    "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
+//                    new String[]{Long.toString(getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1))},
+//                    REPLIES_ORDER_BY);
+//        else
+//            return new CursorLoader(BulletinViewActivity.this,
+//                    ReplyEntry.CONTENT_URI,
+//                    REPLIES_COLUMNS,
+//                    "replies.".concat(ReplyEntry._ID) + " = ?",
+//                    new String[]{Long.toString(args.getLong(ARG_REPLY_ID))},
+//                    REPLIES_ORDER_BY);
+//    }
+//
+//    @Override
+//    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+//
+//        if (loader.getId() == REPLIES_LOADER) {
+//            updateCurBulletin();
+//            mAdapter.setBulletin(mCurBulletin);
+//            mAdapter.swapCursor(data);
+//            updateUI();
+//        } else {
+//            mRepliesAdapter.swapCursor(data);
+//            // TODO - set heading text
+//        }
+//    }
 
     private static final String BULLETINVIEW_TAG = "bulletin_view_tag";
 
@@ -398,7 +368,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
             if (bulletinView == null) {
                 bulletinView = LayoutInflater.from(BulletinViewActivity.this).inflate(R.layout.bulletin_list_item, null);
                 bulletinView.setTag(BULLETINVIEW_TAG);
-                  LinearLayout llReply = (LinearLayout) bulletinView.findViewById(R.id.llBulletinReply);
+                LinearLayout llReply = (LinearLayout) bulletinView.findViewById(R.id.llBulletinReply);
                 LinearLayout llBoost = (LinearLayout) bulletinView.findViewById(R.id.llBoost);
 
                 llReply.setOnClickListener(new View.OnClickListener() {
@@ -411,7 +381,7 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
                 llBoost.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mManager.newPostLike(mCurBulletin, BulletinViewActivity.this);
+                        mManager.boostPost(mCurBulletin, BulletinViewActivity.this);
                         getContentResolver().notifyChange(DataContract.ReplyEntry.CONTENT_URI, null);
                         updateUI();
                     }
@@ -459,11 +429,23 @@ public class BulletinViewActivity extends MotherActivity implements LoaderManage
 //    }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onDownloadSuccess() {
+        updateCurBulletin();
+    }
 
-        if (loader.getId() == REPLIES_LOADER)
-            mAdapter.swapCursor(null);
-        else
-            mRepliesAdapter.swapCursor(null);
+    @Override
+    public void onDownloadFailed() {
+        updateCurBulletin();
+        Toast.makeText(BulletinViewActivity.this, "Download failed.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onUploadSuccess() {
+        updateCurBulletin();
+    }
+
+    @Override
+    public void onUploadFailed() {
+        updateCurBulletin();
     }
 }
