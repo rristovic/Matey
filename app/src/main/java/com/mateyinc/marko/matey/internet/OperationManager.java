@@ -9,7 +9,6 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.data.DataAccess;
@@ -73,8 +72,6 @@ public class OperationManager implements OperationProvider {
     private Context mAppContext;
     private ExecutorService mExecutor = Executors.newFixedThreadPool(10);
     private RequestQueue mRequestQueue;
-    private Response.Listener<String> mSuccessListener;
-    private Response.ErrorListener mErrorListener;
     private DataAccess mDataAccess;
 
 
@@ -152,7 +149,7 @@ public class OperationManager implements OperationProvider {
                 if (modelType.equals(Bulletin.class.getSimpleName())) {
                     Bulletin b = (Bulletin) model;
                     b.setServerStatus(ServerStatus.STATUS_UPLOADING);
-                    b.save(context);
+//                    b.save(context);
                 }
             }
         });
@@ -223,7 +220,7 @@ public class OperationManager implements OperationProvider {
         mDownloadListener = listener;
     }
 
-    public void addUploadListener(UploadListener listener) {
+    public void setUploadListener(UploadListener listener) {
         mUploadListener = listener;
     }
 
@@ -342,22 +339,45 @@ public class OperationManager implements OperationProvider {
     ////////////////////////////////
 
     /**
-     * Helper method for liking/unliking reply
-     * <p><u>NOTE:</u> Method is async.</p>
-     *
-     * @param replyPosition position of reply in database
-     * @param context       context for database communication
+     * Helper method for download list of replies of a reply
+     * @param reply {@link Reply} object which replies list is being downloaded
+     * @param context context
      */
-    public void newReplyLike(final int replyPosition, final Context context) {
+    public void downloadReReplies(final Reply reply, final MotherActivity context) {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                Reply r = DataAccess.getReply(replyPosition, context);
-                if (r != null)
-                    r.like(context);
+                ReplyOp bulletinOp = new ReplyOp(context, reply);
+                bulletinOp.setOperationType(OperationType.DOWNLOAD_RE_REPLIES);
+                bulletinOp.addDownloadListener(mDownloadListener);
+                bulletinOp.startDownloadAction();
             }
         });
     }
+
+    /**
+     * Helper method for liking/unliking reply
+     * <p><u>NOTE:</u> Method is async.</p>
+     *
+     * @param reply   reply that is being liked
+     * @param context context for database communication
+     */
+    public void likeReply(final Reply reply, final Context context) {
+        final boolean isLiked = reply.like();
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                ApproveOp approveOp = new ApproveOp(context, reply);
+                if (isLiked)
+                    approveOp.setOperationType(OperationType.REPLY_LIKED);
+                else
+                    approveOp.setOperationType(OperationType.REPLY_UNLIKED);
+                approveOp.startUploadAction();
+            }
+        });
+    }
+
+
 
     /**
      * Helper method for posting new reply on bulletin
@@ -387,33 +407,12 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for posting new reply on bulletin
      *
-     * @param bulletin {@link Bulletin} bulletin to reply on
-     * @param text     reply text
-     * @param context  context used for database communication
-     */
-    public void postNewReply(String text, Bulletin bulletin, Context context) {
-        Reply r = new Reply();
-//        r.setUserId(MotherActivity.user_id);
-//        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
-//        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
-        r.setReplyText(text);
-        r.setPostId(bulletin.getId());
-
-        postNewReply(r, bulletin, context);
-    }
-
-    /**
-     * Helper method for posting new reply on bulletin
-     *
      * @param postId  id of bulletin to reply on
      * @param text    reply text
      * @param context context used for database communication
      */
     public void postNewReply(String text, long postId, Context context) {
         Reply r = new Reply();
-//        r.setUserId(MotherActivity.user_id);
-//        r.setUserFirstName(MotherActivity.mCurrentUserProfile.getFirstName());
-//        r.setUserLastName(MotherActivity.mCurrentUserProfile.getFirstName());
         r.setUserProfile(MotherActivity.mCurrentUserProfile);
         r.setReplyText(text);
         r.setPostId(postId);
@@ -425,11 +424,30 @@ public class OperationManager implements OperationProvider {
      * Helper method for posting new reply on reply
      *
      * @param reply   {@link Reply} reply to reply on
-     * @param r       {@link Reply} new reply object
      * @param context context used for database communication
      */
-    public void postNewReply(Reply r, Reply reply, Context context) {
-        r.reply(context, reply);
+    public void postNewReReply(String replyText, long postId, Reply reply, final Context context) {
+        final Reply r = new Reply();
+
+        // Create new reply
+        r.setUserProfile(reply.getUserProfile());
+        r.setId(reply.getId()); // This replyId will be used to identify thr reply that is being replied on
+        r.setPostId(postId);
+        r.setReReplyId(generateId());
+        r.setReplyText(replyText);
+
+        reply.addReply(r);
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                ReplyOp replyOp = new ReplyOp(context, r);
+                replyOp.setOperationType(OperationType.REPLY_ON_REPLY);
+                replyOp.addUploadListener(mUploadListener);
+
+                // Start upload
+                replyOp.startUploadAction();
+            }
+        });
     }
 
     //// User profile methods ///////
@@ -486,6 +504,5 @@ public class OperationManager implements OperationProvider {
         operation.setOperationType(OperationType.UNFOLLOW_USER_PROFILE);
         operation.setUserId(userId).startUploadAction();
     }
-
 }
 

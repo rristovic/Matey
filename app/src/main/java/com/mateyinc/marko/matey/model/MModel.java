@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.MBaseColumns;
 import com.mateyinc.marko.matey.data.ServerStatus;
 
@@ -50,16 +49,6 @@ public abstract class MModel {
         mServerStatus = ServerStatus.fromInteger(status);
     }
 
-    public void addToNotUploaded(String name, Context context) {
-        ContentValues values = new ContentValues(2);
-        values.put(DataContract.NotUploadedEntry._ID, _id);
-        values.put(DataContract.NotUploadedEntry.COLUMN_ENTRY_TYPE, name);
-        Uri uri = context.getContentResolver().insert(DataContract.NotUploadedEntry.CONTENT_URI, values);
-        if (uri != null)
-            Log.d("MMODEL", "Added to not uploaded table with id = " + _id);
-        else
-            Log.e("MMODEL", "Fail to add to not uploaded table with id = " + _id);
-    }
 
     public void updateServerStatus(Context context) {
         ContentValues values = new ContentValues(2);
@@ -82,19 +71,8 @@ public abstract class MModel {
 
     public abstract void onUploadFailed(String error, Context c);
 
-    protected abstract void notifyDataChanged(Context context);
 
     abstract public MModel parse(JSONObject object) throws JSONException;
-
-        /**
-         * Saves model in database and start upload sequence.
-         **/
-    abstract void save(Context context);
-
-    protected abstract void addToDb(Context context);
-
-    protected abstract void removeFromDb(Context context);
-
 
 }
 

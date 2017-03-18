@@ -146,21 +146,31 @@ public abstract class Operations {
         mRequest = new MateyRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
-                    public void onResponse(String response) {
+                    public void onResponse(final String response) {
                         Context c = mContextRef.get();
                         if (c != null) {
                             Log.d(getTag(), "Download has succeed.");
-                            onDownloadSuccess(response);
+                            submitRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    onDownloadSuccess(response);
+                                }
+                            });
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
-                    public void onErrorResponse(VolleyError error) {
+                    public void onErrorResponse(final VolleyError error) {
                         Context c = mContextRef.get();
                         if (c != null) {
                             Log.e(getTag(), "Download has failed: " + error.getLocalizedMessage(), error);
-                            onDownloadFailed(error);
+                            submitRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    onDownloadFailed(error);
+                                }
+                            });
                         }
                     }
                 });

@@ -13,7 +13,6 @@ import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -188,12 +187,12 @@ public class DataAccess {
     }
 
     /**
-     * Helper method for checking if approve exists in database
+     * Helper method for checking if like exists in database
      *
      * @param post_id id of post liked
      * @param replyId id of reply liked
      * @param context context used for db access
-     * @return true if approve exists
+     * @return true if like exists
      */
     public static boolean isApproveInDb(long post_id, @Nullable long replyId, Context context) {
         Cursor c = context.getContentResolver().query(DataContract.ApproveEntry.CONTENT_URI,

@@ -343,16 +343,6 @@ public class UserProfile extends MModel {
         }
     }
 
-    @Override
-    protected void addToDb(Context context) {
-
-    }
-
-    @Override
-    protected void removeFromDb(Context context) {
-
-    }
-
 
     @Override
     public String toString() {
@@ -378,11 +368,5 @@ public class UserProfile extends MModel {
     public void onUploadFailed(String error, Context c) {
 
     }
-
-    @Override
-    protected void notifyDataChanged(Context context) {
-
-    }
-
 
 }

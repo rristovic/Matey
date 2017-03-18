@@ -39,38 +39,7 @@ public abstract class UrlData {
     /** Count parameter for post count to startDownloadAction at route {@link UrlData#GET_NEWSFEED_ROUTE} */
     public static final String PARAM_COUNT = "count";
 
-    /** Url for downloading user profile data */
-    private static final String GET_USER_PROFILE_ROUTE = ACCESS_BASE_URL.concat("/users/:userId/profile");
-
     /////////////////////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////////////////////
-    // Data upload params and urls //////////////////////////////////////////////////////
-
-    /** Url for uploading new post to the server. */
-    public static final String POST_NEW_BULLETINS_ROUTE = ACCESS_BASE_URL.concat("/post/add");
-    /** Interest_id parameter of the selected interest in new post */
-    public static final String PARAM_INTEREST_ID = "interest_id";
-    /** Text param of new post */
-    public static final String PARAM_TEXT_DATA = "text";
-
-    /** Url for uploading new comment to the server. */
-    public static final String POST_NEW_REPLY_ROUTE = ACCESS_BASE_URL.concat("/comment/add");
-    /** post id parameter of the commented post */
-    public static final  String PARAM_REPLY_POST_ID = "post_id";
-    /** Text param of new comment */
-    public static final String PARAM_REPLY_TEXT_DATA = "text";
-
-    /** Url for uploading new like to the server. */
-    public static final String POST_NEW_LIKE_ROUTE = ACCESS_BASE_URL.concat("/like/add");
-    /** Liked reply post id */
-    public static final String PARAM_LIKED_POST_ID = "post_id";
-    /** Liked reply id */
-    public static final String PARAM_LIKED_REPLY_ID = "text";
-
-
-    /////////////////////////////////////////////////////////////////////////////////////
-
     ///// Profile data /////////////////////////////////////////////////////////////////////////////////////
     /** Url for uploading new followed friends list to the server. */
     public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
@@ -134,10 +103,6 @@ public abstract class UrlData {
     // Logout
     private static final String LOGOUT_USER = ACCESS_BASE_URL.concat("/users/me/devices/:deviceId/login");
 
-    public static String createProfileDataUrl(long userId){
-        return GET_USER_PROFILE_ROUTE.replace(":userId", Long.toString(userId));
-    }
-
     public static String createLoginUrl(String deviceId){
         return LOGIN_USER.replace(":deviceId", deviceId);
     }
@@ -147,6 +112,12 @@ public abstract class UrlData {
     }
 
     // Profile methods
+    /** Url for downloading user profile data */
+    private static final String GET_USER_PROFILE_ROUTE = ACCESS_BASE_URL.concat("/users/:userId/profile");
+    public static String createProfileDataUrl(long userId){
+        return GET_USER_PROFILE_ROUTE.replace(":userId", Long.toString(userId));
+    }
+
     public static String createUnfollowUrl(long userId){
         return DELETE_FOLLOWED_USER.replace(":userId", Long.toString(userId));
     }
@@ -176,9 +147,31 @@ public abstract class UrlData {
 
     //////// Reply UrlData //////////////
     private static final String POST_NEW_BULLETIN_REPLY = ACCESS_BASE_URL.concat("/posts/:postId/replies");
-    public static final String buildNewBulletinReplyUrl(long postId){
+    public static String buildNewBulletinReplyUrl(long postId) {
         return POST_NEW_BULLETIN_REPLY.replace(":postId", Long.toString(postId));
     }
+
+    private static final String PUT_REPLY_APPROVE = ACCESS_BASE_URL.concat("/replies/:replyId/approves");
+    public static final String buildReplyLikeUrl(long replydId){
+        return PUT_REPLY_APPROVE.replace(":replyId", Long.toString(replydId));
+    }
+
+    private static final String POST_NEW_REPLY_REPLY = ACCESS_BASE_URL.concat("/replies/:replyId/rereplies");
+    public static String buildNewReplyReplyUrl(long replyId) {
+        return POST_NEW_REPLY_REPLY.replace(":replyId", Long.toString(replyId));
+    }
+
+    private static final String PUT_REREPLY_APPROVE = ACCESS_BASE_URL.concat("/rereplies/:rereplyId/approves");
+    public static final String buildReReplyLikeUrl(long reReplydId){
+        return PUT_REREPLY_APPROVE.replace(":rereplyId", Long.toString(reReplydId));
+    }
+
+    private static final String GET_REREPLIES = ACCESS_BASE_URL.concat("/replies/:replyId/rereplies");
+    public static final String buildGetReReplies(long replyId){
+        return GET_REREPLIES.replace(":replyId", Long.toString(replyId));
+    }
+
+
     ///////////////////////////////////////////
 
 }

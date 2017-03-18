@@ -41,7 +41,7 @@
         android:background="@color/light_gray" />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/rvReplies"
+        android:id="@+id/rvReReplies"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -56,7 +56,7 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/etNewReply"
+            android:id="@+id/etNewReReply"
             android:layout_width="match_parent"
             android:layout_height="?android:attr/actionBarSize"
             android:layout_alignParentLeft="true"
@@ -72,7 +72,7 @@
             android:maxLines="4" />
 
         <ImageView
-            android:id="@+id/ivSendReply"
+            android:id="@+id/ivSendReReply"
             android:layout_width="?android:attr/actionBarSize"
             android:layout_height="?android:attr/actionBarSize"
             android:layout_alignParentEnd="true"

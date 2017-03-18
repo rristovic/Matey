@@ -33,6 +33,8 @@ public class ReplyOp extends Operations {
     private static final String TAG = ReplyOp.class.getSimpleName();
 
     Reply reply;
+    String url;
+
 
     public ReplyOp(Context context, Reply r) {
         super(context);
@@ -42,15 +44,43 @@ public class ReplyOp extends Operations {
     @Override
     public void startDownloadAction() {
 
+        switch (mOpType) {
+            case DOWNLOAD_RE_REPLIES: {
+                url = UrlData.buildGetReReplies(reply.getId());
+                break;
+            }
+            default:
+                return;
+        }
+
+        createNewDownloadReq(url);
+        startDownload();
     }
 
     @Override
     protected void onDownloadSuccess(String response) {
-        Context c = mContextRef.get();
-
-        if (c != null) {
-            reply.onDownloadSuccess(response, c);
+        try {
+            JSONArray list = new JSONObject(response).getJSONArray(Operations.KEY_DATA);
+            int size = list.length();
+            List<Reply> replyList = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                Reply r = new Reply().parse(list.getJSONObject(i));
+                r.setPostId(this.reply.getPostId());
+                r.setUserProfile(this.reply.getUserProfile());
+                replyList.add(r);
+            }
+            this.reply.setReplyList(replyList);
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to parse re replies.");
         }
+
+        if (mDownloadListener != null)
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDownloadListener.onDownloadSuccess();
+                }
+            });
     }
 
     @Override
@@ -64,16 +94,16 @@ public class ReplyOp extends Operations {
 
     @Override
     public void startUploadAction() {
-        String url;
         int method;
         switch (mOpType) {
             case REPLY_ON_POST: {
+                url = UrlData.buildNewBulletinReplyUrl(reply.getPostId());
                 uploadFile();
                 return;
             }
             case REPLY_ON_REPLY: {
-                url = "#";
-                method = Request.Method.POST;
+                url = UrlData.buildNewReplyReplyUrl(reply.getId());
+                uploadFile();
                 break;
             }
 
@@ -84,16 +114,12 @@ public class ReplyOp extends Operations {
             }
         }
 
-        notifyUI(R.string.upload_started);
-        createNewUploadReq(url, method);
-        startUpload();
+//        createNewUploadReq(url, method);
+//        startUpload();
 
     }
 
     public void uploadFile() {
-//        String[] parts = selectedFilePath.split("/");
-//        final String fileName = parts[parts.length - 1];
-
         if (mContextRef.get() != null)
             notifyUI(R.string.upload_started);
 
@@ -119,7 +145,7 @@ public class ReplyOp extends Operations {
         JSONObject jsonObject = new JSONObject();
         try {
             String message = reply.getReplyText();
-            if (!message.isEmpty()) // Is there is no message, send just the subject
+            if (!message.isEmpty())
                 jsonObject.put(CONTENT_FIELD_NAME, message);
             else
                 return;
@@ -159,7 +185,7 @@ public class ReplyOp extends Operations {
         // Create network request
         final okhttp3.Request request = new okhttp3.Request.Builder()
                 .header(UrlData.PARAM_AUTH_TYPE, "Bearer " + MotherActivity.access_token)
-                .url(UrlData.buildNewBulletinReplyUrl(reply.getPostId()))
+                .url(url)
                 .post(requestBodyBuilder.build())
                 .build();
 

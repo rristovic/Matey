@@ -22,7 +22,7 @@ import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 
-public class RepliesAdapter extends RecycleNoSQLAdapter {
+public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
     private final String TAG = RepliesAdapter.class.getSimpleName();
 
     public RepliesAdapter(MotherActivity context) {
@@ -129,8 +129,10 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
             }
 
             @Override
-            public void onApproveClicked(View caller, int position) {
-                mManager.newReplyLike(position, mContext);
+            public void onApproveClicked(TextView tvStats, int position) {
+                mManager.likeReply(mData.get(position), mContext);
+                tvStats.setText(mData.get(position).getStatistics(mContext));
+
             }
 
             @Override
@@ -141,14 +143,14 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
             @Override
             public void onNameClicked(View caller, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                Reply reply = (Reply) mData.get(adapterViewPosition);
+                Reply reply =  mData.get(adapterViewPosition);
                 i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, reply.getUserProfile().getUserId());
                 mContext.startActivity(i);
             }
 
             @Override
             public void onReplyClick(View caller, int adapterViewPosition) {
-                Reply r = (Reply) mData.get(adapterViewPosition);
+                Reply r =  mData.get(adapterViewPosition);
                 showPopupInterface.showPopupWindow(r);
             }
         };
@@ -192,7 +194,7 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
                 }
             });
         }
-        Reply reply = (Reply) mData.get(position);
+        Reply reply = mData.get(position);
 //        UserProfile profile = DataAccess.getInstance(mContext).getUserProfile(reply.getUserProfile().getUserId());
         RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
 
@@ -302,7 +304,7 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
             if (tag.equals(TAG_NAME)) {
                 mListener.onNameClicked(v, getAdapterPosition());
             } else if (tag.equals(BTN_ARR_TAG)) {
-                mListener.onApproveClicked(v, getAdapterPosition());
+                mListener.onApproveClicked(tvStats, getAdapterPosition());
             } else if (tag.equals(TAG_SHOW_APPROVES)) {
                 mListener.onShowApprovesClicked(v, mView);
             } else if (tag.equals(BTN_REPLY_TAG)) {
@@ -313,7 +315,7 @@ public class RepliesAdapter extends RecycleNoSQLAdapter {
         }
 
         protected interface ViewHolderClickListener {
-            void onApproveClicked(View caller, int adapterViewPosition);
+            void onApproveClicked(TextView tvStats, int adapterViewPosition);
 
             void onShowApprovesClicked(View caller, View rootView);
 

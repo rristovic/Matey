@@ -2,14 +2,12 @@ package com.mateyinc.marko.matey.model;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.net.Uri;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
-import com.mateyinc.marko.matey.internet.operations.BulletinOp;
 import com.mateyinc.marko.matey.internet.operations.Operations;
 
 import org.json.JSONArray;
@@ -361,30 +359,6 @@ public class Bulletin extends MModel {
         }
     }
 
-
-    /**
-     * Method to call when new bulletin has been created.
-     *
-     * @param context context used for database communication.
-     */
-    @Override
-    public void save(Context context) {
-        BulletinOp bulletinOp = new BulletinOp(context, this);
-
-//        if (mAttachments == null || mAttachments.size() == 0) {
-//            // Use volley
-//            bulletinOp.setOperationType(OperationType.POST_NEW_BULLETIN_NO_ATTCH);
-//        } else {
-//            // Send through OkHTTP
-//            bulletinOp.setOperationType(OperationType.POST_NEW_BULLETIN_WITH_ATTCH);
-//        }
-
-//        addToDb(context);
-//        notifyDataChanged(context);
-//        addToNotUploaded(TAG, context);
-//        bulletinOp.startUploadAction();
-    }
-
     @Override
     public void onDownloadSuccess(String response, Context c) {
 
@@ -418,32 +392,6 @@ public class Bulletin extends MModel {
         this.mServerStatus = ServerStatus.STATUS_RETRY_UPLOAD;
     }
 
-    public void addToDb(final Context c) {
-        ContentValues values = toValues();
-
-        // Add to db
-        Uri insertedUri = c.getContentResolver().insert(
-                DataContract.BulletinEntry.CONTENT_URI,
-                values);
-
-        if (insertedUri == null) {
-            Log.e(TAG, "Error inserting Bulletin: " + Bulletin.this);
-        } else {
-            Log.e(TAG, "New bulletin added: " + Bulletin.this);
-        }
-    }
-
-
-    @Override
-    protected void removeFromDb(Context context) {
-
-    }
-
-    @Override
-    protected void notifyDataChanged(Context context) {
-        context.getContentResolver().notifyChange(DataContract.BulletinEntry.CONTENT_URI, null);
-    }
-
     @Override
     public String toString() {
         String message, date;
@@ -466,7 +414,7 @@ public class Bulletin extends MModel {
 
     public void addReply(Reply reply) {
         this.mNumOfReplies++;
-        this.mReplyList.add(reply);
+        this.mReplyList.add(0, reply);
     }
 
     public void removeReply(Reply reply) {

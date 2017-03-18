@@ -35,14 +35,7 @@ public class Approve extends MModel {
     public long replyId = -1;
 
 
-    /**
-     * Method to call when post/reply has been liked/unliked. See also {@link MModel#save(Context)}.*
-     * @param context context used for database communication.
-     */
-    @Override
-    public void save(Context context) {
-       save(context, DataAccess.isApproveInDb(postId, replyId, context));
-    }
+
 
     public void save(Context context, boolean approveExists) {
 //        ApproveOp op = new ApproveOp(context, this);
@@ -70,51 +63,9 @@ public class Approve extends MModel {
 //        op.startUploadAction();
     }
 
-    @Override
-    protected void addToDb(Context context) {
-        ContentValues values = new ContentValues();
-
-        values.put(ApproveEntry._ID, this._id);
-        values.put(ApproveEntry.COLUMN_POST_ID, postId);
-        values.put(ApproveEntry.COLUMN_REPLY_ID, replyId);
-        values.put(ApproveEntry.COLUMN_USER_ID, userId);
-        values.put(ApproveEntry.COLUMN_SERVER_STATUS, mServerStatus.ordinal());
-
-        // Add to db
-        Uri insertedUri = context.getContentResolver().insert(
-                DataContract.ApproveEntry.CONTENT_URI,
-                values
-        );
-
-        if (insertedUri == null) {
-            Log.e(TAG, "Error inserting to database: " + Approve.this);
-        } else {
-            Log.d(TAG, "New approve added to database: " + Approve.this);
-        }
-    }
-
-    @Override
-    protected void removeFromDb(Context context) {
-        // Remove from db
-        int deleted = context.getContentResolver().delete(DataContract.ApproveEntry.CONTENT_URI,
-                ApproveEntry.COLUMN_POST_ID + " = ? AND " + ApproveEntry.COLUMN_REPLY_ID + " = ?",
-                new String[]{Long.toString(postId), Long.toString(replyId)});
-
-        if (deleted == 1) {
-            Log.d(TAG, "Approve removed from database: " + Approve.this);
-        } else {
-            Log.e(TAG, "Error removing from database: " + Approve.this);
-        }
-    }
-
 
     @Override
     public void onDownloadSuccess(String response, Context c) {
-        // Parse data
-
-
-        // Save data
-        addToDb(c);
     }
 
     @Override
@@ -129,11 +80,6 @@ public class Approve extends MModel {
 
     @Override
     public void onUploadFailed(String error, Context c) {
-
-    }
-
-    @Override
-    protected void notifyDataChanged(Context context) {
 
     }
 

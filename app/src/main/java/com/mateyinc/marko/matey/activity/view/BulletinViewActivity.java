@@ -10,6 +10,7 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -28,7 +29,6 @@ import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.adapters.RepliesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.DataContract.ReplyEntry;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
@@ -64,12 +64,16 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
     private ImageView ivReply, ivOpenReplyScreen;
     private PopupWindow popWindow;
     private LinearLayout mainlayout;
+    private RelativeLayout rlContainer;
+    private View bulletinView;
 
     private Bulletin mCurBulletin = null;
     private OperationManager mManager;
     private RepliesAdapter mRepliesAdapter;
-    private RelativeLayout rlContainer;
-    private View bulletinView;
+    // Indicates if popup window with reply list is visible
+    private boolean mPopupShowing;
+    // Holds reference to current reply which reply list is being displayed on popup window
+    private Reply mCurReply;
 
 
     @Override
@@ -91,7 +95,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
         mManager = OperationManager.getInstance(BulletinViewActivity.this);
         mManager.setDownloadListener(this);
-        mManager.addUploadListener(this);
+        mManager.setUploadListener(this);
         mManager.downloadBulletinInfo(mBulletinId, BulletinViewActivity.this);
 
         rlContainer = (RelativeLayout) findViewById(R.id.container);
@@ -202,7 +206,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
         if (mAdapter.getItemCount() != 0) {
             int replyCount = mAdapter.getItemCount();
             if (replyCount == 1)
-                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getUserProfile().getFirstName(), mCurBulletin.getUserProfile().getLastName() );
+                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getUserProfile().getFirstName(), mCurBulletin.getUserProfile().getLastName());
             else {
                 text = String.format(getString(R.string.bulletin_reply_header), mCurBulletin.getUserProfile().getFirstName(), Integer.toString(--replyCount));
             }
@@ -231,91 +235,6 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.showSoftInput(etReplyText, InputMethodManager.SHOW_IMPLICIT);
 
-    }
-
-    @Override
-    public void showPopupWindow(final Reply reply) {
-        Bundle bundle = new Bundle();
-        bundle.putLong(ARG_REPLY_ID, reply._id);
-//        getSupportLoaderManager().initLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
-//        getSupportLoaderManager().restartLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
-
-        LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-        // inflate the custom popup layout
-        View inflatedView = layoutInflater.inflate(R.layout.activity_replies_view, null, false);
-        // find the ListView in the popup layout
-        mRepliesOfRepliesRecyclerView = (RecyclerView) inflatedView.findViewById(R.id.rvReplies);
-        mRepliesHeader = (TextView) inflatedView.findViewById(R.id.tvHeading);
-        final EditText etNewReReply = (EditText) inflatedView.findViewById(R.id.etNewReply);
-        final ImageView ivSendReply = (ImageView) inflatedView.findViewById(R.id.ivSendReply);
-
-        etNewReReply.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                enableButton(s);
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                enableButton(s);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                enableButton(s);
-            }
-
-            private void enableButton(CharSequence s) {
-                if (s == null || s.length() == 0) {
-                    ivSendReply.setEnabled(false);
-                } else {
-                    ivSendReply.setEnabled(true);
-                }
-            }
-        });
-
-        ivSendReply.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Reply r = new Reply();
-
-                // Create new reply
-                r.setUserProfile(MotherActivity.mCurrentUserProfile);
-                r.setDate(new Date());
-                r.setPostId(mCurBulletin.getId());
-                r.setReReplyId(reply._id);
-                r.setReplyText(etReplyText.getText().toString());
-                r.isPostReply = false;
-
-                // Update UI
-                etNewReReply.setText(null);
-
-                // Save and upload
-                mManager.postNewReply(r, reply, BulletinViewActivity.this);
-                // Notify so ui can update
-                getContentResolver().notifyChange(ReplyEntry.CONTENT_URI, null);
-            }
-        });
-
-        // Add adapter
-        mRepliesAdapter = new RepliesAdapter(BulletinViewActivity.this);
-        mRepliesOfRepliesRecyclerView.setAdapter(mRepliesAdapter);
-
-        // Get device size
-        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        int width = displayMetrics.widthPixels;
-        int height = displayMetrics.heightPixels;
-
-        // set height depends on the device size
-        popWindow = new PopupWindow(inflatedView, width, height - 50, true);
-        // set a background drawable with rounders corners
-        popWindow.setBackgroundDrawable(getResources().getDrawable(R.drawable.popup_bg));
-        popWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
-        popWindow.setAnimationStyle(R.style.PopupAnimation);
-
-        // show the popup at bottom of the screen and set some margin at bottom ie,
-        popWindow.showAtLocation(mainlayout, Gravity.BOTTOM, 0, 200);
     }
 
 //    @Override
@@ -423,6 +342,10 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
     @Override
     public void onDownloadSuccess() {
+        if (mPopupShowing && mCurReply != null) {
+            mRepliesAdapter.setData(mCurReply.getReplyList());
+            return;
+        }
         updateCurBulletin();
     }
 
@@ -440,5 +363,95 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
     @Override
     public void onUploadFailed() {
         updateCurBulletin();
+    }
+
+    @Override
+    public void showPopupWindow(final Reply reply) {
+        mPopupShowing = true;
+        mCurReply = reply;
+        // Start download process
+        mManager.downloadReReplies(reply, BulletinViewActivity.this);
+
+        Bundle bundle = new Bundle();
+        bundle.putLong(ARG_REPLY_ID, reply._id);
+//        getSupportLoaderManager().initLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
+//        getSupportLoaderManager().restartLoader(REPLIES_OF_REPLIES_LOADER, bundle, this);
+
+        LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        // inflate the custom popup layout
+        View inflatedView = layoutInflater.inflate(R.layout.activity_replies_view, null, false);
+        // find the ListView in the popup layout
+        mRepliesOfRepliesRecyclerView = (RecyclerView) inflatedView.findViewById(R.id.rvReReplies);
+        mRepliesHeader = (TextView) inflatedView.findViewById(R.id.tvHeading);
+        final EditText etNewReReply = (EditText) inflatedView.findViewById(R.id.etNewReReply);
+        final ImageView ivSendReply = (ImageView) inflatedView.findViewById(R.id.ivSendReReply);
+
+        etNewReReply.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                enableButton(s);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                enableButton(s);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                enableButton(s);
+            }
+
+            private void enableButton(CharSequence s) {
+                if (s == null || s.length() == 0) {
+                    ivSendReply.setEnabled(false);
+                } else {
+                    ivSendReply.setEnabled(true);
+                }
+            }
+        });
+
+        ivSendReply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Save and upload
+                mManager.postNewReReply(etNewReReply.getText().toString(), mCurBulletin.getId()
+                        , reply, BulletinViewActivity.this);
+
+                // Update UI
+                etNewReReply.setText(null);
+            }
+        });
+
+        // Add adapter
+        mRepliesAdapter = new RepliesAdapter(BulletinViewActivity.this);
+        mRepliesAdapter.setData(reply.getReplyList());
+        mRepliesOfRepliesRecyclerView.setAdapter(mRepliesAdapter);
+
+        // Get device size
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        int width = displayMetrics.widthPixels;
+        int height = displayMetrics.heightPixels;
+
+        // set height depends on the device size
+        popWindow = new PopupWindow(inflatedView, width, height, true);
+        // set a background drawable with rounders corners
+        popWindow.setBackgroundDrawable(getResources().getDrawable(R.drawable.popup_bg));
+        popWindow.setHeight(WindowManager.LayoutParams.MATCH_PARENT);
+//        popWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_FROM_FOCUSABLE);
+        popWindow.setAnimationStyle(R.style.PopupAnimation);
+        popWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+        // show the popup at bottom of the screen and set some margin at bottom ie,
+        popWindow.showAtLocation(mainlayout, Gravity.BOTTOM, 0, 200);
+
+        popWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                mPopupShowing = false;
+                mCurReply = null;
+            }
+        });
     }
 }

@@ -27,10 +27,13 @@ public enum OperationType {
     POST_UNLIKED,
     REPLY_UNLIKED,
     REPLY_LIKED,
+    RE_REPLY_LIKED,
+    RE_REPLY_UNLIKED,
 
     // Reply operations
     REPLY_ON_POST,
     REPLY_ON_REPLY,
+    DOWNLOAD_RE_REPLIES,
 
     NO_OPERATION
 }
