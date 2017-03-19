@@ -134,12 +134,13 @@ public class NewsfeedOp extends Operations {
                     dataAccess.clearData();
                 dataAccess.addBulletins(bulletinList);
 //                dataAccess.addUserProfile(bulletinList);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mDownloadListener.onDownloadSuccess();
-                    }
-                });
+                if (mDownloadListener != null)
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDownloadListener.onDownloadSuccess();
+                        }
+                    });
             }
 
 
@@ -169,12 +170,13 @@ public class NewsfeedOp extends Operations {
 //            }
 
         } catch (JSONException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDownloadListener.onDownloadFailed();
-                }
-            });
+            if (mDownloadListener != null)
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDownloadListener.onDownloadFailed();
+                    }
+                });
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
     }
@@ -196,12 +198,13 @@ public class NewsfeedOp extends Operations {
 
     @Override
     protected void onDownloadFailed(VolleyError error) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDownloadListener.onDownloadFailed();
-            }
-        });
+        if (mDownloadListener != null)
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDownloadListener.onDownloadFailed();
+                }
+            });
     }
 
     @Override

@@ -30,8 +30,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class BulletinOp extends Operations {
-
     private static final String TAG = BulletinOp.class.getSimpleName();
+    /**
+     * Required json data field - title
+     **/
+    private static final String TITLE_FIELD_NAME = "title";
 
 
     final Bulletin bulletin;

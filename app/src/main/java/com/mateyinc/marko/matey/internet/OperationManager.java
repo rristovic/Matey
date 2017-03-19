@@ -18,15 +18,18 @@ import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.operations.ApproveOp;
 import com.mateyinc.marko.matey.internet.operations.BulletinOp;
+import com.mateyinc.marko.matey.internet.operations.GroupOp;
 import com.mateyinc.marko.matey.internet.operations.NewsfeedOp;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.internet.operations.ReplyOp;
 import com.mateyinc.marko.matey.internet.operations.UserProfileOp;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.model.MModel;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -340,7 +343,8 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for download list of replies of a reply
-     * @param reply {@link Reply} object which replies list is being downloaded
+     *
+     * @param reply   {@link Reply} object which replies list is being downloaded
      * @param context context
      */
     public void downloadReReplies(final Reply reply, final MotherActivity context) {
@@ -376,7 +380,6 @@ public class OperationManager implements OperationProvider {
             }
         });
     }
-
 
 
     /**
@@ -503,6 +506,40 @@ public class OperationManager implements OperationProvider {
         UserProfileOp operation = new UserProfileOp(context);
         operation.setOperationType(OperationType.UNFOLLOW_USER_PROFILE);
         operation.setUserId(userId).startUploadAction();
+    }
+
+    //// Groups methods /////////////
+    /////////////////////////////////
+
+    /**
+     * Helper method for creating new group.
+     *
+     * @param name        group's name
+     * @param description group's description
+     * @param picFilePath group's picture file path if exists
+     * @param context     context
+     */
+    public void createNewGroup(String name, String description, @Nullable final File picFilePath, final Context context) {
+        final Group group = new Group(generateId());
+        group.setGroupName(name);
+        group.setDescription(description);
+        DataAccess.getInstance(context).addGroup(group);
+
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                GroupOp groupOp = new GroupOp(context, group);
+                groupOp.setPicFilePath(picFilePath);
+                groupOp.setOperationType(OperationType.POST_NEW_GROUP);
+                groupOp.addUploadListener(mUploadListener);
+                groupOp.startUploadAction();
+            }
+        });
+    }
+
+    public void downloadGroupList(Context mContext) {
+        GroupOp groupOp = new GroupOp(mContext);
+        groupOp.startDownloadAction();
     }
 }
 

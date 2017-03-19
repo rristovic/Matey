@@ -30,10 +30,6 @@ public abstract class Operations {
      **/
     protected static final String JSON_DATA_FIELD_NAME = "json_data";
     /**
-     * Required json data field - title
-     **/
-    protected static final String TITLE_FIELD_NAME = "title";
-    /**
      * Content json data field - post message
      **/
     protected static final String CONTENT_FIELD_NAME = "text";
@@ -76,6 +72,8 @@ public abstract class Operations {
      * Indicates what kind of operations this is, used for general db control in {@link #addNotUploadedActivity(long)}
      */
     protected OperationType mOpType;
+    protected String mUrl;
+    protected int mMethod;
 
     // Network request used for networking
     protected MateyRequest mRequest;

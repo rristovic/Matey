@@ -193,6 +193,14 @@ public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
                     mContext.startActivity(i);
                 }
             });
+            holder.mView.findViewById(R.id.tvBulletinUserName).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(mContext, ProfileActivity.class);
+                    i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, mCurBulletin.getUserProfile().getUserId());
+                    mContext.startActivity(i);
+                }
+            });
         }
         Reply reply = mData.get(position);
 //        UserProfile profile = DataAccess.getInstance(mContext).getUserProfile(reply.getUserProfile().getUserId());

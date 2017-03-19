@@ -35,5 +35,9 @@ public enum OperationType {
     REPLY_ON_REPLY,
     DOWNLOAD_RE_REPLIES,
 
+    // Group operations
+    DOWNLOAD_GROUP_LIST,
+    POST_NEW_GROUP,
+
     NO_OPERATION
 }

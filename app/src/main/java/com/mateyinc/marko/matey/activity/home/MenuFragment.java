@@ -13,7 +13,10 @@ import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.SessionManager;
+
+import java.util.Random;
 
 /**
  * Created by Sarma on 8/27/2016.
@@ -75,8 +78,8 @@ public class MenuFragment extends Fragment {
 //                        break;
 //                    }
                     case GROUPS_ITEM_ID: {
-                        Intent i = new Intent(MenuFragment.this.getContext(), GroupActivity.class);
-                        startActivity(i);
+                        OperationManager.getInstance(getContext()).createNewGroup("Radovan's kingdom " + new Random().nextInt(100)
+                                , "Ognjen derpe.. :(", null, getContext());
                         break;
                     }
 //                    case FEEDBACK_ITEM_ID: {

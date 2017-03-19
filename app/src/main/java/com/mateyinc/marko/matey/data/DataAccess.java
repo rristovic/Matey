@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -61,6 +62,7 @@ public class DataAccess {
     private static DataAccess mInstance;
 
     private List<Bulletin> mBulletinList;
+    private List<Group> mGroupList;
     private List<UserProfile> mProfilesList;
 
     private final Object mLock = new Object();
@@ -70,6 +72,7 @@ public class DataAccess {
     private DataAccess(Context context) {
         mBulletinList = new ArrayList<>();
         mProfilesList = new ArrayList<>();
+        mGroupList = new ArrayList<>();
         mContext = context;
     }
 
@@ -127,6 +130,18 @@ public class DataAccess {
         }
 
         mBulletinList.add(0, bulletin);
+    }
+
+    public void addGroup(Group group) {
+        int index = mGroupList.indexOf(group);
+        if (index != -1)
+            mGroupList.remove(index);
+        mGroupList.add(group);
+    }
+
+    public void setGroups(List<Group> list) {
+        mGroupList.clear();
+        mGroupList = list;
     }
 
     /**

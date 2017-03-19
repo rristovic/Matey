@@ -28,18 +28,6 @@ public abstract class UrlData {
     public static final String PARAM_OLD_GCM_ID = "old_gcm";
 
     /////////////////////////////////////////////////////////////////////////////////////
-    // News feed ////////////////////////////////////////////////////
-
-    /** Url for downloading news feed */
-    public static final String GET_NEWSFEED_ROUTE = ACCESS_BASE_URL.concat("/deck");
-
-    /** Position parameter of the post in the database for route {@link UrlData#GET_NEWSFEED_ROUTE} */
-    public static final String PARAM_START_POS = "start";
-
-    /** Count parameter for post count to startDownloadAction at route {@link UrlData#GET_NEWSFEED_ROUTE} */
-    public static final String PARAM_COUNT = "count";
-
-    /////////////////////////////////////////////////////////////////////////////////////
     ///// Profile data /////////////////////////////////////////////////////////////////////////////////////
     /** Url for uploading new followed friends list to the server. */
     public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
@@ -130,6 +118,19 @@ public abstract class UrlData {
     public static String createFollowersListUrl(long userId){
         return GET_FOLLOWERS.replace(":userId", Long.toString(userId));
     }
+    /////////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////  NEWS FEED UrlData  ////////////////////////////////////////////////////
+    /** Url for downloading news feed */
+    public static final String GET_NEWSFEED_ROUTE = ACCESS_BASE_URL.concat("/deck");
+
+    /** Position parameter of the post in the database for route {@link UrlData#GET_NEWSFEED_ROUTE} */
+    public static final String PARAM_START_POS = "start";
+
+    /** Count parameter for post count to startDownloadAction at route {@link UrlData#GET_NEWSFEED_ROUTE} */
+    public static final String PARAM_COUNT = "count";
+
 
     //////// BULLETIN UrlData //////////////
     public static final String POST_NEW_BULLETIN = ACCESS_BASE_URL.concat("/posts");
@@ -171,7 +172,12 @@ public abstract class UrlData {
         return GET_REREPLIES.replace(":replyId", Long.toString(replyId));
     }
 
-
     ///////////////////////////////////////////
+
+    ////////  GROUP  UrlData //////////////
+    private static final String GET_GROUPS = ACCESS_BASE_URL.concat("#");
+
+    public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
+
 
 }

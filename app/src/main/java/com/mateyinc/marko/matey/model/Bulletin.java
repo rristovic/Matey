@@ -45,14 +45,16 @@ public class Bulletin extends MModel {
     private Date mDate;
     private String mText;
     private String mSubject;
+    private Group mGroup;
 
     private int mNumOfReplies = 0;
     private int mNumOfLikes = 0;
     private int mNumOfAttachs = 0;
+    private boolean isBoosted;
+
     private List<String> mAttachments;
     private List<Reply> mReplyList;
     private List<Approve> mApproves;
-    private boolean isBoosted;
 
 
     public Bulletin() {

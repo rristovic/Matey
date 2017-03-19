@@ -38,7 +38,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private SearchFragment mSearchFragment;
     private FragmentManager mFragmentManager;
     private BulletinsFragment mBulletinsFragment;
-    private GroupFragment mNotificationsFragment;
+    private GroupFragment mGroupFragment;
     private MessagesFragment mMessagesFragment;
     private FriendsFragment mFriendsFragment;
     private MenuFragment mMenuFragment;
@@ -186,11 +186,11 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                 mCurrentPage = 1;
                 changeNavIconColor();
 
-                if (mNotificationsFragment == null) {
-                    mNotificationsFragment = new GroupFragment();
+                if (mGroupFragment == null) {
+                    mGroupFragment = new GroupFragment();
                 }
                 mFragmentManager.beginTransaction().replace(
-                        R.id.homeContainer, mNotificationsFragment, NOTIF_FRAG_TAG
+                        R.id.homeContainer, mGroupFragment, NOTIF_FRAG_TAG
                 ).commit();
             }
         });
