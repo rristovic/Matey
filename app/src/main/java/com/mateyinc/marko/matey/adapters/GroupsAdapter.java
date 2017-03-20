@@ -10,21 +10,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.GroupActivity;
+import com.mateyinc.marko.matey.activity.view.GroupActivity;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Group;
 
 import java.util.ArrayList;
 
-public class GroupsAdapter extends RecyclerView.Adapter<GroupsAdapter.ViewHolder> {
+public class GroupsAdapter extends RecycleNoSQLAdapter<Group> {
 
 
     private final Context mContext;
     private final OperationManager mManager;
 
-    public ArrayList<Group> mData;
-
-    public GroupsAdapter(Context context) {
+    public GroupsAdapter(MotherActivity context) {
+        super(context);
         mData = new ArrayList<>();
         mContext = context;
         mManager = OperationManager.getInstance(context);
@@ -44,21 +44,11 @@ public class GroupsAdapter extends RecyclerView.Adapter<GroupsAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        // Parsing data to views if available
-//        try {
-//            holder.mNotifText.setText("null");
-//        } catch (Exception e) {
-//            Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-//        }
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+
     }
 
-    @Override
-    public int getItemCount() {
-        return 200;
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final View mView;
         final ImageView ivPicture;
         final TextView tvStats, tvName;

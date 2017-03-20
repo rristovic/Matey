@@ -34,6 +34,12 @@ public class GroupOp extends Operations {
      **/
     private static final String DESCR_FIELD = "description";
 
+    /**
+     * Contains url for next page of data. If empty, no page has already been downloaded.
+     */
+    protected static String mNextUrl = "";
+
+    private long mUserId;
     private Group group;
     private File picFilePath;
 
@@ -48,7 +54,20 @@ public class GroupOp extends Operations {
 
     @Override
     public void startDownloadAction() {
+        switch (mOpType) {
+            case DOWNLOAD_GROUP_LIST: {
+                if (mNextUrl.isEmpty()) {
+                    mClearData = true;
+                    mUrl = UrlData.buildGetGroupList(mUserId);
+                } else {
+                    mUrl = buildNextPageUrl(mNextUrl);
+                }
+                break;
+            }
+            default: return;
+        }
 
+        startDownload();
     }
 
     @Override
@@ -164,9 +183,14 @@ public class GroupOp extends Operations {
         this.picFilePath = picFilePath;
     }
 
+    public void setUserId(long userId) {
+        this.mUserId = userId;
+    }
+
     @Override
     protected String getTag() {
         return TAG;
     }
+
 
 }

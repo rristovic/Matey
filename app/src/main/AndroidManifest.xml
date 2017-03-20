@@ -105,7 +105,7 @@
             android:largeHeap="true"
             android:theme="@style/AppTheme.ActionBar.Transparent" />
         <activity
-            android:name=".activity.home.GroupActivity"
+            android:name=".activity.view.GroupActivity"
             android:label="@string/title_activity_profile" />
         <activity
             android:name=".activity.home.FeedbackActivity"

@@ -136,12 +136,12 @@ public abstract class UrlData {
     public static final String POST_NEW_BULLETIN = ACCESS_BASE_URL.concat("/posts");
 
     private static final String GET_BULLETIN = ACCESS_BASE_URL.concat("/posts/:postId");
-    public static final String buildGetBulletinUrl(long postId){
+    public static String buildGetBulletinUrl(long postId){
         return GET_BULLETIN.replace(":postId", Long.toString(postId));
     }
 
     private static final String PUT_BULLETIN_APPROVE = ACCESS_BASE_URL.concat("/posts/:postId/boosts");
-    public static final String buildBulletinBoostUrl(long postId){
+    public static String buildBulletinBoostUrl(long postId){
         return PUT_BULLETIN_APPROVE.replace(":postId", Long.toString(postId));
     }
     ///////////////////////////////////////////
@@ -153,7 +153,7 @@ public abstract class UrlData {
     }
 
     private static final String PUT_REPLY_APPROVE = ACCESS_BASE_URL.concat("/replies/:replyId/approves");
-    public static final String buildReplyLikeUrl(long replydId){
+    public static String buildReplyLikeUrl(long replydId){
         return PUT_REPLY_APPROVE.replace(":replyId", Long.toString(replydId));
     }
 
@@ -163,20 +163,22 @@ public abstract class UrlData {
     }
 
     private static final String PUT_REREPLY_APPROVE = ACCESS_BASE_URL.concat("/rereplies/:rereplyId/approves");
-    public static final String buildReReplyLikeUrl(long reReplydId){
+    public static String buildReReplyLikeUrl(long reReplydId){
         return PUT_REREPLY_APPROVE.replace(":rereplyId", Long.toString(reReplydId));
     }
 
     private static final String GET_REREPLIES = ACCESS_BASE_URL.concat("/replies/:replyId/rereplies");
-    public static final String buildGetReReplies(long replyId){
+    public static String buildGetReReplies(long replyId){
         return GET_REREPLIES.replace(":replyId", Long.toString(replyId));
     }
 
     ///////////////////////////////////////////
 
     ////////  GROUP  UrlData //////////////
-    private static final String GET_GROUPS = ACCESS_BASE_URL.concat("#");
-
+    private static final String GET_GROUPS = ACCESS_BASE_URL.concat("/users/:userId/groups/following");
+    public static String buildGetGroupList(long userId){
+        return GET_GROUPS.replace(":userId", Long.toString(userId));
+    }
     public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
 
 

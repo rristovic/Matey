@@ -64,8 +64,8 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
         super.onAttach(context);
         mContext = (HomeActivity) context;
         mOperationManager = OperationManager.getInstance(context);
-        mOperationManager.downloadNewsFeed(true, mContext);
         mOperationManager.setDownloadListener(this);
+        mOperationManager.downloadNewsFeed(true, mContext);
     }
 
     @Override
@@ -117,6 +117,8 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
     public void onResume() {
         super.onResume();
         Log.d("BulletinsFragment", "onResume is called.");
+        mOperationManager.setDownloadListener(this);
+        onDownloadSuccess();
 
         // If items are updated, notify adapter
         if (mUpdatedPositions.size() != 0) {

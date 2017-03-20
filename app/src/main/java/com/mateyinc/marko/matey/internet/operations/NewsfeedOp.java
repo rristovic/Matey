@@ -10,6 +10,7 @@ import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationProvider;
+import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -20,7 +21,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mateyinc.marko.matey.internet.UrlData.ACCESS_BASE_URL;
 import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
 import static com.mateyinc.marko.matey.internet.operations.OperationType.DOWNLOAD_NEWS_FEED;
 
@@ -28,12 +28,10 @@ import static com.mateyinc.marko.matey.internet.operations.OperationType.DOWNLOA
 public class NewsfeedOp extends Operations {
     private static final String TAG = NewsfeedOp.class.getSimpleName();
 
-    private boolean mClearData = false;
-
     /**
      * Contains url for next page of data. If empty, no page has already been downloaded.
      */
-    private static String mNextUrl = "";
+    protected static String mNextUrl = "";
 
 
     public NewsfeedOp(MotherActivity context) {
@@ -46,50 +44,39 @@ public class NewsfeedOp extends Operations {
 
     @Override
     public void startDownloadAction() {
-        String url;
 
         switch (mOpType) {
             default:
             case DOWNLOAD_NEWS_FEED: {
                 Log.d(TAG, "Downloading news feed.");
-                Uri.Builder builder;
                 if (mNextUrl.isEmpty()) { // If initial download, clear everything first
-                    builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
+                    mUrl = UrlData.GET_NEWSFEED_ROUTE;
                     mClearData = true;
                 } else
-                    builder = Uri.parse(ACCESS_BASE_URL).buildUpon()
-                            .appendEncodedPath(mNextUrl);
-                url = builder.build().toString();
+                    mUrl = buildNextPageUrl(mNextUrl);
                 break;
             }
             case DOWNLOAD_NEWS_FEED_NEW: {
                 Log.d(TAG, "Downloading news feed.");
                 mClearData = true;
                 Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
-                url = builder.build().toString();
+                mUrl = builder.build().toString();
                 break;
             }
         }
 
-        createNewDownloadReq(url);
+        createNewDownloadReq(mUrl);
         startDownload();
     }
+
+
 
     @Override
     protected void onDownloadSuccess(String response) {
         try {
             JSONObject object = new JSONObject(response);
 
-            JSONObject pagination = object.getJSONObject(KEY_PAGINATION);
-            pagination = pagination.getJSONObject(KEY_LINKS);
-
-            try {
-                mNextUrl = pagination.getString(KEY_NEXT_URL);
-                mNextUrl = mNextUrl.substring(mNextUrl.lastIndexOf("/") + 1);// save next url
-            } catch (Exception e) {
-                Log.d(TAG, "No value for next link.");
-                mNextUrl = "#";
-            }
+            mNextUrl = parseNextUrl(object);
 
             JSONArray data = object.getJSONArray(Operations.KEY_DATA);
             // Parsing
@@ -130,8 +117,10 @@ public class NewsfeedOp extends Operations {
 
             if (c != null) {
                 DataAccess dataAccess = DataAccess.getInstance(c);
-                if (mClearData)
+                if (mClearData) {
                     dataAccess.clearData();
+                    mClearData = false;
+                }
                 dataAccess.addBulletins(bulletinList);
 //                dataAccess.addUserProfile(bulletinList);
                 if (mDownloadListener != null)
@@ -143,31 +132,6 @@ public class NewsfeedOp extends Operations {
                     });
             }
 
-
-//
-
-//            // Save
-//            Context c = mContextRef.get();
-//            if (c != null) {
-//                ContentValues[] values = new ContentValues[bulletinList.size()];
-//                int entries = c.getContentResolver().bulkInsert(DataContract.BulletinEntry.CONTENT_URI,
-//                        bulletinList.toArray(values));
-//                if (entries != 0) {
-//                    Log.d(TAG, String.format("Inserted %d bulletins out of %d into db.", entries, length));
-//                } else {
-//                    Log.e(TAG, String.format("Failed to insert %d bulletins.", length));
-//                }
-//            }
-//            if (c != null) {
-//                ContentValues[] values = new ContentValues[userList.size()];
-//                int entries = c.getContentResolver().bulkInsert(DataContract.ProfileEntry.CONTENT_URI,
-//                        userList.toArray(values));
-//                if (entries != 0) {
-//                    Log.d(TAG, String.format("Inserted %d user profiles out of %d.", entries, userList.size()));
-//                } else {
-//                    Log.e(TAG, String.format("Failed to insert %d profiles.", userList.size()));
-//                }
-//            }
 
         } catch (JSONException e) {
             if (mDownloadListener != null)
@@ -192,7 +156,7 @@ public class NewsfeedOp extends Operations {
         context.getContentResolver().delete(DataContract.ReplyEntry.CONTENT_URI, null, null);
         context.getContentResolver().delete(DataContract.BulletinEntry.CONTENT_URI, null, null);
 
-        mClearData = false;
+//        mClearData = false;
     }
 
 

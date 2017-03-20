@@ -18,10 +18,16 @@ import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.OperationProvider;
 import com.mateyinc.marko.matey.internet.UploadListener;
 
+import org.json.JSONObject;
+
 import java.lang.ref.WeakReference;
 
+import static com.facebook.GraphRequest.TAG;
+import static com.mateyinc.marko.matey.internet.UrlData.ACCESS_BASE_URL;
+import static com.mateyinc.marko.matey.internet.operations.NewsfeedOp.mNextUrl;
+
 /**
- * An operation class which define actions that can be performed on defined data models
+ * Class which contains upload/download actions that can be performed on defined data models.
  */
 public abstract class Operations {
 
@@ -69,14 +75,21 @@ public abstract class Operations {
 
 
     /**
-     * Indicates what kind of operations this is, used for general db control in {@link #addNotUploadedActivity(long)}
+     * Indicates what kind of operations this is.
      */
     protected OperationType mOpType;
-    protected String mUrl;
+    /**
+     * Contains url path of desired end point.
+     */
+    protected String mUrl = "#";
     protected int mMethod;
+    /**
+     * Indicates if current data should be cleared before adding new one.
+     */
+    boolean mClearData = false;
 
     // Network request used for networking
-    protected MateyRequest mRequest;
+    private MateyRequest mRequest;
     // Used for db control and to check if the provided context still exists
     protected final WeakReference<Context> mContextRef;
     // Used for networking and threading
@@ -101,6 +114,20 @@ public abstract class Operations {
         this.mOpType = operationType;
         this.mProvider = provider;
         mContextRef = new WeakReference<>(context);
+    }
+
+    String buildNextPageUrl(String mNextUrl) {
+        return Uri.parse(ACCESS_BASE_URL).buildUpon()
+                .appendEncodedPath(mNextUrl).build().toString();
+    }
+
+    /**
+     * Method for calling when old data should be cleared.
+     *
+     * @param clearData is true, old data will be cleared.
+     */
+    public void setDownloadFreshData(boolean clearData) {
+        this.mClearData = clearData;
     }
 
     public void addDownloadListener(DownloadListener listener) {
@@ -134,14 +161,26 @@ public abstract class Operations {
 
     protected abstract void onUploadFailed(VolleyError error);
 
+
     /**
-     * Method for creating new network request with provided parameters
-     *
-     * @param url url to startDownloadAction from
+     * Helper method for starting newly created request with {@link #createNewDownloadReq()};
+     * Must be called to initiate the startDownloadAction process;
+     * Sets the authorisation header with {@link OperationProvider#getAccessToken()};
      */
-    void createNewDownloadReq(final String url) {
+    void startDownload() {
+        createNewDownloadReq();
+        setDefaultAuthHeader();
+        // Starting the startDownloadAction
+        mProvider.submitRequest(mRequest);
+    }
+
+    /**
+     * Method for creating new network request with provided parameters.
+     * Url will be string value from global field {@link #mUrl}.
+     */
+    private void createNewDownloadReq() {
         // Creating new request
-        mRequest = new MateyRequest(Request.Method.GET, url,
+        mRequest = new MateyRequest(Request.Method.GET, mUrl,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(final String response) {
@@ -172,6 +211,19 @@ public abstract class Operations {
                         }
                     }
                 });
+    }
+
+    String parseNextUrl(JSONObject object) {
+        try {
+            JSONObject pagination = object.getJSONObject(KEY_PAGINATION);
+            pagination = pagination.getJSONObject(KEY_LINKS);
+            String url = pagination.getString(KEY_NEXT_URL);
+            url = url.substring(mNextUrl.lastIndexOf("/") + 1);// save next url
+            return url;
+        } catch (Exception e) {
+            Log.w(TAG, "No value for next link.");
+            return "";
+        }
     }
 
     /**
@@ -217,18 +269,6 @@ public abstract class Operations {
                 });
     }
 
-
-    /**
-     * Helper method for starting newly created request with {@link #createNewDownloadReq(String)};
-     * Must be called to initiate the startDownloadAction process;
-     * Sets the authorisation header with {@link OperationProvider#getAccessToken()};
-     */
-    void startDownload() {
-        setDefaultAuthHeader();
-        // Starting the startDownloadAction
-        mProvider.submitRequest(mRequest);
-    }
-
     /**
      * Helper method for starting newly create request;
      * Must be called to initiate the startUploadAction process;
@@ -243,7 +283,7 @@ public abstract class Operations {
     /**
      * Helper method for settings the default authorisation header by {@link MateyRequest#setAuthHeader(String)};
      */
-    void setDefaultAuthHeader() {
+    private void setDefaultAuthHeader() {
         mRequest.setAuthHeader(mProvider.getAccessToken());
     }
 
@@ -348,4 +388,5 @@ public abstract class Operations {
      * Returns the TAG constant for logging
      **/
     protected abstract String getTag();
+
 }

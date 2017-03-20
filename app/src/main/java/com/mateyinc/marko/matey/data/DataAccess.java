@@ -132,18 +132,6 @@ public class DataAccess {
         mBulletinList.add(0, bulletin);
     }
 
-    public void addGroup(Group group) {
-        int index = mGroupList.indexOf(group);
-        if (index != -1)
-            mGroupList.remove(index);
-        mGroupList.add(group);
-    }
-
-    public void setGroups(List<Group> list) {
-        mGroupList.clear();
-        mGroupList = list;
-    }
-
     /**
      * Set's the {@link MotherActivity#mCurrentUserProfile} from {@link SharedPreferences}
      *
@@ -364,6 +352,26 @@ public class DataAccess {
             Log.d(TAG, "Error deleting user profile with id=" + user_id);
         }
     }
+
+    //// GROUPS Method /////
+    /////////////////////////////////////////////
+
+    public List<Group> getGroups() {
+        return mGroupList;
+    }
+
+    public void addGroup(Group group) {
+        int index = mGroupList.indexOf(group);
+        if (index != -1)
+            mGroupList.remove(index);
+        mGroupList.add(group);
+    }
+
+    public void setGroups(List<Group> list) {
+        mGroupList.clear();
+        mGroupList = list;
+    }
+    /////////////////////////////////////////////
 
 
     public void clearData() {

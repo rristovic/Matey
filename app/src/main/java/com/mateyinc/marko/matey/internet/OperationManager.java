@@ -537,9 +537,34 @@ public class OperationManager implements OperationProvider {
         });
     }
 
-    public void downloadGroupList(Context mContext) {
+    /**
+     * Helper method for downloading user profile group list.
+     * @param requestNewData boolean to indicate is new data should be downloaded and old cleared.
+     * @param userId user's id which list should be downloaded.
+     * @param mContext context
+     */
+    public void downloadGroupList(long userId, boolean requestNewData, Context mContext) {
         GroupOp groupOp = new GroupOp(mContext);
+        groupOp.setDownloadFreshData(requestNewData);
+        groupOp.setUserId(userId);
         groupOp.startDownloadAction();
+    }
+
+    /**
+     * Helper method for downloading current user profile group list.
+     * @param requestNewData boolean to indicate is new data should be downloaded and old cleared.
+     * @param mContext context
+     */
+    public void downloadGroupList(boolean requestNewData, Context mContext) {
+        downloadGroupList(MotherActivity.user_id, requestNewData, mContext);
+    }
+
+    /**
+     * Helper method for downloading current user profile group list.
+     * @param mContext context
+     */
+    public void downloadGroupList(Context mContext) {
+        downloadGroupList(MotherActivity.user_id, false, mContext);
     }
 }
 

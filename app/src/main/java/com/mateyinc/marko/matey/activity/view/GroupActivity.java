@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.home;
+package com.mateyinc.marko.matey.activity.view;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
