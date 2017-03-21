@@ -371,6 +371,10 @@ public class DataAccess {
         mGroupList.clear();
         mGroupList = list;
     }
+
+    public void addGroups(List<Group> list) {
+        mGroupList.addAll(list);
+    }
     /////////////////////////////////////////////
 
 

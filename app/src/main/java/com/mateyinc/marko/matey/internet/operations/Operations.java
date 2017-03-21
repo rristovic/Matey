@@ -18,6 +18,7 @@ import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.OperationProvider;
 import com.mateyinc.marko.matey.internet.UploadListener;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
@@ -94,26 +95,35 @@ public abstract class Operations {
     protected final WeakReference<Context> mContextRef;
     // Used for networking and threading
     private OperationProvider mProvider;
+    // Used for notifying classes
+    protected EventBus mEventBus;
 
     protected DownloadListener mDownloadListener;
     protected UploadListener mUploadListener;
 
     Operations(Context context) {
+        init();
         mOpType = OperationType.NO_OPERATION;
         this.mProvider = OperationManager.getInstance(context);
         mContextRef = new WeakReference<>(context);
     }
 
     Operations(Context context, OperationType operationType) {
+        init();
         this.mOpType = operationType;
         this.mProvider = OperationManager.getInstance(context);
         mContextRef = new WeakReference<>(context);
     }
 
     Operations(OperationProvider provider, Context context, OperationType operationType) {
+        init();
         this.mOpType = operationType;
         this.mProvider = provider;
         mContextRef = new WeakReference<>(context);
+    }
+
+    private void init() {
+        mEventBus = EventBus.getDefault();
     }
 
     String buildNextPageUrl(String mNextUrl) {
@@ -388,5 +398,25 @@ public abstract class Operations {
      * Returns the TAG constant for logging
      **/
     protected abstract String getTag();
+
+    /**
+     * Static class used for event bus. Event that indicates that data has been downloaded or failed to download.
+     */
+    public class DownloadEvent {
+        DownloadEvent(boolean isSuccess){
+            this.isSuccess = isSuccess;
+        }
+        boolean isSuccess;
+    }
+
+    /**
+     * Static class used for event bus. Event that indicates that upload has been success of failed.
+     */
+    public class UploadEvent {
+        UploadEvent(boolean isSuccess){
+            this.isSuccess = isSuccess;
+        }
+        boolean isSuccess;
+    }
 
 }

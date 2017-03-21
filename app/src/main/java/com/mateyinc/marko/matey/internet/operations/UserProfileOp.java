@@ -66,7 +66,6 @@ public class UserProfileOp extends Operations {
             }
         }
 
-        createNewDownloadReq(url);
         startDownload();
     }
 

@@ -64,8 +64,6 @@ public class NewsfeedOp extends Operations {
                 break;
             }
         }
-
-        createNewDownloadReq(mUrl);
         startDownload();
     }
 
@@ -123,24 +121,26 @@ public class NewsfeedOp extends Operations {
                 }
                 dataAccess.addBulletins(bulletinList);
 //                dataAccess.addUserProfile(bulletinList);
-                if (mDownloadListener != null)
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mDownloadListener.onDownloadSuccess();
-                        }
-                    });
+//                if (mDownloadListener != null)
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            mDownloadListener.onDownloadSuccess();
+//                        }
+//                    });
+                mEventBus.post(new DownloadEvent(true));
             }
 
 
         } catch (JSONException e) {
-            if (mDownloadListener != null)
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mDownloadListener.onDownloadFailed();
-                    }
-                });
+//            if (mDownloadListener != null)
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mDownloadListener.onDownloadFailed();
+//                    }
+//                });
+            mEventBus.post(new DownloadEvent(false));
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
     }
@@ -162,13 +162,14 @@ public class NewsfeedOp extends Operations {
 
     @Override
     protected void onDownloadFailed(VolleyError error) {
-        if (mDownloadListener != null)
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDownloadListener.onDownloadFailed();
-                }
-            });
+//        if (mDownloadListener != null)
+//            runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mDownloadListener.onDownloadFailed();
+//                }
+//            });
+        mEventBus.post(new DownloadEvent(false));
     }
 
     @Override

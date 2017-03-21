@@ -53,7 +53,6 @@ public class ReplyOp extends Operations {
                 return;
         }
 
-        createNewDownloadReq(url);
         startDownload();
     }
 

@@ -545,6 +545,7 @@ public class OperationManager implements OperationProvider {
      */
     public void downloadGroupList(long userId, boolean requestNewData, Context mContext) {
         GroupOp groupOp = new GroupOp(mContext);
+        groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_LIST);
         groupOp.setDownloadFreshData(requestNewData);
         groupOp.setUserId(userId);
         groupOp.startDownloadAction();

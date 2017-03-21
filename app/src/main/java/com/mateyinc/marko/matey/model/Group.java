@@ -3,8 +3,6 @@ package com.mateyinc.marko.matey.model;
 
 import android.content.Context;
 
-import com.mateyinc.marko.matey.activity.Util;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,6 +11,8 @@ import java.util.Date;
 public class Group extends MModel {
 
     private static final String KEY_GROUP_ID = "group_id";
+    private static final String KEY_GROUP_NAME = "group_name";
+    private static final String KEY_NUM_OF_FOLLOWERS = "num_of_followers";
     private static final String KEY_GROUP_PIC_URL = "group_picture_url";
 
     private String mGroupName;
@@ -52,8 +52,10 @@ public class Group extends MModel {
     @Override
     public Group parse(JSONObject object) throws JSONException {
         this._id = object.getLong(KEY_GROUP_ID);
+        this.mGroupName = object.getString(KEY_GROUP_ID);
+        this.mNumOfFollowers = object.getInt(KEY_NUM_OF_FOLLOWERS);
         this.mPicUrl = object.getString(KEY_GROUP_PIC_URL);
-        this.mDateCreated = Util.parseDate(object.getString(KEY_DATE_ADDED));
+//        this.mDateCreated = Util.parseDate(object.getString(KEY_DATE_ADDED));
         return this;
     }
 

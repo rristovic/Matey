@@ -5,16 +5,20 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -56,6 +60,7 @@ public class GroupOp extends Operations {
     public void startDownloadAction() {
         switch (mOpType) {
             case DOWNLOAD_GROUP_LIST: {
+                Log.d(TAG, "Downloading group list.");
                 if (mNextUrl.isEmpty()) {
                     mClearData = true;
                     mUrl = UrlData.buildGetGroupList(mUserId);
@@ -64,7 +69,8 @@ public class GroupOp extends Operations {
                 }
                 break;
             }
-            default: return;
+            default:
+                return;
         }
 
         startDownload();
@@ -72,7 +78,37 @@ public class GroupOp extends Operations {
 
     @Override
     protected void onDownloadSuccess(String response) {
+        try {
+            JSONObject object = new JSONObject(response);
+            mNextUrl = parseNextUrl(object);
+            JSONArray groupArray = object.getJSONArray(KEY_DATA);
 
+            // Parsing
+            int size = groupArray.length();
+            List<Group> groupList = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                Group group = new Group().parse(groupArray.getJSONObject(i));
+                groupList.add(group);
+            }
+
+            // Save
+            Context c = mContextRef.get();
+            if (c != null) {
+                DataAccess da = DataAccess.getInstance(c);
+                if (mClearData) {
+                    da.setGroups(groupList);
+                } else {
+                    da.addGroups(groupList);
+                }
+            }
+
+            // Notify UI
+            mEventBus.post(new Operations.DownloadEvent(true));
+        } catch (JSONException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            // Notify UI
+            mEventBus.post(new Operations.DownloadEvent(false));
+        }
     }
 
     @Override

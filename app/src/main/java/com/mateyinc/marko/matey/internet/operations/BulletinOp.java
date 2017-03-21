@@ -60,7 +60,6 @@ public class BulletinOp extends Operations {
             }
         }
 
-        createNewDownloadReq(url);
         startDownload();
     }
 

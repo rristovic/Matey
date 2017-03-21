@@ -29,6 +29,11 @@ import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.operations.Operations;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,6 +56,7 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
     private ProgressBar mProgressBar;
     private CoordinatorLayout mMainFeedLayout;
     private OperationManager mOperationManager;
+    private DataAccess mDataAccess;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -64,7 +70,8 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
         super.onAttach(context);
         mContext = (HomeActivity) context;
         mOperationManager = OperationManager.getInstance(context);
-        mOperationManager.setDownloadListener(this);
+        mDataAccess = DataAccess.getInstance(mContext);
+//        mOperationManager.setDownloadListener(this);
         mOperationManager.downloadNewsFeed(true, mContext);
     }
 
@@ -117,8 +124,8 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
     public void onResume() {
         super.onResume();
         Log.d("BulletinsFragment", "onResume is called.");
-        mOperationManager.setDownloadListener(this);
-        onDownloadSuccess();
+//        mOperationManager.setDownloadListener(this);
+//        onDownloadSuccess();
 
         // If items are updated, notify adapter
         if (mUpdatedPositions.size() != 0) {
@@ -140,6 +147,25 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
         mRecycleView.removeOnScrollListener(mScrollListener); // Removing scroll listener
 
         super.onPause();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDownloadEvent(Operations.DownloadEvent event) {
+        mScrollListener.onDownloadFinished();
+        mRefreshLayout.setRefreshing(false);
+        mAdapter.setData(mDataAccess.getBulletins());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
