@@ -13,11 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 
 
@@ -31,6 +34,8 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
     private static final int ITEM = 2;
 
     private RecyclerView mRecycleView;
+    private final OperationManager mOpManager;
+
     /**
      * Used in long click to determine the position of clicked view
      */
@@ -39,6 +44,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
 
     public BulletinsAdapter(MotherActivity context) {
         super(context);
+        mOpManager = OperationManager.getInstance(context);
     }
 
     @Override
@@ -110,7 +116,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
 
             case FIRST_ITEM:
             case ITEM: {
-                BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
+                final BulletinsAdapter.ViewHolder holder = (ViewHolder) mHolder;
                 final Bulletin bulletin = mData.get(position);
 
                 try {
@@ -130,6 +136,19 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
                 holder.tvStats.setText(bulletin.getStatistics(mContext));
                 holder.tvName.setText(bulletin.getUserProfile().getFullName());
                 holder.tvDate.setText(Util.getReadableDateText(bulletin.getDate()));
+
+                mOpManager.mImageLoader.get(bulletin.getUserProfile().getProfilePictureLink(),
+                        new ImageLoader.ImageListener() {
+                            @Override
+                            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                                holder.ivProfilePic.setImageBitmap(response.getBitmap());
+                            }
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                holder.ivProfilePic.setImageResource(R.drawable.empty_photo);
+                            }
+                        }, holder.ivProfilePic.getWidth(), holder.ivProfilePic.getHeight());
 
                 switch (bulletin.getServerStatus()) {
                     case STATUS_UPLOADING: {
@@ -287,7 +306,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
         private final TextView tvName, tvDate, tvStats, tvSubject;
         private final RelativeLayout rlBody, rlInfo;
         private final LinearLayout btnReply, btnBoost, llBottom;
-        private final ImageView ivBookmark, ivShare;
+        private final ImageView ivBookmark, ivShare, ivProfilePic;
         private int stateFlag = STATE_UPLOADED;
 
         ViewHolderClickListener mListener;
@@ -316,6 +335,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
             btnBoost.setTag(BTN_BOOST_TAG);
             ivBookmark = (ImageView) view.findViewById(R.id.ivBulletinBookmark);
             ivShare = (ImageView) view.findViewById(R.id.ivBulletinShare);
+            ivProfilePic = (ImageView) view.findViewById(R.id.ivBulletinProfilePic);
             mListener = listener;
 
             rlBody.setOnClickListener(this);

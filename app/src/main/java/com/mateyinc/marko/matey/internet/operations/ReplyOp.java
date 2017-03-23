@@ -4,7 +4,6 @@ package com.mateyinc.marko.matey.internet.operations;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -33,7 +32,6 @@ public class ReplyOp extends Operations {
     private static final String TAG = ReplyOp.class.getSimpleName();
 
     Reply reply;
-    String url;
 
 
     public ReplyOp(Context context, Reply r) {
@@ -46,7 +44,7 @@ public class ReplyOp extends Operations {
 
         switch (mOpType) {
             case DOWNLOAD_RE_REPLIES: {
-                url = UrlData.buildGetReReplies(reply.getId());
+                mUrl = UrlData.buildGetReReplies(reply.getId());
                 break;
             }
             default:
@@ -73,13 +71,13 @@ public class ReplyOp extends Operations {
             Log.e(TAG, "Failed to parse re replies.");
         }
 
-        if (mDownloadListener != null)
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDownloadListener.onDownloadSuccess();
-                }
-            });
+//        if (mDownloadListener != null)
+//            runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mDownloadListener.onDownloadSuccess();
+//                }
+//            });
     }
 
     @Override
@@ -93,23 +91,21 @@ public class ReplyOp extends Operations {
 
     @Override
     public void startUploadAction() {
-        int method;
         switch (mOpType) {
             case REPLY_ON_POST: {
-                url = UrlData.buildNewBulletinReplyUrl(reply.getPostId());
+                mUrl = UrlData.buildNewBulletinReplyUrl(reply.getPostId());
                 uploadFile();
                 return;
             }
             case REPLY_ON_REPLY: {
-                url = UrlData.buildNewReplyReplyUrl(reply.getId());
+                mUrl = UrlData.buildNewReplyReplyUrl(reply.getId());
                 uploadFile();
                 break;
             }
 
             default: {
                 Log.e(TAG, "No operation type has been specified!");
-                url = "#";
-                method = Request.Method.POST;
+                mUrl = "#";
             }
         }
 
@@ -184,7 +180,7 @@ public class ReplyOp extends Operations {
         // Create network request
         final okhttp3.Request request = new okhttp3.Request.Builder()
                 .header(UrlData.PARAM_AUTH_TYPE, "Bearer " + MotherActivity.access_token)
-                .url(url)
+                .url(mUrl)
                 .post(requestBodyBuilder.build())
                 .build();
 
@@ -200,13 +196,13 @@ public class ReplyOp extends Operations {
 //                    reply.onUploadFailed(s, c);
 
 
-                    if (mUploadListener != null)
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mUploadListener.onUploadFailed();
-                            }
-                        });
+//                    if (mUploadListener != null)
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                mUploadListener.onUploadFailed();
+//                            }
+//                        });
 
 //                    for (Reply r :
 //                            DataAccess.getInstance(c).getBulletinById(this.reply.getPostId()).getReplies()) {
@@ -225,13 +221,13 @@ public class ReplyOp extends Operations {
 //                            r.setServerStatus(ServerStatus.STATUS_SUCCESS);
 //                    }
                     reply.onUploadSuccess(s, c);
-                    if (mUploadListener != null)
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mUploadListener.onUploadSuccess();
-                            }
-                        });
+//                    if (mUploadListener != null)
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                mUploadListener.onUploadSuccess();
+//                            }
+//                        });
                     notifyUI(R.string.upload_success);
                 }
             }
@@ -268,6 +264,11 @@ public class ReplyOp extends Operations {
         if (c != null) {
             reply.onUploadFailed(errorDesc, c);
         }
+    }
+
+    @Override
+    protected void clearNextUrl() {
+
     }
 
     @Override

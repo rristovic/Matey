@@ -107,6 +107,10 @@ public class ApproveOp extends Operations {
     }
 
     @Override
+    protected void clearNextUrl() {
+    }
+
+    @Override
     public void startDownloadAction() {
     }
 

@@ -12,11 +12,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
-import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.OperationProvider;
-import com.mateyinc.marko.matey.internet.UploadListener;
 
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
@@ -25,7 +23,6 @@ import java.lang.ref.WeakReference;
 
 import static com.facebook.GraphRequest.TAG;
 import static com.mateyinc.marko.matey.internet.UrlData.ACCESS_BASE_URL;
-import static com.mateyinc.marko.matey.internet.operations.NewsfeedOp.mNextUrl;
 
 /**
  * Class which contains upload/download actions that can be performed on defined data models.
@@ -98,8 +95,6 @@ public abstract class Operations {
     // Used for notifying classes
     protected EventBus mEventBus;
 
-    protected DownloadListener mDownloadListener;
-    protected UploadListener mUploadListener;
 
     Operations(Context context) {
         init();
@@ -138,15 +133,14 @@ public abstract class Operations {
      */
     public void setDownloadFreshData(boolean clearData) {
         this.mClearData = clearData;
+        clearNextUrl();
     }
 
-    public void addDownloadListener(DownloadListener listener) {
-        mDownloadListener = listener;
-    }
+    /**
+     * Called when new data should be downloaded
+     */
+    protected abstract void clearNextUrl();
 
-    public void addUploadListener(UploadListener listener) {
-        mUploadListener = listener;
-    }
 
     /**
      * Method for setting the type of operation that will be performed.
@@ -228,11 +222,11 @@ public abstract class Operations {
             JSONObject pagination = object.getJSONObject(KEY_PAGINATION);
             pagination = pagination.getJSONObject(KEY_LINKS);
             String url = pagination.getString(KEY_NEXT_URL);
-            url = url.substring(mNextUrl.lastIndexOf("/") + 1);// save next url
+            url = url.substring(url.lastIndexOf("/") + 1);// save next url
             return url;
         } catch (Exception e) {
             Log.w(TAG, "No value for next link.");
-            return "";
+            return "#";
         }
     }
 
@@ -399,24 +393,5 @@ public abstract class Operations {
      **/
     protected abstract String getTag();
 
-    /**
-     * Static class used for event bus. Event that indicates that data has been downloaded or failed to download.
-     */
-    public class DownloadEvent {
-        DownloadEvent(boolean isSuccess){
-            this.isSuccess = isSuccess;
-        }
-        boolean isSuccess;
-    }
-
-    /**
-     * Static class used for event bus. Event that indicates that upload has been success of failed.
-     */
-    public class UploadEvent {
-        UploadEvent(boolean isSuccess){
-            this.isSuccess = isSuccess;
-        }
-        boolean isSuccess;
-    }
 
 }

@@ -38,17 +38,14 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
-import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
-import com.mateyinc.marko.matey.model.UserProfile;
 
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_COVER_PATH;
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_PROF_PIC_PATH;
 
 
-public class ProfileActivity extends MotherActivity implements DownloadListener {
+public class ProfileActivity extends MotherActivity {
     private static final String TAG = ProfileActivity.class.getSimpleName();
 
     public static final String PROFILE_DOWNLOADED = "com.mateyinc.marko.matey.activity.profile.profile_downloaded";
@@ -118,7 +115,6 @@ public class ProfileActivity extends MotherActivity implements DownloadListener 
         }
 
         mOpManager = OperationManager.getInstance(this);
-        mOpManager.setDownloadListener(this);
 
         // UI bounding
         svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
@@ -144,63 +140,58 @@ public class ProfileActivity extends MotherActivity implements DownloadListener 
         rvActivities.setLayoutManager(layoutManager);
     }
 
-    @Override
-    public void onDownloadSuccess() {
-        UserProfile profile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
-        mPicLink = profile.getProfilePictureLink();
-        mCoverLink = profile.getProfilePictureLink();
-
-        if (mPicLink == null) mPicLink = "";
-        if (mCoverLink == null) mCoverLink = "";
-
-        if (mPicLink.equals(FLAG_CHANGED)) {
-            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
-            loadTempPic(FLAG_PROFILE_CHANGED);
-        } else
-            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
-                    new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivProfilePic.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.getLocalizedMessage(), error);
-                        }
-                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
-
-        if (mCoverLink.equals(FLAG_CHANGED)) {
-            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
-            loadTempPic(FLAG_COVER_CHANGED);
-        } else
-            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
-                    new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivCoverPic.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.getLocalizedMessage(), error);
-                        }
-                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
-
-        tvName.setText(profile.getFullName());
-        tvFollowersNum.setText(Integer.toString(profile.getFollowersNum()));
-        tvFollowingNum.setText(Integer.toString(profile.getFollowingNum()));
-
-        Log.d("ProfileActivity", "Data is set.");
-
-    }
-
-    @Override
-    public void onDownloadFailed() {
-
-    }
+//    @Override
+//    public void onDownloadSuccess() {
+//        UserProfile profile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
+//        mPicLink = profile.getProfilePictureLink();
+//        mCoverLink = profile.getProfilePictureLink();
+//
+//        if (mPicLink == null) mPicLink = "";
+//        if (mCoverLink == null) mCoverLink = "";
+//
+//        if (mPicLink.equals(FLAG_CHANGED)) {
+//            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+//                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
+//            loadTempPic(FLAG_PROFILE_CHANGED);
+//        } else
+//            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
+//                    new ImageLoader.ImageListener() {
+//                        @Override
+//                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+//                            ivProfilePic.setImageBitmap(response.getBitmap());
+//                        }
+//
+//                        @Override
+//                        public void onErrorResponse(VolleyError error) {
+//                            Log.e(TAG, error.getLocalizedMessage(), error);
+//                        }
+//                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
+//
+//        if (mCoverLink.equals(FLAG_CHANGED)) {
+//            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+//                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
+//            loadTempPic(FLAG_COVER_CHANGED);
+//        } else
+//            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
+//                    new ImageLoader.ImageListener() {
+//                        @Override
+//                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+//                            ivCoverPic.setImageBitmap(response.getBitmap());
+//                        }
+//
+//                        @Override
+//                        public void onErrorResponse(VolleyError error) {
+//                            Log.e(TAG, error.getLocalizedMessage(), error);
+//                        }
+//                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
+//
+//        tvName.setText(profile.getFullName());
+//        tvFollowersNum.setText(Integer.toString(profile.getFollowersNum()));
+//        tvFollowingNum.setText(Integer.toString(profile.getFollowingNum()));
+//
+//        Log.d("ProfileActivity", "Data is set.");
+//
+//    }
 
     private class LayoutManager extends LinearLayoutManager {
 

@@ -3,7 +3,6 @@ package com.mateyinc.marko.matey.activity.home;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -12,13 +11,13 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.activity.search.SearchActivity;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
@@ -35,7 +34,6 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
     private final static String MENU_FRAG_TAG = "MENU";
     private final static String SEARCH_FRAG_TAG = "SEARCH";
 
-    private SearchFragment mSearchFragment;
     private FragmentManager mFragmentManager;
     private BulletinsFragment mBulletinsFragment;
     private GroupFragment mGroupFragment;
@@ -106,52 +104,55 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
             @Override
             public void onClick(View v) {
-                mSearchActive = true;
+                Intent i = new Intent(HomeActivity.this, SearchActivity.class);
+                startActivity(i);
+//                mSearchActive = true;
+//
+//                // Removing other views
+//                logo = (ImageView) toolbar.findViewById(R.id.ivHomeLogo);
+//                logo.setVisibility(View.GONE);
+//                ibSearch.setVisibility(View.GONE);
+//                ibProfile.setVisibility(View.GONE);
+//
+//                // Adding search view
+//                searchView = new SearchView(HomeActivity.this);
+//                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) com.mateyinc.marko.matey.activity.Util.parseDp(40f, getResources())));
+//                searchView.setIconified(false);
+//                searchView.setQueryHint("Find mates and ships..");
+//                // Setting search view style
+//                try {
+//                    SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+//                    searchAutoComplete.setHintTextColor(Color.WHITE);
+//                    searchAutoComplete.setBackgroundColor(Color.TRANSPARENT);
+//                    searchAutoComplete.setTextColor(Color.WHITE);
+//                    View searchplate = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate);
+//                    searchplate.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.LIGHTEN);
+//                    ImageView searchCloseIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+//                    searchCloseIcon.setColorFilter(Color.WHITE);
+//                    ImageView voiceIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_voice_btn);
+//                    voiceIcon.setColorFilter(Color.TRANSPARENT);
+//                    ImageView searchIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
+//                    searchIcon.setColorFilter(Color.TRANSPARENT);
+//                } catch (Exception e) {
+//                    searchView.setBackgroundColor(Color.WHITE);
+//                }
+//
+//                toolbar.addView(searchView);
+//
+//                searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+//                    @Override
+//                    public boolean onClose() {
+//                        closeSearchView();
+//                        return true;
+//                    }
+//                });
+//
+//                // Adding search fragment
+//                if (mSearchActivi == null)
+//                    mSearchActivi = new SearchActivi();
+//                getSupportFragmentManager().beginTransaction().addToBackStack(null)
+//                        .replace(R.id.homeContainer, mSearchActivi).commit();
 
-                // Removing other views
-                logo = (ImageView) toolbar.findViewById(R.id.ivHomeLogo);
-                logo.setVisibility(View.GONE);
-                ibSearch.setVisibility(View.GONE);
-                ibProfile.setVisibility(View.GONE);
-
-                // Adding search view
-                searchView = new SearchView(HomeActivity.this);
-                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) com.mateyinc.marko.matey.activity.Util.parseDp(40f, getResources())));
-                searchView.setIconified(false);
-                searchView.setQueryHint("Find mates and ships..");
-                // Setting search view style
-                try {
-                    SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
-                    searchAutoComplete.setHintTextColor(Color.WHITE);
-                    searchAutoComplete.setBackgroundColor(Color.TRANSPARENT);
-                    searchAutoComplete.setTextColor(Color.WHITE);
-                    View searchplate = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate);
-                    searchplate.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.LIGHTEN);
-                    ImageView searchCloseIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
-                    searchCloseIcon.setColorFilter(Color.WHITE);
-                    ImageView voiceIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_voice_btn);
-                    voiceIcon.setColorFilter(Color.TRANSPARENT);
-                    ImageView searchIcon = (ImageView) searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
-                    searchIcon.setColorFilter(Color.TRANSPARENT);
-                } catch (Exception e) {
-                    searchView.setBackgroundColor(Color.WHITE);
-                }
-
-                toolbar.addView(searchView);
-
-                searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-                    @Override
-                    public boolean onClose() {
-                        closeSearchView();
-                        return true;
-                    }
-                });
-
-                // Adding search fragment
-                if (mSearchFragment == null)
-                    mSearchFragment = new SearchFragment();
-                getSupportFragmentManager().beginTransaction().addToBackStack(null)
-                        .replace(R.id.homeContainer, mSearchFragment).commit();
 
             }
         });

@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
@@ -30,15 +29,13 @@ import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.adapters.RepliesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
-import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
-import com.mateyinc.marko.matey.internet.UploadListener;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
 
 import java.util.Date;
 
-public class BulletinViewActivity extends MotherActivity implements RepliesAdapter.ReplyClickedInterface, DownloadListener, UploadListener {
+public class BulletinViewActivity extends MotherActivity implements RepliesAdapter.ReplyClickedInterface {
 
     public static final String EXTRA_BULLETIN_ID = "post_id";
     public static final String EXTRA_BULLETIN_POS = "bulletin_adapter_pos";
@@ -94,8 +91,6 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
         }
 
         mManager = OperationManager.getInstance(BulletinViewActivity.this);
-        mManager.setDownloadListener(this);
-        mManager.setUploadListener(this);
         mManager.downloadBulletinInfo(mBulletinId, BulletinViewActivity.this);
 
         rlContainer = (RelativeLayout) findViewById(R.id.container);
@@ -340,30 +335,30 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 //        });
 //    }
 
-    @Override
-    public void onDownloadSuccess() {
-        if (mPopupShowing && mCurReply != null) {
-            mRepliesAdapter.setData(mCurReply.getReplyList());
-            return;
-        }
-        updateCurBulletin();
-    }
+//    @Override
+//    public void onDownloadSuccess() {
+//        if (mPopupShowing && mCurReply != null) {
+//            mRepliesAdapter.setData(mCurReply.getReplyList());
+//            return;
+//        }
+//        updateCurBulletin();
+//    }
 
-    @Override
-    public void onDownloadFailed() {
-        updateCurBulletin();
-        Toast.makeText(BulletinViewActivity.this, "Download failed.", Toast.LENGTH_SHORT).show();
-    }
+//    @Override
+//    public void onDownloadFailed() {
+//        updateCurBulletin();
+//        Toast.makeText(BulletinViewActivity.this, "Download failed.", Toast.LENGTH_SHORT).show();
+//    }
 
-    @Override
-    public void onUploadSuccess() {
-        updateCurBulletin();
-    }
+//    @Override
+//    public void onUploadSuccess() {
+//        updateCurBulletin();
+//    }
 
-    @Override
-    public void onUploadFailed() {
-        updateCurBulletin();
-    }
+//    @Override
+//    public void onUploadFailed() {
+//        updateCurBulletin();
+//    }
 
     @Override
     public void showPopupWindow(final Reply reply) {

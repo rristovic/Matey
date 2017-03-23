@@ -46,17 +46,15 @@ public class BulletinOp extends Operations {
 
     @Override
     public void startDownloadAction() {
-        String url;
-
         switch (mOpType) {
             case DOWNLOAD_BULLETIN: {
-                url = UrlData.buildGetBulletinUrl(bulletin.getId());
+                mUrl = UrlData.buildGetBulletinUrl(bulletin.getId());
                 break;
             }
 
             default: {
                 Log.e(TAG, "No operation type has been specified!");
-                url = "#";
+                mUrl = "#";
             }
         }
 
@@ -75,31 +73,31 @@ public class BulletinOp extends Operations {
             DataAccess.getInstance(mContextRef.get()).addBulletin(b);
             DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDownloadListener.onDownloadSuccess();
-                }
-            });
+//            runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mDownloadListener.onDownloadSuccess();
+//                }
+//            });
         } catch (JSONException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDownloadListener.onDownloadFailed();
-                }
-            });
+//            runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mDownloadListener.onDownloadFailed();
+//                }
+//            });
             Log.e(TAG, "Failed to parse bulletin. " + e.getLocalizedMessage(), e);
         }
     }
 
     @Override
     protected void onDownloadFailed(VolleyError error) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDownloadListener.onDownloadFailed();
-            }
-        });
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                mDownloadListener.onDownloadFailed();
+//            }
+//        });
     }
 
     @Override
@@ -235,6 +233,10 @@ public class BulletinOp extends Operations {
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
 
+    }
+
+    @Override
+    protected void clearNextUrl(){
     }
 
     @Override

@@ -27,9 +27,8 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
 import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.internet.DownloadListener;
 import com.mateyinc.marko.matey.internet.OperationManager;
-import com.mateyinc.marko.matey.internet.operations.Operations;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -38,7 +37,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class BulletinsFragment extends Fragment implements DownloadListener {
+public class BulletinsFragment extends Fragment {
     private HomeActivity mContext;
     private BulletinsAdapter mAdapter;
     private BroadcastReceiver mDataDownloaded;
@@ -156,7 +155,7 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onDownloadEvent(Operations.DownloadEvent event) {
+    public void onDownloadEvent(DownloadEvent event) {
         mScrollListener.onDownloadFinished();
         mRefreshLayout.setRefreshing(false);
         mAdapter.setData(mDataAccess.getBulletins());
@@ -167,20 +166,6 @@ public class BulletinsFragment extends Fragment implements DownloadListener {
         super.onStop();
         EventBus.getDefault().unregister(this);
     }
-
-    @Override
-    public void onDownloadSuccess() {
-        mAdapter.setData(DataAccess.getInstance(getContext()).getBulletins());
-        mScrollListener.onDownloadFinished();
-        mRefreshLayout.setRefreshing(false);
-    }
-
-    @Override
-    public void onDownloadFailed() {
-        mScrollListener.onDownloadFinished();
-        mRefreshLayout.setRefreshing(false);
-    }
-
 
     private final static String EMPTY_VIEW_TAG = "emptyview";
 

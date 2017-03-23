@@ -52,7 +52,7 @@ public class Group extends MModel {
     @Override
     public Group parse(JSONObject object) throws JSONException {
         this._id = object.getLong(KEY_GROUP_ID);
-        this.mGroupName = object.getString(KEY_GROUP_ID);
+        this.mGroupName = object.getString(KEY_GROUP_NAME);
         this.mNumOfFollowers = object.getInt(KEY_NUM_OF_FOLLOWERS);
         this.mPicUrl = object.getString(KEY_GROUP_PIC_URL);
 //        this.mDateCreated = Util.parseDate(object.getString(KEY_DATE_ADDED));
@@ -64,6 +64,8 @@ public class Group extends MModel {
     }
 
     public void setGroupName(String mGroupName) {
+        if (this.mGroupName == null)
+            this.mGroupName = "No name";
         this.mGroupName = mGroupName;
     }
 

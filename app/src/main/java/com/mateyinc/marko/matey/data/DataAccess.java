@@ -282,63 +282,6 @@ public class DataAccess {
     ///// Reply methods //////
     /////////////////////////
 
-    /**
-     * Method for getting the Reply from the database
-     *
-     * @param index   the position of the Reply in the database
-     * @param context context used for db access
-     * @return the new instance of {@link Reply} from the database
-     */
-    public static Reply getReply(int index, Context context) {
-//        Cursor cursor = context.getContentResolver().query(
-//                DataContract.ReplyEntry.CONTENT_URI,
-//                BulletinViewActivity.REPLIES_COLUMNS,
-//                null,
-//                null,
-//                BulletinViewActivity.REPLIES_ORDER_BY);
-//
-//        Reply reply = null;
-//        try {
-//            reply = getReply(index, cursor);
-//
-//        } catch (NullPointerException e) {
-//            Log.e(TAG, e.getLocalizedMessage(), e);
-//            return null;
-//        }
-//
-//        if (cursor != null)
-//            cursor.close();
-
-        return null;
-    }
-
-    /**
-     * Method for getting the reply from the database
-     *
-     * @param index  the position of the bulletin in the database
-     * @param cursor the provided cursor for the database
-     * @return the new instance of Bulletin from the database
-     */
-    public static Reply getReply(int index, Cursor cursor) {
-        Reply reply = new Reply();
-
-        try {
-            cursor.moveToPosition(index);
-
-//            reply._id = cursor.getLong(BulletinViewActivity.COL_REPLY_ID);
-//            reply.setUserId(cursor.getLong(BulletinViewActivity.COL_USER_ID));
-//            reply.setPostId(cursor.getInt(BulletinViewActivity.COL_POST_ID));
-//            reply.setUserFirstName(cursor.getString(BulletinViewActivity.COL_FIRST_NAME));
-//            reply.setUserLastName(cursor.getString(BulletinViewActivity.COL_LAST_NAME));
-//            reply.setDate(cursor.getLong(BulletinViewActivity.COL_DATE));
-//            reply.setReplyText(cursor.getString(BulletinViewActivity.COL_TEXT));
-//            reply.setNumOfApprvs(cursor.getInt(BulletinViewActivity.COL_NUM_OF_APPRVS));
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
-        return reply;
-    }
 
     ////// USER PROFILE METHODS //////
     //////////////////////////////////

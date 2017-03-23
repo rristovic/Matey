@@ -11,6 +11,7 @@ import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationProvider;
 import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.UserProfile;
 
@@ -41,6 +42,8 @@ public class NewsfeedOp extends Operations {
     public NewsfeedOp(OperationProvider provider, MotherActivity context) {
         super(provider, context, DOWNLOAD_NEWS_FEED);
     }
+
+
 
     @Override
     public void startDownloadAction() {
@@ -185,6 +188,11 @@ public class NewsfeedOp extends Operations {
     @Override
     protected void onUploadFailed(VolleyError error) {
 
+    }
+
+    @Override
+    protected void clearNextUrl() {
+        NewsfeedOp.mNextUrl = "";
     }
 
     @Override

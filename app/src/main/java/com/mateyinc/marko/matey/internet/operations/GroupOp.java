@@ -8,9 +8,11 @@ import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -69,6 +71,12 @@ public class GroupOp extends Operations {
                 }
                 break;
             }
+            case DOWNLOAD_GROUP: {
+                Log.d(TAG, "Downloading group info.");
+                if (this.group.mNextUrl.isEmpty()) {
+                    mUrl = UrlData.buildGetGroupInfo(this.group._id);
+                }
+            }
             default:
                 return;
         }
@@ -78,6 +86,29 @@ public class GroupOp extends Operations {
 
     @Override
     protected void onDownloadSuccess(String response) {
+        switch (mOpType) {
+            case DOWNLOAD_GROUP_LIST:
+                parseList(response);
+                break;
+            case DOWNLOAD_GROUP:
+                parseItem(response);
+            default:
+                break;
+        }
+    }
+
+    private void parseItem(String response) {
+        try{
+            JSONObject object = new JSONObject(response).getJSONObject(KEY_DATA);
+            this.group = group.parse(object);
+            // Notify
+            EventBus.getDefault().post(new DownloadEvent(true, Group.class.getSimpleName()));
+        }catch (JSONException e){
+            Log.e(TAG, "Failed to parse group item.", e);
+        }
+    }
+
+    private void parseList(String response) {
         try {
             JSONObject object = new JSONObject(response);
             mNextUrl = parseNextUrl(object);
@@ -103,11 +134,11 @@ public class GroupOp extends Operations {
             }
 
             // Notify UI
-            mEventBus.post(new Operations.DownloadEvent(true));
+            mEventBus.post(new DownloadEvent(true));
         } catch (JSONException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             // Notify UI
-            mEventBus.post(new Operations.DownloadEvent(false));
+            mEventBus.post(new DownloadEvent(false));
         }
     }
 
@@ -172,22 +203,10 @@ public class GroupOp extends Operations {
                 // Parse
                 this.group.parse(new JSONObject(re).getJSONObject(KEY_DATA));
                 // Notify UI
-                if (mUploadListener != null)
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mUploadListener.onUploadSuccess();
-                        }
-                    });
+
             } else {
                 Log.e(TAG, "Upload failed: " + response.message() + " " + response.body().string());
-                if (mUploadListener != null)
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mUploadListener.onUploadFailed();
-                        }
-                    });
+                // Notify UI
             }
         } catch (IOException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
@@ -213,6 +232,11 @@ public class GroupOp extends Operations {
     @Override
     protected void onUploadFailed(VolleyError error) {
 
+    }
+
+    @Override
+    protected void clearNextUrl() {
+        mNextUrl = "";
     }
 
     public void setPicFilePath(File picFilePath) {

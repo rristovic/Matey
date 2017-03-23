@@ -33,6 +33,7 @@ public class UserProfileOp extends Operations {
         super(context);
     }
 
+
     @Override
     public void startDownloadAction() {
         String url;
@@ -80,7 +81,7 @@ public class UserProfileOp extends Operations {
             e.printStackTrace();
         }
 
-        mDownloadListener.onDownloadSuccess();
+//        mDownloadListener.onDownloadSuccess();
 
 //        switch (mNetworkAction.getDownloadAction()){
 //            case GET_USER_PROFILE:{
@@ -96,7 +97,7 @@ public class UserProfileOp extends Operations {
 
     @Override
     public void onDownloadFailed(VolleyError error) {
-        String errorMsg ;
+        String errorMsg;
 
         try {
             errorMsg = new String(error.networkResponse.data);
@@ -105,7 +106,7 @@ public class UserProfileOp extends Operations {
             Log.e(TAG, "Failed to parse volley error:" + error.toString());
         }
 
-        mDownloadListener.onDownloadFailed();
+//        mDownloadListener.onDownloadFailed();
     }
 
 
@@ -232,6 +233,11 @@ public class UserProfileOp extends Operations {
      */
     public String getString(long id, String name, String lastName, String email, String picLink) {
         return String.format(Locale.US, "UserProfile: ID=%d; UserName:%s %s; Email:%s; PicLink:%s", id, name, lastName, email, picLink);
+    }
+
+    @Override
+    protected void clearNextUrl() {
+
     }
 
     @Override

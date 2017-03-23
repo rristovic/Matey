@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.Nullable;
 import android.support.v4.util.LruCache;
 import android.util.Log;
+import android.webkit.DownloadListener;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -215,18 +216,6 @@ public class OperationManager implements OperationProvider {
         return mAppContext;
     }
 
-
-    private DownloadListener mDownloadListener;
-    private UploadListener mUploadListener;
-
-    public void setDownloadListener(DownloadListener listener) {
-        mDownloadListener = listener;
-    }
-
-    public void setUploadListener(UploadListener listener) {
-        mUploadListener = listener;
-    }
-
     /// Bulletins methods   ////
     ////////////////////////////
 
@@ -240,7 +229,6 @@ public class OperationManager implements OperationProvider {
         NewsfeedOp newsfeedOp = new NewsfeedOp(this, context);
         if (requestNewData)
             newsfeedOp.setOperationType(OperationType.DOWNLOAD_NEWS_FEED_NEW);
-        newsfeedOp.addDownloadListener(mDownloadListener);
         newsfeedOp.startDownloadAction();
     }
 
@@ -262,7 +250,6 @@ public class OperationManager implements OperationProvider {
             public void run() {
                 BulletinOp bulletinOp = new BulletinOp(context, new Bulletin(postId));
                 bulletinOp.setOperationType(OperationType.DOWNLOAD_BULLETIN);
-                bulletinOp.addDownloadListener(mDownloadListener);
                 bulletinOp.startDownloadAction();
             }
         });
@@ -353,7 +340,6 @@ public class OperationManager implements OperationProvider {
             public void run() {
                 ReplyOp bulletinOp = new ReplyOp(context, reply);
                 bulletinOp.setOperationType(OperationType.DOWNLOAD_RE_REPLIES);
-                bulletinOp.addDownloadListener(mDownloadListener);
                 bulletinOp.startDownloadAction();
             }
         });
@@ -396,7 +382,6 @@ public class OperationManager implements OperationProvider {
             public void run() {
                 ReplyOp replyOp = new ReplyOp(context, r);
                 replyOp.setOperationType(OperationType.REPLY_ON_POST);
-                replyOp.addUploadListener(mUploadListener);
 
                 r.setPostId(bulletin.getId());
                 r.setId(generateId());
@@ -445,7 +430,6 @@ public class OperationManager implements OperationProvider {
             public void run() {
                 ReplyOp replyOp = new ReplyOp(context, r);
                 replyOp.setOperationType(OperationType.REPLY_ON_REPLY);
-                replyOp.addUploadListener(mUploadListener);
 
                 // Start upload
                 replyOp.startUploadAction();
@@ -464,7 +448,6 @@ public class OperationManager implements OperationProvider {
     public void downloadUserProfile(long userId, MotherActivity context) {
         UserProfileOp op = new UserProfileOp(context);
         op.setOperationType(OperationType.DOWNLOAD_USER_PROFILE);
-        op.addDownloadListener(mDownloadListener);
         op.setUserId(userId).startDownloadAction();
     }
 
@@ -531,7 +514,6 @@ public class OperationManager implements OperationProvider {
                 GroupOp groupOp = new GroupOp(context, group);
                 groupOp.setPicFilePath(picFilePath);
                 groupOp.setOperationType(OperationType.POST_NEW_GROUP);
-                groupOp.addUploadListener(mUploadListener);
                 groupOp.startUploadAction();
             }
         });
@@ -539,9 +521,10 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for downloading user profile group list.
+     *
      * @param requestNewData boolean to indicate is new data should be downloaded and old cleared.
-     * @param userId user's id which list should be downloaded.
-     * @param mContext context
+     * @param userId         user's id which list should be downloaded.
+     * @param mContext       context
      */
     public void downloadGroupList(long userId, boolean requestNewData, Context mContext) {
         GroupOp groupOp = new GroupOp(mContext);
@@ -553,8 +536,9 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for downloading current user profile group list.
+     *
      * @param requestNewData boolean to indicate is new data should be downloaded and old cleared.
-     * @param mContext context
+     * @param mContext       context
      */
     public void downloadGroupList(boolean requestNewData, Context mContext) {
         downloadGroupList(MotherActivity.user_id, requestNewData, mContext);
@@ -562,10 +546,28 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for downloading current user profile group list.
+     *
      * @param mContext context
      */
     public void downloadGroupList(Context mContext) {
         downloadGroupList(MotherActivity.user_id, false, mContext);
+    }
+
+    /**
+     * Helper method for downloading group info.
+     *
+     * @param group
+     * @param context context.
+     */
+    public void downloadGroupInfo(final Group group, final Context context) {
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                GroupOp groupOp = new GroupOp(context, group);
+                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP);
+                groupOp.startDownloadAction();
+            }
+        });
     }
 }
 

@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.view.GroupActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -38,6 +40,7 @@ public class GroupsAdapter extends RecycleNoSQLAdapter<Group> {
             @Override
             public void onClick(int adapterViewPosition) {
                 Intent i = new Intent(mContext, GroupActivity.class);
+                i.putExtra(GroupActivity.KEY_MODEL_POSITION, adapterViewPosition);
                 mContext.startActivity(i);
             }
         });
@@ -45,6 +48,24 @@ public class GroupsAdapter extends RecycleNoSQLAdapter<Group> {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        Group g = mData.get(position);
+
+        final ViewHolder view = (ViewHolder)holder;
+        view.tvName.setText(g.getGroupName());
+        view.tvStats.setText(Integer.toString(g.getNumOfFollowers()));
+
+        mManager.mImageLoader.get(g.getPicUrl(),
+                new ImageLoader.ImageListener() {
+                    @Override
+                    public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                        view.ivPicture.setImageBitmap(response.getBitmap());
+                    }
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        view.ivPicture.setImageResource(R.drawable.empty_photo);
+                    }
+                }, view.ivPicture.getWidth(), view.ivPicture.getHeight());
 
     }
 

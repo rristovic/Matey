@@ -28,6 +28,8 @@ public abstract class MModel {
     protected ServerStatus mServerStatus = ServerStatus.STATUS_UPLOADING;
     public long _id = -1;
     public Uri mUri;
+    // Hold url for next page to download
+    public String mNextUrl = "";
 
     public long getId() {
         return _id;

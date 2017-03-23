@@ -14,7 +14,7 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.adapters.GroupsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.internet.OperationManager;
-import com.mateyinc.marko.matey.internet.operations.Operations;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -85,10 +85,11 @@ public class GroupFragment extends Fragment {
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        mAdapter.setData(mDataAccess.getGroups());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onDownloadEvent(Operations.DownloadEvent event) {
+    public void onDownloadEvent(DownloadEvent event) {
         mScrollListener.onDownloadFinished();
         mMainRefreshLayout.setRefreshing(false);
         mAdapter.setData(mDataAccess.getGroups());
@@ -99,6 +100,4 @@ public class GroupFragment extends Fragment {
         super.onStop();
         EventBus.getDefault().unregister(this);
     }
-
-
 }

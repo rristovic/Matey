@@ -179,7 +179,17 @@ public abstract class UrlData {
     public static String buildGetGroupList(long userId){
         return GET_GROUPS.replace(":userId", Long.toString(userId));
     }
-    public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
 
+    private static final String GET_GROUP_INFO = ACCESS_BASE_URL.concat("/groups/:groupId");
+    public static String buildGetGroupInfo(long groupId){
+        return GET_GROUP_INFO.replace(":groupId", Long.toString(groupId));
+    }
+    public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
+    ///////////////////////////////////////////
+
+    ////////  SEARCH  UrlData //////////////
+    public static final String GET_SEARCH_TOP = ACCESS_BASE_URL.concat("/search/top");
+
+    ///////////////////////////////////////////
 
 }

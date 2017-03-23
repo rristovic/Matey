@@ -37,6 +37,7 @@ public enum OperationType {
 
     // Group operations
     DOWNLOAD_GROUP_LIST,
+    DOWNLOAD_GROUP,
     POST_NEW_GROUP,
 
     NO_OPERATION

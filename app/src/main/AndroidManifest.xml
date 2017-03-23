@@ -6,7 +6,7 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="21" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -169,9 +169,9 @@
 
         <activity
             android:name=".activity.maps.MapsActivity"
-            android:windowSoftInputMode="stateVisible"
-            android:label="MapsActivity">
-        </activity>
+            android:label="MapsActivity"
+            android:windowSoftInputMode="stateVisible"></activity>
+        <activity android:name=".activity.search.SearchActivity"></activity>
     </application>
 
 </manifest>

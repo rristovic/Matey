@@ -1,5 +1,4 @@
-package com.mateyinc.marko.matey.activity.home;
-
+package com.mateyinc.marko.matey.activity.search;
 
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -7,81 +6,38 @@ import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.adapters.SearchAdapter;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
+import static com.mateyinc.marko.matey.R.id.container;
 
-public class SearchFragment extends Fragment {
+public class SearchActivity extends MotherActivity {
 
-    private static final String LOGTAG = SearchFragment.class.getSimpleName();
-    private static final Field sChildFragmentManagerField;
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    // for childFragmentManager
-    static {
-        Field f = null;
-
-        try {
-            f = Fragment.class.getDeclaredField("mChildFragmentManager");
-            f.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            Log.e(LOGTAG, "Error getting mChildFragmentManager field", e);
-        }
-        sChildFragmentManagerField = f;
-    }
-
-    public SearchFragment() {
-        // Required empty public constructor
-    }
+    private  mSectionsPagerAdapter;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search);
+
+        init();
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_search, container, false);
-//         Create the adapter that will return a fragment for each of the three
-//         primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
+    private void init() {
+        mSectionsPagerAdapter = new SearchActivi.SectionsPagerAdapter(getChildFragmentManager());
         TabLayout tabs = (TabLayout) rootView.findViewById(R.id.tlSearchTab);
         ViewPager pager = (ViewPager) rootView.findViewById(R.id.vpSearchPager);
 
         pager.setAdapter(mSectionsPagerAdapter);
         tabs.setupWithViewPager(pager);
-
-        // Iterate over all tabs and set the custom tab view
-//        for (int i = 0; i < tabs.getTabCount(); i++) {
-//            TabLayout.Tab tab = tabs.getTabAt(i);
-//            tab.setCustomView(mSectionsPagerAdapter.getTabView(i));
-//        }
-
-        return rootView;
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        try {
-            Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
-            childFragmentManager.setAccessible(true);
-            childFragmentManager.set(this, null);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -93,6 +49,7 @@ public class SearchFragment extends Fragment {
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private SearchAdapter mAdapter;
 
         public PlaceholderFragment() {
         }
@@ -101,8 +58,8 @@ public class SearchFragment extends Fragment {
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
+        public static SearchActivi.PlaceholderFragment newInstance(int sectionNumber) {
+            SearchActivi.PlaceholderFragment fragment = new SearchActivi.PlaceholderFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
@@ -113,20 +70,17 @@ public class SearchFragment extends Fragment {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_notif_msg, container, false);
-            ListView listView = (ListView) rootView;
+            RecyclerView recyclerView = new RecyclerView(getContext());
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+            layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            recyclerView.setLayoutManager(layoutManager);
 
-            // Dummy data
-            ArrayList<String> data = new ArrayList<>();
-            for (int i = 0; i < 50; i++) {
-                data.add("Prijatelj " + i);
-            }
+            mAdapter = new SearchAdapter((MotherActivity)getContext());
+            recyclerView.setAdapter(mAdapter);
 
-            // TODO - set custom adapters
-            listView.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, data));
 //            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
 //            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
+            return recyclerView;
         }
     }
 
@@ -148,7 +102,7 @@ public class SearchFragment extends Fragment {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
 //            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            return SearchActivi.PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override
@@ -172,5 +126,4 @@ public class SearchFragment extends Fragment {
 
 
     }
-
 }
