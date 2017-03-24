@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.support.annotation.Nullable;
 import android.support.v4.util.LruCache;
 import android.util.Log;
-import android.webkit.DownloadListener;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,6 +22,7 @@ import com.mateyinc.marko.matey.internet.operations.GroupOp;
 import com.mateyinc.marko.matey.internet.operations.NewsfeedOp;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.internet.operations.ReplyOp;
+import com.mateyinc.marko.matey.internet.operations.SearchOp;
 import com.mateyinc.marko.matey.internet.operations.UserProfileOp;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
@@ -566,6 +566,61 @@ public class OperationManager implements OperationProvider {
                 GroupOp groupOp = new GroupOp(context, group);
                 groupOp.setOperationType(OperationType.DOWNLOAD_GROUP);
                 groupOp.startDownloadAction();
+            }
+        });
+    }
+
+
+    //// SEARCH methods /////////////
+    /////////////////////////////////
+
+    /**
+     * Helper method for performing search.
+     * @param query search query to query the server.
+     * @param isFreshDownload indicates if fresh data is needed and old one should be cleared.
+     * @param fragPosition fragment position in search activity.
+     * @param context context.
+     */
+    public void onSearchQuery(final String query, final boolean isFreshDownload, int fragPosition, final Context context) {
+        final OperationType type;
+        switch (fragPosition) {
+            default:
+            case 0:
+                type = OperationType.SEARCH_TOP;
+                break;
+            case 1:
+                type = OperationType.SEARCH_PROFILES;
+                break;
+            case 2:
+                type = OperationType.SEARCH_GROUPS;
+                break;
+            case 3:
+                type = OperationType.SEARCH_BULLETINS;
+                break;
+        }
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                SearchOp searchOp = new SearchOp(query, context);
+                searchOp.setDownloadFreshData(isFreshDownload);
+                searchOp.setOperationType(type);
+                searchOp.startDownloadAction();
+            }
+        });
+    }
+
+    /**
+     * Helper method for search auto complete suggestions.
+     * @param query query string to query the server with.
+     * @param context context.
+     */
+    public void onSearchAutocomplete(final String query, final Context context) {
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                SearchOp searchOp = new SearchOp(query, context);
+                searchOp.setOperationType(OperationType.SEARCH_AUTOCOMPLETE);
+                searchOp.startDownloadAction();
             }
         });
     }

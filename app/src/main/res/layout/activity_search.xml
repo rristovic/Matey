@@ -10,20 +10,31 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?android:attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:elevation="2dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:contentInsetStart="0dp">
 
+        <ImageButton
+            android:id="@+id/ibBack"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@drawable/actionbar_icon_bg"
+            android:padding="14dp"
+            android:src="@drawable/ic_back" />
 
-        <android.support.v7.widget.SearchView
-            android:id="@+id/svSearchInput"
+
+        <AutoCompleteTextView
+            android:id="@+id/atvSearch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:iconifiedByDefault="false">
+            android:hint="Explore the sea.."
+            android:imeOptions="actionSearch"
+            android:inputType="text"
 
-        </android.support.v7.widget.SearchView>
+            android:completionThreshold="1"/>
 
     </android.support.v7.widget.Toolbar>
 

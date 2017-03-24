@@ -189,6 +189,10 @@ public abstract class UrlData {
 
     ////////  SEARCH  UrlData //////////////
     public static final String GET_SEARCH_TOP = ACCESS_BASE_URL.concat("/search/top");
+    public static final String GET_SEARCH_USERS = ACCESS_BASE_URL.concat("/search/users");
+    public static final String GET_SEARCH_GROUPS = ACCESS_BASE_URL.concat("/search/groups");
+    public static final String GET_SEARCH_BULLETINS = ACCESS_BASE_URL.concat("/search/posts");
+    public static final String GET_SEARCH_AUTOCOMPLETE = ACCESS_BASE_URL.concat("/autocomplete");
 
     ///////////////////////////////////////////
 

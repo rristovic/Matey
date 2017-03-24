@@ -40,5 +40,12 @@ public enum OperationType {
     DOWNLOAD_GROUP,
     POST_NEW_GROUP,
 
+    // Search ops
+    SEARCH_TOP,
+    SEARCH_BULLETINS,
+    SEARCH_GROUPS,
+    SEARCH_PROFILES,
+    SEARCH_AUTOCOMPLETE,
+
     NO_OPERATION
 }

@@ -10,7 +10,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
-import com.mateyinc.marko.matey.model.Reply;
+import com.mateyinc.marko.matey.model.MModel;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.ArrayList;
@@ -320,6 +320,18 @@ public class DataAccess {
     }
     /////////////////////////////////////////////
 
+    ///// SEARCH Method //////
+    /////////////////////////////////////////////
+    public List<MModel> mSearchResults = new ArrayList<>();
+    public List<UserProfile> mSearchUserProfileList= new ArrayList<>();
+    public List<Group> mSearchGroupList= new ArrayList<>();
+
+    public void clearSearch(){
+        mSearchResults.clear();
+        mSearchUserProfileList.clear();
+        mSearchGroupList.clear();
+    }
+    /////////////////////////////////////////////
 
     public void clearData() {
         mBulletinList.clear();

@@ -21,7 +21,6 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 
-import static com.facebook.GraphRequest.TAG;
 import static com.mateyinc.marko.matey.internet.UrlData.ACCESS_BASE_URL;
 
 /**
@@ -133,7 +132,8 @@ public abstract class Operations {
      */
     public void setDownloadFreshData(boolean clearData) {
         this.mClearData = clearData;
-        clearNextUrl();
+        if (clearData)
+            clearNextUrl();
     }
 
     /**
@@ -225,7 +225,7 @@ public abstract class Operations {
             url = url.substring(url.lastIndexOf("/") + 1);// save next url
             return url;
         } catch (Exception e) {
-            Log.w(TAG, "No value for next link.");
+            Log.w(getTag(), "No value for next link.");
             return "#";
         }
     }
