@@ -24,13 +24,17 @@ import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 import com.mateyinc.marko.matey.internet.events.SearchHintEvent;
-import com.mateyinc.marko.matey.internet.operations.OperationType;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 public class SearchActivity extends MotherActivity {
+
+    public interface FragmentChangedListener {
+        void fragmentBecameVisible();
+    }
+
 
     private AutoCompleteTextView tvSearchInput;
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -48,6 +52,8 @@ public class SearchActivity extends MotherActivity {
     }
 
     private void init() {
+        super.setChildSupportActionBar();
+
         // Setup tabs and pager
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         TabLayout tabs = (TabLayout) findViewById(R.id.tlSearchTab);
@@ -62,25 +68,50 @@ public class SearchActivity extends MotherActivity {
     }
 
     private void setListeners() {
+        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                FragmentChangedListener fragment = (FragmentChangedListener)
+                        mSectionsPagerAdapter.instantiateItem(mPager, position);
+                if (fragment != null) {
+                    fragment.fragmentBecameVisible();
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+
         tvSearchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    mManager.onSearchQuery(tvSearchInput.getText().toString()
-                            ,true, mPager.getCurrentItem(), SearchActivity.this);
+                    performSearch();
                     return true;
                 }
                 return false;
             }
+
+
         });
 
         tvSearchInput.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mManager.onSearchQuery(tvSearchInput.getText().toString(), true,
-                        mPager.getCurrentItem(), SearchActivity.this);
+                performSearch();
             }
         });
+    }
+
+    private void performSearch() {
+        mManager.onSearchQuery(tvSearchInput.getText().toString(), true,
+                mPager.getCurrentItem(), SearchActivity.this);
+        tvSearchInput.dismissDropDown();
     }
 
     @Override
@@ -103,7 +134,7 @@ public class SearchActivity extends MotherActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class PlaceholderFragment extends Fragment implements FragmentChangedListener{
         /**
          * The fragment argument representing the section number for this
          * fragment.
@@ -140,31 +171,32 @@ public class SearchActivity extends MotherActivity {
             if (secNum == 0) mAdapter.showSection(true);
             recyclerView.setAdapter(mAdapter);
 
-//            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-//            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
             return recyclerView;
         }
 
         @Override
-        public void onStart() {
-            super.onStart();
+        public void onResume() {
+            super.onResume();
             EventBus.getDefault().register(this);
+            mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
         }
 
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onDownloadEvent(DownloadEvent event) {
-            if (getArguments().getInt(ARG_SECTION_NUMBER) == 0 &&
-                    event.operationType == OperationType.SEARCH_TOP) {
-                if (mAdapter != null) {
-                    mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
-                }
+            if (mAdapter != null) {
+                mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
             }
         }
 
         @Override
-        public void onStop() {
-            super.onStop();
+        public void onPause() {
+            super.onPause();
             EventBus.getDefault().unregister(this);
+        }
+
+        @Override
+        public void fragmentBecameVisible() {
+            mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
         }
     }
 

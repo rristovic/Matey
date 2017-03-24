@@ -19,6 +19,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchAdapter extends RecyclerView.Adapter {
+    private static final String TAG = "SearchAdapter";
+    /**
+     * State of ListView item that has never been determined.
+     */
+    private static final int STATE_UNKNOWN = 0;
+
+    /**
+     * State of a ListView item that is sectioned. A sectioned item must
+     * display the separator.
+     */
+    private static final int STATE_SECTIONED_CELL = 1;
+
+    /**
+     * State of a ListView item that is not sectioned and therefore does not
+     * display the separator.
+     */
+    private static final int STATE_REGULAR_CELL = 2;
+    private int[] mCellStates;
 
     private final Context mContext;
     private List<MModel> mData = new ArrayList<>(0);
@@ -51,18 +69,89 @@ public class SearchAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ViewHolder h = (ViewHolder) holder;
-        String title;
         MModel model = mData.get(position);
-        if (model instanceof UserProfile) {
-            title = ((UserProfile) model).getFullName();
-        } else if (model instanceof Group) {
-            title = ((Group) model).getGroupName();
-        } else {
-            title = ((Bulletin) model).getSubject();
+
+        if(mShowSection) {
+            boolean needSeparator = false;
+            switch (mCellStates[position]) {
+                case STATE_SECTIONED_CELL:
+                    needSeparator = true;
+                    break;
+
+                case STATE_REGULAR_CELL:
+                    needSeparator = false;
+                    break;
+
+                case STATE_UNKNOWN:
+                default:
+                    // A separator is needed if it's the first itemview of the
+                    // ListView or if the group of the current cell is different
+                    // from the previous itemview.
+                    if (position == 0) {
+                        needSeparator = true;
+                    } else {
+                        if (!model.getClass()
+                                .equals(mData.get(position - 1).getClass()))
+                            needSeparator = true;
+                    }
+
+                    // Cache the result
+                    mCellStates[position] = needSeparator ? STATE_SECTIONED_CELL : STATE_REGULAR_CELL;
+                    break;
+            }
+
+            if (needSeparator) {
+                h.tvSectionTitle.setVisibility(View.VISIBLE);
+                String modelClass = model.getClass().getSimpleName();
+                if (modelClass.equals(UserProfile.class.getSimpleName())) {
+                    h.tvSectionTitle.setText(R.string.search_sectionName_profiles);
+                } else if (modelClass.equals(Group.class.getSimpleName())) {
+                    h.tvSectionTitle.setText(R.string.search_sectionName_groups);
+                } else if (modelClass.equals(Bulletin.class.getSimpleName())) {
+                    h.tvSectionTitle.setText(R.string.search_sectionName_bulletins);
+                }
+            } else {
+                h.tvSectionTitle.setVisibility(View.GONE);
+            }
         }
 
-        h.tvTitle.setText(title);
+        if (mFragPos == FRAG_TOP) {
+            bindAll(h, model);
+        } else if (mFragPos == FRAG_BULLETIN)
+            bindBulletin(h, model);
+        else if (mFragPos == FRAG_USER)
+            bindUser(h, model);
+        else if (mFragPos == FRAG_GROUP)
+            bindGroup(h, model);
     }
+
+    private void bindAll(ViewHolder holder, MModel model) {
+        bindUser(holder, model);
+        bindGroup(holder, model);
+        bindBulletin(holder, model);
+    }
+
+    private void bindGroup(ViewHolder holder, MModel model) {
+        if (model instanceof Group) {
+            String title = ((Group) model).getGroupName();
+            holder.tvTitle.setText(title);
+        }
+    }
+
+    private void bindUser(ViewHolder holder, MModel model) {
+        if (model instanceof UserProfile) {
+            String title = ((UserProfile) model).getFullName();
+            holder.tvTitle.setText(title);
+        }
+    }
+
+    private void bindBulletin(ViewHolder holder, MModel model) {
+        if (model instanceof Bulletin) {
+            String title = ((Bulletin) model).getSubject();
+            holder.tvTitle.setText(title);
+        }
+    }
+
 
     @Override
     public int getItemCount() {
@@ -71,6 +160,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
 
     public void setData(List<MModel> data) {
         this.mData = data;
+        mCellStates = data == null ? null : new int[data.size()];
         notifyDataSetChanged();
     }
 
@@ -87,6 +177,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
 
         private final OnItemClickedListener mListener;
         private TextView tvTitle;
+        private TextView tvSectionTitle;
 
         interface OnItemClickedListener {
             void onClick(int position);
@@ -96,6 +187,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
             super(itemView);
             mListener = listener;
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+            tvSectionTitle = (TextView) itemView.findViewById(R.id.tvSectionName);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

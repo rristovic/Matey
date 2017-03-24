@@ -142,5 +142,10 @@
     <string name="maps_gpsOff_notif">Can\'t find current location. Your gps if turned off.</string>
     <string name="maps_btn_ok_label">OK</string>
 
+    <!-- Search activity related -->
+    <string name="search_sectionName_profiles">Mates</string>
+    <string name="search_sectionName_groups">Ships</string>
+    <string name="search_sectionName_bulletins">Sea</string>
+
 
 </resources>
