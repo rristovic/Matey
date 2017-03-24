@@ -237,9 +237,22 @@ public class Bulletin extends MModel {
         // Parse requireed fields
         this._id = object.getLong(KEY_POST_ID);
         this.mSubject = object.getString(KEY_SUBJECT);
-        this.mText = object.getString(KEY_TEXT);
-        this.mDate = parseDate(object.getString(KEY_DATE_ADDED));
-        this.isBoosted = object.getBoolean(KEY_IS_BOOSTED);
+
+        try {
+            this.isBoosted = object.getBoolean(KEY_IS_BOOSTED);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for bulletin isBoosted.");
+        }
+        try {
+            this.mDate = parseDate(object.getString(KEY_DATE_ADDED));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for bulletin time created.");
+        }
+        try {
+            this.mText = object.getString(KEY_TEXT);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for bulletin text.");
+        }
 
         setNumOfReplies(object.getInt(KEY_NUM_OF_REPLIES));
         if (getNumOfReplies() > 0) {
@@ -255,11 +268,17 @@ public class Bulletin extends MModel {
                     mReplyList.add(reply);
                 }
             } catch (JSONException e) {
-                Log.e(TAG, "No reply list for replies count = " + mNumOfReplies);
+                Log.w(TAG, "No reply list for replies count = " + mNumOfReplies);
             }
         }
-        int attchs = object.getInt(KEY_NUM_OF_ATTACHMENTS);
-        int locations = object.getInt(KEY_NUM_OF_LOCATIONS);
+        int attchs = 0;
+        int locations = 0;
+        try {
+            attchs = object.getInt(KEY_NUM_OF_ATTACHMENTS);
+            locations = object.getInt(KEY_NUM_OF_LOCATIONS);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for attachents number.");
+        }
         setNumOfAttachs(attchs + locations);
         if (locations > 0) {
             mAttachments = new ArrayList<>(attchs + locations);
