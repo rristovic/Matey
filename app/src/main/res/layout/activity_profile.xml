@@ -1,297 +1,313 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:scrollbars="none"
-    android:id="@+id/svScrollFrame">
+    android:layout_height="match_parent">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/contentView"
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBarProfile"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/gray_background_color"
-        android:focusableInTouchMode="true">
+        android:layout_height="wrap_content"
+        app:layout_behavior="com.mateyinc.marko.matey.activity.FlingBehavior"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <ImageView
-            android:id="@+id/ivCoverPic"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/profile_cover_dimen"
-            android:elevation="@dimen/main_elevation"
-            android:scaleType="centerCrop"
-            android:src="@color/bg_transparent" />
-
-        <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize"
-            android:background="@color/bg_transparent"
-            android:elevation="@dimen/main_elevation"
-            android:fitsSystemWindows="true"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:contentInsetLeft="0dp"
-            app:contentInsetStart="0dp">
-
-            <ImageButton
-                android:id="@+id/ibBack"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="start"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="14dp"
-                android:src="@drawable/ic_back" />
-            <!--android:background="@drawable/actionbar_icon_bg"-->
-
-            <TextView
-                android:id="@+id/tvReplyViewHeading"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="start"
-                android:gravity="center_vertical"
-                android:text=""
-                android:textSize="@dimen/subHeading" />
-
-            <ImageButton
-                android:id="@+id/ibSettings"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="end"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="@dimen/actionBar_icon_padding"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_settings_black_48dp"
-                android:tint="@android:color/white" />
-
-        </android.support.v7.widget.Toolbar>
-
-        <RelativeLayout
-            android:id="@+id/rlReplyInfo"
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:id="@+id/flexible.example.collapsing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/ivCoverPic"
-            android:background="@color/white"
-            android:elevation="@dimen/main_elevation"
-            android:padding="12dp">
+            app:expandedTitleMarginBottom="94dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
 
-            <TextView
-                android:id="@+id/tvFollowingNum"
-                android:layout_width="@dimen/profile_info_mates_tv_size"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_marginEnd="@dimen/profile_info_mates_margin"
-                android:layout_marginRight="@dimen/profile_info_mates_margin"
-                android:layout_marginTop="@dimen/profile_info_mates_margin_top"
-                android:gravity="center"
-                android:text="0"
-                android:textColor="@color/black"
-                android:textSize="@dimen/profile_info_mates_text_size" />
-
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="@dimen/profile_info_mates_tv_size"
-                android:layout_height="wrap_content"
-                android:layout_alignEnd="@id/tvFollowingNum"
-                android:layout_alignRight="@id/tvFollowingNum"
-                android:layout_below="@id/tvFollowingNum"
-                android:gravity="center"
-                android:text="@string/following_label"
-                android:textColor="@color/black"
-                android:textSize="@dimen/profile_info_mates_title_text_size" />
-
-            <TextView
-                android:id="@+id/tvFollowersNum"
-                android:layout_width="@dimen/profile_info_mates_tv_size"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginLeft="@dimen/profile_info_mates_margin"
-                android:layout_marginStart="@dimen/profile_info_mates_margin"
-                android:layout_marginTop="@dimen/profile_info_mates_margin_top"
-                android:gravity="center"
-                android:text="0"
-                android:textColor="@color/black"
-                android:textSize="@dimen/profile_info_mates_text_size" />
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="@dimen/profile_info_mates_tv_size"
-                android:layout_height="wrap_content"
-                android:layout_alignLeft="@id/tvFollowersNum"
-                android:layout_alignStart="@id/tvFollowersNum"
-                android:layout_below="@id/tvFollowersNum"
-                android:gravity="center"
-                android:text="@string/followers_label"
-                android:textColor="@color/black"
-                android:textSize="@dimen/profile_info_mates_title_text_size" />
-
-            <TextView
-                android:id="@+id/tvBadgeTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/textView"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/profile_badge_margin_top"
-                android:textColor="@color/black" />
-
-            <TextView
-                android:id="@+id/tvName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/tvBadgeTitle"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/profile_name_margin_top"
-                android:textColor="@color/black"
-                android:textSize="@dimen/profile_info_name_text_size" />
-
-            <TextView
-                android:id="@+id/tvLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tvName"
-                android:layout_centerHorizontal="true"
-                android:textColor="@color/black"
-                android:textSize="@dimen/profile_info_mates_title_text_size" />
+            >
 
             <RelativeLayout
-                android:id="@+id/llBadges"
+                android:id="@+id/contentView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/tvLocation"
-                android:layout_marginEnd="@dimen/badges_margin"
-                android:layout_marginLeft="@dimen/badges_margin"
-                android:layout_marginRight="@dimen/badges_margin"
-                android:layout_marginStart="@dimen/badges_margin"
-                android:layout_marginTop="@dimen/badges_margin_top"
-                android:orientation="horizontal">
+                android:layout_height="match_parent"
+                android:background="@color/gray_background_color"
+                android:focusableInTouchMode="true">
 
+                <ImageView
+                    android:id="@+id/ivCoverPic"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/profile_cover_dimen"
+                    android:elevation="@dimen/main_elevation"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/empty_photo" />
 
-                <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-                    android:id="@+id/civFirstBadge"
-                    android:layout_width="@dimen/badge_size"
-                    android:layout_height="@dimen/badge_image_size"
-                    android:src="@drawable/empty_photo"
-                    app:riv_border_color="@color/white"
-                    app:riv_border_width="1dp"
-                    app:riv_oval="true" />
-
-                <TextView
-                    android:id="@+id/tvFirstBadge"
-                    android:layout_width="@dimen/badge_size"
+                <RelativeLayout
+                    android:id="@+id/rlReplyInfo"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/civFirstBadge"
-                    android:gravity="center"
-                    android:text="0" />
+                    android:layout_below="@id/ivCoverPic"
+                    android:background="@color/white"
+                    android:elevation="@dimen/main_elevation"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvFollowingNum"
+                        android:layout_width="@dimen/profile_info_mates_tv_size"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginEnd="@dimen/profile_info_mates_margin"
+                        android:layout_marginRight="@dimen/profile_info_mates_margin"
+                        android:layout_marginTop="@dimen/profile_info_mates_margin_top"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/profile_info_mates_text_size" />
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="@dimen/profile_info_mates_tv_size"
+                        android:layout_height="wrap_content"
+                        android:layout_alignEnd="@id/tvFollowingNum"
+                        android:layout_alignRight="@id/tvFollowingNum"
+                        android:layout_below="@id/tvFollowingNum"
+                        android:gravity="center"
+                        android:text="@string/following_label"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/profile_info_mates_title_text_size" />
+
+                    <TextView
+                        android:id="@+id/tvFollowersNum"
+                        android:layout_width="@dimen/profile_info_mates_tv_size"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginLeft="@dimen/profile_info_mates_margin"
+                        android:layout_marginStart="@dimen/profile_info_mates_margin"
+                        android:layout_marginTop="@dimen/profile_info_mates_margin_top"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/profile_info_mates_text_size" />
+
+                    <TextView
+                        android:id="@+id/textView2"
+                        android:layout_width="@dimen/profile_info_mates_tv_size"
+                        android:layout_height="wrap_content"
+                        android:layout_alignLeft="@id/tvFollowersNum"
+                        android:layout_alignStart="@id/tvFollowersNum"
+                        android:layout_below="@id/tvFollowersNum"
+                        android:gravity="center"
+                        android:text="@string/followers_label"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/profile_info_mates_title_text_size" />
+
+                    <TextView
+                        android:id="@+id/tvBadgeTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/textView"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="@dimen/profile_badge_margin_top"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tvBadgeTitle"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="@dimen/profile_name_margin_top"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/profile_info_name_text_size" />
+
+                    <TextView
+                        android:id="@+id/tvLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tvName"
+                        android:layout_centerHorizontal="true"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/profile_info_mates_title_text_size" />
+
+                    <RelativeLayout
+                        android:id="@+id/llBadges"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tvLocation"
+                        android:layout_marginEnd="@dimen/badges_margin"
+                        android:layout_marginLeft="@dimen/badges_margin"
+                        android:layout_marginRight="@dimen/badges_margin"
+                        android:layout_marginStart="@dimen/badges_margin"
+                        android:layout_marginTop="@dimen/badges_margin_top"
+                        android:orientation="horizontal">
+
+
+                        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+                            android:id="@+id/civFirstBadge"
+                            android:layout_width="@dimen/badge_size"
+                            android:layout_height="@dimen/badge_image_size"
+                            android:src="@drawable/empty_photo"
+                            app:riv_border_color="@color/white"
+                            app:riv_border_width="1dp"
+                            app:riv_oval="true" />
+
+                        <TextView
+                            android:id="@+id/tvFirstBadge"
+                            android:layout_width="@dimen/badge_size"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/civFirstBadge"
+                            android:gravity="center"
+                            android:text="0" />
+
+                        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+                            android:id="@+id/civSecondBadge"
+                            android:layout_width="@dimen/badge_size"
+                            android:layout_height="@dimen/badge_image_size"
+                            android:layout_centerHorizontal="true"
+                            android:src="@drawable/empty_photo"
+
+                            app:riv_border_color="@color/white"
+                            app:riv_border_width="1dp"
+                            app:riv_oval="true" />
+
+                        <TextView
+                            android:id="@+id/tvSecondBadge"
+                            android:layout_width="@dimen/badge_size"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/civSecondBadge"
+                            android:layout_centerHorizontal="true"
+                            android:gravity="center"
+                            android:text="0" />
+
+                        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+                            android:id="@+id/civThirdBadge"
+                            android:layout_width="@dimen/badge_size"
+                            android:layout_height="@dimen/badge_image_size"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:src="@drawable/empty_photo"
+                            app:riv_border_color="@color/white"
+                            app:riv_border_width="1dp"
+                            app:riv_oval="true" />
+
+
+                        <TextView
+                            android:id="@+id/tvThirdBadge"
+                            android:layout_width="@dimen/badge_size"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_below="@id/civThirdBadge"
+                            android:gravity="center"
+                            android:text="0" />
+
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llMainButtons"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/profile_buttons_size"
+                        android:layout_below="@+id/llBadges"
+                        android:layout_marginEnd="@dimen/profile_buttons_margin"
+                        android:layout_marginLeft="@dimen/profile_buttons_margin"
+                        android:layout_marginRight="@dimen/profile_buttons_margin"
+                        android:layout_marginStart="@dimen/profile_buttons_margin"
+                        android:layout_marginTop="@dimen/profile_name_margin_top"
+                        android:orientation="horizontal">
+
+
+                        <ToggleButton
+                            android:id="@+id/tBtnSailWith"
+                            style="?android:attr/borderlessButtonStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/profile_buttons_distance"
+                            android:layout_marginRight="@dimen/profile_buttons_distance"
+                            android:layout_weight="1"
+                            android:background="@drawable/profile_btn"
+                            android:checked="false"
+                            android:textColor="@color/profile_btn"
+                            android:textOff="@string/sail_with_label"
+                            android:textOn="@string/sailing_with_label" />
+
+                        <Button
+                            android:id="@+id/btnSendMsg"
+                            style="?android:attr/borderlessButtonStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/profile_buttons_distance"
+                            android:layout_marginStart="@dimen/profile_buttons_distance"
+                            android:layout_weight="1"
+                            android:background="@drawable/profile_btn"
+                            android:text="@string/send_letter_label"
+                            android:textColor="@color/profile_btn" />
+                    </LinearLayout>
+
+                </RelativeLayout>
 
                 <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-                    android:id="@+id/civSecondBadge"
-                    android:layout_width="@dimen/badge_size"
-                    android:layout_height="@dimen/badge_image_size"
+                    android:id="@+id/ivProfilePic"
+                    android:layout_width="@dimen/profile_pic_dimen"
+                    android:layout_height="@dimen/profile_pic_dimen"
                     android:layout_centerHorizontal="true"
+                    android:layout_marginTop="@dimen/profile_pic_margin_top"
+                    android:elevation="@dimen/main_elevation"
+                    android:scaleType="centerCrop"
                     android:src="@drawable/empty_photo"
 
                     app:riv_border_color="@color/white"
-                    app:riv_border_width="1dp"
+                    app:riv_border_width="2dp"
                     app:riv_oval="true" />
 
-                <TextView
-                    android:id="@+id/tvSecondBadge"
-                    android:layout_width="@dimen/badge_size"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/civSecondBadge"
-                    android:layout_centerHorizontal="true"
-                    android:gravity="center"
-                    android:text="0" />
-
-                <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-                    android:id="@+id/civThirdBadge"
-                    android:layout_width="@dimen/badge_size"
-                    android:layout_height="@dimen/badge_image_size"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:src="@drawable/empty_photo"
-                    app:riv_border_color="@color/white"
-                    app:riv_border_width="1dp"
-                    app:riv_oval="true" />
-
-
-                <TextView
-                    android:id="@+id/tvThirdBadge"
-                    android:layout_width="@dimen/badge_size"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@id/civThirdBadge"
-                    android:gravity="center"
-                    android:text="0" />
 
             </RelativeLayout>
 
-            <LinearLayout
-                android:id="@+id/llMainButtons"
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/profile_buttons_size"
-                android:layout_below="@+id/llBadges"
-                android:layout_marginEnd="@dimen/profile_buttons_margin"
-                android:layout_marginLeft="@dimen/profile_buttons_margin"
-                android:layout_marginRight="@dimen/profile_buttons_margin"
-                android:layout_marginStart="@dimen/profile_buttons_margin"
-                android:layout_marginTop="@dimen/profile_name_margin_top"
-                android:orientation="horizontal">
+                android:layout_height="?android:attr/actionBarSize"
+                android:background="@null"
+                android:elevation="@dimen/main_elevation"
+                app:contentInsetLeft="0dp"
+                app:contentInsetStart="0dp"
+                app:layout_collapseMode="pin">
+
+                <ImageButton
+                    android:id="@+id/ibBack"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_back" />
+                <!--android:background="@drawable/actionbar_icon_bg"-->
+
+                <TextView
+                    android:id="@+id/tvReplyViewHeading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:gravity="center_vertical"
+                    android:text=""
+                    android:textSize="@dimen/subHeading" />
+
+                <ImageButton
+                    android:id="@+id/ibSettings"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="@dimen/actionBar_icon_padding"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_settings_black_48dp"
+                    android:tint="@android:color/white" />
+
+            </android.support.v7.widget.Toolbar>
+        </android.support.design.widget.CollapsingToolbarLayout>
+    </android.support.design.widget.AppBarLayout>
 
 
-                <ToggleButton
-                    android:id="@+id/tBtnSailWith"
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/profile_buttons_distance"
-                    android:layout_marginRight="@dimen/profile_buttons_distance"
-                    android:layout_weight="1"
-                    android:background="@drawable/profile_btn"
-                    android:checked="false"
-                    android:textColor="@color/profile_btn"
-                    android:textOff="@string/sail_with_label"
-                    android:textOn="@string/sailing_with_label" />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvActivities"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rlReplyInfo"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:elevation="0dp" />
 
-                <Button
-                    android:id="@+id/btnSendMsg"
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/profile_buttons_distance"
-                    android:layout_marginStart="@dimen/profile_buttons_distance"
-                    android:layout_weight="1"
-                    android:background="@drawable/profile_btn"
-                    android:text="@string/send_letter_label"
-                    android:textColor="@color/profile_btn" />
-            </LinearLayout>
-
-        </RelativeLayout>
-
-        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
-            android:id="@+id/ivProfilePic"
-            android:layout_width="@dimen/profile_pic_dimen"
-            android:layout_height="@dimen/profile_pic_dimen"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="@dimen/profile_pic_margin_top"
-            android:elevation="@dimen/main_elevation"
-            android:scaleType="centerCrop"
-            android:src="@drawable/empty_photo"
-
-            app:riv_border_color="@color/white"
-            app:riv_border_width="2dp"
-            app:riv_oval="true" />
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rvActivities"
-            android:layout_width="match_parent"
-            android:layout_height="400dp"
-            android:layout_below="@id/rlReplyInfo" />
-
-
-    </RelativeLayout>
-
-</ScrollView>
+</android.support.design.widget.CoordinatorLayout>

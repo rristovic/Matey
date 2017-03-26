@@ -148,7 +148,7 @@
     <dimen name="group_listItem_name_topMargin">10dp</dimen>
     <dimen name="group_listItem_text_sideMargin">10dp</dimen>
     <!-- Group list item related - Text size -->
-    <dimen name="group_listItem_textSize_name">@dimen/heading</dimen>
+    <dimen name="group_listItem_textSize_name">@dimen/subHeading</dimen>
     <dimen name="group_listItem_textSize_stats">@dimen/subHeading</dimen>
     <!-- Group profile related - View size -->
     <dimen name="group_image_size">200dp</dimen>

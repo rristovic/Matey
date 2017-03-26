@@ -6,14 +6,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.AppBarLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.LruCache;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
@@ -21,7 +26,6 @@ import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -29,7 +33,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -70,10 +73,12 @@ public class ProfileActivity extends MotherActivity {
     private ImageButton ibSettings;
     private ToggleButton tBtnSailWith;
     private RecyclerView rvActivities;
+    private Toolbar mToolbar;
     private RelativeLayout rlBadges;
     private Button btnSendMsg;
     private TextView tvHeading;
-    private ScrollView svScrollFrame;
+    //    private ScrollView svScrollFrame;
+    private Drawable mActionBarBackgroundDrawable;
 
     private String mPicLink = "";
     private String mCoverLink = "";
@@ -97,8 +102,8 @@ public class ProfileActivity extends MotherActivity {
 //        if (getSupportActionBar() != null)
 //            getSupportActionBar().hide();
         setContentView(R.layout.activity_profile);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//        setTranslucentStatusBar(getWindow());
         setChildSupportActionBar();
         init();
         setListeners();
@@ -117,7 +122,8 @@ public class ProfileActivity extends MotherActivity {
         mOpManager = OperationManager.getInstance(this);
 
         // UI bounding
-        svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
+//        svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
+        mToolbar = super.toolbar;
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
         ivCoverPic = (ImageView) findViewById(R.id.ivCoverPic);
         tvName = (TextView) findViewById(R.id.tvName);
@@ -134,6 +140,19 @@ public class ProfileActivity extends MotherActivity {
             layout.setVisibility(View.GONE);
             ibSettings.setVisibility(View.GONE);
         }
+
+        // Style toolbar
+        mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.actionbar_profile_drawable);
+        mActionBarBackgroundDrawable.setAlpha(0);
+        getSupportActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
+//        Rect rectangle = new Rect();
+//        Window window = getWindow();
+//        window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
+//        int statusBarHeight = rectangle.top;
+//        int contentViewTop =
+//                window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
+//        int titleBarHeight = contentViewTop - statusBarHeight;
+//        super.toolbar.setPadding(0, titleBarHeight, 0, 0);
 
         rvActivities.setAdapter(new Adatpter());
         final LayoutManager layoutManager = new LayoutManager(ProfileActivity.this);
@@ -208,6 +227,47 @@ public class ProfileActivity extends MotherActivity {
     }
 
     private void setListeners() {
+//        svScrollFrame.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+//            @Override
+//            public void onScrollChanged() {
+//                final int headerHeight = ivCoverPic.getHeight() - getSupportActionBar().getHeight();
+//                final float ratio = (float) Math.min(Math.max(svScrollFrame.getScrollY(), 0), headerHeight) / headerHeight;
+//                final int newAlpha = (int) (ratio * 255);
+//                mActionBarBackgroundDrawable.setAlpha(newAlpha);
+//            }
+//        });
+        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appBarProfile);
+        appbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+
+            String hexColor = String.format("%08X", (ContextCompat.getColor(ProfileActivity.this, R.color.colorPrimary))).substring(2);
+            boolean fullColorOn = false;
+
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                final int headerHeight = ivCoverPic.getHeight() - getSupportActionBar().getHeight();
+                final float ratio = (float) Math.min(Math.max(Math.abs(verticalOffset), 0), headerHeight) / headerHeight;
+                final int newAlpha = (int) (ratio * 255);
+
+
+                if (headerHeight <= Math.abs(verticalOffset)) {
+//                    ivProfilePic.animate().alpha(0f).setDuration(100).start();
+                    mActionBarBackgroundDrawable.setAlpha(newAlpha);
+                } else {
+                    mActionBarBackgroundDrawable.setAlpha(0);
+//                    ivProfilePic.animate().alpha(1f).setDuration(100).start();
+                }
+
+                int color;
+                try {
+                    color = Color.parseColor("#".concat(String.format("%02X", newAlpha)).concat(hexColor));
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Faield to parse color value.", e);
+                    color = Color.TRANSPARENT;
+                }
+                ivCoverPic.setColorFilter(color);
+            }
+        });
+
         if (!isCurUser) {
             tBtnSailWith.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

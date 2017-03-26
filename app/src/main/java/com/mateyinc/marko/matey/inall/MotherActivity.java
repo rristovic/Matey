@@ -1,11 +1,15 @@
 package com.mateyinc.marko.matey.inall;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.model.UserProfile;
@@ -76,6 +80,29 @@ abstract public class MotherActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    protected void setTranslucentStatusBar(Window window) {
+        if (window == null) return;
+        int sdkInt = Build.VERSION.SDK_INT;
+        if (sdkInt >= Build.VERSION_CODES.LOLLIPOP) {
+            setTranslucentStatusBarLollipop(window);
+        } else if (sdkInt >= Build.VERSION_CODES.KITKAT) {
+            setTranslucentStatusBarKiKat(window);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void setTranslucentStatusBarLollipop(Window window) {
+        window.setStatusBarColor(
+                window.getContext()
+                        .getResources()
+                        .getColor(android.R.color.transparent));
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private void setTranslucentStatusBarKiKat(Window window) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
     }
 
 

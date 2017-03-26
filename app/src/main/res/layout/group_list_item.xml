@@ -22,7 +22,7 @@
         app:riv_border_width="0dp"
         app:riv_oval="true" />
 
-    <com.mateyinc.marko.matey.activity.home.MediumTextView
+    <TextView
         android:id="@+id/tvGroupName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
