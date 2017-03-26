@@ -1,5 +1,6 @@
 package com.mateyinc.marko.matey.activity.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -24,7 +25,8 @@ import org.greenrobot.eventbus.ThreadMode;
 public class GroupActivity extends MotherActivity {
     public static final String TAG = "GroupActivity";
 
-    public static final String KEY_MODEL_POSITION = "group_position";
+    public static final String EXTRA_MODEL_POSITION = "group_position";
+    public static final String EXTRA_GROUP_ID = "group_id";
 
     private TextView tvGroupName, tvGroupDesc, tvGroupStats, tvGroupCrewNum;
     private ImageView ivGroupPic;
@@ -51,11 +53,16 @@ public class GroupActivity extends MotherActivity {
         ivGroupPic = (ImageView) findViewById(R.id.ivGroupPic);
         btnSail = (Button) findViewById(R.id.btnGroupSail);
 
-        if (getIntent().hasExtra(KEY_MODEL_POSITION)) {
-            mGroupIndex = getIntent().getIntExtra(KEY_MODEL_POSITION, -1);
+        Intent i = getIntent();
+        if (i.hasExtra(EXTRA_MODEL_POSITION)) {
+            mGroupIndex = i.getIntExtra(EXTRA_MODEL_POSITION, -1);
             mCurGroup = DataAccess.getInstance(this).getGroups().get(mGroupIndex);
-        } else
+        } else if (i.hasExtra(EXTRA_GROUP_ID)) {
+            mCurGroup = DataAccess.getInstance(this).getGroupById(i.getLongExtra(EXTRA_GROUP_ID, -1));
+        } else {
             finish();
+            Log.e(TAG, "No group info provided into GroupActivity.");
+        }
     }
 
     private void setupUI() {

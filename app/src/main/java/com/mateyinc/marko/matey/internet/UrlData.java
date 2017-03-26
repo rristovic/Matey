@@ -2,7 +2,7 @@ package com.mateyinc.marko.matey.internet;
 
 public abstract class UrlData {
     /** Server API version */
-    static final String API_VERSION = "v1";
+    public static final String API_VERSION = "v1";
 
     /** Server authorisation header */
     public static final String PARAM_AUTH_TYPE ="X-Bearer-Authorization";
@@ -193,7 +193,10 @@ public abstract class UrlData {
     public static final String GET_SEARCH_GROUPS = ACCESS_BASE_URL.concat("/search/groups");
     public static final String GET_SEARCH_BULLETINS = ACCESS_BASE_URL.concat("/search/posts");
     public static final String GET_SEARCH_AUTOCOMPLETE = ACCESS_BASE_URL.concat("/autocomplete");
+    ///////////////////////////////////////////
 
+    //////// NOTIFICATION UrlData /////////////
+    public static final String GET_NOTIFICATIONS = ACCESS_BASE_URL.concat("/notifications");
     ///////////////////////////////////////////
 
 }

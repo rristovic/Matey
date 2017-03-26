@@ -46,8 +46,8 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.gcm.MateyFirebasePreferences;
 import com.mateyinc.marko.matey.internet.SessionManager;
-import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
@@ -168,7 +168,7 @@ public class MainActivity extends MotherActivity {
     private void registerGCMReceiver() {
         if (!isGcmReceiverRegistered) {
             LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                    new IntentFilter(MateyGCMPreferences.REGISTRATION_COMPLETE));
+                    new IntentFilter(MateyFirebasePreferences.REGISTRATION_COMPLETE));
             isGcmReceiverRegistered = true;
         }
     }

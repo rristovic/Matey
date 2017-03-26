@@ -152,6 +152,7 @@ public class BulletinsFragment extends Fragment {
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        mAdapter.setData(mDataAccess.getBulletins());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

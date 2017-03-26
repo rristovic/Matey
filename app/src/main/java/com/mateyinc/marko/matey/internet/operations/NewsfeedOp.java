@@ -1,7 +1,6 @@
 package com.mateyinc.marko.matey.internet.operations;
 
 import android.content.Context;
-import android.net.Uri;
 import android.util.Log;
 
 import com.android.volley.VolleyError;
@@ -22,7 +21,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mateyinc.marko.matey.internet.UrlData.GET_NEWSFEED_ROUTE;
 import static com.mateyinc.marko.matey.internet.operations.OperationType.DOWNLOAD_NEWS_FEED;
 
 
@@ -44,7 +42,6 @@ public class NewsfeedOp extends Operations {
     }
 
 
-
     @Override
     public void startDownloadAction() {
 
@@ -54,22 +51,21 @@ public class NewsfeedOp extends Operations {
                 Log.d(TAG, "Downloading news feed.");
                 if (mNextUrl.isEmpty()) { // If initial download, clear everything first
                     mUrl = UrlData.GET_NEWSFEED_ROUTE;
-                    mClearData = true;
+//                    mClearData = true;
                 } else
                     mUrl = buildNextPageUrl(mNextUrl);
                 break;
             }
-            case DOWNLOAD_NEWS_FEED_NEW: {
-                Log.d(TAG, "Downloading news feed.");
-                mClearData = true;
-                Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
-                mUrl = builder.build().toString();
-                break;
-            }
+//            case DOWNLOAD_NEWS_FEED_NEW: {
+//                Log.d(TAG, "Downloading news feed.");
+//                mClearData = true;
+//                Uri.Builder builder = Uri.parse(GET_NEWSFEED_ROUTE).buildUpon();
+//                mUrl = builder.build().toString();
+//                break;
+//            }
         }
         startDownload();
     }
-
 
 
     @Override
@@ -118,11 +114,11 @@ public class NewsfeedOp extends Operations {
 
             if (c != null) {
                 DataAccess dataAccess = DataAccess.getInstance(c);
-                if (mClearData) {
-                    dataAccess.clearData();
-                    mClearData = false;
-                }
-                dataAccess.addBulletins(bulletinList);
+                if (shouldClearData()) {
+                    dataAccess.setBulletins(bulletinList);
+                    dataCleared();
+                } else
+                    dataAccess.addBulletins(bulletinList);
 //                dataAccess.addUserProfile(bulletinList);
 //                if (mDownloadListener != null)
 //                    runOnUiThread(new Runnable() {

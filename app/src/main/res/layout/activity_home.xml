@@ -82,7 +82,7 @@
             android:tint="@color/light_gray" />
 
         <ImageButton
-            android:id="@+id/ibNotifications"
+            android:id="@+id/ibGroups"
             style="@style/NavBarButtons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -102,7 +102,7 @@
             android:tint="@color/light_gray" />
 
         <ImageButton
-            android:id="@+id/ibFriends"
+            android:id="@+id/ibNotifications"
             style="@style/NavBarButtons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -1,46 +1,27 @@
 {
   "project_info": {
-    "project_number": "792473083168",
-    "project_id": "matey-9d47c"
+    "project_number": "608199490601",
+    "firebase_url": "https://matey-b4485.firebaseio.com",
+    "project_id": "matey-b4485",
+    "storage_bucket": "matey-b4485.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:792473083168:android:3f35fca62abf141b",
-        "android_client_info": {
-          "package_name": "com.matey.android"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDdvRxK8P2-6ZAjFqrA13rBd4qWHuDrWgs"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 1
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:792473083168:android:6d5724d83e9e35f0",
+        "mobilesdk_app_id": "1:608199490601:android:6d5724d83e9e35f0",
         "android_client_info": {
           "package_name": "com.mateyinc.marko.matey"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "608199490601-h3okpbo4u2ui3bf2fnne28nek0vuu6sd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDdvRxK8P2-6ZAjFqrA13rBd4qWHuDrWgs"
+          "current_key": "AIzaSyA53MONOE-CVWPkHNw60yQu4JafJMKuWFQ"
         }
       ],
       "services": {
@@ -52,7 +33,7 @@
           "other_platform_oauth_client": []
         },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }

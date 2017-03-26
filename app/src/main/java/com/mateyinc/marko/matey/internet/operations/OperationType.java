@@ -8,8 +8,8 @@ public enum OperationType {
 
     // Newsfeed operation
     DOWNLOAD_NEWS_FEED,
-    DOWNLOAD_NEWS_FEED_NEXT,
-    DOWNLOAD_NEWS_FEED_NEW,
+//    DOWNLOAD_NEWS_FEED_NEXT,
+//    DOWNLOAD_NEWS_FEED_NEW,
 
     // Bulletin operation
     POST_NEW_BULLETIN_NO_ATTCH,
@@ -46,6 +46,10 @@ public enum OperationType {
     SEARCH_GROUPS,
     SEARCH_PROFILES,
     SEARCH_AUTOCOMPLETE,
+
+    // Notification ops
+    DOWNLOAD_NOTIF_LIST,
+
 
     NO_OPERATION
 }

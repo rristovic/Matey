@@ -118,7 +118,7 @@ public class UserProfile extends MModel {
     }
 
     public long getUserId() {
-        return _id;
+        return getId();
     }
 
     public void setUserId(long userId) {

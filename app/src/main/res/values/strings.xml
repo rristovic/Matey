@@ -56,6 +56,7 @@
     <string name="groups_discover_section_name">Discover</string>
     <string name="groups_invites_section_name">Invites</string>
     <string name="action_dropdb">Delete db</string>
+    <string name="groups_statistics"><xliff:g id="num_of_followrs">%1$d</xliff:g> sailors</string>
 
     <!-- Fonts -->
     <string name="roboto_thin">sans-serif-thin</string> <!-- Android 4.2 -->
@@ -87,14 +88,15 @@
     <string name="followers_label">followers</string>
     <string name="following_label">following</string>
     <string name="send_letter_label">Send a letter</string>
-    <string name="sailing_with_label">Sailing with</string>
-    <string name="sail_with_label">Sail with them</string>
+    <string name="sailing_with_label">Sailing</string>
+    <string name="sail_with_label">Sail</string>
     <string name="action_block">Block user</string>
 
     <!-- Search fragment related -->
     <string name="search_all">All</string>
-    <string name="search_people">People</string>
-    <string name="search_groups">Groups</string>
+    <string name="search_people">Mates</string>
+    <string name="search_groups">Ships</string>
+    <string name="search_posts">Sea</string>
 
     <!-- New post related -->
     <string name="post_to_matey">Post to Matey</string>

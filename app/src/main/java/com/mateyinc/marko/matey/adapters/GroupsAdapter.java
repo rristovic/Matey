@@ -40,7 +40,7 @@ public class GroupsAdapter extends RecycleNoSQLAdapter<Group> {
             @Override
             public void onClick(int adapterViewPosition) {
                 Intent i = new Intent(mContext, GroupActivity.class);
-                i.putExtra(GroupActivity.KEY_MODEL_POSITION, adapterViewPosition);
+                i.putExtra(GroupActivity.EXTRA_MODEL_POSITION, adapterViewPosition);
                 mContext.startActivity(i);
             }
         });

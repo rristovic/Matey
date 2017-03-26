@@ -1,85 +1,100 @@
 package com.mateyinc.marko.matey.adapters;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.support.v4.widget.CursorAdapter;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
-import android.text.Spanned;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.activity.home.NotificationsFragment;
+import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.model.Notification;
 
-import java.util.Date;
+import java.util.ArrayList;
 
-/**
- * Created by Sarma on 9/5/2016.
- */
-public class NotificationsAdapter extends CursorAdapter {
+public class NotificationsAdapter extends RecycleNoSQLAdapter<Notification> {
 
-    public NotificationsAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+
+    private final Context mContext;
+    private final OperationManager mManager;
+
+    public NotificationsAdapter(MotherActivity context) {
+        super(context);
+        mData = new ArrayList<>();
+        mContext = context;
+        mManager = OperationManager.getInstance(context);
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View view = LayoutInflater.from(context).inflate(R.layout.notif_list_item, parent, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        view.setTag(viewHolder);
-
-        return view;
-    }
-
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        ViewHolder viewHolder = (ViewHolder) view.getTag();
-
-        try {
-            Spanned text = Html.fromHtml("<b>" + cursor.getString(NotificationsFragment.COL_NOTIF_SENDER_NAME) + "</b>" + " " +
-                    cursor.getString(NotificationsFragment.COL_NOTIF_BODY) + " " +
-                    "<b>" + cursor.getString(NotificationsFragment.COL_NOTIF_LINK_ID) + "</b>");
-            viewHolder.tvNotifText.setText(text);
-        } catch (Exception e) {
-            Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-            viewHolder.tvNotifText.setText(mContext.getString(R.string.error_message) + " ");
-        }
-
-        Date date = new Date();
-        try {
-            try {
-                date = new Date(cursor.getString(NotificationsFragment.COL_NOTIF_TIME));
-            } catch (Exception e) {
-                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(mContext)
+                .inflate(R.layout.group_list_item, parent, false);
+        return new ViewHolder(view, new ViewHolder.ViewHolderClickListener() {
+            @Override
+            public void onClick(int adapterViewPosition) {
+                Notification n = mData.get(adapterViewPosition);
+                Intent i = n.buildIntent(mContext);
+                mContext.startActivity(i);
             }
-            viewHolder.tvNotifTime.setText(Util.getReadableDateText(date));
-        } catch (Exception e) {
-            Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-            viewHolder.tvNotifTime.setText(Util.getReadableDateText(date));
-        }
+        });
     }
 
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        Notification n = mData.get(position);
 
+        final ViewHolder view = (ViewHolder) holder;
+        view.tvName.setText(n.getmMessage());
+        view.tvStats.setVisibility(View.GONE);
 
+        mManager.mImageLoader.get(n.getmPicUrl(),
+                new ImageLoader.ImageListener() {
+                    @Override
+                    public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                        view.ivPicture.setImageBitmap(response.getBitmap());
+                    }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final ImageView ivProfilePic;
-        public final TextView tvNotifText;
-        public final TextView tvNotifTime;
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        view.ivPicture.setImageResource(R.drawable.empty_photo);
+                    }
+                }, view.ivPicture.getWidth(), view.ivPicture.getHeight());
 
-        public ViewHolder(View view) {
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        final View mView;
+        final ImageView ivPicture;
+        final TextView tvStats, tvName;
+        final ViewHolderClickListener mListener;
+
+        static final String TAG_STATS = "stats_tag";
+
+        public ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
-            ivProfilePic = (ImageView) view.findViewById(R.id.ivNotifProfilePic);
-            tvNotifText = (TextView) view.findViewById(R.id.tvNotifText);
-            tvNotifTime = (TextView) view.findViewById(R.id.tvNotifTime);
+            mListener = listener;
+            ivPicture = (ImageView) mView.findViewById(R.id.ivPicture);
+            tvStats = (TextView) mView.findViewById(R.id.tvGroupStats);
+            tvName = (TextView) mView.findViewById(R.id.tvGroupName);
+
+            mView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            mListener.onClick(getAdapterPosition());
+        }
+
+        protected interface ViewHolderClickListener {
+            void onClick(int adapterViewPosition);
         }
     }
 }
+

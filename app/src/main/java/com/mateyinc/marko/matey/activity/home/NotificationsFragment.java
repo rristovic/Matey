@@ -1,63 +1,38 @@
 package com.mateyinc.marko.matey.activity.home;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
-import android.text.Spanned;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.data.DataContract.NotificationEntry;
+import com.mateyinc.marko.matey.adapters.NotificationsAdapter;
+import com.mateyinc.marko.matey.data.DataAccess;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 
-import java.util.Date;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 
-public class NotificationsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class NotificationsFragment extends Fragment {
 
     private static final String TAG = NotificationsFragment.class.getSimpleName();
 
     private NotificationsAdapter mAdapter;
-    private Context mContext;
+    private MotherActivity mContext;
     private OperationManager mManager;
-
-    private static final int NOTIF_LOADER = 1;
-
-    // For the data view we're showing only a small subset of the stored data.
-    // Specify the columns we need.
-    public static final String[] NOTIF_COLUMNS = {
-            NotificationEntry.TABLE_NAME + "." + NotificationEntry._ID,
-            NotificationEntry.COLUMN_SENDER_ID,
-            NotificationEntry.COLUMN_SENDER_NAME,
-            NotificationEntry.COLUMN_NOTIF_TEXT,
-            NotificationEntry.COLUMN_NOTIF_TIME,
-            NotificationEntry.COLUMN_NOTIF_LINK_ID
-
-    };
-
-    // These indices are tied to NOTIF_COUMNS.  If NOTIF_COLUMNS changes, these
-    // must change.
-    public static final int COL_NOTIF_ID = 0;
-    public static final int COL_NOTIF_SENDER_ID = 1;
-    public static final int COL_NOTIF_SENDER_NAME = 2;
-    public static final int COL_NOTIF_BODY = 3;
-    public static final int COL_NOTIF_TIME = 4;
-    public static final int COL_NOTIF_LINK_ID = 5;
+    private OperationManager mOperationManager;
+    private DataAccess mDataAccess;
+    private SwipeRefreshLayout mMainRefreshLayout;
+    private EndlessScrollListener mScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -69,123 +44,128 @@ public class NotificationsFragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mContext = context;
+        mContext = (MotherActivity) context;
+        mOperationManager = OperationManager.getInstance(context);
+        mOperationManager.downloadNotificationList(true, mContext);
+        mDataAccess = DataAccess.getInstance(mContext);
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mAdapter = new NotificationsAdapter(mContext, null, 0);
-        mManager = OperationManager.getInstance(mContext);
-    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_notif_msg, container, false);
+        mMainRefreshLayout = (SwipeRefreshLayout) inflater.inflate(R.layout.fragment_group_list, container, false);
+        RecyclerView list = (RecyclerView) mMainRefreshLayout.findViewById(R.id.list);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        list.setLayoutManager(layoutManager);
 
         // Set the adapter
-        ListView listView = (ListView) view;
-        listView.setAdapter(mAdapter);
+        mAdapter = new NotificationsAdapter(mContext);
+        mAdapter.setData(mDataAccess.mNotificationList);
+        list.setAdapter(mAdapter);
 
-        return view;
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        getLoaderManager().initLoader(NOTIF_LOADER, null, this);
-        super.onActivityCreated(savedInstanceState);
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // This is called when a new Loader needs to be created.  This
-        // fragment only uses one loader, so we don't care about checking the id.
-
-        // Sort order:  Ascending, by time.
-//        String sortOrder = DataContract.MessageEntry.COLUMN_TIME + " ASC";
-
-        return new CursorLoader(getActivity(),
-                NotificationEntry.CONTENT_URI,
-                NOTIF_COLUMNS,
-                null,
-                null,
-                null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdapter.swapCursor(data);
-        Log.d(TAG, "entered onLoadFinished(..)");
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.swapCursor(null);
-        Log.d(TAG, "entered onLoaderReset(..)");
-    }
-
-    private class NotificationsAdapter extends CursorAdapter {
-
-        public NotificationsAdapter(Context context, Cursor c, int flags) {
-            super(context, c, flags);
-        }
-
-        @Override
-        public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View view = LayoutInflater.from(context).inflate(R.layout.notif_list_item, parent, false);
-            ViewHolder viewHolder = new ViewHolder(view);
-            view.setTag(viewHolder);
-
-            return view;
-        }
-
-        @Override
-        public void bindView(View view, Context context, Cursor cursor) {
-            ViewHolder viewHolder = (ViewHolder) view.getTag();
-
-            try {
-                Spanned text = Html.fromHtml("<b>" + cursor.getString(COL_NOTIF_SENDER_NAME) + "</b>" + " " +
-                        cursor.getString(COL_NOTIF_BODY) + " " +
-                        "<b>" + cursor.getString(COL_NOTIF_LINK_ID) + "</b>");
-                viewHolder.tvNotifText.setText(text);
-            } catch (Exception e) {
-                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-                viewHolder.tvNotifText.setText(mContext.getString(R.string.error_message) + " ");
+        // Set listener
+        mMainRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mOperationManager.downloadNotificationList(true, mContext);
             }
+        });
 
-            Date date = new Date();
-            try {
-                try {
-                    date = new Date(cursor.getString(COL_NOTIF_TIME));
-                } catch (Exception e) {
-                    Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-                }
-                viewHolder.tvNotifTime.setText(Util.getReadableDateText(date));
-            } catch (Exception e) {
-                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
-                viewHolder.tvNotifTime.setText(Util.getReadableDateText(date));
+        mScrollListener = new EndlessScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                mOperationManager.downloadNotificationList(false, mContext);
             }
-        }
+        };
+        list.addOnScrollListener(mScrollListener);
 
-
-
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final ImageView ivProfilePic;
-            public final TextView tvNotifText;
-            public final TextView tvNotifTime;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                ivProfilePic = (ImageView) view.findViewById(R.id.ivNotifProfilePic);
-                tvNotifText = (TextView) view.findViewById(R.id.tvNotifText);
-                tvNotifTime = (TextView) view.findViewById(R.id.tvNotifTime);
-            }
-        }
+        return mMainRefreshLayout;
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+        mAdapter.setData(mDataAccess.mNotificationList);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDownloadEvent(DownloadEvent event) {
+        mScrollListener.onDownloadFinished();
+        mMainRefreshLayout.setRefreshing(false);
+        mAdapter.setData(mDataAccess.mNotificationList);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+//    private class NotificationsAdapter extends CursorAdapter {
+//
+//        public NotificationsAdapter(Context context, Cursor c, int flags) {
+//            super(context, c, flags);
+//        }
+//
+//        @Override
+//        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+//            View view = LayoutInflater.from(context).inflate(R.layout.notif_list_item, parent, false);
+//            ViewHolder viewHolder = new ViewHolder(view);
+//            view.setTag(viewHolder);
+//
+//            return view;
+//        }
+//
+//        @Override
+//        public void bindView(View view, Context context, Cursor cursor) {
+//            ViewHolder viewHolder = (ViewHolder) view.getTag();
+//
+//            try {
+//                Spanned text = Html.fromHtml("<b>" + cursor.getString(COL_NOTIF_SENDER_NAME) + "</b>" + " " +
+//                        cursor.getString(COL_NOTIF_BODY) + " " +
+//                        "<b>" + cursor.getString(COL_NOTIF_LINK_ID) + "</b>");
+//                viewHolder.tvNotifText.setText(text);
+//            } catch (Exception e) {
+//                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+//                viewHolder.tvNotifText.setText(mContext.getString(R.string.error_message) + " ");
+//            }
+//
+//            Date date = new Date();
+//            try {
+//                try {
+//                    date = new Date(cursor.getString(COL_NOTIF_TIME));
+//                } catch (Exception e) {
+//                    Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+//                }
+//                viewHolder.tvNotifTime.setText(Util.getReadableDateText(date));
+//            } catch (Exception e) {
+//                Log.e(this.getClass().getSimpleName(), e.getLocalizedMessage(), e);
+//                viewHolder.tvNotifTime.setText(Util.getReadableDateText(date));
+//            }
+//        }
+//
+//
+//
+//
+//        public class ViewHolder extends RecyclerView.ViewHolder {
+//            public final View mView;
+//            public final ImageView ivProfilePic;
+//            public final TextView tvNotifText;
+//            public final TextView tvNotifTime;
+//
+//            public ViewHolder(View view) {
+//                super(view);
+//                mView = view;
+//                ivProfilePic = (ImageView) view.findViewById(R.id.ivNotifProfilePic);
+//                tvNotifText = (TextView) view.findViewById(R.id.tvNotifText);
+//                tvNotifTime = (TextView) view.findViewById(R.id.tvNotifTime);
+//            }
+//        }
+//    }
 
 
 //    private class NotificationAdapter extends RecyclerView.Adapter<NotificationsFragment.NotificationAdapter.ViewHolder>{

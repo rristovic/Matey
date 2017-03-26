@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -7,11 +8,76 @@
     <TextView
         android:id="@+id/tvSectionName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
+        android:layout_height="@dimen/search_itemHeight"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="16dp"
+        android:text="Section name"
+        android:textSize="@dimen/subHeading"
+        android:visibility="visible"
+        android:gravity="bottom"
+        android:paddingBottom="8dp" />
 
-    <TextView
-        android:id="@+id/tvTitle"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="@dimen/search_itemHeight">
+
+        <ToggleButton
+            android:id="@+id/btnSail"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/search_content_height"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/profile_btn"
+            android:checked="false"
+            android:textColor="@color/profile_btn"
+            android:textOff="@string/sail_with_label"
+            android:textOn="@string/sailing_with_label" />
+
+        <com.mateyinc.marko.matey.activity.rounded_image_view.RoundedImageView
+            android:id="@+id/ivSearchPicture"
+            android:layout_width="@dimen/search_content_height"
+            android:layout_height="@dimen/search_content_height"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/empty_photo"
+            app:riv_border_color="@color/profile_pic_border"
+            app:riv_border_width="0dp"
+            app:riv_oval="true" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/ivSearchPicture"
+            android:layout_toLeftOf="@id/btnSail"
+            android:layout_toRightOf="@id/ivSearchPicture"
+            android:layout_toStartOf="@id/btnSail">
+
+            <com.mateyinc.marko.matey.activity.home.MediumTextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/search_sectionName_textSize"
+                android:text="Search text" />
+
+            <TextView
+                android:id="@+id/tvInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tvTitle"
+                android:text="Search text" />
+        </RelativeLayout>
+
+
+    </RelativeLayout>
+
 </LinearLayout>

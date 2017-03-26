@@ -15,6 +15,7 @@ import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.internet.MateyRequest;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.OperationProvider;
+import com.mateyinc.marko.matey.internet.UrlData;
 
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
@@ -83,7 +84,7 @@ public abstract class Operations {
     /**
      * Indicates if current data should be cleared before adding new one.
      */
-    boolean mClearData = false;
+    private boolean mClearData = false;
 
     // Network request used for networking
     private MateyRequest mRequest;
@@ -123,6 +124,21 @@ public abstract class Operations {
     String buildNextPageUrl(String mNextUrl) {
         return Uri.parse(ACCESS_BASE_URL).buildUpon()
                 .appendEncodedPath(mNextUrl).build().toString();
+    }
+
+    /**
+     * Check if data should be cleared first before adding new.
+     * @return true is data should be cleared.
+     */
+    protected boolean shouldClearData(){
+        return mClearData;
+    }
+
+    /**
+     * Call this method when old data is cleared.
+     */
+    protected void dataCleared(){
+        mClearData = false;
     }
 
     /**
@@ -222,7 +238,7 @@ public abstract class Operations {
             JSONObject pagination = object.getJSONObject(KEY_PAGINATION);
             pagination = pagination.getJSONObject(KEY_LINKS);
             String url = pagination.getString(KEY_NEXT_URL);
-            url = url.substring(url.lastIndexOf("/") + 1);// save next url
+            url = url.substring(url.lastIndexOf(UrlData.API_VERSION) + 3);// save next url
             return url;
         } catch (Exception e) {
             Log.w(getTag(), "No value for next link.");

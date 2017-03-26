@@ -165,5 +165,10 @@
     <!-- Toolbar related -->
     <dimen name="toolbar_mateyLogo_size">100dp</dimen>
 
+    <!-- Search related -->
+    <dimen name="search_sectionName_textSize">@dimen/subHeading</dimen>
+    <dimen name="search_itemHeight">52dp</dimen>
+    <dimen name="search_content_height">44dp</dimen>
+
 
 </resources>

@@ -30,10 +30,10 @@ repositories {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile files('libs/ImageUtil.jar')
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.facebook.android:facebook-android-sdk:4.1.0'
-    compile 'com.google.android.gms:play-services-gcm:9.8.0'
     compile 'com.google.android.gms:play-services-maps:9.8.0'
     compile 'com.android.support:design:25.2.0'
     compile 'com.android.support:recyclerview-v7:25.2.0'
@@ -43,11 +43,12 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'id.zelory:compressor:1.0.4'
     compile 'org.greenrobot:eventbus:3.0.0'
-    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
+    compile 'com.google.firebase:firebase-messaging:9.8.0'
     testCompile 'junit:junit:4.12'
 }
 
 apply plugin: 'com.google.gms.google-services'
+
 
 
 

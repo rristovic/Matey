@@ -10,7 +10,7 @@ import android.util.Log;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
-import com.mateyinc.marko.matey.model.MModel;
+import com.mateyinc.marko.matey.model.Notification;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.ArrayList;
@@ -100,6 +100,9 @@ public class DataAccess {
         return null;
     }
 
+
+    ///// BULLETIN Methods ///////////
+    //////////////////////////////////
     public void addBulletins(List<Bulletin> list) {
         synchronized (mLock) {
             mBulletinList.addAll(list);
@@ -107,7 +110,8 @@ public class DataAccess {
     }
 
     public void setBulletins(List<Bulletin> list) {
-        mBulletinList = list;
+        mBulletinList.clear();
+        mBulletinList.addAll(list);
     }
 
     public List<Bulletin> getBulletins() {
@@ -131,6 +135,74 @@ public class DataAccess {
 
         mBulletinList.add(0, bulletin);
     }
+
+
+    /**
+     * Method for getting the bulletin from the database.
+     *
+     * @param index the position of the bulletin in the database
+     * @return the new instance of {@link Bulletin} from the database
+     */
+    public Bulletin getBulletin(int index) {
+        return mBulletinList.get(index);
+    }
+
+    /**
+     * Method for getting the bulletin from the database with the default cursor
+     *
+     * @param postId the position of the bulletin in the database
+     * @return the new instance of {@link Bulletin} from the database
+     */
+    public Bulletin getBulletinById(long postId) {
+        for (Bulletin b :
+                mBulletinList) {
+            if (b.getId() == postId)
+                return b;
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the number of bulletins in the database
+     */
+    public static int getNumOfBulletinsInDb(Context context) {
+        try {
+            Cursor c = context.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, null, null, null, null, null);
+            // -1 becouse of null bulletin
+            int count = c.getCount() - 1;
+            c.close();
+            return count;
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+            return 0;
+        }
+    }
+    //////////////////////////////////
+
+    /**
+     * Helper method for checking if like exists in database
+     *
+     * @param post_id id of post liked
+     * @param replyId id of reply liked
+     * @param context context used for db access
+     * @return true if like exists
+     */
+    public static boolean isApproveInDb(long post_id, @Nullable long replyId, Context context) {
+        Cursor c = context.getContentResolver().query(DataContract.ApproveEntry.CONTENT_URI,
+                new String[]{DataContract.ApproveEntry._ID}, DataContract.ApproveEntry.COLUMN_POST_ID + " = ? AND "
+                        + DataContract.ApproveEntry.COLUMN_USER_ID + " = ? AND " + DataContract.ApproveEntry.COLUMN_REPLY_ID + " = ?",
+                new String[]{Long.toString(post_id), Long.toString(MotherActivity.user_id), Long.toString(replyId)}, null);
+
+        return (c != null && c.getCount() != 0);
+    }
+
+    ///// Reply methods //////
+    /////////////////////////
+
+
+    ////// USER PROFILE METHODS //////
+    //////////////////////////////////
 
     /**
      * Set's the {@link MotherActivity#mCurrentUserProfile} from {@link SharedPreferences}
@@ -189,102 +261,6 @@ public class DataAccess {
         }
     }
 
-    /**
-     * Helper method for checking if like exists in database
-     *
-     * @param post_id id of post liked
-     * @param replyId id of reply liked
-     * @param context context used for db access
-     * @return true if like exists
-     */
-    public static boolean isApproveInDb(long post_id, @Nullable long replyId, Context context) {
-        Cursor c = context.getContentResolver().query(DataContract.ApproveEntry.CONTENT_URI,
-                new String[]{DataContract.ApproveEntry._ID}, DataContract.ApproveEntry.COLUMN_POST_ID + " = ? AND "
-                        + DataContract.ApproveEntry.COLUMN_USER_ID + " = ? AND " + DataContract.ApproveEntry.COLUMN_REPLY_ID + " = ?",
-                new String[]{Long.toString(post_id), Long.toString(MotherActivity.user_id), Long.toString(replyId)}, null);
-
-        return (c != null && c.getCount() != 0);
-    }
-
-
-    /**
-     * Method for getting the bulletin from the database
-     *
-     * @param index  the position of the bulletin in the database
-     * @param cursor the provided cursor for the database
-     * @return the new instance of {@link Bulletin} from the database
-     */
-    public static Bulletin getBulletin(int index, Cursor cursor) {
-        Bulletin bulletin = null;
-        try {
-            cursor.moveToPosition(index);
-
-//            bulletin = new Bulletin(
-//                    cursor.getInt(COL_POST_ID),
-//                    cursor.getString(COL_TEXT),
-//                    new Date(cursor.getLong(COL_DATE)));
-
-            bulletin.setNumOfLikes(cursor.getInt(COL_NUM_OF_LIKES));
-            bulletin.setSubject(cursor.getString(COL_SUBJECT));
-
-            bulletin.setServerStatus(cursor.getInt(COL_ON_SERVER));
-            bulletin.setNumOfReplies(cursor.getInt(COL_NUM_OF_REPLIES));
-            bulletin.setAttachmentsFromJSON(cursor.getString(7));
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-        }
-        return bulletin;
-    }
-
-    /**
-     * Method for getting the bulletin from the database.
-     *
-     * @param index the position of the bulletin in the database
-     * @return the new instance of {@link Bulletin} from the database
-     */
-    public Bulletin getBulletin(int index) {
-        return mBulletinList.get(index);
-    }
-
-    /**
-     * Method for getting the bulletin from the database with the default cursor
-     *
-     * @param postId the position of the bulletin in the database
-     * @return the new instance of {@link Bulletin} from the database
-     */
-    public Bulletin getBulletinById(long postId) {
-        for (Bulletin b :
-                mBulletinList) {
-            if (b.getId() == postId)
-                return b;
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the number of bulletins in the database
-     */
-    public static int getNumOfBulletinsInDb(Context context) {
-        try {
-            Cursor c = context.getContentResolver().query(DataContract.BulletinEntry.CONTENT_URI, null, null, null, null, null);
-            // -1 becouse of null bulletin
-            int count = c.getCount() - 1;
-            c.close();
-            return count;
-        } catch (NullPointerException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-            return 0;
-        }
-    }
-
-
-    ///// Reply methods //////
-    /////////////////////////
-
-
-    ////// USER PROFILE METHODS //////
-    //////////////////////////////////
     public static void removeUserProfile(long user_id, Context context) {
         int numOfRows = context.getContentResolver().delete(DataContract.ProfileEntry.CONTENT_URI,
                 DataContract.ProfileEntry._ID + " = ?", new String[]{Long.toString(user_id)});
@@ -301,6 +277,16 @@ public class DataAccess {
 
     public List<Group> getGroups() {
         return mGroupList;
+    }
+
+    public Group getGroupById(long _id) {
+        for (Group g :
+                mGroupList) {
+            if (g.getId() == _id)
+                return g;
+        }
+
+        return null;
     }
 
     public void addGroup(Group group) {
@@ -322,18 +308,24 @@ public class DataAccess {
 
     ///// SEARCH Method //////
     /////////////////////////////////////////////
-    public List<MModel> mSearchResults = new ArrayList<>();
-    public List<UserProfile> mSearchUserProfileList= new ArrayList<>();
-    public List<Group> mSearchGroupList= new ArrayList<>();
+    public List<Bulletin> mBulletinSearchList = new ArrayList<>();
+    public List<Group> mGroupSearchList = new ArrayList<>();
+    public List<UserProfile> mUserSearchList = new ArrayList<>();
+    public int userListSize;
+    public int groupListSize;
+    public int bulletinListSize;
 
-    public void clearSearch(){
-        mSearchResults.clear();
-        mSearchUserProfileList.clear();
-        mSearchGroupList.clear();
+    public void clearSearch() {
+        mBulletinSearchList.clear();
+        mGroupSearchList.clear();
+        mUserSearchList.clear();
+        userListSize = groupListSize = bulletinListSize = 0;
     }
+
+    /////////////////////////////////////////////
+    ///// Notifications //////
+    public List<Notification> mNotificationList = new ArrayList<>();
+
     /////////////////////////////////////////////
 
-    public void clearData() {
-        mBulletinList.clear();
-    }
 }

@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +37,7 @@ import com.mateyinc.marko.matey.model.Reply;
 import java.util.Date;
 
 public class BulletinViewActivity extends MotherActivity implements RepliesAdapter.ReplyClickedInterface {
+    private static final String TAG = BulletinViewActivity.class.getSimpleName();
 
     public static final String EXTRA_BULLETIN_ID = "post_id";
     public static final String EXTRA_BULLETIN_POS = "bulletin_adapter_pos";
@@ -83,12 +85,15 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
     private void init() {
         Intent i = getIntent();
-        if (i.hasExtra(EXTRA_BULLETIN_ID) && i.hasExtra(EXTRA_BULLETIN_POS)) {
-            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
+        if (i.hasExtra(EXTRA_BULLETIN_ID)) {
             mBulletinId = getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1);
+            mBulletinPos = getIntent().getIntExtra(EXTRA_BULLETIN_POS, -1);
         } else {
+            Log.e(TAG, "No profile id or position is provided to BulletinViewActivity.");
             finish();
+            return;
         }
+
 
         mManager = OperationManager.getInstance(BulletinViewActivity.this);
         mManager.downloadBulletinInfo(mBulletinId, BulletinViewActivity.this);
@@ -141,7 +146,10 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
      * Helper method for updating field {@link #mCurBulletin} with new data and passing it to adapter.
      */
     private void updateCurBulletin() {
-        mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletin(mBulletinPos);
+        if (mBulletinPos == -1)
+            mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletinById(mBulletinId);
+        else
+            mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletin(mBulletinPos);
         mAdapter.setBulletin(mCurBulletin);
         updateUI();
     }

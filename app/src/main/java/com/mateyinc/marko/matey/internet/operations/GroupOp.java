@@ -64,7 +64,7 @@ public class GroupOp extends Operations {
             case DOWNLOAD_GROUP_LIST: {
                 Log.d(TAG, "Downloading group list.");
                 if (mNextUrl.isEmpty()) {
-                    mClearData = true;
+//                    mClearData = true;
                     mUrl = UrlData.buildGetGroupList(mUserId);
                 } else {
                     mUrl = buildNextPageUrl(mNextUrl);
@@ -126,8 +126,9 @@ public class GroupOp extends Operations {
             Context c = mContextRef.get();
             if (c != null) {
                 DataAccess da = DataAccess.getInstance(c);
-                if (mClearData) {
+                if (shouldClearData()) {
                     da.setGroups(groupList);
+                    dataCleared();
                 } else {
                     da.addGroups(groupList);
                 }

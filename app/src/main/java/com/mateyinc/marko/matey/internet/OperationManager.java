@@ -20,6 +20,7 @@ import com.mateyinc.marko.matey.internet.operations.ApproveOp;
 import com.mateyinc.marko.matey.internet.operations.BulletinOp;
 import com.mateyinc.marko.matey.internet.operations.GroupOp;
 import com.mateyinc.marko.matey.internet.operations.NewsfeedOp;
+import com.mateyinc.marko.matey.internet.operations.NotificationOp;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.internet.operations.ReplyOp;
 import com.mateyinc.marko.matey.internet.operations.SearchOp;
@@ -227,8 +228,8 @@ public class OperationManager implements OperationProvider {
      */
     public void downloadNewsFeed(boolean requestNewData, MotherActivity context) {
         NewsfeedOp newsfeedOp = new NewsfeedOp(this, context);
-        if (requestNewData)
-            newsfeedOp.setOperationType(OperationType.DOWNLOAD_NEWS_FEED_NEW);
+        newsfeedOp.setDownloadFreshData(requestNewData);
+        newsfeedOp.setOperationType(OperationType.DOWNLOAD_NEWS_FEED);
         newsfeedOp.startDownloadAction();
     }
 
@@ -526,12 +527,17 @@ public class OperationManager implements OperationProvider {
      * @param userId         user's id which list should be downloaded.
      * @param mContext       context
      */
-    public void downloadGroupList(long userId, boolean requestNewData, Context mContext) {
-        GroupOp groupOp = new GroupOp(mContext);
-        groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_LIST);
-        groupOp.setDownloadFreshData(requestNewData);
-        groupOp.setUserId(userId);
-        groupOp.startDownloadAction();
+    public void downloadGroupList(final long userId, final boolean requestNewData, final Context mContext) {
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                GroupOp groupOp = new GroupOp(mContext);
+                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_LIST);
+                groupOp.setDownloadFreshData(requestNewData);
+                groupOp.setUserId(userId);
+                groupOp.startDownloadAction();
+            }
+        });
     }
 
     /**
@@ -576,10 +582,11 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for performing search.
-     * @param query search query to query the server.
+     *
+     * @param query           search query to query the server.
      * @param isFreshDownload indicates if fresh data is needed and old one should be cleared.
-     * @param fragPosition fragment position in search activity.
-     * @param context context.
+     * @param fragPosition    fragment position in search activity.
+     * @param context         context.
      */
     public void onSearchQuery(final String query, final boolean isFreshDownload, int fragPosition, final Context context) {
         final OperationType type;
@@ -611,7 +618,8 @@ public class OperationManager implements OperationProvider {
 
     /**
      * Helper method for search auto complete suggestions.
-     * @param query query string to query the server with.
+     *
+     * @param query   query string to query the server with.
      * @param context context.
      */
     public void onSearchAutocomplete(final String query, final Context context) {
@@ -621,6 +629,25 @@ public class OperationManager implements OperationProvider {
                 SearchOp searchOp = new SearchOp(query, context);
                 searchOp.setOperationType(OperationType.SEARCH_AUTOCOMPLETE);
                 searchOp.startDownloadAction();
+            }
+        });
+    }
+
+    ///// NOTIFICATIONS Method //////
+    /////////////////////////////////
+    /**
+     * Helper method for downloading notification list.
+     *
+     * @param requestNewData boolean to indicate is new data should be downloaded and old cleared.
+     * @param mContext       context
+     */
+    public void downloadNotificationList(final boolean requestNewData, final Context mContext) {
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                NotificationOp notificationOp = new NotificationOp(mContext);
+                notificationOp.setDownloadFreshData(requestNewData);
+                notificationOp.startDownloadAction();
             }
         });
     }

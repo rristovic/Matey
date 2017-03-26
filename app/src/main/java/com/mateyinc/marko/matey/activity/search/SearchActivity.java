@@ -1,5 +1,6 @@
 package com.mateyinc.marko.matey.activity.search;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.widget.TabLayout;
@@ -18,6 +19,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
 import com.mateyinc.marko.matey.adapters.SearchAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -108,9 +110,13 @@ public class SearchActivity extends MotherActivity {
         });
     }
 
-    private void performSearch() {
-        mManager.onSearchQuery(tvSearchInput.getText().toString(), true,
-                mPager.getCurrentItem(), SearchActivity.this);
+    void performSearch() {
+        performSearch(true, mPager.getCurrentItem());
+    }
+
+    void performSearch(boolean isFreshSearch, int fragPosition) {
+        mManager.onSearchQuery(tvSearchInput.getText().toString(), isFreshSearch,
+                fragPosition, SearchActivity.this);
         tvSearchInput.dismissDropDown();
     }
 
@@ -131,16 +137,27 @@ public class SearchActivity extends MotherActivity {
         EventBus.getDefault().unregister(this);
     }
 
+    @Override
+    protected void onDestroy() {
+        DataAccess.getInstance(this).clearSearch();
+        super.onDestroy();
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment implements FragmentChangedListener{
+    public static class PlaceholderFragment extends Fragment implements FragmentChangedListener {
         /**
          * The fragment argument representing the section number for this
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
         private SearchAdapter mAdapter;
+        private EndlessScrollListener mScrollListener;
+        private RecyclerView mRecycleView;
+        private SearchActivity mActivity;
+
+        private int fragPos;
 
         public PlaceholderFragment() {
         }
@@ -157,46 +174,66 @@ public class SearchActivity extends MotherActivity {
             return fragment;
         }
 
+        @Override
+        public void onAttach(Context context) {
+            super.onAttach(context);
+            mActivity = (SearchActivity) context;
+            this.fragPos = getArguments().getInt(ARG_SECTION_NUMBER);
+        }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             int secNum = getArguments().getInt(ARG_SECTION_NUMBER);
-            RecyclerView recyclerView = new RecyclerView(getContext());
+            mRecycleView = new RecyclerView(getContext());
             LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
             layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-            recyclerView.setLayoutManager(layoutManager);
+            mRecycleView.setLayoutManager(layoutManager);
+
+            // Don't place scroll listener on TOP SEARCH FRAGMENT
+            if (fragPos != 0)
+                mScrollListener = new EndlessScrollListener(layoutManager) {
+                    @Override
+                    public void onLoadMore(int page, int totalItemsCount) {
+                        mActivity.performSearch(false, getArguments().getInt(ARG_SECTION_NUMBER));
+                    }
+                };
 
             mAdapter = new SearchAdapter((MotherActivity) getContext(), secNum);
             if (secNum == 0) mAdapter.showSection(true);
-            recyclerView.setAdapter(mAdapter);
+            mRecycleView.setAdapter(mAdapter);
 
-            return recyclerView;
+            return mRecycleView;
         }
 
         @Override
         public void onResume() {
             super.onResume();
             EventBus.getDefault().register(this);
-            mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
+
+            if (fragPos != 0)
+                mRecycleView.addOnScrollListener(mScrollListener);
+            mAdapter.notifyDataChanged();
         }
 
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onDownloadEvent(DownloadEvent event) {
             if (mAdapter != null) {
-                mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
+                mAdapter.notifyDataChanged();
             }
         }
 
         @Override
         public void onPause() {
             super.onPause();
+            if (fragPos != 0)
+                mRecycleView.removeOnScrollListener(mScrollListener);
             EventBus.getDefault().unregister(this);
         }
 
         @Override
         public void fragmentBecameVisible() {
-            mAdapter.setData(DataAccess.getInstance(getContext()).mSearchResults);
+            mAdapter.notifyDataChanged();
         }
     }
 
@@ -224,7 +261,7 @@ public class SearchActivity extends MotherActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return 4;
         }
 
 
@@ -237,6 +274,8 @@ public class SearchActivity extends MotherActivity {
                     return getString(R.string.search_people);
                 case 2:
                     return getString(R.string.search_groups);
+                case 3:
+                    return getString(R.string.search_posts);
             }
             return null;
         }

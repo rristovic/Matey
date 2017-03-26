@@ -2,13 +2,21 @@ package com.mateyinc.marko.matey.adapters;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
+import com.mateyinc.marko.matey.activity.view.GroupActivity;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
@@ -40,6 +48,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
 
     private final Context mContext;
     private List<MModel> mData = new ArrayList<>(0);
+    private final DataAccess mDataAccess;
 
     private final int FRAG_TOP = 0;
     private final int FRAG_USER = 1;
@@ -52,6 +61,30 @@ public class SearchAdapter extends RecyclerView.Adapter {
     public SearchAdapter(MotherActivity context, int fragPos) {
         mFragPos = fragPos;
         mContext = context;
+        mDataAccess = DataAccess.getInstance(context);
+        setData();
+    }
+
+    private void setData() {
+        mData.clear();
+        switch (mFragPos) {
+            default:
+            case FRAG_TOP:
+                mData.addAll(mDataAccess.mUserSearchList);
+                mData.addAll(mDataAccess.mGroupSearchList);
+                mData.addAll(mDataAccess.mBulletinSearchList);
+                break;
+            case FRAG_USER:
+                mData.addAll(mDataAccess.mUserSearchList);
+                break;
+            case FRAG_GROUP:
+                mData.addAll(mDataAccess.mGroupSearchList);
+                break;
+            case FRAG_BULLETIN:
+                mData.addAll(mDataAccess.mBulletinSearchList);
+                break;
+        }
+        mCellStates = mData == null ? null : new int[mData.size()];
     }
 
     @Override
@@ -61,7 +94,30 @@ public class SearchAdapter extends RecyclerView.Adapter {
         return new ViewHolder(view, new ViewHolder.OnItemClickedListener() {
             @Override
             public void onClick(int position) {
+                MModel model = mData.get(position);
+                if (model instanceof UserProfile) {
+                    Intent i = new Intent(mContext, ProfileActivity.class);
+                    i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, model.getId());
+                    mContext.startActivity(i);
+                } else if (model instanceof Group) {
+                    Intent i = new Intent(mContext, GroupActivity.class);
+                    i.putExtra(GroupActivity.EXTRA_GROUP_ID, model.getId());
+                    mContext.startActivity(i);
+                } else {
+                    Intent i = new Intent(mContext, BulletinViewActivity.class);
+                    i.putExtra(BulletinViewActivity.EXTRA_BULLETIN_ID, model.getId());
+                    mContext.startActivity(i);
+                }
+            }
 
+            @Override
+            public void onToggleButton(int position, boolean isChecked) {
+                MModel model = mData.get(position);
+                if (model instanceof UserProfile) {
+
+                } else {
+
+                }
             }
         });
     }
@@ -70,9 +126,10 @@ public class SearchAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ViewHolder h = (ViewHolder) holder;
         MModel model = mData.get(position);
+        resetView(h);
 
-        if(mShowSection) {
-            boolean needSeparator = false;
+        boolean needSeparator = false;
+        if (mShowSection) {
             switch (mCellStates[position]) {
                 case STATE_SECTIONED_CELL:
                     needSeparator = true;
@@ -99,57 +156,84 @@ public class SearchAdapter extends RecyclerView.Adapter {
                     mCellStates[position] = needSeparator ? STATE_SECTIONED_CELL : STATE_REGULAR_CELL;
                     break;
             }
+        }
 
-            if (needSeparator) {
-                h.tvSectionTitle.setVisibility(View.VISIBLE);
-                String modelClass = model.getClass().getSimpleName();
-                if (modelClass.equals(UserProfile.class.getSimpleName())) {
-                    h.tvSectionTitle.setText(R.string.search_sectionName_profiles);
-                } else if (modelClass.equals(Group.class.getSimpleName())) {
-                    h.tvSectionTitle.setText(R.string.search_sectionName_groups);
-                } else if (modelClass.equals(Bulletin.class.getSimpleName())) {
-                    h.tvSectionTitle.setText(R.string.search_sectionName_bulletins);
-                }
-            } else {
-                h.tvSectionTitle.setVisibility(View.GONE);
+        if (needSeparator) {
+            h.tvSectionTitle.setVisibility(View.VISIBLE);
+            String modelClass = model.getClass().getSimpleName();
+            if (modelClass.equals(UserProfile.class.getSimpleName())) {
+                h.tvSectionTitle.setText(R.string.search_sectionName_profiles);
+            } else if (modelClass.equals(Group.class.getSimpleName())) {
+                h.tvSectionTitle.setText(R.string.search_sectionName_groups);
+            } else if (modelClass.equals(Bulletin.class.getSimpleName())) {
+                h.tvSectionTitle.setText(R.string.search_sectionName_bulletins);
             }
+        } else {
+            h.tvSectionTitle.setVisibility(View.GONE);
         }
 
+        // try to bind view, if fail remove view from ui
+        boolean binded = false;
         if (mFragPos == FRAG_TOP) {
-            bindAll(h, model);
+            binded = bindAll(h, model);
         } else if (mFragPos == FRAG_BULLETIN)
-            bindBulletin(h, model);
+            binded = bindBulletin(h, model);
         else if (mFragPos == FRAG_USER)
-            bindUser(h, model);
+            binded = bindUser(h, model);
         else if (mFragPos == FRAG_GROUP)
-            bindGroup(h, model);
+            binded = bindGroup(h, model);
+        if (!binded)
+            h.itemView.setVisibility(View.GONE);
+        else
+            h.itemView.setVisibility(View.VISIBLE);
     }
 
-    private void bindAll(ViewHolder holder, MModel model) {
-        bindUser(holder, model);
-        bindGroup(holder, model);
-        bindBulletin(holder, model);
+    private void resetView(ViewHolder h) {
+        h.tvTitle.setText(null);
+        h.ivPicture.setVisibility(View.VISIBLE);
+        h.btnSail.setVisibility(View.VISIBLE);
     }
 
-    private void bindGroup(ViewHolder holder, MModel model) {
+
+    private boolean bindAll(ViewHolder holder, MModel model) {
+        return bindUser(holder, model) ||
+                bindGroup(holder, model) ||
+                bindBulletin(holder, model);
+    }
+
+    private boolean bindGroup(ViewHolder holder, MModel model) {
         if (model instanceof Group) {
-            String title = ((Group) model).getGroupName();
+            Group g = (Group) model;
+            String title = g.getGroupName();
             holder.tvTitle.setText(title);
-        }
+            holder.tvInfo.setText(String.format(mContext.getString(R.string.groups_statistics), g.getNumOfFollowers()));
+            return true;
+        } else
+            return false;
     }
 
-    private void bindUser(ViewHolder holder, MModel model) {
+    private boolean bindUser(ViewHolder holder, MModel model) {
         if (model instanceof UserProfile) {
-            String title = ((UserProfile) model).getFullName();
+            UserProfile u = (UserProfile) model;
+            String title = u.getFullName();
             holder.tvTitle.setText(title);
-        }
+            holder.tvInfo.setText(u.getLocation());
+            return true;
+        } else
+            return false;
     }
 
-    private void bindBulletin(ViewHolder holder, MModel model) {
+    private boolean bindBulletin(ViewHolder holder, MModel model) {
         if (model instanceof Bulletin) {
-            String title = ((Bulletin) model).getSubject();
+            Bulletin b = (Bulletin) model;
+            String title = b.getSubject();
             holder.tvTitle.setText(title);
-        }
+            holder.tvInfo.setText(b.getStatistics(mContext));
+            holder.btnSail.setVisibility(View.GONE);
+            holder.ivPicture.setVisibility(View.GONE);
+            return true;
+        } else
+            return false;
     }
 
 
@@ -158,9 +242,9 @@ public class SearchAdapter extends RecyclerView.Adapter {
         return mData.size();
     }
 
-    public void setData(List<MModel> data) {
-        this.mData = data;
-        mCellStates = data == null ? null : new int[data.size()];
+
+    public void notifyDataChanged() {
+        setData();
         notifyDataSetChanged();
     }
 
@@ -178,9 +262,14 @@ public class SearchAdapter extends RecyclerView.Adapter {
         private final OnItemClickedListener mListener;
         private TextView tvTitle;
         private TextView tvSectionTitle;
+        private TextView tvInfo;
+        private ImageView ivPicture;
+        private ToggleButton btnSail;
 
         interface OnItemClickedListener {
             void onClick(int position);
+
+            void onToggleButton(int position, boolean isChecked);
         }
 
         public ViewHolder(View itemView, OnItemClickedListener listener) {
@@ -188,6 +277,9 @@ public class SearchAdapter extends RecyclerView.Adapter {
             mListener = listener;
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvSectionTitle = (TextView) itemView.findViewById(R.id.tvSectionName);
+            tvInfo = (TextView) itemView.findViewById(R.id.tvInfo);
+            ivPicture = (ImageView) itemView.findViewById(R.id.ivSearchPicture);
+            btnSail = (ToggleButton) itemView.findViewById(R.id.btnSail);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -195,9 +287,13 @@ public class SearchAdapter extends RecyclerView.Adapter {
                     mListener.onClick(getAdapterPosition());
                 }
             });
+
+            btnSail.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mListener.onToggleButton(getAdapterPosition(), isChecked);
+                }
+            });
         }
-
-
     }
-
 }

@@ -21,6 +21,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mateyinc.marko.matey.internet.operations.OperationType.SEARCH_BULLETINS;
+import static com.mateyinc.marko.matey.internet.operations.OperationType.SEARCH_GROUPS;
+import static com.mateyinc.marko.matey.internet.operations.OperationType.SEARCH_PROFILES;
+
 
 public class SearchOp extends Operations {
     private static String mUserNextUrl = "";
@@ -46,7 +50,7 @@ public class SearchOp extends Operations {
                 if (mUserNextUrl.isEmpty()) {
                     mUrl = Uri.parse(UrlData.GET_SEARCH_USERS).buildUpon()
                             .appendQueryParameter("q", mSearchQuery).build().toString();
-                    mClearData = true;
+//                    mClearData = true;
                 } else
                     mUrl = buildNextPageUrl(mUserNextUrl);
                 break;
@@ -54,7 +58,7 @@ public class SearchOp extends Operations {
                 if (mGroupNextUrl.isEmpty()) {
                     mUrl = Uri.parse(UrlData.GET_SEARCH_GROUPS).buildUpon()
                             .appendQueryParameter("q", mSearchQuery).build().toString();
-                    mClearData = true;
+//                    mClearData = true;
                 } else
                     mUrl = buildNextPageUrl(mGroupNextUrl);
                 break;
@@ -62,7 +66,7 @@ public class SearchOp extends Operations {
                 if (mBulletinNextUrl.isEmpty()) {
                     mUrl = Uri.parse(UrlData.GET_SEARCH_BULLETINS).buildUpon()
                             .appendQueryParameter("q", mSearchQuery).build().toString();
-                    mClearData = true;
+//                    mClearData = true;
                 } else
                     mUrl = buildNextPageUrl(mBulletinNextUrl);
                 break;
@@ -101,11 +105,16 @@ public class SearchOp extends Operations {
 
                     // Save data
                     DataAccess dataAccess = DataAccess.getInstance(mContextRef.get());
-                    if (mClearData)
+                    if (shouldClearData()) {
                         dataAccess.clearSearch();
-                    dataAccess.mSearchResults.addAll(userList);
-                    dataAccess.mSearchResults.addAll(groupList);
-                    dataAccess.mSearchResults.addAll(bulletinList);
+                        dataCleared();
+                    }
+                    dataAccess.mUserSearchList.addAll(userList);
+                    dataAccess.userListSize += userList.size();
+                    dataAccess.mGroupSearchList.addAll(groupList);
+                    dataAccess.groupListSize += groupList.size();
+                    dataAccess.mBulletinSearchList.addAll(bulletinList);
+                    dataAccess.bulletinListSize += bulletinList.size();
 
                     // Notify UI
                     EventBus.getDefault().post(new DownloadEvent(true, OperationType.SEARCH_TOP));
@@ -125,14 +134,17 @@ public class SearchOp extends Operations {
 
                     // Save data
                     DataAccess dataAccess = DataAccess.getInstance(mContextRef.get());
-                    if (mClearData)
+                    if (shouldClearData()) {
                         dataAccess.clearSearch();
-                    dataAccess.mSearchResults.addAll(userList);
+                        dataCleared();
+                    }
+                    dataAccess.mUserSearchList.addAll(userList);
+                    dataAccess.userListSize += userList.size();
 
                     // Notify UI
-                    EventBus.getDefault().post(new DownloadEvent(true, OperationType.SEARCH_PROFILES));
+                    EventBus.getDefault().post(new DownloadEvent(true, SEARCH_PROFILES));
                 } catch (JSONException e) {
-                    EventBus.getDefault().post(new DownloadEvent(false, OperationType.SEARCH_PROFILES));
+                    EventBus.getDefault().post(new DownloadEvent(false, SEARCH_PROFILES));
 
                     Log.e(getTag(), "Failed parsing profile search results.", e);
                 }
@@ -148,14 +160,17 @@ public class SearchOp extends Operations {
 
                     // Save data
                     DataAccess dataAccess = DataAccess.getInstance(mContextRef.get());
-                    if (mClearData)
+                    if (shouldClearData()) {
                         dataAccess.clearSearch();
-                    dataAccess.mSearchResults.addAll(groupList);
+                        dataCleared();
+                    }
+                    dataAccess.mGroupSearchList.addAll(groupList);
+                    dataAccess.groupListSize += groupList.size();
 
                     // Notify UI
-                    EventBus.getDefault().post(new DownloadEvent(true, OperationType.SEARCH_GROUPS));
+                    EventBus.getDefault().post(new DownloadEvent(true, SEARCH_GROUPS));
                 } catch (JSONException e) {
-                    EventBus.getDefault().post(new DownloadEvent(false, OperationType.SEARCH_GROUPS));
+                    EventBus.getDefault().post(new DownloadEvent(false, SEARCH_GROUPS));
                     Log.e(getTag(), "Failed parsing group search results.", e);
                 }
                 break;
@@ -170,14 +185,17 @@ public class SearchOp extends Operations {
 
                     // Save data
                     DataAccess dataAccess = DataAccess.getInstance(mContextRef.get());
-                    if (mClearData)
+                    if (shouldClearData()) {
                         dataAccess.clearSearch();
-                    dataAccess.mSearchResults.addAll(bulletinList);
+                        dataCleared();
+                    }
+                    dataAccess.mBulletinSearchList.addAll(bulletinList);
+                    dataAccess.bulletinListSize += bulletinList.size();
 
                     // Notify UI
-                    EventBus.getDefault().post(new DownloadEvent(true, OperationType.SEARCH_BULLETINS));
+                    EventBus.getDefault().post(new DownloadEvent(true, SEARCH_BULLETINS));
                 } catch (JSONException e) {
-                    EventBus.getDefault().post(new DownloadEvent(false, OperationType.SEARCH_BULLETINS));
+                    EventBus.getDefault().post(new DownloadEvent(false, SEARCH_BULLETINS));
                     Log.e(getTag(), "Failed parsing search results.", e);
                 }
                 break;

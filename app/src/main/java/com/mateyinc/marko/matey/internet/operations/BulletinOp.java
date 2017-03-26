@@ -225,6 +225,7 @@ public class BulletinOp extends Operations {
                     notifyUI(R.string.upload_success);
 
                 }
+                response.body().close();
             }
             // TODO - finish response parsing
 

@@ -24,23 +24,46 @@ import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.SessionManager;
 
 public class HomeActivity extends MotherActivity implements View.OnTouchListener {
-
     private final static String TAG = HomeActivity.class.getSimpleName();
+
+    /**
+     * Action that will be inserted in intent from notification builder.
+     * Implies to view profile based on id.
+     */
+    public final static String ACTION_SHOW_PROFILE = "show_profile";
+    /**
+     * Action that will be inserted in intent from notification builder.
+     * Implies to view bulletin based on id.
+     */
+    public final static String ACTION_SHOW_BULLETIN = "show_bulletin";
+    /**
+     * Action that will be inserted in intent from notification builder.
+     * Implies to view bulletin reply based on id.
+     */
+    public final static String ACTION_SHOW_REPLY = "show_reply";
+    /**
+     * Action that will be inserted in intent from notification builder.
+     * Implies to view reply on reply based on id.
+     */
+    public final static String ACTION_SHOW_REREPLY = "show_rereply";
+    /**
+     * Intent extra that indicates that this intent has been sent from notification builder.
+     */
+    public final static String EXTRA_FROM_NOTIFICATION = "is_notification";
 
     private final static String BULLETIN_FRAG_TAG = "BULLETINS";
     private final static String NOTIF_FRAG_TAG = "NOTIFICATIONS";
+    private final static String GROUP_FRAG_TAG = "GROUPS";
     private final static String MESSAGES_FRAG_TAG = "MESSAGES";
-    private final static String FRIENDS_FRAG_TAG = "FRIENDS";
     private final static String MENU_FRAG_TAG = "MENU";
-    private final static String SEARCH_FRAG_TAG = "SEARCH";
 
     private FragmentManager mFragmentManager;
     private BulletinsFragment mBulletinsFragment;
     private GroupFragment mGroupFragment;
     private MessagesFragment mMessagesFragment;
-    private FriendsFragment mFriendsFragment;
+    private NotificationsFragment mNotificationsFragment;
     private MenuFragment mMenuFragment;
-    private ImageButton ibHome, ibNotifications, ibMessages, ibFriends, ibMenu, ibSearch, ibProfile;
+    private ImageButton ibHome, ibGroups, ibMessages, ibNotifications, ibMenu, ibSearch, ibProfile;
     private SearchView searchView;
 
     private ImageView logo;
@@ -65,15 +88,31 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         setContentView(R.layout.activity_home);
         getWindow().getDecorView().setBackgroundColor(Color.WHITE);
 
-        init();
-        getCurUser();
-//        getNewsfeed();
-    }
+        handleIntent();
 
-    private void init() {
         mSessionManager = SessionManager.getInstance(this);
         mOperationManager = OperationManager.getInstance(this);
 
+        getCurUser();
+        init();
+//        getNewsfeed();
+    }
+
+    /**
+     * Method for handling intent send from notification builder.
+     */
+    private void handleIntent() {
+        Intent i = getIntent();
+        if (i.hasExtra(EXTRA_FROM_NOTIFICATION)) {
+            String action = i.getAction();
+            if (action.equals(ACTION_SHOW_PROFILE)) {
+                Intent intent = new Intent(this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        }
+    }
+
+    private void init() {
         // Settings the app bar via custom toolbar
         setSupportActionBar();
 
@@ -83,10 +122,10 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
         ibSearch = (ImageButton) findViewById(R.id.ibSearch);
         ibProfile = (ImageButton) findViewById(R.id.ibProfile);
-        ibFriends = (ImageButton) findViewById(R.id.ibFriends);
+        ibNotifications = (ImageButton) findViewById(R.id.ibNotifications);
         ibMenu = (ImageButton) findViewById(R.id.ibMenu);
         ibMessages = (ImageButton) findViewById(R.id.ibMessages);
-        ibNotifications = (ImageButton) findViewById(R.id.ibNotifications);
+        ibGroups = (ImageButton) findViewById(R.id.ibGroups);
         setListeners();
 
         // Adding Bulletins fragment to home layout on start
@@ -181,7 +220,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         });
         ibHome.setOnTouchListener(this);
 
-        ibNotifications.setOnClickListener(new View.OnClickListener() {
+        ibGroups.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mCurrentPage = 1;
@@ -191,11 +230,11 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
                     mGroupFragment = new GroupFragment();
                 }
                 mFragmentManager.beginTransaction().replace(
-                        R.id.homeContainer, mGroupFragment, NOTIF_FRAG_TAG
+                        R.id.homeContainer, mGroupFragment, GROUP_FRAG_TAG
                 ).commit();
             }
         });
-        ibNotifications.setOnTouchListener(this);
+        ibGroups.setOnTouchListener(this);
 
         ibMessages.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -213,21 +252,21 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         });
         ibMessages.setOnTouchListener(this);
 
-        ibFriends.setOnClickListener(new View.OnClickListener() {
+        ibNotifications.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mCurrentPage = 3;
                 changeNavIconColor();
 
-                if (mFriendsFragment == null) {
-                    mFriendsFragment = new FriendsFragment();
+                if (mNotificationsFragment == null) {
+                    mNotificationsFragment = new NotificationsFragment();
                 }
                 mFragmentManager.beginTransaction().replace(
-                        R.id.homeContainer, mFriendsFragment, FRIENDS_FRAG_TAG
+                        R.id.homeContainer, mNotificationsFragment, NOTIF_FRAG_TAG
                 ).commit();
             }
         });
-        ibFriends.setOnTouchListener(this);
+        ibNotifications.setOnTouchListener(this);
 
         ibMenu.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -283,23 +322,23 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 
     private void changeNavIconColor() {
         ibHome.setColorFilter(null);
-        ibFriends.setColorFilter(null);
+        ibNotifications.setColorFilter(null);
         ibMenu.setColorFilter(null);
         ibMessages.setColorFilter(null);
-        ibNotifications.setColorFilter(null);
+        ibGroups.setColorFilter(null);
 
         switch (mCurrentPage) {
             case 0:
                 ibHome.setColorFilter(getResources().getColor(R.color.app_bar_background));
                 break;
             case 1:
-                ibNotifications.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                ibGroups.setColorFilter(getResources().getColor(R.color.app_bar_background));
                 break;
             case 2:
                 ibMessages.setColorFilter(getResources().getColor(R.color.app_bar_background));
                 break;
             case 3:
-                ibFriends.setColorFilter(getResources().getColor(R.color.app_bar_background));
+                ibNotifications.setColorFilter(getResources().getColor(R.color.app_bar_background));
                 break;
             case 4:
                 ibMenu.setColorFilter(getResources().getColor(R.color.app_bar_background));

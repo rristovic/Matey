@@ -41,7 +41,7 @@ import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
-import com.mateyinc.marko.matey.gcm.MateyGCMPreferences;
+import com.mateyinc.marko.matey.gcm.MateyFirebasePreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.model.KVPair;
@@ -62,7 +62,7 @@ import java.util.concurrent.TimeUnit;
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static com.mateyinc.marko.matey.activity.main.MainActivity.NEW_GCM_TOKEN;
 import static com.mateyinc.marko.matey.data.DataAccess.setCurrentUserProfile;
-import static com.mateyinc.marko.matey.gcm.MateyGCMPreferences.SENT_TOKEN_TO_SERVER;
+import static com.mateyinc.marko.matey.gcm.MateyFirebasePreferences.SENT_TOKEN_TO_SERVER;
 
 
 /**
@@ -177,8 +177,8 @@ public class SessionManager {
 
             if (!sentToken) {
                 // Start IntentService to register this application with GCM.
-                Intent intent = new Intent(activity, RegistrationIntentService.class);
-                activity.startService(intent);
+//                Intent intent = new Intent(activity, RegistrationIntentService.class);
+//                activity.startService(intent);
             } else if (activity.getSecurePreferences().getString(KEY_DEVICE_ID) == null) {
                 // The device has already been registered with GCM but not with the server
                 registerDevice(activity, activity.getSecurePreferences(),
@@ -252,7 +252,7 @@ public class SessionManager {
                             securePreferences.put(KEY_DEVICE_ID, device_id);
                             MotherActivity.device_id = device_id;
                             // Save prefs that token has been sent to the server
-                            sharedPreferences.edit().putBoolean(MateyGCMPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+                            sharedPreferences.edit().putBoolean(MateyFirebasePreferences.SENT_TOKEN_TO_SERVER, true).apply();
 
                             // Notify UI
                             activity.mDeviceReady = true;

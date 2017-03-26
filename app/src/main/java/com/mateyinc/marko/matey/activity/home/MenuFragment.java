@@ -78,7 +78,7 @@ public class MenuFragment extends Fragment {
 //                        break;
 //                    }
                     case GROUPS_ITEM_ID: {
-                        OperationManager.getInstance(getContext()).createNewGroup("Radovan's kingdom " + new Random().nextInt(100)
+                        OperationManager.getInstance(getContext()).createNewGroup("Radovan's kingdom is the best" + new Random().nextInt(100)
                                 , "Ognjen derpe.. :(", null, getContext());
                         break;
                     }
