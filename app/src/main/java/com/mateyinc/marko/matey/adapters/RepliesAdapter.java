@@ -22,7 +22,7 @@ import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 
-public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
+public class RepliesAdapter extends TemporaryDataRecycleAdapter<Reply> {
     private final String TAG = RepliesAdapter.class.getSimpleName();
 
     public RepliesAdapter(MotherActivity context) {
@@ -130,9 +130,8 @@ public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
 
             @Override
             public void onApproveClicked(TextView tvStats, int position) {
-                mManager.likeReply(mData.get(position), mContext);
-                tvStats.setText(mData.get(position).getStatistics(mContext));
-
+                mManager.likeReply(getItem(position), mContext);
+                tvStats.setText(getItem(position).getStatistics(mContext));
             }
 
             @Override
@@ -143,14 +142,14 @@ public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
             @Override
             public void onNameClicked(View caller, int adapterViewPosition) {
                 Intent i = new Intent(mContext, ProfileActivity.class);
-                Reply reply =  mData.get(adapterViewPosition);
+                Reply reply =  getItem(adapterViewPosition);
                 i.putExtra(ProfileActivity.EXTRA_PROFILE_ID, reply.getUserProfile().getUserId());
                 mContext.startActivity(i);
             }
 
             @Override
             public void onReplyClick(View caller, int adapterViewPosition) {
-                Reply r =  mData.get(adapterViewPosition);
+                Reply r = getItem(adapterViewPosition);
                 showPopupInterface.showPopupWindow(r);
             }
         };
@@ -202,7 +201,7 @@ public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
                 }
             });
         }
-        Reply reply = mData.get(position);
+        Reply reply = getItem(position);
 //        UserProfile profile = DataAccess.getInstance(mContext).getUserProfile(reply.getUserProfile().getUserId());
         RepliesAdapter.ViewHolder holder = (ViewHolder) mHolder;
 
@@ -232,8 +231,8 @@ public class RepliesAdapter extends RecycleNoSQLAdapter<Reply> {
      */
     public void setBulletin(Bulletin b) {
         mCurBulletin = b;
-        mData = b.getReplies();
-        notifyDataSetChanged();
+//        mData = b.getReplies();
+//        notifyDataSetChanged();
     }
 
     /**

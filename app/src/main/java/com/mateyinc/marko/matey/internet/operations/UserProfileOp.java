@@ -13,8 +13,10 @@ import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
 import com.mateyinc.marko.matey.model.UserProfile;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,6 +29,7 @@ public class UserProfileOp extends Operations {
     private static final String TAG = UserProfileOp.class.getSimpleName();
 
     private long mUserId;
+    private UserProfile mUserProfile;
     private int mCount, mOffset;
 
     public UserProfileOp(MotherActivity context) {
@@ -36,7 +39,6 @@ public class UserProfileOp extends Operations {
 
     @Override
     public void startDownloadAction() {
-        String url;
 
         switch (mOpType) {
             case DOWNLOAD_FOLLOWERS: {
@@ -44,7 +46,7 @@ public class UserProfileOp extends Operations {
                         .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mCount))
                         .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mOffset))
                         .build();
-                url = uri.toString();
+                mUrl = uri.toString();
                 break;
             }
 //            case GET_FOLLOWING_LIST:{
@@ -57,13 +59,13 @@ public class UserProfileOp extends Operations {
 //                break;
 //            }
             case DOWNLOAD_USER_PROFILE: {
-                url = UrlData.createProfileDataUrl(mUserId);
+                mUrl = UrlData.createProfileDataUrl(mUserId);
                 break;
             }
 
             default: {
                 Log.e(TAG, "No operation type has been specified!");
-                url = "#";
+                mUrl = "#";
             }
         }
 
@@ -75,8 +77,10 @@ public class UserProfileOp extends Operations {
         final Context c = mContextRef.get();
 
         try {
-            UserProfile profile = new UserProfile().parse(new JSONObject(response));
+            UserProfile profile = new UserProfile().parse(new JSONObject(response).getJSONObject(KEY_DATA));
             DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
+
+            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_USER_PROFILE));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -200,6 +204,17 @@ public class UserProfileOp extends Operations {
      */
     public UserProfileOp setUserId(long userId) {
         mUserId = userId;
+        return this;
+    }
+
+    /**
+     * Settings user id param for upload/download operation.
+     *
+     * @param userProfile user profile to download data to.
+     * @return {@link UserProfileOp} instance
+     */
+    public UserProfileOp setUserProfile(UserProfile userProfile) {
+        mUserProfile = userProfile;
         return this;
     }
 

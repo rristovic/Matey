@@ -53,7 +53,7 @@ public class Bulletin extends MModel {
     private boolean isBoosted;
 
     private List<String> mAttachments;
-    private List<Reply> mReplyList;
+//    private List<Reply> mReplyList;
     private List<Approve> mApproves;
 
 
@@ -99,15 +99,15 @@ public class Bulletin extends MModel {
     }
 
 
-    public List<Reply> getReplies() {
-        if (mReplyList == null)
-            mReplyList = new ArrayList<>();
-        return mReplyList;
-    }
+//    public List<Reply> getReplies() {
+//        if (mReplyList == null)
+//            mReplyList = new ArrayList<>();
+//        return mReplyList;
+//    }
 
-    public void setReplies(List<Reply> mReplies) {
-        this.mReplyList = mReplies;
-    }
+//    public void setReplies(List<Reply> mReplies) {
+//        this.mReplyList = mReplies;
+//    }
 
     public List<Approve> getApproves() {
         if (mApproves == null)
@@ -255,22 +255,22 @@ public class Bulletin extends MModel {
         }
 
         setNumOfReplies(object.getInt(KEY_NUM_OF_REPLIES));
-        if (getNumOfReplies() > 0) {
-            mReplyList = new ArrayList<>(mNumOfReplies);
-            // Try parsing reply list if it is present
-            try {
-                JSONObject replies = object.getJSONObject(KEY_REPLIES);
-                JSONArray repliesList = replies.getJSONArray(Operations.KEY_DATA);
-                int size = repliesList.length();
-                for (int i = 0; i < size; i++) {
-                    Reply reply = new Reply().parse(repliesList.getJSONObject(i));
-                    reply.setUserProfile(this.mUserProfile);
-                    mReplyList.add(reply);
-                }
-            } catch (JSONException e) {
-                Log.w(TAG, "No reply list for replies count = " + mNumOfReplies);
-            }
-        }
+//        if (getNumOfReplies() > 0) {
+//            mReplyList = new ArrayList<>(mNumOfReplies);
+//            // Try parsing reply list if it is present
+//            try {
+//                JSONObject replies = object.getJSONObject(KEY_REPLIES);
+//                JSONArray repliesList = replies.getJSONArray(Operations.KEY_DATA);
+//                int size = repliesList.length();
+//                for (int i = 0; i < size; i++) {
+//                    Reply reply = new Reply().parse(repliesList.getJSONObject(i));
+//                    reply.setUserProfile(this.mUserProfile);
+//                    mReplyList.add(reply);
+//                }
+//            } catch (JSONException e) {
+//                Log.w(TAG, "No reply list for replies count = " + mNumOfReplies);
+//            }
+//        }
         int attchs = 0;
         int locations = 0;
         try {
@@ -435,12 +435,12 @@ public class Bulletin extends MModel {
 
     public void addReply(Reply reply) {
         this.mNumOfReplies++;
-        this.mReplyList.add(0, reply);
+//        this.mReplyList.add(0, reply);
     }
 
-    public void removeReply(Reply reply) {
-        this.mReplyList.remove(reply);
-    }
+//    public void removeReply(Reply reply) {
+//        this.mReplyList.remove(reply);
+//    }
 
     /**
      * Method to boost and unboost post.

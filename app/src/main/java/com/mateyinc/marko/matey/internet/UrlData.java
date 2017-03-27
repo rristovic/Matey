@@ -99,7 +99,7 @@ public abstract class UrlData {
         return LOGOUT_USER.replace(":deviceId", deviceId);
     }
 
-    // Profile methods
+    ////////  USER PROFILE UrlData  ////////////////////////////////////////////////////
     /** Url for downloading user profile data */
     private static final String GET_USER_PROFILE_ROUTE = ACCESS_BASE_URL.concat("/users/:userId/profile");
     public static String createProfileDataUrl(long userId){

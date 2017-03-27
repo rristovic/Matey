@@ -42,8 +42,16 @@ import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.events.DownloadEvent;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
+import com.mateyinc.marko.matey.model.UserProfile;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_COVER_PATH;
 import static com.mateyinc.marko.matey.activity.profile.UploadNewPictureActivity.KEY_PROF_PIC_PATH;
@@ -84,6 +92,7 @@ public class ProfileActivity extends MotherActivity {
     private String mPicLink = "";
     private String mCoverLink = "";
     private long mUserId;
+    private UserProfile mUserProfile;
 
     // Indicates if current user is viewing it's own profile
     private boolean isCurUser = false;
@@ -92,6 +101,7 @@ public class ProfileActivity extends MotherActivity {
     private float mBadgesPos;
 
     private OperationManager mOpManager;
+    private DataAccess mDataAccess;
 
 
     @Override
@@ -108,7 +118,7 @@ public class ProfileActivity extends MotherActivity {
         setChildSupportActionBar();
         init();
         setListeners();
-        readData();
+        downloadData();
     }
 
     private void init() {
@@ -120,7 +130,10 @@ public class ProfileActivity extends MotherActivity {
             isCurUser = true;
         }
 
+        mDataAccess = DataAccess.getInstance(this);
         mOpManager = OperationManager.getInstance(this);
+
+        mUserProfile = mDataAccess.getUserProfile(mUserId);
 
         // UI bounding
 //        svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
@@ -165,6 +178,13 @@ public class ProfileActivity extends MotherActivity {
 
             }
         });
+    }
+
+    @Subscribe (threadMode = ThreadMode.MAIN)
+    public void profileInfoDownloaded(DownloadEvent event){
+        if(event.mEventType.equals(OperationType.DOWNLOAD_USER_PROFILE)){
+            mUserProfile = mDataAccess.getUserProfile(mUserId);
+        }
     }
 
 //    @Override
@@ -307,7 +327,6 @@ public class ProfileActivity extends MotherActivity {
             });
         }
 
-
         tvFollowersNum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -409,7 +428,7 @@ public class ProfileActivity extends MotherActivity {
     /**
      * Helper method for downloading and saving data to database
      */
-    private void readData() {
+    private void downloadData() {
         // Download new data
         mOpManager.downloadUserProfile(mUserId, this);
     }
@@ -550,6 +569,19 @@ public class ProfileActivity extends MotherActivity {
 //    @Override
 //    public void onLoaderReset(Loader<Cursor> loader) {
 //    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,

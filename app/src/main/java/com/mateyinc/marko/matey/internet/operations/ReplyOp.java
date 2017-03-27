@@ -6,11 +6,14 @@ import android.util.Log;
 
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
 import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -66,7 +69,13 @@ public class ReplyOp extends Operations {
                 r.setUserProfile(this.reply.getUserProfile());
                 replyList.add(r);
             }
-            this.reply.setReplyList(replyList);
+//            this.reply.setReplyList(replyList);
+
+            EventBus.getDefault().post(new DownloadTempListEvent<Reply>(
+                    true, mOpType,
+                    new TemporaryDataAccess<Reply>(replyList, shouldClearData()),
+                    reply
+            ));
         } catch (JSONException e) {
             Log.e(TAG, "Failed to parse re replies.");
         }

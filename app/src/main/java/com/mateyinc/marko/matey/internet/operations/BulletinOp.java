@@ -6,12 +6,16 @@ import android.util.Log;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.data.DataAccess;
+import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
 import com.mateyinc.marko.matey.model.Bulletin;
+import com.mateyinc.marko.matey.model.Reply;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +32,8 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import static com.mateyinc.marko.matey.model.Bulletin.KEY_REPLIES;
 
 public class BulletinOp extends Operations {
     private static final String TAG = BulletinOp.class.getSimpleName();
@@ -70,8 +76,31 @@ public class BulletinOp extends Operations {
                     object.getJSONObject(KEY_DATA).getJSONObject(Bulletin.KEY_USER_PROFILE));
             b.setUserProfile(profile);
             b.parse(object.getJSONObject(KEY_DATA));
+
+            ArrayList<Reply> mReplyList = new ArrayList<>(b.getNumOfReplies());
+            // Try parsing reply list if it is present
+            if (b.getNumOfReplies() > 0)
+                try {
+                    JSONObject replies = object.getJSONObject(KEY_DATA).getJSONObject(KEY_REPLIES);
+                    JSONArray repliesList = replies.getJSONArray(Operations.KEY_DATA);
+                    int size = repliesList.length();
+                    for (int i = 0; i < size; i++) {
+                        Reply reply = new Reply().parse(repliesList.getJSONObject(i));
+                        reply.setUserProfile(b.getUserProfile());
+                        mReplyList.add(reply);
+                    }
+                } catch (JSONException e) {
+                    Log.w(TAG, "No reply list for replies count = " + b.getNumOfReplies());
+                }
             DataAccess.getInstance(mContextRef.get()).addBulletin(b);
             DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
+
+            //Notify UI
+            EventBus.getDefault().post(new DownloadTempListEvent<Reply>(
+                    true,
+                    mOpType,
+                    new TemporaryDataAccess<Reply>(mReplyList, shouldClearData()),
+                    b));
 
 //            runOnUiThread(new Runnable() {
 //                @Override
@@ -237,7 +266,7 @@ public class BulletinOp extends Operations {
     }
 
     @Override
-    protected void clearNextUrl(){
+    protected void clearNextUrl() {
     }
 
     @Override

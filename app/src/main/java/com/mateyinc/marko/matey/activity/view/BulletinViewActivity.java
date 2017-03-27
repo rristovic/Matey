@@ -29,10 +29,17 @@ import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.adapters.RepliesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
+import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Reply;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Date;
 
@@ -189,6 +196,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
                 // Save and upload
                 mManager.postNewReply(r, mCurBulletin, BulletinViewActivity.this);
+                mAdapter.addItem(r);
                 updateCurBulletin();
 
             }
@@ -220,12 +228,36 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
         if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
             // Get focus on edit text and show keyboard
             showReplyKeyboard();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onListDownloaded(DownloadTempListEvent<Reply> event) {
+//        updateCurBulletin();
+        if(event.mEventType.equals(OperationType.DOWNLOAD_BULLETIN)) {
+            mAdapter.setBulletin((Bulletin) event.mModel);
+            mAdapter.loadData(event.mDao);
+            updateUI();
+        } else {
+            mRepliesAdapter.loadData(event.mDao);
         }
     }
 
@@ -328,46 +360,6 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
         }
     }
 
-//    private void setBulletinData() {
-//        updateCurBulletin();
-//        tvName.setText(mCurBulletin.getFirstName().concat(" ").concat(mCurBulletin.getLastName()));
-//        tvDate.setText(mCurBulletin.getDate().toString());
-//        tvMessage.setText(mCurBulletin.getMessage());
-//
-//        llReply.setOnTouchListener(new OnTouchInterface(BulletinViewActivity.this));
-//        llReply.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                ivReply.performClick();
-//            }
-//        });
-//    }
-
-//    @Override
-//    public void onDownloadSuccess() {
-//        if (mPopupShowing && mCurReply != null) {
-//            mRepliesAdapter.setData(mCurReply.getReplyList());
-//            return;
-//        }
-//        updateCurBulletin();
-//    }
-
-//    @Override
-//    public void onDownloadFailed() {
-//        updateCurBulletin();
-//        Toast.makeText(BulletinViewActivity.this, "Download failed.", Toast.LENGTH_SHORT).show();
-//    }
-
-//    @Override
-//    public void onUploadSuccess() {
-//        updateCurBulletin();
-//    }
-
-//    @Override
-//    public void onUploadFailed() {
-//        updateCurBulletin();
-//    }
-
     @Override
     public void showPopupWindow(final Reply reply) {
         mPopupShowing = true;
@@ -429,7 +421,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
         // Add adapter
         mRepliesAdapter = new RepliesAdapter(BulletinViewActivity.this);
-        mRepliesAdapter.setData(reply.getReplyList());
+        mRepliesAdapter.loadData(new TemporaryDataAccess<Reply>(reply.getReplyList(), true));
         mRepliesOfRepliesRecyclerView.setAdapter(mRepliesAdapter);
 
         // Get device size

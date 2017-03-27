@@ -107,9 +107,9 @@ public class GroupActivity extends MotherActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDownloadEvent(DownloadEvent event) {
-        if (event.operationType.equals(OperationType.DOWNLOAD_GROUP_INFO) && event.isSuccess)
+        if (event.mEventType.equals(OperationType.DOWNLOAD_GROUP_INFO) && event.isSuccess)
             setupUI();
-        else if (event.operationType.equals(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST) && event.isSuccess)
+        else if (event.mEventType.equals(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST) && event.isSuccess)
             mAdapter.setData(mCurGroup.getBulletinList());
     }
 

@@ -14,7 +14,6 @@ import com.mateyinc.marko.matey.model.Notification;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 //import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
@@ -87,7 +86,11 @@ public class DataAccess {
     }
 
     public void addUserProfile(UserProfile profile) {
-        mProfilesList.add(profile);
+        int i = mProfilesList.indexOf(profile);
+        if (i != -1) {
+            mProfilesList.add(i, profile);
+        } else
+            mProfilesList.add(profile);
     }
 
     public UserProfile getUserProfile(long _id) {
@@ -98,6 +101,10 @@ public class DataAccess {
         }
 
         return null;
+//        // If not found, add it to the list.
+//        UserProfile userProfile = new UserProfile(_id);
+//        mProfilesList.add(userProfile);
+//        return userProfile;
     }
 
 
@@ -122,18 +129,24 @@ public class DataAccess {
 
     public void addBulletin(Bulletin bulletin) {
         synchronized (mLock) {
-            Iterator i = mBulletinList.iterator();
+//            Iterator i = mBulletinList.iterator();
+//
+//            while (i.hasNext()) {
+//                Bulletin b = (Bulletin) i.next();
+//                if (b.getId() == bulletin.getId()) {
+////                    b.setReplies(bulletin.getReplies());
+//
+//                    return;
+//                }
+//            }
+            int pos = mBulletinList.indexOf(bulletin);
+            if (pos != -1) {
+                mBulletinList.set(pos, bulletin);
+            } else
+                mBulletinList.add(0, bulletin);
 
-            while (i.hasNext()) {
-                Bulletin b = (Bulletin) i.next();
-                if (b.getId() == bulletin.getId()) {
-                    b.setReplies(bulletin.getReplies());
-                    return;
-                }
-            }
         }
 
-        mBulletinList.add(0, bulletin);
     }
 
 
@@ -292,8 +305,9 @@ public class DataAccess {
     public void addGroup(Group group) {
         int index = mGroupList.indexOf(group);
         if (index != -1)
-            mGroupList.remove(index);
-        mGroupList.add(group);
+            mGroupList.set(index, group);
+        else
+            mGroupList.add(group);
     }
 
     public void setGroups(List<Group> list) {

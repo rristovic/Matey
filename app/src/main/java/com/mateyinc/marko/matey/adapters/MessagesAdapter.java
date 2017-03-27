@@ -108,7 +108,7 @@ public class MessagesAdapter extends CursorAdapter {
 //    @override
 //    public int getItemCount(){
 //        if( null == mCursor)return 0;
-//        return mCursor.getCount()
+//        return mCursor.getItemCount()
 //    }
 //    public void swapCursor(Cursor newCursor){
 //        mCursor = newCursor;

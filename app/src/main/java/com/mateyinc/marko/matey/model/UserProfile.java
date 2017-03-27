@@ -148,6 +148,7 @@ public class UserProfile extends MModel {
     public void setProfilePictureLink(String profilePictureLink) {
         this.profilePictureLink = profilePictureLink;
     }
+
     public String getFullName() {
         return firstName + " " + lastName;
     }
@@ -228,11 +229,11 @@ public class UserProfile extends MModel {
         return mIsFriend;
     }
 
-    public int getFollowersNum(){
+    public int getFollowersNum() {
         return followersNum;
     }
 
-    public int getFollowingNum(){
+    public int getFollowingNum() {
         return followingNum;
     }
 
@@ -267,8 +268,8 @@ public class UserProfile extends MModel {
 
         try {
             this.email = object.getString(KEY_EMAIL);
-        } catch (JSONException e){
-            Log.w(TAG,"No email address.");
+        } catch (JSONException e) {
+            Log.w(TAG, "No email address.");
         }
 
         try {
@@ -280,44 +281,20 @@ public class UserProfile extends MModel {
         try {
             this.followersNum = object.getInt(KEY_FOLLOWERS_NUM);
             this.followingNum = object.getInt(KEY_FOLLOWING_NUM);
-        } catch (JSONException e){
+        } catch (JSONException e) {
             Log.w(TAG, "No stats available for this usedprofile");
         }
 
         return this;
     }
 
-    public static void saveToDb(String response, Context c) {
-//        try {
-
-//            // Saving
-//            ContentValues userValues = new ContentValues();
-//            userValues.put(DataContract.ProfileEntry._ID, id);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_NAME, name);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, picLink);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverLink);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWERS_NUM, followersNum);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWING_NUM, followingNum);
-
-//            userValues.put(DataContract.ProfileEntry.COLUMN_IS_FRIEND, mIsFriend);
-//            userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
-//
-//            // Add to db
-//            Uri uri = c.getContentResolver().insert(
-//                    DataContract.ProfileEntry.CONTENT_URI, userValues);
-
-//            // Debug
-//            String debugString = toString();
-//            if (uri == null ) {
-//                Log.e(TAG, "Error inserting " + debugString);
-//            } else {
-//                Log.d(TAG, "New profile added: " + debugString);
-//            }
-//        } catch (JSONException e) {
-//            Log.e(TAG, e.getLocalizedMessage(), e);
-//        }
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof UserProfile) {
+            UserProfile p = (UserProfile) obj;
+            return p._id == this._id;
+        } else
+            return false;
     }
 
     public void save(Context c) {

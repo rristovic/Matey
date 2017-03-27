@@ -184,7 +184,7 @@ public class FriendsFragment extends Fragment {
 //        }
 //
 //        @Override
-//        public int getCount() {
+//        public int getItemCount() {
 //            // Show 3 total pages.
 //            return 3;
 //        }
