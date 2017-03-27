@@ -68,12 +68,13 @@ public class GroupFragment extends Fragment {
             @Override
             public void onRefresh() {
                 mOperationManager.downloadGroupList(true, mContext);
+                mScrollListener.resetState();
             }
         });
 
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
-            public void onLoadMore(int page, int totalItemsCount) {
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 mOperationManager.downloadGroupList(false, mContext);
             }
         };
@@ -91,7 +92,7 @@ public class GroupFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDownloadEvent(DownloadEvent event) {
-        mScrollListener.onDownloadFinished();
+//        mScrollListener.onDownloadFinished();
         mMainRefreshLayout.setRefreshing(false);
         mAdapter.setData(mDataAccess.getGroups());
     }

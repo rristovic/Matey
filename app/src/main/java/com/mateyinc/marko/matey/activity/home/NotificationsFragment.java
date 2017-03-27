@@ -72,12 +72,13 @@ public class NotificationsFragment extends Fragment {
             @Override
             public void onRefresh() {
                 mOperationManager.downloadNotificationList(true, mContext);
+                mScrollListener.resetState();
             }
         });
 
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
-            public void onLoadMore(int page, int totalItemsCount) {
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 mOperationManager.downloadNotificationList(false, mContext);
             }
         };
@@ -95,7 +96,7 @@ public class NotificationsFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDownloadEvent(DownloadEvent event) {
-        mScrollListener.onDownloadFinished();
+//        mScrollListener.onDownloadFinished();
         mMainRefreshLayout.setRefreshing(false);
         mAdapter.setData(mDataAccess.mNotificationList);
     }

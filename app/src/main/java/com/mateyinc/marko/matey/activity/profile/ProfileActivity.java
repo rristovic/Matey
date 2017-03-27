@@ -40,6 +40,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
@@ -158,6 +159,12 @@ public class ProfileActivity extends MotherActivity {
         rvActivities.setAdapter(new Adatpter());
         final LayoutManager layoutManager = new LayoutManager(ProfileActivity.this);
         rvActivities.setLayoutManager(layoutManager);
+        rvActivities.addOnScrollListener(new EndlessScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+
+            }
+        });
     }
 
 //    @Override

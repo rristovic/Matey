@@ -148,7 +148,8 @@ public class FollowersActivity extends MotherActivity {
             if (mScrollListener == null)
                 mScrollListener = new EndlessScrollListener((LinearLayoutManager) rvList.getLayoutManager()) {
                     @Override
-                    public void onLoadMore(int page, int totalItemsCount) {
+                    public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+
                     }
                 };
         }

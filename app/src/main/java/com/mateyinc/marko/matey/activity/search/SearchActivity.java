@@ -35,6 +35,7 @@ public class SearchActivity extends MotherActivity {
 
     public interface FragmentChangedListener {
         void fragmentBecameVisible();
+        void onSearchPerformed();
     }
 
 
@@ -118,6 +119,7 @@ public class SearchActivity extends MotherActivity {
         mManager.onSearchQuery(tvSearchInput.getText().toString(), isFreshSearch,
                 fragPosition, SearchActivity.this);
         tvSearchInput.dismissDropDown();
+        ((FragmentChangedListener)mSectionsPagerAdapter.getItem(fragPosition)).onSearchPerformed();
     }
 
     @Override
@@ -194,7 +196,7 @@ public class SearchActivity extends MotherActivity {
             if (fragPos != 0)
                 mScrollListener = new EndlessScrollListener(layoutManager) {
                     @Override
-                    public void onLoadMore(int page, int totalItemsCount) {
+                    public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                         mActivity.performSearch(false, getArguments().getInt(ARG_SECTION_NUMBER));
                     }
                 };
@@ -234,6 +236,11 @@ public class SearchActivity extends MotherActivity {
         @Override
         public void fragmentBecameVisible() {
             mAdapter.notifyDataChanged();
+        }
+
+        @Override
+        public void onSearchPerformed() {
+            mScrollListener.resetState();
         }
     }
 

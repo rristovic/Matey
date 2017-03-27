@@ -99,12 +99,13 @@ public class BulletinsFragment extends Fragment {
             @Override
             public void onRefresh() {
                 mOperationManager.downloadNewsFeed(true, mContext);
+                mScrollListener.resetState();
             }
         });
 
         mScrollListener = new EndlessScrollListener(layoutManager) {
             @Override
-            public void onLoadMore(int page, int totalItemsCount) {
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 mOperationManager.downloadNewsFeed(mContext);
             }
         };
@@ -158,7 +159,7 @@ public class BulletinsFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDownloadEvent(DownloadEvent event) {
-        mScrollListener.onDownloadFinished();
+//        mScrollListener.onDownloadFinished();
         mRefreshLayout.setRefreshing(false);
         mAdapter.setData(mDataAccess.getBulletins());
     }
