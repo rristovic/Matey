@@ -19,7 +19,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
+import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.adapters.SearchAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;

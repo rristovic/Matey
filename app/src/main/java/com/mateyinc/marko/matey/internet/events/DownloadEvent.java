@@ -15,6 +15,6 @@ public class DownloadEvent {
 
     public OperationType operationType = OperationType.NO_OPERATION;
 
-    boolean isSuccess;
+    public boolean isSuccess;
 }
 

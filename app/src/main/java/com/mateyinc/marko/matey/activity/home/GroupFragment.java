@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.adapters.GroupsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.internet.OperationManager;

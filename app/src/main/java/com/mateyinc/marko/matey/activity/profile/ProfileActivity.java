@@ -134,6 +134,7 @@ public class ProfileActivity extends MotherActivity {
         rlBadges = (RelativeLayout) findViewById(R.id.llBadges);
         rvActivities = (RecyclerView) findViewById(R.id.rvActivities);
         ibSettings = (ImageButton) findViewById(R.id.ibSettings);
+
         if (isCurUser) {
             LinearLayout layout = (LinearLayout) findViewById(R.id.llMainButtons);
             layout.removeAllViews();

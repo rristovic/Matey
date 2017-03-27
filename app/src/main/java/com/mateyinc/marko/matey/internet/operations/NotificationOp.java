@@ -78,7 +78,7 @@ public class NotificationOp extends Operations {
 //            JSONObject object = new JSONObject(response).getJSONObject(KEY_DATA);
 //            this.group = group.parse(object);
 //            // Notify
-//            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP));
+//            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_INFO));
 //        }catch (JSONException e){
 //            Log.e(TAG, "Failed to parse group item.", e);
 //        }

@@ -6,7 +6,9 @@ import android.content.Context;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Group extends MModel {
 
@@ -20,6 +22,7 @@ public class Group extends MModel {
     private Date mDateCreated;
     private String mPicUrl;
     private int mNumOfFollowers;
+    private List<Bulletin> mBulletinList;
 
     public Group() {
     }
@@ -57,6 +60,19 @@ public class Group extends MModel {
         this.mPicUrl = object.getString(KEY_GROUP_PIC_URL);
 //        this.mDateCreated = Util.parseDate(object.getString(KEY_DATE_ADDED));
         return this;
+    }
+
+    public List<Bulletin> getBulletinList() {
+        return mBulletinList == null ? mBulletinList = new ArrayList<>(0) : mBulletinList;
+    }
+
+    public void setBulletinList(List<Bulletin> bulletinList) {
+        this.mBulletinList.clear();
+        this.mBulletinList = bulletinList;
+    }
+
+    public void addBulletinList(List<Bulletin> bulletinList) {
+        this.mBulletinList.addAll(bulletinList);
     }
 
     public String getGroupName() {

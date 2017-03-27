@@ -17,7 +17,7 @@ import android.widget.ToggleButton;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.home.EndlessScrollListener;
+import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.UserProfile;

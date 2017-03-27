@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
 import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;

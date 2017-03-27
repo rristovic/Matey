@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationProvider;
@@ -77,41 +76,9 @@ public class NewsfeedOp extends Operations {
 
             JSONArray data = object.getJSONArray(Operations.KEY_DATA);
             // Parsing
-            int length = data.length();
-//            Vector<ContentValues> bulletinList = new Vector<>(length);
-            List<Bulletin> bulletinList = new ArrayList<>();
-            List<UserProfile> userList = new ArrayList<>();
-//            Vector<ContentValues> userList = new Vector<>();
-            for (int i = 0; i < length; i++) {
-                // Get first object in array
-                object = data.getJSONObject(i);
-                // See if this is POST object
-                if (object.getString(Operations.KEY_ACTIVITY_TYPE)
-                        .equals(Operations.VALUE_ATYPE_POST)) { // This is bulletin
-                    // Parse it and add to values array
-                    try {
-                        JSONObject activityObj = object.getJSONObject(Operations.KEY_ACTIVITY_OBJECT);
-                        // Parse bulletin
-                        Bulletin b = new Bulletin().parse(activityObj);
-                        b.setServerStatus(ServerStatus.STATUS_SUCCESS);
-                        // Parse user profile
-                        UserProfile userProfile = UserProfile.parseUserProfile(
-                                activityObj.getString(Bulletin.KEY_USER_PROFILE));
-                        userProfile.setServerStatus(ServerStatus.STATUS_SUCCESS);
-                        // Set bulletin's user
-                        b.setUserProfile(userProfile);
-//                        userList.add(userProfile.toValues());
-                        // Add data to list
-//                        userList.add(userProfile);
-                        bulletinList.add(b);
-                    } catch (JSONException e) { // Failed parsing this bulletin
-                        e.printStackTrace();
-                    }
-                }
-            }
+            List<Bulletin> bulletinList = parseBulletinList(data);
 
             Context c = mContextRef.get();
-
             if (c != null) {
                 DataAccess dataAccess = DataAccess.getInstance(c);
                 if (shouldClearData()) {
@@ -129,8 +96,6 @@ public class NewsfeedOp extends Operations {
 //                    });
                 mEventBus.post(new DownloadEvent(true));
             }
-
-
         } catch (JSONException e) {
 //            if (mDownloadListener != null)
 //                runOnUiThread(new Runnable() {
@@ -144,18 +109,41 @@ public class NewsfeedOp extends Operations {
         }
     }
 
-    /**
-     * Method for cleaning up db
-     */
-    private void clearDb(Context context) {
-        Log.w(TAG, "Clearing data.");
+    public static List<Bulletin> parseBulletinList(JSONArray data) throws JSONException{
+        int length = data.length();
+//            Vector<ContentValues> bulletinList = new Vector<>(length);
+        List<Bulletin> bulletinList = new ArrayList<>();
+        List<UserProfile> userList = new ArrayList<>();
+//            Vector<ContentValues> userList = new Vector<>();
+        for (int i = 0; i < length; i++) {
+            // Get first object in array
+            JSONObject object = data.getJSONObject(i);
+            // See if this is POST object
+            if (object.getString(Operations.KEY_ACTIVITY_TYPE)
+                    .equals(Operations.VALUE_ATYPE_POST)) { // This is bulletin
+                // Parse it and add to values array
+                try {
+                    JSONObject activityObj = object.getJSONObject(Operations.KEY_ACTIVITY_OBJECT);
+                    // Parse bulletin
+                    Bulletin b = new Bulletin().parse(activityObj);
+                    b.setServerStatus(ServerStatus.STATUS_SUCCESS);
+                    // Parse user profile
+                    UserProfile userProfile = UserProfile.parseUserProfile(
+                            activityObj.getString(Bulletin.KEY_USER_PROFILE));
+                    userProfile.setServerStatus(ServerStatus.STATUS_SUCCESS);
+                    // Set bulletin's user
+                    b.setUserProfile(userProfile);
+//                        userList.add(userProfile.toValues());
+                    // Add data to list
+//                        userList.add(userProfile);
+                    bulletinList.add(b);
+                } catch (JSONException e) { // Failed parsing this bulletin
+                    e.printStackTrace();
+                }
+            }
+        }
 
-        context.getContentResolver().delete(DataContract.ApproveEntry.CONTENT_URI, null, null);
-        context.getContentResolver().delete(DataContract.ReReplyEntry.CONTENT_URI, null, null);
-        context.getContentResolver().delete(DataContract.ReplyEntry.CONTENT_URI, null, null);
-        context.getContentResolver().delete(DataContract.BulletinEntry.CONTENT_URI, null, null);
-
-//        mClearData = false;
+        return bulletinList;
     }
 
 

@@ -9,6 +9,7 @@ import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.internet.events.DownloadEvent;
+import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.utils.ImageCompress;
 
@@ -71,11 +72,17 @@ public class GroupOp extends Operations {
                 }
                 break;
             }
-            case DOWNLOAD_GROUP: {
+            case DOWNLOAD_GROUP_INFO: {
                 Log.d(TAG, "Downloading group info.");
+                mUrl = UrlData.buildGetGroupInfo(this.group._id);
+            }
+            case DOWNLOAD_GROUP_ACTIVITY_LIST: {
+                Log.d(TAG, "Downloading group activity list.");
                 if (this.group.mNextUrl.isEmpty()) {
-                    mUrl = UrlData.buildGetGroupInfo(this.group._id);
-                }
+                    mUrl = UrlData.buildGetGroupActivityList(this.group._id);
+                } else
+                    mUrl = buildNextPageUrl(this.group.mNextUrl);
+                break;
             }
             default:
                 return;
@@ -90,20 +97,39 @@ public class GroupOp extends Operations {
             case DOWNLOAD_GROUP_LIST:
                 parseList(response);
                 break;
-            case DOWNLOAD_GROUP:
+            case DOWNLOAD_GROUP_INFO:
                 parseItem(response);
+                break;
+            case DOWNLOAD_GROUP_ACTIVITY_LIST:
+
+                try {
+                    List<Bulletin> bulletinList = NewsfeedOp.parseBulletinList(null);
+
+                    if (shouldClearData()) {
+                        this.group.setBulletinList(bulletinList);
+                        dataCleared();
+                    } else
+                        this.group.addBulletinList(bulletinList);
+
+                    EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST));
+                } catch (JSONException e) {
+                    EventBus.getDefault().post(new DownloadEvent(false, OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST));
+                    Log.e(TAG, "Failed to parse bulletin list.", e);
+                }
             default:
                 break;
         }
     }
 
     private void parseItem(String response) {
-        try{
+        try {
             JSONObject object = new JSONObject(response).getJSONObject(KEY_DATA);
             this.group = group.parse(object);
             // Notify
-            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP));
-        }catch (JSONException e){
+            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_INFO));
+        } catch (JSONException e) {
+            EventBus.getDefault().post(new DownloadEvent(false, OperationType.DOWNLOAD_GROUP_INFO));
+
             Log.e(TAG, "Failed to parse group item.", e);
         }
     }
@@ -135,11 +161,11 @@ public class GroupOp extends Operations {
             }
 
             // Notify UI
-            mEventBus.post(new DownloadEvent(true));
+            mEventBus.post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_LIST));
         } catch (JSONException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             // Notify UI
-            mEventBus.post(new DownloadEvent(false));
+            mEventBus.post(new DownloadEvent(false, OperationType.DOWNLOAD_GROUP_LIST));
         }
     }
 

@@ -184,6 +184,11 @@ public abstract class UrlData {
     public static String buildGetGroupInfo(long groupId){
         return GET_GROUP_INFO.replace(":groupId", Long.toString(groupId));
     }
+
+    private static final String GET_GROUP_ACTIVITY_LIST = ACCESS_BASE_URL.concat("/groups/:groupId/deck");
+    public static String buildGetGroupActivityList(long groupId){
+        return GET_GROUP_ACTIVITY_LIST.replace(":groupId", Long.toString(groupId));
+    }
     public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
     ///////////////////////////////////////////
 

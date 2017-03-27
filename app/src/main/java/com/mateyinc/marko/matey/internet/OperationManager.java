@@ -562,7 +562,7 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for downloading group info.
      *
-     * @param group
+     * @param group group which info should be downloaded.
      * @param context context.
      */
     public void downloadGroupInfo(final Group group, final Context context) {
@@ -570,7 +570,27 @@ public class OperationManager implements OperationProvider {
             @Override
             public void run() {
                 GroupOp groupOp = new GroupOp(context, group);
-                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP);
+                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_INFO);
+                groupOp.startDownloadAction();
+            }
+        });
+
+        downloadGroupBulletins(group, true, context);
+    }
+
+    /**
+     * Helper method for downloading group bulletins.
+     * @param group group which data will be downloaded.
+     * @param isFreshData boolean to indicate if old data should be cleared first before downloading fresh one.
+     * @param context context
+     */
+    public void downloadGroupBulletins(final Group group, final boolean isFreshData, final Context context){
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                GroupOp groupOp = new GroupOp(context, group);
+                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST);
+                groupOp.setDownloadFreshData(isFreshData);
                 groupOp.startDownloadAction();
             }
         });

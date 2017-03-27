@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.activity.view;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -11,10 +12,12 @@ import android.widget.TextView;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.events.DownloadEvent;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
 import com.mateyinc.marko.matey.model.Group;
 
 import org.greenrobot.eventbus.EventBus;
@@ -31,9 +34,12 @@ public class GroupActivity extends MotherActivity {
     private TextView tvGroupName, tvGroupDesc, tvGroupStats, tvGroupCrewNum;
     private ImageView ivGroupPic;
     private Button btnSail;
+    private RecyclerView rvBulletinList;
+
 
     private int mGroupIndex;
     private Group mCurGroup;
+    private BulletinsAdapter mAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,6 +58,9 @@ public class GroupActivity extends MotherActivity {
         tvGroupCrewNum = (TextView) findViewById(R.id.tvGroupCrewNum);
         ivGroupPic = (ImageView) findViewById(R.id.ivGroupPic);
         btnSail = (Button) findViewById(R.id.btnGroupSail);
+        rvBulletinList = (RecyclerView) findViewById(R.id.rvGroupBulletins);
+        mAdapter = new BulletinsAdapter(this);
+        rvBulletinList.setAdapter(mAdapter);
 
         Intent i = getIntent();
         if (i.hasExtra(EXTRA_MODEL_POSITION)) {
@@ -83,6 +92,7 @@ public class GroupActivity extends MotherActivity {
         tvGroupName.setText(mCurGroup.getGroupName());
         tvGroupDesc.setText(mCurGroup.getDescription());
         tvGroupCrewNum.setText(Integer.toString(mCurGroup.getNumOfFollowers()));
+        mAdapter.setData(mCurGroup.getBulletinList());
     }
 
     private void downloadData() {
@@ -97,7 +107,10 @@ public class GroupActivity extends MotherActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDownloadEvent(DownloadEvent event) {
-        setupUI();
+        if (event.operationType.equals(OperationType.DOWNLOAD_GROUP_INFO) && event.isSuccess)
+            setupUI();
+        else if (event.operationType.equals(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST) && event.isSuccess)
+            mAdapter.setData(mCurGroup.getBulletinList());
     }
 
     @Override
