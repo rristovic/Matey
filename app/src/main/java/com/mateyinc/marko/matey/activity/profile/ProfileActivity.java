@@ -24,7 +24,6 @@ import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.TouchDelegate;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -42,6 +41,7 @@ import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
+import com.mateyinc.marko.matey.adapters.NotificationsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
@@ -102,6 +102,7 @@ public class ProfileActivity extends MotherActivity {
 
     private OperationManager mOpManager;
     private DataAccess mDataAccess;
+    private NotificationsAdapter mAdapter;
 
 
     @Override
@@ -169,7 +170,8 @@ public class ProfileActivity extends MotherActivity {
 //        int titleBarHeight = contentViewTop - statusBarHeight;
 //        super.toolbar.setPadding(0, titleBarHeight, 0, 0);
 
-        rvActivities.setAdapter(new Adatpter());
+        mAdapter  = new NotificationsAdapter(this);
+        rvActivities.setAdapter(mAdapter);
         final LayoutManager layoutManager = new LayoutManager(ProfileActivity.this);
         rvActivities.setLayoutManager(layoutManager);
         rvActivities.addOnScrollListener(new EndlessScrollListener(layoutManager) {
@@ -589,38 +591,5 @@ public class ProfileActivity extends MotherActivity {
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_profile, menu);
-    }
-
-    private class Adatpter extends RecyclerView.Adapter<ViewHolder> {
-
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            TextView view = new TextView(parent.getContext());
-            ViewGroup.LayoutParams layoutParams = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200);
-            view.setLayoutParams(layoutParams);
-            view.setText("Lorem Ipsum");
-
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-
-        }
-
-        @Override
-        public int getItemCount() {
-            return 20;
-        }
-
-
-    }
-
-    private static class ViewHolder extends RecyclerView.ViewHolder {
-
-        public ViewHolder(View itemView) {
-            super(itemView);
-        }
     }
 }

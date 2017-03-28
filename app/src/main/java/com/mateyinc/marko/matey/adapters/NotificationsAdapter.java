@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Notification;
@@ -50,7 +51,7 @@ public class NotificationsAdapter extends RecycleNoSQLAdapter<Notification> {
         Notification n = mData.get(position);
 
         final ViewHolder view = (ViewHolder) holder;
-        view.tvName.setText(n.buildNotificationMessage(mContext));
+        view.tvName.setText(Util.fromHtml(n.buildNotificationMessage(mContext)));
         view.tvStats.setVisibility(View.GONE);
 
         mManager.mImageLoader.get(n.buildIconUrl(),

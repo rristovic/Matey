@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:paddingLeft="@dimen/group_listItem_text_sideMargin"
+    android:paddingRight="@dimen/group_listItem_text_sideMargin"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="?attr/selectableItemBackground">
@@ -12,8 +14,6 @@
         android:layout_width="@dimen/group_listItem_size"
         android:layout_height="@dimen/group_listItem_size"
         android:layout_alignParentTop="false"
-        android:layout_marginLeft="@dimen/group_listItem_text_sideMargin"
-        android:layout_marginStart="@dimen/group_listItem_text_sideMargin"
         android:padding="@dimen/group_listItem_picPadding"
         android:scaleType="centerCrop"
         android:src="@color/gray"
@@ -31,8 +31,8 @@
         android:layout_marginTop="@dimen/group_listItem_name_topMargin"
         android:layout_toEndOf="@id/ivPicture"
         android:layout_toRightOf="@id/ivPicture"
-        android:text="Group name 2017"
-        android:textSize="@dimen/group_listItem_textSize_name" />
+        android:textSize="@dimen/group_listItem_textSize_name"
+        android:text="Group name" />
 
     <TextView
         android:id="@+id/tvGroupStats"

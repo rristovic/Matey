@@ -35,7 +35,10 @@ public class NotificationOp extends Operations {
     @Override
     public void startDownloadAction() {
         Log.d(TAG, "Downloading notification list.");
-        mUrl = UrlData.GET_NOTIFICATIONS;
+        if (mNextUrl.isEmpty())
+            mUrl = UrlData.GET_NOTIFICATIONS;
+        else
+            mUrl = buildNextPageUrl(mNextUrl);
         startDownload();
     }
 

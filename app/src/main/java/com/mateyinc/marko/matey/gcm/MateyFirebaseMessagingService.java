@@ -6,13 +6,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.util.Log;
 
 import com.google.firebase.messaging.RemoteMessage;
+import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.model.Notification;
 
@@ -79,11 +85,17 @@ public class MateyFirebaseMessagingService extends com.google.firebase.messaging
 //        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
 //                PendingIntent.FLAG_ONE_SHOT);
 
+        // Remove markup styling from text
+        Spanned spanMsg = Util.fromHtml(message);
+        StyleSpan styleSpan = new StyleSpan(Typeface.BOLD);
+        Spannable buffer = new SpannableString(spanMsg);
+        buffer.removeSpan(styleSpan);
+
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle("Matey")
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
-                .setContentText(message)
+                .setContentText(buffer.toString())
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);

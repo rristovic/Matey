@@ -37,7 +37,6 @@ public class Reply extends MModel {
     public static final String KEY_LAST_NAME = "reply_lastname";
     public static final String KEY_USER_ID = "reply_userid";
     public static final String KEY_DATE = "reply_date";
-    public static final String KEY_TEXT = "reply_text";
     public static final String KEY_REPLY_APPRVS = "reply_approves";
     public static final String KEY_RE_REPLY_ID = "rereply_id";
 

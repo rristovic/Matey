@@ -9,15 +9,13 @@ import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.activity.view.GroupActivity;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Date;
 
-/**
- * Created by Sarma on 8/28/2016.
- */
 public class Notification {
 
     private static final String KEY_ACTIVITY_ID = "activity_id";
@@ -67,8 +65,14 @@ public class Notification {
     private String mUrl;
 
     private MModel[] mModelArray;
+    // Indicates if this notification object is listed in activity on profile view.
+    private boolean isActivity;
 
     public Notification() {
+    }
+
+    public Notification(boolean isActivity) {
+        this.isActivity = isActivity;
     }
 
     public Notification parse(JSONObject object) throws JSONException {
@@ -198,21 +202,25 @@ public class Notification {
             case VALUE_TYPE_POST_CREATE: {
                 Bulletin b = (Bulletin) mModelArray[BULLETIN_POS];
                 message = String.format(context.getString(R.string.activity_post_created),
-                        b.getUserProfile().getFullName(), b.getSubject());
+                        b.getUserProfile(), b.getSubject());
                 break;
             }
             case VALUE_TYPE_REPLY_CREATE: {
                 Bulletin b = (Bulletin) mModelArray[BULLETIN_POS];
                 Reply r = (Reply) mModelArray[REPLY_POS];
                 message = String.format(context.getString(R.string.activity_reply_created),
-                        r.getUserProfile().getFullName(), b.getUserProfile().getFullName(), b.getSubject());
+                        r.getUserProfile().getFullName(),
+                        buildNameStringFromModel(b.getUserProfile(), context),
+                                b.getSubject());
                 break;
             }
             case VALUE_TYPE_RE_REPLY_CREATE: {
                 Reply r = (Reply) mModelArray[REPLY_POS];
                 Reply re = (Reply) mModelArray[REREPLY_POS];
                 message = String.format(context.getString(R.string.activity_reply_created),
-                        re.getUserProfile().getFullName(), r.getUserProfile().getFullName(), r.getReplyText());
+                        re.getUserProfile().getFullName(),
+                        buildNameStringFromModel(r.getUserProfile(), context),
+                        r.getReplyText());
                 break;
             }
             case VALUE_TYPE_GROUP_CREATE: {
@@ -225,21 +233,26 @@ public class Notification {
                 Bulletin b = (Bulletin) mModelArray[BULLETIN_POS];
                 UserProfile profile = (UserProfile) mModelArray[USER_GENERATED_POS];
                 message = String.format(context.getString(R.string.activity_boost),
-                        profile.getFullName(), b.getUserProfile().getFullName(), b.getSubject());
+                        profile.getFullName(),
+                        buildNameStringFromModel(b.getUserProfile(), context),
+                        b.getSubject());
                 break;
             }
             case VALUE_TYPE_APPROVE: {
                 Reply r = (Reply) mModelArray[USER_GENERATED_POS - 1];
                 UserProfile profile = (UserProfile) mModelArray[USER_GENERATED_POS];
                 message = String.format(context.getString(R.string.activity_approve),
-                        profile.getFullName(), r.getUserProfile().getFullName(), r.getReplyText());
+                        profile.getFullName(),
+                        buildNameStringFromModel(r.getUserProfile(), context),
+                        r.getReplyText());
                 break;
             }
             case VALUE_TYPE_FOLLOW: {
                 UserProfile profileFollowed = (UserProfile) mModelArray[USER_FOLLOWED_POS];
                 UserProfile profile = (UserProfile) mModelArray[USER_GENERATED_POS];
                 message = String.format(context.getString(R.string.activity_follow),
-                        profile.getFullName(), profileFollowed.getFullName());
+                        profile.getFullName(),
+                        buildNameStringFromModel(profileFollowed, context));
                 break;
             }
             default:
@@ -250,11 +263,34 @@ public class Notification {
     }
 
     /**
+     * Method for creating name string based on user profile.
+     *
+     * @param profile user profile.
+     * @return name from profile object or "your".
+     */
+    private String buildNameStringFromModel(UserProfile profile, Context context) {
+        if (isActivity) {
+            return profile.getFullName();
+        } else {
+            return profile.getId() == MotherActivity.user_id ? context.getString(R.string.activity_name_replace_string) : profile.getFullName();
+        }
+    }
+
+    /**
      * Returns picture url that will be shown in notification picture.
+     *
      * @return built url.
      */
     public String buildIconUrl() {
         return mUrl;
     }
 
+    /**
+     * Call this when notification is listed in activity log on profile view activity.
+     *
+     * @param isActivity set to true if this is listed in activity.
+     */
+    public void setIsActivity(boolean isActivity) {
+        this.isActivity = isActivity;
+    }
 }
