@@ -92,7 +92,7 @@ public class GroupActivity extends MotherActivity {
         tvGroupName.setText(mCurGroup.getGroupName());
         tvGroupDesc.setText(mCurGroup.getDescription());
         tvGroupCrewNum.setText(Integer.toString(mCurGroup.getNumOfFollowers()));
-        mAdapter.setData(mCurGroup.getBulletinList());
+//        mAdapter.setData(mCurGroup.getBulletinList());
     }
 
     private void downloadData() {
@@ -109,8 +109,8 @@ public class GroupActivity extends MotherActivity {
     public void onDownloadEvent(DownloadEvent event) {
         if (event.mEventType.equals(OperationType.DOWNLOAD_GROUP_INFO) && event.isSuccess)
             setupUI();
-        else if (event.mEventType.equals(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST) && event.isSuccess)
-            mAdapter.setData(mCurGroup.getBulletinList());
+//        else if (event.mEventType.equals(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST) && event.isSuccess)
+//            mAdapter.setData(mCurGroup.getBulletinList());
     }
 
     @Override

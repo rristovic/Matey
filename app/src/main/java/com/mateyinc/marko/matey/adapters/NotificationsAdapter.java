@@ -50,10 +50,10 @@ public class NotificationsAdapter extends RecycleNoSQLAdapter<Notification> {
         Notification n = mData.get(position);
 
         final ViewHolder view = (ViewHolder) holder;
-        view.tvName.setText(n.getmMessage());
+        view.tvName.setText(n.buildNotificationMessage(mContext));
         view.tvStats.setVisibility(View.GONE);
 
-        mManager.mImageLoader.get(n.getmPicUrl(),
+        mManager.mImageLoader.get(n.buildIconUrl(),
                 new ImageLoader.ImageListener() {
                     @Override
                     public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {

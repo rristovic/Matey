@@ -106,10 +106,10 @@ public class GroupOp extends Operations {
                     List<Bulletin> bulletinList = NewsfeedOp.parseBulletinList(null);
 
                     if (shouldClearData()) {
-                        this.group.setBulletinList(bulletinList);
+//                        this.group.setBulletinList(bulletinList);
                         dataCleared();
                     } else
-                        this.group.addBulletinList(bulletinList);
+//                        this.group.addBulletinList(bulletinList);
 
                     EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST));
                 } catch (JSONException e) {

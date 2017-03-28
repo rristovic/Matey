@@ -41,7 +41,7 @@ public class MateyFirebaseMessagingService extends com.google.firebase.messaging
                 Log.d(TAG, "Notification received.");
                 PendingIntent intent = parseNotificationData(remoteMessage);
                 if (intent == null) return;
-                sendNotification(mNotification.getmMessage(), intent);
+                sendNotification(mNotification.buildNotificationMessage(getApplicationContext()), intent);
             }
         });
         t.start();
@@ -81,7 +81,7 @@ public class MateyFirebaseMessagingService extends com.google.firebase.messaging
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle(mNotification.getmTitle())
+                .setContentTitle("Matey")
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setContentText(message)
                 .setAutoCancel(true)
@@ -112,7 +112,7 @@ public class MateyFirebaseMessagingService extends com.google.firebase.messaging
             mNotification = new Notification().parse(object);
             intent = mNotification.buildIntent(getApplicationContext());
 
-            downloadImage(mNotification.getmPicUrl());
+            downloadImage(mNotification.buildIconUrl());
         } catch (JSONException e) {
             Log.e(TAG, "Failed to parse notification data.", e);
             return null;

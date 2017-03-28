@@ -2,15 +2,15 @@ package com.mateyinc.marko.matey.model;
 
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class Group extends MModel {
+    private static final String TAG = Group.class.getSimpleName();
 
     private static final String KEY_GROUP_ID = "group_id";
     private static final String KEY_GROUP_NAME = "group_name";
@@ -22,7 +22,8 @@ public class Group extends MModel {
     private Date mDateCreated;
     private String mPicUrl;
     private int mNumOfFollowers;
-    private List<Bulletin> mBulletinList;
+    private UserProfile mUserProfile;
+//    private List<Bulletin> mBulletinList;
 
     public Group() {
     }
@@ -56,24 +57,33 @@ public class Group extends MModel {
     public Group parse(JSONObject object) throws JSONException {
         this._id = object.getLong(KEY_GROUP_ID);
         this.mGroupName = object.getString(KEY_GROUP_NAME);
-        this.mNumOfFollowers = object.getInt(KEY_NUM_OF_FOLLOWERS);
+        try {
+            this.mUserProfile = new UserProfile().parse(object.getJSONObject(KEY_USER_PROFILE));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for group user profile.");
+        }
+        try {
+            this.mNumOfFollowers = object.getInt(KEY_NUM_OF_FOLLOWERS);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for group number of followers.");
+        }
         this.mPicUrl = object.getString(KEY_GROUP_PIC_URL);
 //        this.mDateCreated = Util.parseDate(object.getString(KEY_DATE_ADDED));
         return this;
     }
 
-    public List<Bulletin> getBulletinList() {
-        return mBulletinList == null ? mBulletinList = new ArrayList<>(0) : mBulletinList;
-    }
-
-    public void setBulletinList(List<Bulletin> bulletinList) {
-        this.mBulletinList.clear();
-        this.mBulletinList = bulletinList;
-    }
-
-    public void addBulletinList(List<Bulletin> bulletinList) {
-        this.mBulletinList.addAll(bulletinList);
-    }
+//    public List<Bulletin> getBulletinList() {
+//        return mBulletinList == null ? mBulletinList = new ArrayList<>(0) : mBulletinList;
+//    }
+//
+//    public void setBulletinList(List<Bulletin> bulletinList) {
+//        this.mBulletinList.clear();
+//        this.mBulletinList = bulletinList;
+//    }
+//
+//    public void addBulletinList(List<Bulletin> bulletinList) {
+//        this.mBulletinList.addAll(bulletinList);
+//    }
 
     public String getGroupName() {
         return mGroupName;
@@ -83,6 +93,14 @@ public class Group extends MModel {
         if (this.mGroupName == null)
             this.mGroupName = "No name";
         this.mGroupName = mGroupName;
+    }
+
+    public UserProfile getUserProfile() {
+        return mUserProfile;
+    }
+
+    public void setUserProfile(UserProfile mUserProfile) {
+        this.mUserProfile = mUserProfile;
     }
 
     public String getDescription() {

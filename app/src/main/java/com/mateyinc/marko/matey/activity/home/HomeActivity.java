@@ -47,6 +47,11 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
      */
     public final static String ACTION_SHOW_REREPLY = "show_rereply";
     /**
+     * Action that will be inserted in intent from notification builder.
+     * Implies to view group based on id.
+     */
+    public final static String ACTION_SHOW_GROUP = "show_group";
+    /**
      * Intent extra that indicates that this intent has been sent from notification builder.
      */
     public final static String EXTRA_FROM_NOTIFICATION = "is_notification";
@@ -88,12 +93,12 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
         setContentView(R.layout.activity_home);
         getWindow().getDecorView().setBackgroundColor(Color.WHITE);
 
-        handleIntent();
 
         mSessionManager = SessionManager.getInstance(this);
         mOperationManager = OperationManager.getInstance(this);
 
         getCurUser();
+        handleIntent();
         init();
 //        getNewsfeed();
     }

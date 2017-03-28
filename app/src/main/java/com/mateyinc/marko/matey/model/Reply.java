@@ -309,17 +309,44 @@ public class Reply extends MModel {
     @Override
     public Reply parse(JSONObject object) throws JSONException {
         this.setId(object.getLong(KEY_REPLY_ID));
-        this.setDate(Util.parseDate(object.getString(KEY_DATE_ADDED)));
-        this.setReplyText(object.getString(Bulletin.KEY_TEXT));
-        this.isLiked = object.getBoolean(KEY_IS_LIKED);
+        this.setReplyText(object.getString(KEY_TEXT));
+
+        try {
+            this.mUserProfile = new UserProfile().parse(
+                    object.getJSONObject(KEY_USER_PROFILE));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for user_profile.");
+        }
+        try {
+            this.setDate(Util.parseDate(object.getString(KEY_DATE_ADDED)));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for time_c.");
+        }
+        try {
+            this.isLiked = object.getBoolean(KEY_IS_LIKED);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for is_approved.");
+        }
 
         int attchs = 0;
         int locations = 0;
-        if (!parseReReply(object)){
-            this.setPostId(object.getLong(KEY_POST_ID));
-            this.setNumOfReplies(object.getInt(Bulletin.KEY_NUM_OF_REPLIES));
-            attchs = object.getInt(Bulletin.KEY_NUM_OF_ATTACHMENTS);
-            locations = object.getInt(Bulletin.KEY_NUM_OF_LOCATIONS);
+        if (!parseReReply(object)) {
+            try {
+                this.setPostId(object.getLong(KEY_POST_ID));
+            } catch (JSONException e) {
+                Log.w(TAG, "No value for post_id.");
+            }
+            try {
+                this.setNumOfReplies(object.getInt(Bulletin.KEY_NUM_OF_REPLIES));
+            } catch (JSONException e) {
+                Log.w(TAG, "No value for number of replies.");
+            }
+            try {
+                attchs = object.getInt(Bulletin.KEY_NUM_OF_ATTACHMENTS);
+                locations = object.getInt(Bulletin.KEY_NUM_OF_LOCATIONS);
+            } catch (JSONException e) {
+                Log.w(TAG, "No value for number of attachments.");
+            }
             setNumOfAttachs(attchs + locations);
         }
 
@@ -338,7 +365,7 @@ public class Reply extends MModel {
                 Log.e(TAG, "No reply list for replies count = " + mNumOfReplies);
             }
         }
-       if (locations > 0) {
+        if (locations > 0) {
             mAttchList = new ArrayList<>(attchs + locations);
 
             // Try parsing location list if it's present
@@ -363,13 +390,18 @@ public class Reply extends MModel {
                 Log.e(TAG, "No attch list for attch count = " + locations);
             }
         }
-        setNumOfLikes(object.getInt(KEY_NUM_OF_APPROVES));
+        try {
+            setNumOfLikes(object.getInt(KEY_NUM_OF_APPROVES));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for number of approves.");
+        }
 
         return this;
     }
 
     /**
      * Helper method for parsing rereply fields. If fails, it means that this is post reply.
+     *
      * @return true if parsing was completed.
      */
     private boolean parseReReply(JSONObject object) {

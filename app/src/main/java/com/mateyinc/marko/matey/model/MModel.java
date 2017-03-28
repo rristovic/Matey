@@ -18,6 +18,8 @@ public abstract class MModel {
     static final String KEY_USER_ID = "user_id";
     static final String KEY_SOURCE_ID = "source_id";
     static final String KEY_PARENT_ID = "parent_id";
+    protected static final String KEY_USER_PROFILE = "user";
+    protected static final String KEY_TEXT = "text";
     static final String KEY_PARENT_TYPE = "parent_type";
     static final String KEY_ACTIVITY_TYPE = "activity_type";
     static final String KEY_DATE_ADDED = "time_c";

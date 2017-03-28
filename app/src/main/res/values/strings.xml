@@ -127,6 +127,18 @@
     <string name="choosing_new_pic_title">Choose new picture</string>
     <string name="choosing_new_pic_msg">How would you like to add a picture</string>
     <string name="change_pic_btn">Change picture</string>
+    <!-- Profile activity related -->
+    <string name="activity_post_created"><b><xliff:g id="full_name">%1$s</xliff:g></b> has created new post: "<xliff:g id="post_title">%2$s</xliff:g>"</string>
+    <string name="activity_reply_created"><b><xliff:g id="full_name">%1$s</xliff:g></b> has replied on <b><xliff:g id="post_user_name">%2$s</xliff:g></b> post: "<xliff:g id="post_title">%3$s</xliff:g>"</string>
+    <string name="activity_re_reply_created"><b><xliff:g id="full_name">%1$s</xliff:g></b> has replied on <xliff:g id="reply_user_name">%2$s</xliff:g> reply:
+    "<xliff:g id="reply_msg">%3$s</xliff:g>"</string>
+    <string name="activity_group_created"><b><xliff:g id="full_name">%1$s</xliff:g></b> has created new group: "<xliff:g id="group_name">%2$s</xliff:g>"</string>
+    <string name="activity_approve"><b><xliff:g id="full_name">%1$s</xliff:g></b> has approved <xliff:g id="reply_user_name">%2$s</xliff:g> reply:
+        "<xliff:g id="reply_msg">%3$s</xliff:g>"</string>
+    <string name="activity_boost"><b><xliff:g id="full_name">%1$s</xliff:g></b> has boosted <xliff:g id="post_user_name">%2$s</xliff:g> post:
+        "<xliff:g id="post_title">%3$s</xliff:g>"</string>
+    <string name="activity_follow"><b><xliff:g id="full_name">%1$s</xliff:g></b> is following <xliff:g id="followed_user_name">%2$s</xliff:g></string>
+
 
     <!-- Upload new pic related -->
     <string name="no_cam_app">No camera app installed</string>

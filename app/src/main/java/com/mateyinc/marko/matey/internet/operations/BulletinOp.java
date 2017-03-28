@@ -72,10 +72,11 @@ public class BulletinOp extends Operations {
         try {
             JSONObject object = new JSONObject(response);
             Bulletin b = new Bulletin();
-            UserProfile profile = new UserProfile().parse(
-                    object.getJSONObject(KEY_DATA).getJSONObject(Bulletin.KEY_USER_PROFILE));
-            b.setUserProfile(profile);
+//            UserProfile profile = new UserProfile().parse(
+//                    object.getJSONObject(KEY_DATA).getJSONObject(Bulletin.KEY_USER_PROFILE));
+//            b.setUserProfile(profile);
             b.parse(object.getJSONObject(KEY_DATA));
+            UserProfile profile = b.getUserProfile();
 
             ArrayList<Reply> mReplyList = new ArrayList<>(b.getNumOfReplies());
             // Try parsing reply list if it is present

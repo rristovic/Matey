@@ -8,7 +8,6 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
-import com.mateyinc.marko.matey.internet.operations.Operations;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +21,7 @@ import java.util.Locale;
 
 import static com.mateyinc.marko.matey.activity.Util.parseDate;
 import static com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
+import static com.mateyinc.marko.matey.internet.operations.Operations.KEY_DATA;
 
 public class Bulletin extends MModel {
     private String TAG = Bulletin.class.getSimpleName();
@@ -29,9 +29,7 @@ public class Bulletin extends MModel {
     // Keys for JSON data
     public static final String KEY_POST_ID = "post_id";
     public static final String KEY_SUBJECT = "title";
-    public static final String KEY_TEXT = "text";
     private static final String KEY_IS_BOOSTED = "boosted";
-    public static final String KEY_USER_PROFILE = "user";
     public static final String KEY_NUM_OF_REPLIES = "num_of_replies";
     private static final String KEY_NUM_OF_BOOSTS = "num_of_boosts";
     public static final String KEY_NUM_OF_ATTACHMENTS = "attachs_num";
@@ -53,7 +51,7 @@ public class Bulletin extends MModel {
     private boolean isBoosted;
 
     private List<String> mAttachments;
-//    private List<Reply> mReplyList;
+    //    private List<Reply> mReplyList;
     private List<Approve> mApproves;
 
 
@@ -239,6 +237,13 @@ public class Bulletin extends MModel {
         this.mSubject = object.getString(KEY_SUBJECT);
 
         try {
+            this.mUserProfile = new UserProfile().parse(
+                    object.getJSONObject(Bulletin.KEY_USER_PROFILE));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for user_profile.");
+        }
+
+        try {
             this.isBoosted = object.getBoolean(KEY_IS_BOOSTED);
         } catch (JSONException e) {
             Log.w(TAG, "No value for bulletin isBoosted.");
@@ -253,8 +258,16 @@ public class Bulletin extends MModel {
         } catch (JSONException e) {
             Log.w(TAG, "No value for bulletin text.");
         }
-
-        setNumOfReplies(object.getInt(KEY_NUM_OF_REPLIES));
+        try {
+            setNumOfReplies(object.getInt(KEY_NUM_OF_REPLIES));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for bulletin number of replies.");
+        }
+        try {
+            setNumOfLikes(object.getInt(KEY_NUM_OF_BOOSTS));
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for bulletin number of boosts.");
+        }
 //        if (getNumOfReplies() > 0) {
 //            mReplyList = new ArrayList<>(mNumOfReplies);
 //            // Try parsing reply list if it is present
@@ -305,7 +318,6 @@ public class Bulletin extends MModel {
                 Log.e(TAG, "No attch list for attch count = " + locations);
             }
         }
-        setNumOfLikes(object.getInt(KEY_NUM_OF_BOOSTS));
         return this;
     }
 
@@ -396,7 +408,7 @@ public class Bulletin extends MModel {
 
         try {
             jsonObject = new JSONObject(response);
-            jsonObject = jsonObject.getJSONObject(Operations.KEY_DATA);
+            jsonObject = jsonObject.getJSONObject(KEY_DATA);
 
             this.mDate = Util.parseDate(jsonObject.getString(MModel.KEY_DATE_ADDED));
             this._id = jsonObject.getLong(KEY_POST_ID);

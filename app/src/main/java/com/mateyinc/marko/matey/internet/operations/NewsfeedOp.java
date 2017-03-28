@@ -127,12 +127,12 @@ public class NewsfeedOp extends Operations {
                     // Parse bulletin
                     Bulletin b = new Bulletin().parse(activityObj);
                     b.setServerStatus(ServerStatus.STATUS_SUCCESS);
-                    // Parse user profile
-                    UserProfile userProfile = UserProfile.parseUserProfile(
-                            activityObj.getString(Bulletin.KEY_USER_PROFILE));
-                    userProfile.setServerStatus(ServerStatus.STATUS_SUCCESS);
+//                    // Parse user profile
+//                    UserProfile userProfile = UserProfile.parseUserProfile(
+//                            activityObj.getString(Bulletin.KEY_USER_PROFILE));
+//                    userProfile.setServerStatus(ServerStatus.STATUS_SUCCESS);
                     // Set bulletin's user
-                    b.setUserProfile(userProfile);
+//                    b.setUserProfile(userProfile);
 //                        userList.add(userProfile.toValues());
                     // Add data to list
 //                        userList.add(userProfile);
