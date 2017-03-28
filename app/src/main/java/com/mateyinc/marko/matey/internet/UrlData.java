@@ -106,6 +106,11 @@ public abstract class UrlData {
         return GET_USER_PROFILE_ROUTE.replace(":userId", Long.toString(userId));
     }
 
+    private static final String GET_USER_PROFILE_ACTIVITIES = ACCESS_BASE_URL.concat("/users/:userId/activities");
+    public static String createProfileActivitiesUrl(long userId){
+        return GET_USER_PROFILE_ACTIVITIES.replace(":userId", Long.toString(userId));
+    }
+
     public static String createUnfollowUrl(long userId){
         return DELETE_FOLLOWED_USER.replace(":userId", Long.toString(userId));
     }

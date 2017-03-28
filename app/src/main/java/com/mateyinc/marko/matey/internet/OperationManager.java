@@ -453,6 +453,18 @@ public class OperationManager implements OperationProvider {
     }
 
     /**
+     * Helper method for downloading user profile data from the server;
+     *
+     * @param userId id of the user profile
+     */
+    public void downloadUserProfileActivities(long userId, MotherActivity context) {
+        UserProfileOp op = new UserProfileOp(context);
+        op.setOperationType(OperationType.DOWNLOAD_USER_PROFILE_ACTIVITIES);
+        op.setUserId(userId).startDownloadAction();
+    }
+
+
+    /**
      * Helper method for downloading user followers.
      *
      * @param offset  starting position of followers;

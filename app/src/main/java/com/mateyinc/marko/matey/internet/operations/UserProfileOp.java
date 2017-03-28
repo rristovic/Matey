@@ -2,7 +2,6 @@ package com.mateyinc.marko.matey.internet.operations;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.net.Uri;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -30,23 +29,26 @@ public class UserProfileOp extends Operations {
 
     private long mUserId;
     private UserProfile mUserProfile;
-    private int mCount, mOffset;
 
     public UserProfileOp(MotherActivity context) {
         super(context);
     }
 
+    public UserProfileOp(UserProfile userProfile, MotherActivity context) {
+        super(context);
+        mUserProfile = userProfile;
+    }
 
     @Override
     public void startDownloadAction() {
 
         switch (mOpType) {
             case DOWNLOAD_FOLLOWERS: {
-                Uri uri = Uri.parse(UrlData.createFollowersListUrl(mUserId)).buildUpon()
-                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mCount))
-                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mOffset))
-                        .build();
-                mUrl = uri.toString();
+//                Uri uri = Uri.parse(UrlData.createFollowersListUrl(mUserId)).buildUpon()
+//                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mCount))
+//                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mOffset))
+//                        .build();
+//                mUrl = uri.toString();
                 break;
             }
 //            case GET_FOLLOWING_LIST:{
@@ -76,14 +78,20 @@ public class UserProfileOp extends Operations {
     public void onDownloadSuccess(final String response) {
         final Context c = mContextRef.get();
 
-        try {
-            UserProfile profile = new UserProfile().parse(new JSONObject(response).getJSONObject(KEY_DATA));
-            DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
-
-            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_USER_PROFILE));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        if (mOpType.equals(OperationType.DOWNLOAD_USER_PROFILE))
+            try {
+                // Parse
+                UserProfile profile = new UserProfile().parse(new JSONObject(response).getJSONObject(KEY_DATA));
+                DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
+                // Notify UI
+                EventBus.getDefault().post(new DownloadEvent(
+                        true, profile, OperationType.DOWNLOAD_USER_PROFILE));
+            } catch (JSONException e) {
+                Log.e(TAG, "Failed to parse user profile data.", e);
+                // Notify UI
+                EventBus.getDefault().post(new DownloadEvent(
+                        false, OperationType.DOWNLOAD_USER_PROFILE));
+            }
 
 //        mDownloadListener.onDownloadSuccess();
 
@@ -226,7 +234,7 @@ public class UserProfileOp extends Operations {
      * @return {@link UserProfileOp} instance
      */
     public UserProfileOp setCount(int count) {
-        mCount = count;
+//        mCount = count;
         return this;
     }
 
@@ -239,7 +247,7 @@ public class UserProfileOp extends Operations {
      * @return {@link UserProfileOp} instance
      */
     public UserProfileOp setOffset(int offset) {
-        mOffset = offset;
+//        mOffset = offset;
         return this;
     }
 

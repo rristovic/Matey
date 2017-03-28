@@ -12,11 +12,10 @@
         app:layout_behavior="com.mateyinc.marko.matey.activity.FlingBehavior">
 
         <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/flexible.example.collapsing"
+            android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            >
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <RelativeLayout
                 android:id="@+id/contentView"
@@ -31,12 +30,12 @@
                     android:layout_height="wrap_content">
 
                     <ImageView
-                    android:id="@+id/ivCoverPic"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/profile_cover_dimen"
-                    android:elevation="@dimen/main_elevation"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/empty_photo" />
+                        android:id="@+id/ivCoverPic"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/profile_cover_dimen"
+                        android:elevation="@dimen/main_elevation"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/empty_photo" />
 
                 </FrameLayout>
 
@@ -263,6 +262,13 @@
                     app:riv_border_color="@color/white"
                     app:riv_border_width="2dp"
                     app:riv_oval="true" />
+
+                <ImageView
+                    android:id="@+id/ivShader"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/profile_cover_dimen"
+                    android:elevation="@dimen/main_elevation"
+                    android:scaleType="centerCrop" />
 
 
             </RelativeLayout>

@@ -142,7 +142,7 @@ public class UserProfile extends MModel {
     }
 
     public String getProfilePictureLink() {
-        return profilePictureLink;
+        return profilePictureLink == null ? "#" : profilePictureLink;
     }
 
     public void setProfilePictureLink(String profilePictureLink) {
@@ -154,7 +154,7 @@ public class UserProfile extends MModel {
     }
 
     public String getCoverPictureLink() {
-        return coverPictureLink;
+        return coverPictureLink == null ? "#" : coverPictureLink;
     }
 
     public void setCoverPictureLink(String coverPictureLink) {

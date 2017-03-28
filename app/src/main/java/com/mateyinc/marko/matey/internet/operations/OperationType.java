@@ -18,6 +18,7 @@ public enum OperationType {
 
     // User profile operations
     DOWNLOAD_USER_PROFILE,
+    DOWNLOAD_USER_PROFILE_ACTIVITIES,
     FOLLOW_USER_PROFILE,
     UNFOLLOW_USER_PROFILE,
     DOWNLOAD_FOLLOWERS,
