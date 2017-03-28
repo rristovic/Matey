@@ -10,15 +10,21 @@ import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
 import com.mateyinc.marko.matey.data.ServerStatus;
+import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.internet.events.DownloadEvent;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
+import com.mateyinc.marko.matey.model.Notification;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -29,6 +35,7 @@ public class UserProfileOp extends Operations {
 
     private long mUserId;
     private UserProfile mUserProfile;
+    private static String mNextUrl = "";
 
     public UserProfileOp(MotherActivity context) {
         super(context);
@@ -64,6 +71,13 @@ public class UserProfileOp extends Operations {
                 mUrl = UrlData.createProfileDataUrl(mUserId);
                 break;
             }
+            case DOWNLOAD_USER_PROFILE_ACTIVITIES: {
+                if (mNextUrl.isEmpty())
+                    mUrl = UrlData.createProfileActivitiesUrl(mUserId);
+                else
+                    mUrl = buildNextPageUrl(mNextUrl);
+                break;
+            }
 
             default: {
                 Log.e(TAG, "No operation type has been specified!");
@@ -90,9 +104,37 @@ public class UserProfileOp extends Operations {
                 Log.e(TAG, "Failed to parse user profile data.", e);
                 // Notify UI
                 EventBus.getDefault().post(new DownloadEvent(
+                        false, mOpType));
+            }
+        else if (mOpType.equals(OperationType.DOWNLOAD_USER_PROFILE_ACTIVITIES)) {
+            try {
+                JSONObject object = new JSONObject(response);
+                JSONArray array = object.getJSONArray(KEY_DATA);
+                mNextUrl = parseNextUrl(object);
+                // Parse
+                int size = array.length();
+                List<Notification> notifications = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    try {
+                        Notification n = new Notification(true).parse(array.getJSONObject(i));
+                        notifications.add(n);
+                    }catch (JSONException e){
+                        Log.e(TAG, "Failed to parse activity.");
+                    }
+                }
+                // Notify UI
+                EventBus.getDefault().post(new DownloadTempListEvent<Notification>(
+                        true,
+                        mOpType,
+                        new TemporaryDataAccess<Notification>(notifications, shouldClearData()), null
+                ));
+            } catch (JSONException e) {
+                Log.e(TAG, "Failed to parse user profile data.", e);
+                // Notify UI
+                EventBus.getDefault().post(new DownloadEvent(
                         false, OperationType.DOWNLOAD_USER_PROFILE));
             }
-
+        }
 //        mDownloadListener.onDownloadSuccess();
 
 //        switch (mNetworkAction.getDownloadAction()){
@@ -260,7 +302,7 @@ public class UserProfileOp extends Operations {
 
     @Override
     protected void clearNextUrl() {
-
+        mNextUrl = "";
     }
 
     @Override

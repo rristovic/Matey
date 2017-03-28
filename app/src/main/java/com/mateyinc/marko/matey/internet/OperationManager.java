@@ -455,11 +455,13 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for downloading user profile data from the server;
      *
-     * @param userId id of the user profile
+     * @param userId id of the user profile.
+     * @param isFreshData indicates if data should be cleared first.
      */
-    public void downloadUserProfileActivities(long userId, MotherActivity context) {
+    public void downloadUserProfileActivities(long userId, boolean isFreshData, MotherActivity context) {
         UserProfileOp op = new UserProfileOp(context);
         op.setOperationType(OperationType.DOWNLOAD_USER_PROFILE_ACTIVITIES);
+        op.setDownloadFreshData(isFreshData);
         op.setUserId(userId).startDownloadAction();
     }
 

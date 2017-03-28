@@ -4,14 +4,11 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -78,10 +75,14 @@ abstract public class MotherActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
+    protected void setChildSupportActionBar() {
+        setChildSupportActionBar(false);
+    }
+
     /**
      * For activities that uses childActionBar and that have back button
      */
-    protected void setChildSupportActionBar() {
+    protected void setChildSupportActionBar(boolean transculentStatusBar) {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -92,6 +93,20 @@ abstract public class MotherActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        if (transculentStatusBar) {
+            int result = 0;
+            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                result = getResources().getDimensionPixelSize(resourceId);
+            }
+            if (result > 0) {
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                toolbar.setPadding(0, result, 0, 0);
+                ViewGroup.LayoutParams params = toolbar.getLayoutParams();
+                params.height += result;
+            }
+        }
     }
 
     protected void setTranslucentStatusBar(Window window) {
@@ -117,33 +132,35 @@ abstract public class MotherActivity extends AppCompatActivity {
         window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
     }
 
-    public void updateToolbarBehaviour(LinearLayoutManager layoutManager, AppBarLayout appBarLayout, CollapsingToolbarLayout collapsingToolbarLayout) {
-        if (layoutManager.findLastCompletelyVisibleItemPosition() == layoutManager.getItemCount() - 1) {
-            turnOffToolbarScrolling(appBarLayout, collapsingToolbarLayout);
-        } else {
-            turnOnToolbarScrolling(appBarLayout, collapsingToolbarLayout);
-        }
-    }
 
-    private void turnOffToolbarScrolling(AppBarLayout appBarLayout, CollapsingToolbarLayout collapsingToolbarLayout) {
-        //turn off scrolling
-        AppBarLayout.LayoutParams toolbarLayoutParams = (AppBarLayout.LayoutParams) collapsingToolbarLayout.getLayoutParams();
-        toolbarLayoutParams.setScrollFlags(0);
-        collapsingToolbarLayout.setLayoutParams(toolbarLayoutParams);
 
-        CoordinatorLayout.LayoutParams appBarLayoutParams = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
-        appBarLayoutParams.setBehavior(null);
-        appBarLayout.setLayoutParams(appBarLayoutParams);
-    }
-
-    private void turnOnToolbarScrolling(AppBarLayout appBarLayout, CollapsingToolbarLayout collapsingToolbarLayout) {
-        //turn on scrolling
-        AppBarLayout.LayoutParams toolbarLayoutParams = (AppBarLayout.LayoutParams) collapsingToolbarLayout.getLayoutParams();
-        toolbarLayoutParams.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
-        collapsingToolbarLayout.setLayoutParams(toolbarLayoutParams);
-
-        CoordinatorLayout.LayoutParams appBarLayoutParams = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
-        appBarLayoutParams.setBehavior(new AppBarLayout.Behavior());
-        appBarLayout.setLayoutParams(appBarLayoutParams);
-    }
+//    public void updateToolbarBehaviour(LinearLayoutManager layoutManager, AppBarLayout appBarLayout, CollapsingToolbarLayout collapsingToolbarLayout) {
+//        if (layoutManager.findLastCompletelyVisibleItemPosition() == layoutManager.getItemCount() - 1) {
+//            turnOffToolbarScrolling(appBarLayout, collapsingToolbarLayout);
+//        } else {
+//            turnOnToolbarScrolling(appBarLayout, collapsingToolbarLayout);
+//        }
+//    }
+//
+//    private void turnOffToolbarScrolling(AppBarLayout appBarLayout, CollapsingToolbarLayout collapsingToolbarLayout) {
+//        //turn off scrolling
+//        AppBarLayout.LayoutParams toolbarLayoutParams = (AppBarLayout.LayoutParams) collapsingToolbarLayout.getLayoutParams();
+//        toolbarLayoutParams.setScrollFlags(0);
+//        collapsingToolbarLayout.setLayoutParams(toolbarLayoutParams);
+//
+//        CoordinatorLayout.LayoutParams appBarLayoutParams = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
+//        appBarLayoutParams.setBehavior(null);
+//        appBarLayout.setLayoutParams(appBarLayoutParams);
+//    }
+//
+//    private void turnOnToolbarScrolling(AppBarLayout appBarLayout, CollapsingToolbarLayout collapsingToolbarLayout) {
+//        //turn on scrolling
+//        AppBarLayout.LayoutParams toolbarLayoutParams = (AppBarLayout.LayoutParams) collapsingToolbarLayout.getLayoutParams();
+//        toolbarLayoutParams.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
+//        collapsingToolbarLayout.setLayoutParams(toolbarLayoutParams);
+//
+//        CoordinatorLayout.LayoutParams appBarLayoutParams = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
+//        appBarLayoutParams.setBehavior(new AppBarLayout.Behavior());
+//        appBarLayout.setLayoutParams(appBarLayoutParams);
+//    }
 }

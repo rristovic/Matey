@@ -16,7 +16,7 @@ import org.json.JSONObject;
 
 import java.util.Date;
 
-public class Notification {
+public class Notification extends MModel{
 
     private static final String KEY_ACTIVITY_ID = "activity_id";
     private static final String KEY_ACTIVITY_TYPE = "activity_type";
@@ -54,7 +54,7 @@ public class Notification {
     private static final int BULLETIN_POS = 0;
     private static final int REPLY_POS = 1;
     private static final int REREPLY_POS = 2;
-    private static int USER_GENERATED_POS;
+    private int USER_GENERATED_POS;
     private static final int USER_FOLLOWED_POS = 0;
     private static final int GROUP_POS = 1;
 
@@ -73,6 +73,26 @@ public class Notification {
 
     public Notification(boolean isActivity) {
         this.isActivity = isActivity;
+    }
+
+    @Override
+    public void onDownloadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onDownloadFailed(String error, Context c) {
+
+    }
+
+    @Override
+    public void onUploadSuccess(String response, Context c) {
+
+    }
+
+    @Override
+    public void onUploadFailed(String error, Context c) {
+
     }
 
     public Notification parse(JSONObject object) throws JSONException {
@@ -202,7 +222,7 @@ public class Notification {
             case VALUE_TYPE_POST_CREATE: {
                 Bulletin b = (Bulletin) mModelArray[BULLETIN_POS];
                 message = String.format(context.getString(R.string.activity_post_created),
-                        b.getUserProfile(), b.getSubject());
+                        b.getUserProfile().getFullName(), b.getSubject());
                 break;
             }
             case VALUE_TYPE_REPLY_CREATE: {

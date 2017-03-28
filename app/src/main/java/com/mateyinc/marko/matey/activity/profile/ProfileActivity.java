@@ -13,14 +13,12 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.LruCache;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
@@ -43,12 +41,14 @@ import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
-import com.mateyinc.marko.matey.adapters.NotificationsAdapter;
+import com.mateyinc.marko.matey.adapters.ActivitiesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.events.DownloadEvent;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
 import com.mateyinc.marko.matey.internet.operations.OperationType;
+import com.mateyinc.marko.matey.model.Notification;
 import com.mateyinc.marko.matey.model.UserProfile;
 
 import org.greenrobot.eventbus.EventBus;
@@ -84,10 +84,10 @@ public class ProfileActivity extends MotherActivity {
     private ImageButton ibSettings;
     private ToggleButton tBtnSailWith;
     private RecyclerView rvActivities;
-    private Toolbar mToolbar;
     private RelativeLayout rlBadges;
     private Button btnSendMsg;
     private TextView tvHeading;
+    private NestedScrollView svMainScrollFrame;
     //    private ScrollView svScrollFrame;
     private Drawable mActionBarBackgroundDrawable;
 
@@ -104,10 +104,11 @@ public class ProfileActivity extends MotherActivity {
 
     private OperationManager mOpManager;
     private DataAccess mDataAccess;
-    private NotificationsAdapter mAdapter;
+    private ActivitiesAdapter mAdapter;
     private LayoutManager mLayoutManager;
-    private AppBarLayout mAppBar;
-    private CollapsingToolbarLayout mCollapsingToolbar;
+    private EndlessScrollListener mScrollListener;
+//    private AppBarLayout mAppBar;
+//    private CollapsingToolbarLayout mCollapsingToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,9 +119,8 @@ public class ProfileActivity extends MotherActivity {
 //        if (getSupportActionBar() != null)
 //            getSupportActionBar().hide();
         setContentView(R.layout.activity_profile);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 //        setTranslucentStatusBar(getWindow());
-        setChildSupportActionBar();
+        setChildSupportActionBar(true);
         init();
         setListeners();
         downloadData();
@@ -135,14 +135,13 @@ public class ProfileActivity extends MotherActivity {
             mUserId = MotherActivity.user_id;
             isCurUser = true;
         }
-
+        // Get current user profile
         mDataAccess = DataAccess.getInstance(this);
         mOpManager = OperationManager.getInstance(this);
         mUserProfile = mDataAccess.getUserProfile(mUserId);
 
         // UI bounding
-//        svScrollFrame = (ScrollView) findViewById(R.id.svScrollFrame);
-        mToolbar = super.toolbar;
+        svMainScrollFrame = (NestedScrollView) findViewById(R.id.svMainScrollFrame);
         ivProfilePic = (ImageView) findViewById(R.id.ivProfilePic);
         ivCoverPic = (ImageView) findViewById(R.id.ivCoverPic);
         ivShader = (ImageView) findViewById(R.id.ivShader);
@@ -154,9 +153,10 @@ public class ProfileActivity extends MotherActivity {
         rlBadges = (RelativeLayout) findViewById(R.id.llBadges);
         rvActivities = (RecyclerView) findViewById(R.id.rvActivities);
         ibSettings = (ImageButton) findViewById(R.id.ibSettings);
-        mAppBar = (AppBarLayout) findViewById(R.id.appBarProfile);
-        mCollapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbar);
+//        mAppBar = (AppBarLayout) findViewById(R.id.appBarProfile);
+//        mCollapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbar);
 
+        // Setup UI based on isCurUser
         if (isCurUser) {
             LinearLayout layout = (LinearLayout) findViewById(R.id.llMainButtons);
             layout.removeAllViews();
@@ -177,7 +177,8 @@ public class ProfileActivity extends MotherActivity {
 //        int titleBarHeight = contentViewTop - statusBarHeight;
 //        super.toolbar.setPadding(0, titleBarHeight, 0, 0);
 
-        mAdapter = new NotificationsAdapter(this);
+        // Setup list activities
+        mAdapter = new ActivitiesAdapter(this);
         rvActivities.setAdapter(mAdapter);
         mLayoutManager = new LayoutManager(ProfileActivity.this);
         rvActivities.setLayoutManager(mLayoutManager);
@@ -187,97 +188,13 @@ public class ProfileActivity extends MotherActivity {
 
             }
         });
+        rvActivities.setNestedScrollingEnabled(false);
 
-        super.updateToolbarBehaviour(mLayoutManager, mAppBar, mCollapsingToolbar);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void profileInfoDownloaded(DownloadEvent event) {
-        if (event.mEventType.equals(OperationType.DOWNLOAD_USER_PROFILE) && event.isSuccess) {
-            mUserProfile = (UserProfile) event.getModel();
-            onDownloadSuccess();
-        }
-
-        super.updateToolbarBehaviour(mLayoutManager, mAppBar, mCollapsingToolbar);
-    }
-
-    public void onDownloadSuccess() {
-        UserProfile profile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
-        mPicLink = profile.getProfilePictureLink();
-        mCoverLink = profile.getCoverPictureLink();
-
-        if (mPicLink == null) mPicLink = "";
-        if (mCoverLink == null) mCoverLink = "";
-
-        if (mPicLink.equals(FLAG_CHANGED)) {
-            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
-            loadTempPic(FLAG_PROFILE_CHANGED);
-        } else
-            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
-                    new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivProfilePic.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.getLocalizedMessage(), error);
-                        }
-                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
-
-        if (mCoverLink.equals(FLAG_CHANGED)) {
-            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
-                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
-            loadTempPic(FLAG_COVER_CHANGED);
-        } else
-            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
-                    new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivCoverPic.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.getLocalizedMessage(), error);
-                        }
-                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
-
-        tvName.setText(profile.getFullName());
-        tvFollowersNum.setText(Integer.toString(profile.getFollowersNum()));
-        tvFollowingNum.setText(Integer.toString(profile.getFollowingNum()));
-
-        Log.d("ProfileActivity", "Data is set.");
-
-    }
-
-    private class LayoutManager extends LinearLayoutManager {
-
-        boolean isScrollEnabled = true;
-
-        public LayoutManager(Context context) {
-            super(context);
-        }
-
-        @Override
-        public boolean canScrollVertically() {
-            return isScrollEnabled && super.canScrollVertically();
-        }
+//        super.updateToolbarBehaviour(mLayoutManager, mAppBar, mCollapsingToolbar);
     }
 
     private void setListeners() {
-//        svScrollFrame.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-//            @Override
-//            public void onScrollChanged() {
-//                final int headerHeight = ivCoverPic.getHeight() - getSupportActionBar().getHeight();
-//                final float ratio = (float) Math.min(Math.max(svScrollFrame.getScrollY(), 0), headerHeight) / headerHeight;
-//                final int newAlpha = (int) (ratio * 255);
-//                mActionBarBackgroundDrawable.setAlpha(newAlpha);
-//            }
-//        });
-        mAppBar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+        svMainScrollFrame.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
 
             GradientDrawable shape = new GradientDrawable();
 
@@ -285,13 +202,13 @@ public class ProfileActivity extends MotherActivity {
             boolean fullColorOn = false;
 
             @Override
-            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+            public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
                 final int headerHeight = ivCoverPic.getHeight() - getSupportActionBar().getHeight();
-                final float ratio = (float) Math.min(Math.max(Math.abs(verticalOffset), 0), headerHeight) / headerHeight;
+                final float ratio = (float) Math.min(Math.max(Math.abs(scrollY), 0), headerHeight) / headerHeight;
                 final int newAlpha = (int) (ratio * 255);
 
 
-                if (headerHeight <= Math.abs(verticalOffset)) {
+                if (headerHeight <= Math.abs(scrollY)) {
 //                    ivProfilePic.animate().alpha(0f).setDuration(100).start();
                     mActionBarBackgroundDrawable.setAlpha(newAlpha);
                 } else {
@@ -417,6 +334,13 @@ public class ProfileActivity extends MotherActivity {
             }
         });
 
+        mScrollListener = new EndlessScrollListener(mLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                mOpManager.downloadUserProfileActivities(mUserId, false, ProfileActivity.this);
+            }
+        };
+        rvActivities.addOnScrollListener(mScrollListener);
 //        svScrollFrame.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
 //            @Override
 //            public void onScrollChanged() {
@@ -426,6 +350,90 @@ public class ProfileActivity extends MotherActivity {
 //            }
 //        });
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void profileInfoDownloaded(DownloadEvent event) {
+        if (event.mEventType.equals(OperationType.DOWNLOAD_USER_PROFILE) && event.isSuccess) {
+            mUserProfile = (UserProfile) event.getModel();
+            onDownloadSuccess();
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void profileInfoDownloaded(DownloadTempListEvent<Notification> event) {
+        if (event.mEventType.equals(OperationType.DOWNLOAD_USER_PROFILE_ACTIVITIES) && event.isSuccess) {
+            mAdapter.loadData(event.mDao);
+//            super.updateToolbarBehaviour(mLayoutManager, mAppBar, mCollapsingToolbar);
+        }
+    }
+
+
+    public void onDownloadSuccess() {
+        UserProfile profile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
+        mPicLink = profile.getProfilePictureLink();
+        mCoverLink = profile.getCoverPictureLink();
+
+        if (mPicLink == null) mPicLink = "";
+        if (mCoverLink == null) mCoverLink = "";
+
+        if (mPicLink.equals(FLAG_CHANGED)) {
+            mPicLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+                    getString(UploadNewPictureActivity.KEY_PROF_PIC_URI, "");
+            loadTempPic(FLAG_PROFILE_CHANGED);
+        } else
+            OperationManager.getInstance(this).mImageLoader.get(mPicLink,
+                    new ImageLoader.ImageListener() {
+                        @Override
+                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                            ivProfilePic.setImageBitmap(response.getBitmap());
+                        }
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, error.getLocalizedMessage(), error);
+                        }
+                    }, ivProfilePic.getWidth(), ivProfilePic.getHeight());
+
+        if (mCoverLink.equals(FLAG_CHANGED)) {
+            mCoverLink = PreferenceManager.getDefaultSharedPreferences(ProfileActivity.this).
+                    getString(UploadNewPictureActivity.KEY_COVER_URI, "");
+            loadTempPic(FLAG_COVER_CHANGED);
+        } else
+            OperationManager.getInstance(this).mImageLoader.get(mCoverLink,
+                    new ImageLoader.ImageListener() {
+                        @Override
+                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                            ivCoverPic.setImageBitmap(response.getBitmap());
+                        }
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, error.getLocalizedMessage(), error);
+                        }
+                    }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
+
+        tvName.setText(profile.getFullName());
+        tvFollowersNum.setText(Integer.toString(profile.getFollowersNum()));
+        tvFollowingNum.setText(Integer.toString(profile.getFollowingNum()));
+
+        Log.d("ProfileActivity", "Data is set.");
+
+    }
+
+    private class LayoutManager extends LinearLayoutManager {
+
+        boolean isScrollEnabled = true;
+
+        public LayoutManager(Context context) {
+            super(context);
+        }
+
+        @Override
+        public boolean canScrollVertically() {
+            return isScrollEnabled && super.canScrollVertically();
+        }
+    }
+
 
     /**
      * Create intent to view the image
@@ -450,7 +458,7 @@ public class ProfileActivity extends MotherActivity {
     private void downloadData() {
         // Download new data
         mOpManager.downloadUserProfile(mUserId, this);
-        mOpManager.downloadUserProfileActivities(mUserId, this);
+        mOpManager.downloadUserProfileActivities(mUserId, true, this);
     }
 
     @Override

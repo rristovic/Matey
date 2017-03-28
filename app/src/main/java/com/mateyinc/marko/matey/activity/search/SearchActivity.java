@@ -35,6 +35,7 @@ public class SearchActivity extends MotherActivity {
 
     public interface FragmentChangedListener {
         void fragmentBecameVisible();
+
         void onSearchPerformed();
     }
 
@@ -119,7 +120,7 @@ public class SearchActivity extends MotherActivity {
         mManager.onSearchQuery(tvSearchInput.getText().toString(), isFreshSearch,
                 fragPosition, SearchActivity.this);
         tvSearchInput.dismissDropDown();
-        ((FragmentChangedListener)mSectionsPagerAdapter.getItem(fragPosition)).onSearchPerformed();
+        ((FragmentChangedListener) mSectionsPagerAdapter.getItem(fragPosition)).onSearchPerformed();
     }
 
     @Override
@@ -240,7 +241,8 @@ public class SearchActivity extends MotherActivity {
 
         @Override
         public void onSearchPerformed() {
-            mScrollListener.resetState();
+            if (mScrollListener != null)
+                mScrollListener.resetState();
         }
     }
 

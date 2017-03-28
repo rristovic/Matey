@@ -427,22 +427,8 @@ public class Bulletin extends MModel {
 
     @Override
     public String toString() {
-        String message, date;
-
-        try {
-            message = mText.substring(0, 15).concat("...");
-        } catch (Exception e) {
-            message = mText;
-        }
-
-        try {
-            date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(mDate);
-        } catch (Exception e) {
-            date = mDate.toString();
-        }
-
-        return String.format(Locale.US, "Bulletin: ID=%d; Text=%s; User={%s} Date=%s; RepliesCount=%d",
-                _id, message, mUserProfile, date, mNumOfReplies);
+        return String.format(Locale.US, "Bulletin: ID=%d; Title=%s; UserName=%s; Boosts=%d; Replies=%d;",
+                getId(), getSubject(), mUserProfile == null ? "No user" : mUserProfile.getFullName(), mNumOfLikes, mNumOfReplies);
     }
 
     public void addReply(Reply reply) {
@@ -468,4 +454,6 @@ public class Bulletin extends MModel {
         isBoosted = !isBoosted;
         return isBoosted;
     }
+
+
 }

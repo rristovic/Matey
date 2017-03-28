@@ -127,6 +127,7 @@
     <string name="choosing_new_pic_title">Choose new picture</string>
     <string name="choosing_new_pic_msg">How would you like to add a picture</string>
     <string name="change_pic_btn">Change picture</string>
+    <string name="activities">Latest actions</string>
 
     <!-- Upload new pic related -->
     <string name="no_cam_app">No camera app installed</string>
