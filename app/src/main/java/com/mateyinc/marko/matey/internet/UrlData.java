@@ -28,26 +28,6 @@ public abstract class UrlData {
     public static final String PARAM_OLD_GCM_ID = "old_gcm";
 
     /////////////////////////////////////////////////////////////////////////////////////
-    ///// Profile data /////////////////////////////////////////////////////////////////////////////////////
-    /** Url for uploading new followed friends list to the server. */
-    public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
-    /** User_id param of the followed user */
-    public static final String PARAM_FOLLOWED_USER_ID = "user_id";
-
-    /** Url for uploading new followed friend */
-    private static final String POST_NEW_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
-    /** Url for uploading new unfollowed friend */
-    private static final String DELETE_FOLLOWED_USER = ACCESS_BASE_URL.concat("/users/me/users/:userId/follow");
-    /** Url for download followers list */
-    private static final String GET_FOLLOWERS = ACCESS_BASE_URL.concat("/users/:userId/followers");
-    /** Url for download followers list */
-    private static final String GET_FOLLOWING = ACCESS_BASE_URL.concat("/users/:userId/following");
-    /** Limit query param for followers list */
-    public static final String QPARAM_LIMIT = "limit";
-    /** Position query param for followers list */
-    public static final String QPARAM_OFFSET = "offset";
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ///// Pic/file data ///////////////////////////////////////////////////////////////////////////////////////
     /** Url for uploading new profile pic */
@@ -100,29 +80,40 @@ public abstract class UrlData {
     }
 
     ////////  USER PROFILE UrlData  ////////////////////////////////////////////////////
+    /** Url for uploading new followed friends list to the server. */
+    public static final String POST_NEW_FOLLOWED_FRIENDS = ACCESS_BASE_URL.concat("/follower/follow");
+    /** User_id param of the followed user */
+    public static final String PARAM_FOLLOWED_USER_ID = "user_id";
+
+    /** Url for download followers list */
+    private static final String GET_FOLLOWERS = ACCESS_BASE_URL.concat("/users/:userId/followers");
+    public static String buildGetFollowersList(long userId){
+        return GET_FOLLOWERS.replace(":userId", Long.toString(userId));
+    }
+    /** Url for download followers list */
+    private static final String GET_FOLLOWING = ACCESS_BASE_URL.concat("/users/:userId/following");
+    public static String buildGetFollowingList(long userId){
+        return GET_FOLLOWING.replace(":userId", Long.toString(userId));
+    }
     /** Url for downloading user profile data */
     private static final String GET_USER_PROFILE_ROUTE = ACCESS_BASE_URL.concat("/users/:userId/profile");
-    public static String createProfileDataUrl(long userId){
+    public static String buildProfileDataUrl(long userId){
         return GET_USER_PROFILE_ROUTE.replace(":userId", Long.toString(userId));
     }
 
     private static final String GET_USER_PROFILE_ACTIVITIES = ACCESS_BASE_URL.concat("/users/:userId/activities");
-    public static String createProfileActivitiesUrl(long userId){
+    public static String buildProfileActivitiesUrl(long userId){
         return GET_USER_PROFILE_ACTIVITIES.replace(":userId", Long.toString(userId));
     }
 
-    public static String createUnfollowUrl(long userId){
-        return DELETE_FOLLOWED_USER.replace(":userId", Long.toString(userId));
+    private static final String FOLLOWED_USER = ACCESS_BASE_URL.concat("/following/:userId");
+    public static String buildUnfollowUrl(long userId){
+        return FOLLOWED_USER.replace(":userId", Long.toString(userId));
     }
-    public static String createFollowUrl(long userId){
-        return POST_NEW_FOLLOWED_USER.replace(":userId", Long.toString(userId));
+    public static String buildFollowUrl(long userId){
+        return FOLLOWED_USER.replace(":userId", Long.toString(userId));
     }
-    public static String createFollowingListUrl(long userId){
-        return GET_FOLLOWING.replace(":userId", Long.toString(userId));
-    }
-    public static String createFollowersListUrl(long userId){
-        return GET_FOLLOWERS.replace(":userId", Long.toString(userId));
-    }
+
     /////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -180,6 +171,9 @@ public abstract class UrlData {
     ///////////////////////////////////////////
 
     ////////  GROUP  UrlData //////////////
+    public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
+    private static final String POST_NEW_GROUP_BULLETIN = ACCESS_BASE_URL.concat("/users/:userId/groups/following");
+
     private static final String GET_GROUPS = ACCESS_BASE_URL.concat("/users/:userId/groups/following");
     public static String buildGetGroupList(long userId){
         return GET_GROUPS.replace(":userId", Long.toString(userId));
@@ -194,7 +188,11 @@ public abstract class UrlData {
     public static String buildGetGroupActivityList(long groupId){
         return GET_GROUP_ACTIVITY_LIST.replace(":groupId", Long.toString(groupId));
     }
-    public static final String POST_NEW_GROUP = ACCESS_BASE_URL.concat("/groups");
+
+    private static final String FOLLOW_GROUP = ACCESS_BASE_URL.concat("/following/groups/:groupId");
+    public static String buildFollowGroupUrl(long groupId){
+        return FOLLOW_GROUP.replace(":groupId", Long.toString(groupId));
+    }
     ///////////////////////////////////////////
 
     ////////  SEARCH  UrlData //////////////

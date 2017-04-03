@@ -39,7 +39,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.EndlessScrollListener;
+import com.mateyinc.marko.matey.activity.utils.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.view.PictureViewActivity;
 import com.mateyinc.marko.matey.adapters.ActivitiesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
@@ -236,13 +236,14 @@ public class ProfileActivity extends MotherActivity {
             tBtnSailWith.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        // Follow/following current user
-                        mOpManager.followNewUser(mUserId, ProfileActivity.this);
-                    } else {
-                        // unfollow/not following cur user
-                        mOpManager.unfollowUser(mUserId, ProfileActivity.this);
-                    }
+                    if (mUserProfile != null)
+                        if (isChecked && !mUserProfile.isFollowed()) {
+                            // Follow/following current user
+                            mOpManager.followNewUser(mUserProfile, ProfileActivity.this);
+                        } else if (!isChecked && mUserProfile.isFollowed()) {
+                            // unfollow/not following cur user
+                            mOpManager.unfollowUser(mUserProfile, ProfileActivity.this);
+                        }
                 }
             });
 
@@ -369,9 +370,11 @@ public class ProfileActivity extends MotherActivity {
 
 
     public void onDownloadSuccess() {
-        UserProfile profile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
-        mPicLink = profile.getProfilePictureLink();
-        mCoverLink = profile.getCoverPictureLink();
+        this.mUserProfile = DataAccess.getInstance(ProfileActivity.this).getUserProfile(mUserId);
+        mPicLink = mUserProfile.getProfilePictureLink();
+        mCoverLink = mUserProfile.getCoverPictureLink();
+
+        tBtnSailWith.setChecked(mUserProfile.isFollowed());
 
         if (mPicLink == null) mPicLink = "";
         if (mCoverLink == null) mCoverLink = "";
@@ -412,9 +415,9 @@ public class ProfileActivity extends MotherActivity {
                         }
                     }, ivCoverPic.getWidth(), ivCoverPic.getHeight());
 
-        tvName.setText(profile.getFullName());
-        tvFollowersNum.setText(Integer.toString(profile.getFollowersNum()));
-        tvFollowingNum.setText(Integer.toString(profile.getFollowingNum()));
+        tvName.setText(mUserProfile.getFullName());
+        tvFollowersNum.setText(Integer.toString(mUserProfile.getFollowersNum()));
+        tvFollowingNum.setText(Integer.toString(mUserProfile.getFollowingNum()));
 
         Log.d("ProfileActivity", "Data is set.");
 

@@ -3,6 +3,7 @@ package com.mateyinc.marko.matey.data;
 
 import com.mateyinc.marko.matey.model.MModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,6 +47,19 @@ public class TemporaryDataAccess<T extends MModel> {
      */
     public T getItem(int position) {
         return mData.get(position);
+    }
+
+    /**
+     * Return list contained in this access object.
+     *
+     * @return list of models type T
+     */
+    public List<T> getItems() {
+        return mData == null ? new ArrayList<T>(0) : mData;
+    }
+
+    public boolean isFreshData() {
+        return this.isFreshData;
     }
 
     /**

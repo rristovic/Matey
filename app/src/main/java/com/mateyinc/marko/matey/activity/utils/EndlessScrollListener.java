@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity;
+package com.mateyinc.marko.matey.activity.utils;
 
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;

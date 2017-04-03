@@ -9,6 +9,8 @@ import org.json.JSONObject;
 
 import java.util.Date;
 
+import static com.mateyinc.marko.matey.model.UserProfile.KEY_FOLLOWED;
+
 public class Group extends MModel {
     private static final String TAG = Group.class.getSimpleName();
 
@@ -23,6 +25,7 @@ public class Group extends MModel {
     private String mPicUrl;
     private int mNumOfFollowers;
     private UserProfile mUserProfile;
+    private boolean isFollowed = false;
 //    private List<Bulletin> mBulletinList;
 
     public Group() {
@@ -31,7 +34,6 @@ public class Group extends MModel {
     public Group(long groupId) {
         this._id = groupId;
     }
-
 
     @Override
     public void onDownloadSuccess(String response, Context c) {
@@ -57,6 +59,12 @@ public class Group extends MModel {
     public Group parse(JSONObject object) throws JSONException {
         this._id = object.getLong(KEY_GROUP_ID);
         this.mGroupName = object.getString(KEY_GROUP_NAME);
+
+        try {
+            this.isFollowed = object.getBoolean(KEY_FOLLOWED);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for followed.");
+        }
         try {
             this.mUserProfile = new UserProfile().parse(object.getJSONObject(KEY_USER_PROFILE));
         } catch (JSONException e) {
@@ -93,6 +101,14 @@ public class Group extends MModel {
         if (this.mGroupName == null)
             this.mGroupName = "No name";
         this.mGroupName = mGroupName;
+    }
+
+    public boolean isFollowed() {
+        return isFollowed;
+    }
+
+    public void setFollowed(boolean followed) {
+        isFollowed = followed;
     }
 
     public UserProfile getUserProfile() {

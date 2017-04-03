@@ -36,6 +36,7 @@ public class GroupsAdapter extends RecycleNoSQLAdapter<Group> {
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext)
                 .inflate(R.layout.group_list_item, parent, false);
+
         return new ViewHolder(view, new ViewHolder.ViewHolderClickListener() {
             @Override
             public void onClick(int adapterViewPosition) {

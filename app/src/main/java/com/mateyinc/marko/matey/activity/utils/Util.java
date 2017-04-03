@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity;
+package com.mateyinc.marko.matey.activity.utils;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,7 +13,7 @@ import android.util.Log;
 import android.util.TypedValue;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -151,7 +151,7 @@ public class Util {
 
     private static AlertDialog mDialog;
 
-    public static void showServerNotResponding(MainActivity context, DialogInterface.OnClickListener listener) {
+    public static void showServerNotResponding(MotherActivity context, DialogInterface.OnClickListener listener) {
         if (mDialog == null || !mDialog.isShowing())
             mDialog = new AlertDialog.Builder(context)
                     .setMessage(context.getString(R.string.server_not_responding_msg))

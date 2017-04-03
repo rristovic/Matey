@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
@@ -166,10 +166,21 @@ public class Notification extends MModel{
         return this;
     }
 
+    /**
+     * Parse user profile from the server who generated the notification.
+     * @param object {@link JSONObject} server response
+     * @throws JSONException
+     */
     private void parseUserGenerated(JSONObject object) throws JSONException {
         mModelArray[USER_GENERATED_POS = mModelArray.length - 1] = new UserProfile().parse(object.getJSONObject(KEY_USER));
     }
 
+    /**
+     * Call this method for building intent that comes with the notification.
+     * Intent will open up desired activity with extra data loaded.
+     * @param context context
+     * @return newly created intent with extra data.
+     */
     public Intent buildIntent(Context context) {
         Intent i = new Intent(context, mClass);
         String action;
@@ -303,14 +314,5 @@ public class Notification extends MModel{
      */
     public String buildIconUrl() {
         return mUrl;
-    }
-
-    /**
-     * Call this when notification is listed in activity log on profile view activity.
-     *
-     * @param isActivity set to true if this is listed in activity.
-     */
-    public void setIsActivity(boolean isActivity) {
-        this.isActivity = isActivity;
     }
 }

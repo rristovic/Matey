@@ -20,13 +20,15 @@
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <!--<permission-->
-        <!--android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE"-->
-        <!--android:protectionLevel="signature" />-->
+    <!-- <permission -->
+    <!-- android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE" -->
+    <!-- android:protectionLevel="signature" /> -->
 
-    <!--<uses-permission android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE" />-->
+
+    <!-- <uses-permission android:name="com.mateyinc.marko.matey.permission.C2D_MESSAGE" /> -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!--<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />-->
+    <!-- <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" /> -->
+
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -134,13 +136,12 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
-        <!--<activity android:name=".activity.AddFriendsActivity" />-->
+        <!-- <activity android:name=".activity.AddFriendsActivity" /> -->
         <activity android:name=".activity.profile.FollowersActivity" />
         <activity android:name=".activity.view.PictureViewActivity" />
         <activity
             android:name=".activity.profile.UploadNewPictureActivity"
             android:largeHeap="true" />
-        <activity android:name=".activity.view.RepliesViewActivity" />
 
         <!--
             The API key for Google Maps-based APIs is defined as a string resource.
@@ -157,8 +158,12 @@
         <activity
             android:name=".activity.maps.MapsActivity"
             android:label="MapsActivity"
-            android:windowSoftInputMode="stateVisible"></activity>
-        <activity android:name=".activity.search.SearchActivity"></activity>
+            android:windowSoftInputMode="stateVisible" />
+
+        <activity android:name=".activity.search.SearchActivity" />
+
+        <activity android:name=".activity.register.RegisterActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"/>
     </application>
 
 </manifest>

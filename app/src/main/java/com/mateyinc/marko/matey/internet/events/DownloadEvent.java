@@ -6,9 +6,9 @@ import com.mateyinc.marko.matey.model.MModel;
 /**
  * Static class used for event bus. Event that indicates that data has been downloaded or failed to download.
  */
-public class DownloadEvent extends Event {
+public class DownloadEvent<T extends MModel> extends Event {
 
-    private MModel mModel;
+    private T mModel;
 
     public DownloadEvent(boolean isSuccess) {
         super(isSuccess, OperationType.NO_OPERATION);
@@ -18,12 +18,12 @@ public class DownloadEvent extends Event {
         super(isSuccess, operationType);
     }
 
-    public DownloadEvent(boolean isSuccess, MModel model, OperationType operationType) {
+    public DownloadEvent(boolean isSuccess, T model, OperationType operationType) {
         super(isSuccess, operationType);
         this.mModel = model;
     }
 
-    public MModel getModel(){
+    public T getModel(){
         return mModel;
     }
 }

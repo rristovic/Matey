@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
@@ -73,7 +73,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
      *
      * @return newly created listener
      */
-    private ViewHolder.ViewHolderClickListener getViewHolderListener() {
+    protected ViewHolder.ViewHolderClickListener getViewHolderListener() {
         return new ViewHolder.ViewHolderClickListener() {
 
             @Override
@@ -295,7 +295,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
         return position == 0 ? FIRST_ITEM : ITEM;
     }
 
-    private static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
+    protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, View.OnCreateContextMenuListener {
 
         private static final int STATE_UPLOADING = 0;
         private static final int STATE_FAILED = -1;
@@ -316,7 +316,7 @@ public class BulletinsAdapter extends RecycleNoSQLAdapter<Bulletin> {
         private static final String TV_NAME_TAG = "nametag";
         private static final String RL_BODY_TAG = "bodytag";
 
-        private ViewHolder(View view, ViewHolderClickListener listener) {
+        protected ViewHolder(View view, ViewHolderClickListener listener) {
             super(view);
             mView = view;
             llBottom = (LinearLayout) view.findViewById(R.id.llBottomButtons);

@@ -170,5 +170,11 @@
     <dimen name="search_itemHeight">52dp</dimen>
     <dimen name="search_content_height">44dp</dimen>
 
+    <!-- Register related -->
+    <dimen name="register_header_textSize">@dimen/smallHeading</dimen>
+    <dimen name="register_header_topMargin">40dp</dimen>
+    <dimen name="register_editText_padding">10dp</dimen>
+    <dimen name="register_editText_childPadding">5dp</dimen>
+
 
 </resources>

@@ -41,9 +41,15 @@ public class BulletinOp extends Operations {
      * Required json data field - title
      **/
     private static final String TITLE_FIELD_NAME = "title";
+    /**
+     * Json data field - group
+     **/
+    private static final String GROUP_ID_FIELD_NAME = "group_id";
 
 
     final Bulletin bulletin;
+    // For group bulletin upload
+    private Long mGroupId = null;
 
     public BulletinOp(Context context, Bulletin bulletin) {
         super(context);
@@ -138,6 +144,12 @@ public class BulletinOp extends Operations {
         switch (mOpType) {
             default:
             case POST_NEW_BULLETIN_WITH_ATTCH: {
+                mUrl = UrlData.POST_NEW_BULLETIN;
+                // Using OkHTTP for sending files
+                uploadFile();
+            }
+            case POST_NEW_GROUP_BULLETIN: {
+                mUrl = UrlData.POST_NEW_BULLETIN;
                 // Using OkHTTP for sending files
                 uploadFile();
             }
@@ -146,24 +158,6 @@ public class BulletinOp extends Operations {
 //        createNewUploadReq(url, method);
 //        startUploadAction();
     }
-
-    @Override
-    protected void onUploadSuccess(final String response) {
-        final Context c = mContextRef.get();
-
-        if (c != null)
-            bulletin.onUploadSuccess(response, c);
-
-    }
-
-    @Override
-    protected void onUploadFailed(final VolleyError error) {
-        final Context c = mContextRef.get();
-
-        if (c != null)
-            bulletin.onUploadFailed(error.toString(), c);
-    }
-
 
     public void uploadFile() {
 //        String[] parts = selectedFilePath.split("/");
@@ -193,12 +187,14 @@ public class BulletinOp extends Operations {
         // Create first part for multipart that contains text
         JSONObject jsonObject = new JSONObject();
         try {
+            // Add title
             jsonObject.put(TITLE_FIELD_NAME, bulletin.getSubject());
+            // Add details
             String message = bulletin.getMessage();
             if (!message.isEmpty()) // Is there is no message, send just the subject
                 jsonObject.put(CONTENT_FIELD_NAME, bulletin.getMessage());
-
-            if (mMarkers.size() != 0) { // Add locations
+            // Add locations
+            if (mMarkers.size() != 0) {
                 JSONArray array = new JSONArray();
                 for (String s :
                         mMarkers) {
@@ -206,8 +202,11 @@ public class BulletinOp extends Operations {
                 }
                 jsonObject.put(LOCATIONS_FIELD_NAME, array);
             }
+            // Add group id if present
+            if (mGroupId != null)
+                jsonObject.put(GROUP_ID_FIELD_NAME, mGroupId);
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to create data for bulletin upload.", e);
         }
 
         // Create builder and add first file
@@ -233,7 +232,7 @@ public class BulletinOp extends Operations {
         // Create network request
         final okhttp3.Request request = new okhttp3.Request.Builder()
                 .header(UrlData.PARAM_AUTH_TYPE, "Bearer " + MotherActivity.access_token)
-                .url(UrlData.POST_NEW_BULLETIN)
+                .url(mUrl)
                 .post(requestBodyBuilder.build())
                 .build();
 
@@ -263,7 +262,21 @@ public class BulletinOp extends Operations {
         } catch (IOException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
+    }
 
+    @Override
+    protected void onUploadSuccess(final String response) {
+        throw new RuntimeException("Not implemented.");
+    }
+
+    @Override
+    protected void onUploadFailed(final VolleyError error) {
+        throw new RuntimeException("Not implemented.");
+    }
+
+
+    public void setGroupId(long groupId){
+        this.mGroupId = groupId;
     }
 
     @Override

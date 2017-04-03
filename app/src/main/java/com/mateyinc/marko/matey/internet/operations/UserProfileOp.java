@@ -9,7 +9,6 @@ import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.DataContract.ProfileEntry;
-import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
@@ -27,6 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.mateyinc.marko.matey.internet.operations.OperationType.DOWNLOAD_FOLLOWERS;
+import static com.mateyinc.marko.matey.internet.operations.OperationType.DOWNLOAD_USER_PROFILE;
+import static com.mateyinc.marko.matey.internet.operations.OperationType.DOWNLOAD_USER_PROFILE_ACTIVITIES;
+
 /**
  * User profile downloading and uploading operations, also updates the db;
  */
@@ -35,9 +38,11 @@ public class UserProfileOp extends Operations {
 
     private long mUserId;
     private UserProfile mUserProfile;
-    private static String mNextUrl = "";
+    private static String mActivitiesNextUrl = "";
+    private static String mFollowingListNextUrl = "";
+    private static String mFollowersListNextUrl = "";
 
-    public UserProfileOp(MotherActivity context) {
+    public UserProfileOp(Context context) {
         super(context);
     }
 
@@ -51,31 +56,28 @@ public class UserProfileOp extends Operations {
 
         switch (mOpType) {
             case DOWNLOAD_FOLLOWERS: {
-//                Uri uri = Uri.parse(UrlData.createFollowersListUrl(mUserId)).buildUpon()
-//                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mCount))
-//                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mOffset))
-//                        .build();
-//                mUrl = uri.toString();
+                if (mFollowersListNextUrl.isEmpty())
+                    mUrl = UrlData.buildGetFollowersList(this.mUserId);
+                else
+                    mUrl = buildNextPageUrl(mFollowersListNextUrl);
                 break;
             }
-//            case GET_FOLLOWING_LIST:{
-//                // TODO - finish params
-//                Uri uri =  Uri.parse(UrlData.createFollowingListUrl(mNetworkAction.mUserProfileId)).buildUpon()
-//                        .appendQueryParameter(UrlData.QPARAM_LIMIT, Integer.toString(mNetworkAction.limit))
-//                        .appendQueryParameter(UrlData.QPARAM_OFFSET, Integer.toString(mNetworkAction.offset))
-//                        .build();
-//                url = uri.toString();
-//                break;
-//            }
+            case DOWNLOAD_FOLLOWING: {
+                if (mFollowingListNextUrl.isEmpty())
+                    mUrl = UrlData.buildGetFollowingList(this.mUserId);
+                else
+                    mUrl = buildNextPageUrl(mFollowingListNextUrl);
+                break;
+            }
             case DOWNLOAD_USER_PROFILE: {
-                mUrl = UrlData.createProfileDataUrl(mUserId);
+                mUrl = UrlData.buildProfileDataUrl(mUserId);
                 break;
             }
             case DOWNLOAD_USER_PROFILE_ACTIVITIES: {
-                if (mNextUrl.isEmpty())
-                    mUrl = UrlData.createProfileActivitiesUrl(mUserId);
+                if (mActivitiesNextUrl.isEmpty())
+                    mUrl = UrlData.buildProfileActivitiesUrl(mUserId);
                 else
-                    mUrl = buildNextPageUrl(mNextUrl);
+                    mUrl = buildNextPageUrl(mActivitiesNextUrl);
                 break;
             }
 
@@ -92,48 +94,107 @@ public class UserProfileOp extends Operations {
     public void onDownloadSuccess(final String response) {
         final Context c = mContextRef.get();
 
-        if (mOpType.equals(OperationType.DOWNLOAD_USER_PROFILE))
-            try {
-                // Parse
-                UserProfile profile = new UserProfile().parse(new JSONObject(response).getJSONObject(KEY_DATA));
-                DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
-                // Notify UI
-                EventBus.getDefault().post(new DownloadEvent(
-                        true, profile, OperationType.DOWNLOAD_USER_PROFILE));
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to parse user profile data.", e);
-                // Notify UI
-                EventBus.getDefault().post(new DownloadEvent(
-                        false, mOpType));
-            }
-        else if (mOpType.equals(OperationType.DOWNLOAD_USER_PROFILE_ACTIVITIES)) {
-            try {
-                JSONObject object = new JSONObject(response);
-                JSONArray array = object.getJSONArray(KEY_DATA);
-                mNextUrl = parseNextUrl(object);
-                // Parse
-                int size = array.length();
-                List<Notification> notifications = new ArrayList<>(size);
-                for (int i = 0; i < size; i++) {
-                    try {
-                        Notification n = new Notification(true).parse(array.getJSONObject(i));
-                        notifications.add(n);
-                    }catch (JSONException e){
-                        Log.e(TAG, "Failed to parse activity.");
-                    }
+        switch (mOpType) {
+            case DOWNLOAD_USER_PROFILE:
+                try {
+                    // Parse
+                    UserProfile profile = new UserProfile().parse(new JSONObject(response).getJSONObject(KEY_DATA));
+                    DataAccess.getInstance(mContextRef.get()).addUserProfile(profile);
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadEvent<UserProfile>(
+                            true, profile, DOWNLOAD_USER_PROFILE));
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse user profile data.", e);
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadEvent(
+                            false, mOpType));
                 }
-                // Notify UI
-                EventBus.getDefault().post(new DownloadTempListEvent<Notification>(
-                        true,
-                        mOpType,
-                        new TemporaryDataAccess<Notification>(notifications, shouldClearData()), null
-                ));
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to parse user profile data.", e);
-                // Notify UI
-                EventBus.getDefault().post(new DownloadEvent(
-                        false, OperationType.DOWNLOAD_USER_PROFILE));
-            }
+                break;
+            case DOWNLOAD_USER_PROFILE_ACTIVITIES:
+                try {
+                    JSONObject object = new JSONObject(response);
+                    JSONArray array = object.getJSONArray(KEY_DATA);
+                    mActivitiesNextUrl = parseNextUrl(object);
+                    // Parse
+                    int size = array.length();
+                    List<Notification> notifications = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        try {
+                            Notification n = new Notification(true).parse(array.getJSONObject(i));
+                            notifications.add(n);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Failed to parse activity.");
+                        }
+                    }
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadTempListEvent<Notification>(
+                            true,
+                            mOpType,
+                            new TemporaryDataAccess<Notification>(notifications, shouldClearData()), null
+                    ));
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse user profile data.", e);
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadEvent(
+                            false, DOWNLOAD_USER_PROFILE));
+                }
+                break;
+            case DOWNLOAD_FOLLOWERS:
+                try {
+                    JSONObject object = new JSONObject(response);
+                    mFollowersListNextUrl = parseNextUrl(object);
+                    // Parse data
+                    JSONArray array = object.getJSONArray(KEY_DATA);
+                    int size = array.length();
+                    List<UserProfile> profiles = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        // Parse
+                        UserProfile profile = new UserProfile().parse(array.getJSONObject(i));
+                        profiles.add(profile);
+                    }
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadTempListEvent<UserProfile>(
+                            true, mOpType,
+                            new TemporaryDataAccess<UserProfile>(profiles, shouldClearData()), null
+                    ));
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse user profile data.", e);
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadTempListEvent<UserProfile>(
+                            false, mOpType,
+                            null, null
+                    ));
+                }
+                break;
+            case DOWNLOAD_FOLLOWING:
+                try {
+                    JSONObject object = new JSONObject(response);
+                    mFollowingListNextUrl = parseNextUrl(object);
+                    // Parse data
+                    JSONArray array = object.getJSONArray(KEY_DATA);
+                    int size = array.length();
+                    List<UserProfile> profiles = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        // Parse
+                        UserProfile profile = new UserProfile().parse(array.getJSONObject(i));
+                        profiles.add(profile);
+                    }
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadTempListEvent<UserProfile>(
+                            true, mOpType,
+                            new TemporaryDataAccess<UserProfile>(profiles, shouldClearData()), null
+                    ));
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse user profile data.", e);
+                    // Notify UI
+                    EventBus.getDefault().post(new DownloadTempListEvent<UserProfile>(
+                            false, mOpType,
+                            null, null
+                    ));
+                }
+                break;
+            default:
+                return;
         }
 //        mDownloadListener.onDownloadSuccess();
 
@@ -148,6 +209,7 @@ public class UserProfileOp extends Operations {
 //        }
 
     }
+
 
     @Override
     public void onDownloadFailed(VolleyError error) {
@@ -170,25 +232,25 @@ public class UserProfileOp extends Operations {
         int method;
         switch (mOpType) {
             case FOLLOW_USER_PROFILE: {
-                url = UrlData.createFollowUrl(mUserId);
-                method = Request.Method.POST;
-                submitRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        saveFollowedUser(true);
-                    }
-                });
+                url = UrlData.buildFollowUrl(mUserId);
+                method = Request.Method.PUT;
+//                submitRunnable(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        saveFollowedUser(true);
+//                    }
+//                });
                 break;
             }
             case UNFOLLOW_USER_PROFILE: {
-                url = UrlData.createUnfollowUrl(mUserId);
+                url = UrlData.buildUnfollowUrl(mUserId);
                 method = Request.Method.DELETE;
-                submitRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        saveFollowedUser(false);
-                    }
-                });
+//                submitRunnable(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        saveFollowedUser(false);
+//                    }
+//                });
                 break;
             }
 
@@ -208,7 +270,7 @@ public class UserProfileOp extends Operations {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                updateServerStatus(1, ServerStatus.STATUS_SUCCESS);
+//                updateServerStatus(1, ServerStatus.STATUS_SUCCESS);
             }
         });
     }
@@ -257,41 +319,6 @@ public class UserProfileOp extends Operations {
         return this;
     }
 
-    /**
-     * Settings user id param for upload/download operation.
-     *
-     * @param userProfile user profile to download data to.
-     * @return {@link UserProfileOp} instance
-     */
-    public UserProfileOp setUserProfile(UserProfile userProfile) {
-        mUserProfile = userProfile;
-        return this;
-    }
-
-    /**
-     * Setting count for user profile list download.
-     * Indicates how much of user profiles to download from server.
-     *
-     * @param count count number to download
-     * @return {@link UserProfileOp} instance
-     */
-    public UserProfileOp setCount(int count) {
-//        mCount = count;
-        return this;
-    }
-
-    /**
-     * Setting offset for user profile list download.
-     * Indicates from what position to download the list.
-     * Set it relative to how much of profiles has already been downloaded.
-     *
-     * @param offset offset number
-     * @return {@link UserProfileOp} instance
-     */
-    public UserProfileOp setOffset(int offset) {
-//        mOffset = offset;
-        return this;
-    }
 
     /**
      * Helper method for creating debug text string
@@ -302,7 +329,12 @@ public class UserProfileOp extends Operations {
 
     @Override
     protected void clearNextUrl() {
-        mNextUrl = "";
+        if (mOpType.equals(DOWNLOAD_USER_PROFILE_ACTIVITIES))
+            mActivitiesNextUrl = "";
+        else if (mOpType.equals(DOWNLOAD_FOLLOWERS))
+            mFollowersListNextUrl = "";
+        else
+            mFollowingListNextUrl = "";
     }
 
     @Override

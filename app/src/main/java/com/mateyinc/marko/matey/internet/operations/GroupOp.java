@@ -6,9 +6,11 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataAccess;
+import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.UrlData;
 import com.mateyinc.marko.matey.internet.events.DownloadEvent;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.utils.ImageCompress;
@@ -44,44 +46,53 @@ public class GroupOp extends Operations {
     /**
      * Contains url for next page of data. If empty, no page has already been downloaded.
      */
-    protected static String mNextUrl = "";
+    protected static String mGroupListNextUrl = "";
+    protected static String mGroupActivitiesNextUrl = "";
 
     private long mUserId;
-    private Group group;
+    private long mGroupId;
+    private Group mGroup;
     private File picFilePath;
 
     public GroupOp(Context context) {
         super(context);
     }
 
+    public GroupOp(Context context, long groupId) {
+        super(context);
+        this.mGroupId = groupId;
+    }
+
     public GroupOp(Context context, Group group) {
         super(context);
-        this.group = group;
+        this.mGroup = group;
     }
+
 
     @Override
     public void startDownloadAction() {
         switch (mOpType) {
             case DOWNLOAD_GROUP_LIST: {
                 Log.d(TAG, "Downloading group list.");
-                if (mNextUrl.isEmpty()) {
+                if (mGroupListNextUrl.isEmpty()) {
 //                    mClearData = true;
                     mUrl = UrlData.buildGetGroupList(mUserId);
                 } else {
-                    mUrl = buildNextPageUrl(mNextUrl);
+                    mUrl = buildNextPageUrl(mGroupListNextUrl);
                 }
                 break;
             }
             case DOWNLOAD_GROUP_INFO: {
                 Log.d(TAG, "Downloading group info.");
-                mUrl = UrlData.buildGetGroupInfo(this.group._id);
+                mUrl = UrlData.buildGetGroupInfo(mGroupId);
+                break;
             }
             case DOWNLOAD_GROUP_ACTIVITY_LIST: {
                 Log.d(TAG, "Downloading group activity list.");
-                if (this.group.mNextUrl.isEmpty()) {
-                    mUrl = UrlData.buildGetGroupActivityList(this.group._id);
+                if (mGroupActivitiesNextUrl.isEmpty()) {
+                    mUrl = UrlData.buildGetGroupActivityList(mGroupId);
                 } else
-                    mUrl = buildNextPageUrl(this.group.mNextUrl);
+                    mUrl = buildNextPageUrl(mGroupActivitiesNextUrl);
                 break;
             }
             default:
@@ -95,25 +106,28 @@ public class GroupOp extends Operations {
     protected void onDownloadSuccess(String response) {
         switch (mOpType) {
             case DOWNLOAD_GROUP_LIST:
-                parseList(response);
+                parseGroupList(response);
                 break;
             case DOWNLOAD_GROUP_INFO:
-                parseItem(response);
+                parseGroupInfo(response);
                 break;
             case DOWNLOAD_GROUP_ACTIVITY_LIST:
-
                 try {
-                    List<Bulletin> bulletinList = NewsfeedOp.parseBulletinList(null);
+                    JSONObject object = new JSONObject(response);
+                    List<Bulletin> bulletinList = NewsfeedOp.parseBulletinList(object.getJSONArray(KEY_DATA));
 
-                    if (shouldClearData()) {
-//                        this.group.setBulletinList(bulletinList);
-                        dataCleared();
-                    } else
-//                        this.group.addBulletinList(bulletinList);
-
-                    EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST));
+                    mGroupActivitiesNextUrl = parseNextUrl(object);
+                    EventBus.getDefault().post(
+                            new DownloadTempListEvent<Bulletin>(
+                                    true, mOpType,
+                                    new TemporaryDataAccess<Bulletin>(bulletinList, shouldClearData()),
+                                    null
+                            )
+                    );
                 } catch (JSONException e) {
-                    EventBus.getDefault().post(new DownloadEvent(false, OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST));
+                    EventBus.getDefault().post(new DownloadTempListEvent<Bulletin>(
+                            false, mOpType, null, null
+                    ));
                     Log.e(TAG, "Failed to parse bulletin list.", e);
                 }
             default:
@@ -121,12 +135,17 @@ public class GroupOp extends Operations {
         }
     }
 
-    private void parseItem(String response) {
+    /**
+     * Helper method for parsing group information.
+     *
+     * @param response response from server.
+     */
+    private void parseGroupInfo(String response) {
         try {
             JSONObject object = new JSONObject(response).getJSONObject(KEY_DATA);
-            this.group = group.parse(object);
+            this.mGroup = new Group().parse(object);
             // Notify
-            EventBus.getDefault().post(new DownloadEvent(true, OperationType.DOWNLOAD_GROUP_INFO));
+            EventBus.getDefault().post(new DownloadEvent<Group>(true, mGroup, OperationType.DOWNLOAD_GROUP_INFO));
         } catch (JSONException e) {
             EventBus.getDefault().post(new DownloadEvent(false, OperationType.DOWNLOAD_GROUP_INFO));
 
@@ -134,10 +153,15 @@ public class GroupOp extends Operations {
         }
     }
 
-    private void parseList(String response) {
+    /**
+     * Method for parsing list of group from server response.
+     *
+     * @param response response string received from server.
+     */
+    private void parseGroupList(String response) {
         try {
             JSONObject object = new JSONObject(response);
-            mNextUrl = parseNextUrl(object);
+            mGroupListNextUrl = parseNextUrl(object);
             JSONArray groupArray = object.getJSONArray(KEY_DATA);
 
             // Parsing
@@ -181,13 +205,29 @@ public class GroupOp extends Operations {
                 mUrl = UrlData.POST_NEW_GROUP;
                 mMethod = Request.Method.POST;
                 uploadGroup();
+                return;
+            }
+            case FOLLOW_GROUP: {
+                mUrl = UrlData.buildFollowGroupUrl(this.mGroup._id);
+                mMethod = Request.Method.PUT;
+                break;
+            }
+            case UNFOLLOW_GROUP: {
+                mUrl = UrlData.buildFollowGroupUrl(this.mGroup._id);
+                mMethod = Request.Method.DELETE;
                 break;
             }
             default:
                 return;
         }
+
+        createNewUploadReq(mUrl, mMethod);
+        startUpload();
     }
 
+    /**
+     * method for uploading new group to the server.
+     */
     private void uploadGroup() {
         // Build request
         RequestBody requestBody;
@@ -228,7 +268,7 @@ public class GroupOp extends Operations {
             if (response.isSuccessful()) {
                 String re = response.body().string();
                 // Parse
-                this.group.parse(new JSONObject(re).getJSONObject(KEY_DATA));
+                this.mGroup.parse(new JSONObject(re).getJSONObject(KEY_DATA));
                 // Notify UI
 
             } else {
@@ -244,10 +284,16 @@ public class GroupOp extends Operations {
 
     }
 
+    /**
+     * Helper method for building json object to send as body of a network request.
+     *
+     * @return newly built {@link JSONObject} object.
+     * @throws JSONException
+     */
     private JSONObject buildJSONData() throws JSONException {
         JSONObject object = new JSONObject();
-        object.put(GROUP_NAME_FIELD, this.group.getGroupName());
-        object.put(DESCR_FIELD, this.group.getDescription());
+        object.put(GROUP_NAME_FIELD, this.mGroup.getGroupName());
+        object.put(DESCR_FIELD, this.mGroup.getDescription());
         return object;
     }
 
@@ -263,7 +309,10 @@ public class GroupOp extends Operations {
 
     @Override
     protected void clearNextUrl() {
-        mNextUrl = "";
+        if (mOpType.equals(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST))
+            mGroupActivitiesNextUrl = "";
+        else if (mOpType.equals(OperationType.DOWNLOAD_GROUP_LIST))
+            mGroupListNextUrl = "";
     }
 
     public void setPicFilePath(File picFilePath) {

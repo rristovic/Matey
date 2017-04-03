@@ -22,6 +22,7 @@ public enum OperationType {
     FOLLOW_USER_PROFILE,
     UNFOLLOW_USER_PROFILE,
     DOWNLOAD_FOLLOWERS,
+    DOWNLOAD_FOLLOWING,
 
     // Approve operations
     POST_LIKED,
@@ -41,6 +42,9 @@ public enum OperationType {
     DOWNLOAD_GROUP_INFO,
     DOWNLOAD_GROUP_ACTIVITY_LIST,
     POST_NEW_GROUP,
+    POST_NEW_GROUP_BULLETIN,
+    FOLLOW_GROUP,
+    UNFOLLOW_GROUP,
 
     // Search ops
     SEARCH_TOP,

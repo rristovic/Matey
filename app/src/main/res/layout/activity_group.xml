@@ -3,23 +3,52 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.design.widget.AppBarLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_behavior="com.mateyinc.marko.matey.activity.FlingBehavior">
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@null"
+        android:elevation="@dimen/main_elevation"
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp">
+        <!--app:layout_collapseMode="pin">-->
 
-        <android.support.design.widget.CollapsingToolbarLayout
+        <ImageButton
+            android:id="@+id/ibBack"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="14dp"
+            android:src="@drawable/ic_back" />
+        <!--android:background="@drawable/actionbar_icon_bg"-->
+
+        <TextView
+            android:id="@+id/tvReplyViewHeading"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:gravity="center_vertical"
+            android:text=""
+            android:textSize="@dimen/subHeading" />
+
+    </android.support.v7.widget.Toolbar>
+
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/svMainScrollFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:titleEnabled="false">
-
+            android:layout_height="match_parent">
 
             <RelativeLayout
+                android:id="@+id/contentView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/white"
-                app:layout_scrollFlags="scroll">
+                android:elevation="4dp">
 
                 <ImageView
                     android:id="@+id/ivGroupPic"
@@ -28,9 +57,13 @@
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
                     android:layout_alignParentTop="true"
-                    app:srcCompat="@color/gray"
                     android:scaleType="centerCrop"
-                    />
+                    app:srcCompat="@color/gray" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="?android:attr/actionBarSize"
+                    android:background="@drawable/picture_top_shade" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -55,13 +88,14 @@
                         android:layout_toEndOf="@+id/icPirate"
                         android:layout_toRightOf="@+id/icPirate"
                         android:text="crew number" />
+
                     <ImageView
                         android:id="@+id/icPirate"
-                        android:layout_marginRight="4dp"
-                        android:layout_marginEnd="4dp"
                         android:layout_width="@dimen/group_icPirate_size"
                         android:layout_height="@dimen/group_icPirate_size"
                         android:layout_alignBottom="@id/tvGroupCrewNum"
+                        android:layout_marginEnd="4dp"
+                        android:layout_marginRight="4dp"
                         android:src="@drawable/ic_pirate" />
 
                     <TextView
@@ -72,71 +106,53 @@
                         android:layout_marginTop="@dimen/group_crewSize_marginTop"
                         android:text="This is some info about the group" />
 
-                    <Button
-                        android:id="@+id/btnGroupSail"
-                        style="@style/Widget.AppCompat.Button.Borderless"
+                    <ToggleButton
+                        android:id="@+id/btnSail"
+                        style="?android:attr/borderlessButtonStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/group_btn_size"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_below="@id/tvGroupInfo"
-                        android:layout_marginTop="@dimen/group_crewSize_marginTop"
                         android:background="@drawable/profile_btn"
-                        android:text="@string/sail"
-                        android:textColor="@color/profile_btn" />
+                        android:checked="false"
+                        android:textColor="@color/profile_btn"
+                        android:textOff="@string/sail_with_label"
+                        android:textOn="@string/sailing_with_label" />
 
                     <TextView
                         android:id="@+id/tvGroupStats"
 
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignBottom="@id/btnGroupSail"
+                        android:layout_alignBottom="@id/btnSail"
                         android:text="group statistics" />
                 </RelativeLayout>
+
+                <ImageView
+                    android:id="@+id/ivShader"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/group_image_size"
+                    android:scaleType="centerCrop" />
             </RelativeLayout>
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rvGroupBulletins"
                 android:layout_width="match_parent"
-                android:layout_height="?android:attr/actionBarSize"
-                android:background="@null"
-                android:elevation="@dimen/main_elevation"
-                app:contentInsetLeft="0dp"
-                app:contentInsetStart="0dp"
-                app:layout_collapseMode="pin">
+                android:layout_height="match_parent"
+                android:layout_below="@id/contentView"
+                android:paddingBottom="@dimen/bulletin_margin"
+                app:layoutManager="LinearLayoutManager">
 
-                <ImageButton
-                    android:id="@+id/ibBack"
-                    android:layout_width="50dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="start"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:padding="14dp"
-                    android:src="@drawable/ic_back" />
-                <!--android:background="@drawable/actionbar_icon_bg"-->
+            </android.support.v7.widget.RecyclerView>
+        </RelativeLayout>
+    </android.support.v4.widget.NestedScrollView>
 
-                <TextView
-                    android:id="@+id/tvReplyViewHeading"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="start"
-                    android:gravity="center_vertical"
-                    android:text=""
-                    android:textSize="@dimen/subHeading" />
-
-            </android.support.v7.widget.Toolbar>
-
-
-        </android.support.design.widget.CollapsingToolbarLayout>
-
-    </android.support.design.widget.AppBarLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rvGroupBulletins"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="LinearLayoutManager"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@android:drawable/ic_input_add"
+        android:id="@+id/fabNewGroupPost" />
 </android.support.design.widget.CoordinatorLayout>

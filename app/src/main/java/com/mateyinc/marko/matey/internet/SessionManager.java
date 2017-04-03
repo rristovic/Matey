@@ -36,18 +36,20 @@ import com.facebook.login.LoginResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.main.MainActivity;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.gcm.MateyFirebasePreferences;
 import com.mateyinc.marko.matey.gcm.RegistrationIntentService;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.events.UploadEvent;
 import com.mateyinc.marko.matey.model.KVPair;
 import com.mateyinc.marko.matey.model.UserProfile;
 import com.mateyinc.marko.matey.storage.SecurePreferences;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -300,7 +302,7 @@ public class SessionManager {
      * @param email user email address
      * @param pass  user password
      */
-    public void registerWithVolley(final MainActivity context, String firstName, String lastName, final String email, String pass) {
+    public void registerWithVolley(final MotherActivity context, String firstName, String lastName, final String email, String pass) {
         // Showing progress dialog
         showProgressDialog(context, context.getResources().getString(R.string.registering_dialog_message));
 
@@ -318,10 +320,11 @@ public class SessionManager {
 
                         // Updating UI
                         dismissProgressDialog(mProgDialog);
-                        context.startRegReverseAnim();
-                        context.mRegFormVisible = false;
-                        context.etEmail.setText("");
-                        context.etPass.setText("");
+                        EventBus.getDefault().post(new UploadEvent(true));
+//                        context.startRegReverseAnim();
+//                        context.mRegFormVisible = false;
+//                        context.etEmail.setText("");
+//                        context.etPass.setText("");
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -339,7 +342,9 @@ public class SessionManager {
                                 String[] errorDesc = parseJsonError(errorData);
                                 if (errorDesc[0].equals(MateyRequest.ErrorType.MERGE)) {
                                     dismissProgressDialog(mProgDialog);
-                                    requestFbToken(context, context.getSecurePreferences(), errorDesc, context.etPass.getText().toString());
+                                    // TODO - finish merge error
+//                                    requestFbToken(context, context.getSecurePreferences(), errorDesc, context.etPass.getText().toString());
+//                                    requestFbToken(context, context.getSecurePreferences(), errorDesc, "");
                                 } else
                                     dismissProgressAndShowAlert(context, errorDesc[1]);
                             } catch (JSONException e) {
@@ -778,14 +783,14 @@ public class SessionManager {
      * Helper method for dismissing progress dialog and showing alert on server error
      * @param context the context used for dialog control
      */
-    private void dismissProgressAndShowAlert(MainActivity context){
+    private void dismissProgressAndShowAlert(MotherActivity context){
         if (mProgDialog.isShowing())
             mProgDialog.dismiss();
 
         showServerAlert(context);
     }
 
-    public void showServerAlert(MainActivity context){
+    public void showServerAlert(MotherActivity context){
         Util.showServerNotResponding(context,
                 new DialogInterface.OnClickListener() {
                     @Override
@@ -800,7 +805,7 @@ public class SessionManager {
      * @param context the context used for dialog control
      * @param message the message string
      */
-    private void dismissProgressAndShowAlert(final MainActivity context, String message){
+    private void dismissProgressAndShowAlert(final MotherActivity context, String message){
         if (mProgDialog != null && mProgDialog.isShowing())
             mProgDialog.dismiss();
 

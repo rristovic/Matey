@@ -160,7 +160,7 @@ public class HomeActivity extends MotherActivity implements View.OnTouchListener
 //
 //                // Adding search view
 //                searchView = new SearchView(HomeActivity.this);
-//                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) com.mateyinc.marko.matey.activity.Util.parseDp(40f, getResources())));
+//                searchView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) com.mateyinc.marko.matey.activity.utils.Util.parseDp(40f, getResources())));
 //                searchView.setIconified(false);
 //                searchView.setQueryHint("Find mates and ships..");
 //                // Setting search view style

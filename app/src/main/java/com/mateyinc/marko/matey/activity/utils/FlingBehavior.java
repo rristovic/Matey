@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity;
+package com.mateyinc.marko.matey.activity.utils;
 
 import android.content.Context;
 import android.support.design.widget.AppBarLayout;

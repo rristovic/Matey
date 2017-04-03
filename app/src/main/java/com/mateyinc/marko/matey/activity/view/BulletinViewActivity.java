@@ -23,9 +23,7 @@ import android.widget.TextView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
-import com.mateyinc.marko.matey.activity.OnTouchInterface;
-import com.mateyinc.marko.matey.activity.Util;
-import com.mateyinc.marko.matey.activity.home.BulletinsFragment;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.adapters.RepliesAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
@@ -101,7 +99,7 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
             return;
         }
 
-
+        // Download data
         mManager = OperationManager.getInstance(BulletinViewActivity.this);
         mManager.downloadBulletinInfo(mBulletinId, BulletinViewActivity.this);
 
@@ -111,12 +109,38 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
         rvList = (RecyclerView) findViewById(R.id.rvBulletinRepliesList);
         tvHeading = (TextView) findViewById(R.id.tvReplyViewHeading);
         mAdapter = new RepliesAdapter(this);
-        if (null == mCurBulletin)
-            updateCurBulletin();
         ivOpenReplyScreen = (ImageView) findViewById(R.id.ivOpenReplyScreen);
         ivReply = (ImageView) findViewById(R.id.ivSendReply);
         ivReply.setEnabled(false);
         etReplyText = (TextView) findViewById(R.id.etNewReply);
+
+        // Update current bulletin and update UI if bulletin available
+        if (null == mCurBulletin)
+            updateCurBulletin();
+
+        // Setup adapter
+        mAdapter.setReplyPopupInterface(this);
+        rvList.setAdapter(mAdapter);
+        mAdapter.showMainPostInfo(mCurBulletin);
+
+        setListeners();
+    }
+
+    /**
+     * Helper method for updating field {@link #mCurBulletin} with new data and passing it to adapter.
+     */
+    private void updateCurBulletin() {
+        if (mBulletinPos == -1)
+            mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletinById(mBulletinId);
+        else
+            mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletin(mBulletinPos);
+        mAdapter.setBulletin(mCurBulletin);
+
+        if (mCurBulletin != null)
+            updateUI();
+    }
+
+    private void setListeners() {
         etReplyText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -142,26 +166,6 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
             }
         });
 
-        mAdapter.setReplyPopupInterface(this);
-        rvList.setAdapter(mAdapter);
-        mAdapter.showMainPostInfo(mCurBulletin);
-
-        setListeners();
-    }
-
-    /**
-     * Helper method for updating field {@link #mCurBulletin} with new data and passing it to adapter.
-     */
-    private void updateCurBulletin() {
-        if (mBulletinPos == -1)
-            mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletinById(mBulletinId);
-        else
-            mCurBulletin = DataAccess.getInstance(BulletinViewActivity.this).getBulletin(mBulletinPos);
-        mAdapter.setBulletin(mCurBulletin);
-        updateUI();
-    }
-
-    private void setListeners() {
         ivOpenReplyScreen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -201,62 +205,17 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
             }
         });
-        ivReply.setOnTouchListener(new OnTouchInterface(this));
-    }
-
-    /**
-     * If some change is made, notify bulletins fragment and its adapter
-     */
-    public void notifyBulletinFragment() {
-        BulletinsFragment.mUpdatedPositions.add(mBulletinPos);
-    }
-
-    private void setHeadingText() {
-        String text = "";
-
-        if (mAdapter.getItemCount() != 0) {
-            int replyCount = mAdapter.getItemCount();
-            if (replyCount == 1)
-                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getUserProfile().getFirstName(), mCurBulletin.getUserProfile().getLastName());
-            else {
-                text = String.format(getString(R.string.bulletin_reply_header), mCurBulletin.getUserProfile().getFirstName(), Integer.toString(--replyCount));
-            }
-        } else
-            text = "No replies so far";
-
-        tvHeading.setText(text);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
-            // Get focus on edit text and show keyboard
-            showReplyKeyboard();
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        EventBus.getDefault().unregister(this);
-        super.onStop();
+//        ivReply.setOnTouchListener(new OnTouchInterface(this));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onListDownloaded(DownloadTempListEvent<Reply> event) {
 //        updateCurBulletin();
-        if(event.mEventType.equals(OperationType.DOWNLOAD_BULLETIN)) {
-            mAdapter.setBulletin((Bulletin) event.mModel);
+        if (event.mEventType.equals(OperationType.DOWNLOAD_BULLETIN) && event.isSuccess) {
+            mAdapter.setBulletin(mCurBulletin = (Bulletin) event.mModel);
             mAdapter.loadData(event.mDao);
             updateUI();
-        } else {
+        } else if(event.mEventType.equals(OperationType.DOWNLOAD_RE_REPLIES) && event.isSuccess){
             mRepliesAdapter.loadData(event.mDao);
         }
     }
@@ -272,41 +231,11 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
 
     }
 
-//    @Override
-//    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-//
-//        if (id == REPLIES_LOADER)
-//            return new CursorLoader(BulletinViewActivity.this,
-//                    ReplyEntry.CONTENT_URI,
-//                    REPLIES_COLUMNS,
-//                    "replies.".concat(ReplyEntry.COLUMN_POST_ID) + " = ?",
-//                    new String[]{Long.toString(getIntent().getLongExtra(EXTRA_BULLETIN_ID, -1))},
-//                    REPLIES_ORDER_BY);
-//        else
-//            return new CursorLoader(BulletinViewActivity.this,
-//                    ReplyEntry.CONTENT_URI,
-//                    REPLIES_COLUMNS,
-//                    "replies.".concat(ReplyEntry._ID) + " = ?",
-//                    new String[]{Long.toString(args.getLong(ARG_REPLY_ID))},
-//                    REPLIES_ORDER_BY);
-//    }
-//
-//    @Override
-//    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-//
-//        if (loader.getId() == REPLIES_LOADER) {
-//            updateCurBulletin();
-//            mAdapter.setBulletin(mCurBulletin);
-//            mAdapter.swapCursor(data);
-//            updateUI();
-//        } else {
-//            mRepliesAdapter.swapCursor(data);
-//            // TODO - set heading text
-//        }
-//    }
-
     private static final String BULLETINVIEW_TAG = "bulletin_view_tag";
 
+    /**
+     * Method for updating UI with relevant data.
+     */
     private void updateUI() {
         setHeadingText();
 
@@ -355,9 +284,29 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
             ((TextView) bulletinView.findViewById(R.id.tvBulletinMessage)).setText(mCurBulletin.getMessage());
             ((TextView) bulletinView.findViewById(R.id.tvBulletinStats)).setText(mCurBulletin.getStatistics(BulletinViewActivity.this));
         } else {
+            // Remove bulletin view
             if (bulletinView != null && rlContainer.findViewWithTag(BULLETINVIEW_TAG) != null)
                 rlContainer.removeView(bulletinView);
         }
+    }
+
+    /**
+     * Helper method for setting text in header in toolbar.
+     */
+    private void setHeadingText() {
+        String text = "";
+
+        if (mAdapter.getItemCount() != 0) {
+            int replyCount = mAdapter.getItemCount();
+            if (replyCount == 1)
+                text = String.format(getString(R.string.bulletin_onereply_header), mCurBulletin.getUserProfile().getFirstName(), mCurBulletin.getUserProfile().getLastName());
+            else {
+                text = String.format(getString(R.string.bulletin_reply_header), mCurBulletin.getUserProfile().getFirstName(), Integer.toString(--replyCount));
+            }
+        } else
+            text = "No replies so far";
+
+        tvHeading.setText(text);
     }
 
     @Override
@@ -448,5 +397,27 @@ public class BulletinViewActivity extends MotherActivity implements RepliesAdapt
                 mCurReply = null;
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (getIntent().hasExtra(EXTRA_NEW_REPLY)) {
+            // Get focus on edit text and show keyboard
+            showReplyKeyboard();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
     }
 }

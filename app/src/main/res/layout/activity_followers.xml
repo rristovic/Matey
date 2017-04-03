@@ -37,19 +37,10 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="match_parent"
-        android:layout_height="?android:attr/actionBarSize"
-        android:layout_below="@id/toolbar"
-        android:indeterminate="true" />
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/toolbar"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
         app:layoutManager="LinearLayoutManager" />
 </RelativeLayout>

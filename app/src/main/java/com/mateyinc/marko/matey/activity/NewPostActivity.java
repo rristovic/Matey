@@ -26,16 +26,23 @@ import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.maps.MapsActivity;
 import com.mateyinc.marko.matey.adapters.FilesAdapter;
 import com.mateyinc.marko.matey.data.FilePath;
-import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.data.TemporaryDataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.OperationManager;
+import com.mateyinc.marko.matey.internet.events.DownloadTempListEvent;
+import com.mateyinc.marko.matey.internet.operations.OperationType;
+import com.mateyinc.marko.matey.model.Bulletin;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static com.mateyinc.marko.matey.inall.MyApplication.PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE;
@@ -67,6 +74,10 @@ public class NewPostActivity extends MotherActivity {
      * Contains text that is being replied to, thus indicating that this isn't new post.
      **/
     public static final String EXTRA_REPLY_SUBJECT = "post_subject";
+    /**
+     * Contains text that is being replied to, thus indicating that this isn't new post.
+     **/
+    public static final String EXTRA_GROUP_ID = "group_id";
 
     /**
      * Contains marked position on the map (lat,long,title).
@@ -87,6 +98,11 @@ public class NewPostActivity extends MotherActivity {
      * Indicates if this new post is reply on reply
      */
     private boolean mIsReplyOnBulletin = false;
+
+    /**
+     * Group id if present, indicates that this is an reply in group.
+     */
+    private long mGroupId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +143,9 @@ public class NewPostActivity extends MotherActivity {
 
     private void setUI() {
         Intent i = getIntent();
+
+        // Parse group id
+        mGroupId = i.getLongExtra(EXTRA_GROUP_ID, -1);
 
         // Setting ui if this is a reply on reply
         if (i.hasExtra(EXTRA_REPLY_SUBJECT)) {
@@ -294,6 +313,15 @@ public class NewPostActivity extends MotherActivity {
             OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
             operationManager.postNewReply(etNewPostMsg.getText().toString(),
                     getIntent().getExtras().getLong(EXTRA_POST_ID), NewPostActivity.this);
+        } else if (mGroupId != -1) {
+            OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
+            Bulletin b = operationManager.postNewGroupBulletin(etNewPostSubject.getText().toString()
+                    , etNewPostMsg.getText().toString(), mFilesAdapter.getData(), mGroupId, NewPostActivity.this);
+            List<Bulletin> list = new ArrayList<>(1);
+            list.add(b);
+            // Notify UI so new bulletin can be added to temporary list
+            EventBus.getDefault().postSticky(new DownloadTempListEvent<Bulletin>(true, OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST,
+                    new TemporaryDataAccess<Bulletin>(list, false), null));
         } else {
             OperationManager operationManager = OperationManager.getInstance(NewPostActivity.this);
             operationManager.postNewBulletin(etNewPostSubject.getText().toString()
@@ -327,7 +355,7 @@ public class NewPostActivity extends MotherActivity {
             } else if (requestCode == MAPS_REQ_CODE) {
                 try {
                     JSONArray array = new JSONArray(data.getStringExtra(EXTRA_MAP_POSITIONS));
-                    for (int i = 0; i<array.length(); i++){
+                    for (int i = 0; i < array.length(); i++) {
                         mFilesAdapter.addData(array.getJSONObject(i).toString());
                     }
                 } catch (JSONException e) {

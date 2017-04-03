@@ -33,7 +33,7 @@ public class UserProfile extends MModel {
     public static final String KEY_FOLLOWERS_NUM = "num_of_followers";
     public static final String KEY_FOLLOWING_NUM = "num_of_following";
     public static final String KEY_VERIFIED = "verified";
-    public static final String KEY_FOLLOWING = "following";
+    public static final String KEY_FOLLOWED = "followed";
 
     private String firstName;
     private String lastName;
@@ -49,7 +49,7 @@ public class UserProfile extends MModel {
     private int lastMsgId;
     private int numOfPosts;
     private int numOfFriends;
-    private boolean mIsFriend = false;
+    private boolean isFollowed = false;
     private int followersNum;
     private int followingNum;
 
@@ -225,8 +225,12 @@ public class UserProfile extends MModel {
         return lastMsgId;
     }
 
-    public boolean isFriend() {
-        return mIsFriend;
+    public boolean isFollowed() {
+        return isFollowed;
+    }
+
+    public void setFollowed(boolean followed) {
+        isFollowed = followed;
     }
 
     public int getFollowersNum() {
@@ -237,14 +241,10 @@ public class UserProfile extends MModel {
         return followingNum;
     }
 
-    public void setFriend(boolean isFriend) {
-        mIsFriend = isFriend;
-    }
 
     public void copy(UserProfile currentUserProfile) {
         this.firstName = currentUserProfile.firstName;
         this.lastName = currentUserProfile.lastName;
-        this.mIsFriend = currentUserProfile.mIsFriend;
         this.birthday = currentUserProfile.birthday;
         this.email = currentUserProfile.email;
         this.gender = currentUserProfile.gender;
@@ -266,6 +266,11 @@ public class UserProfile extends MModel {
         this.lastName = object.getString(KEY_LAST_NAME);
         this.profilePictureLink = object.getString(KEY_PROFILE_PIC);
 
+        try {
+            this.isFollowed = object.getBoolean(KEY_FOLLOWED);
+        } catch (JSONException e) {
+            Log.w(TAG, "No value for followed.");
+        }
         try {
             this.email = object.getString(KEY_EMAIL);
         } catch (JSONException e) {
@@ -304,7 +309,7 @@ public class UserProfile extends MModel {
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_NAME, lastName);
         userValues.put(DataContract.ProfileEntry.COLUMN_EMAIL, email);
         userValues.put(DataContract.ProfileEntry.COLUMN_PROF_PIC, profilePictureLink);
-        userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWED, mIsFriend);
+//        userValues.put(DataContract.ProfileEntry.COLUMN_FOLLOWED, mIsFriend);
         userValues.put(DataContract.ProfileEntry.COLUMN_LAST_MSG_ID, lastMsgId);
         userValues.put(DataContract.ProfileEntry.COLUMN_COVER_PIC, coverPictureLink);
 

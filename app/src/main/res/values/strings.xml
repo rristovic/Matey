@@ -223,5 +223,21 @@
         </Data>
     </string>
 
+    <!-- Register related -->
+    <string name="register_name_header">Enter your sailor name</string>
+    <string name="register_firstName">First name</string>
+    <string name="register_lastName">Last name</string>
+    <string name="register_email">Email</string>
+    <string name="register_email_header">Enter your email address, so you can find your local ship faster</string>
+    <string name="register_password_header">Enter your desired password</string>
+    <string name="register_password">Password</string>
+    <string name="register_repeat_pass">Repeat password</string>
+    <string name="register_nextStep_label">Next</string>
+    <string name="register_error_email">Not valid email address.</string>
+    <string name="register_error_name">Not valid.</string>
+    <string name="register_error_pass">Not valid password.</string>
+    <string name="register_finalStep_text">Congratulations, you have successfully registered. Continue to login page.</string>
+    <string name="register_doneBtn_label">Done</string>
+
 
 </resources>

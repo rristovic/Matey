@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.android.volley.VolleyError;
 import com.mateyinc.marko.matey.data.DataAccess;
-import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationProvider;
 import com.mateyinc.marko.matey.internet.UrlData;
@@ -126,7 +125,6 @@ public class NewsfeedOp extends Operations {
                     JSONObject activityObj = object.getJSONObject(Operations.KEY_ACTIVITY_OBJECT);
                     // Parse bulletin
                     Bulletin b = new Bulletin().parse(activityObj);
-                    b.setServerStatus(ServerStatus.STATUS_SUCCESS);
 //                    // Parse user profile
 //                    UserProfile userProfile = UserProfile.parseUserProfile(
 //                            activityObj.getString(Bulletin.KEY_USER_PROFILE));

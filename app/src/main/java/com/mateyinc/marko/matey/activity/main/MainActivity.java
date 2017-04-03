@@ -46,9 +46,10 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.mateyinc.marko.matey.R;
+import com.mateyinc.marko.matey.activity.register.RegisterActivity;
 import com.mateyinc.marko.matey.gcm.MateyFirebasePreferences;
-import com.mateyinc.marko.matey.internet.SessionManager;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,7 +97,9 @@ public class MainActivity extends MotherActivity {
 
     // FB
     public CallbackManager fbCallbackManager;
-    /** Used for different fb requests, determinates which one is it; */
+    /**
+     * Used for different fb requests, determinates which one is it;
+     */
     private int mFbRequest;
     public static final int LOGIN_REQ = 1;
     public static final int ACCESSTOKEN_REQ = 2;
@@ -152,7 +155,9 @@ public class MainActivity extends MotherActivity {
         setAutocompleteEmailValues();
     }
 
-    /** Initialize GCM broadcast receiver and registers it with {@link LocalBroadcastManager} */
+    /**
+     * Initialize GCM broadcast receiver and registers it with {@link LocalBroadcastManager}
+     */
     private void initGCM() {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -164,7 +169,9 @@ public class MainActivity extends MotherActivity {
         registerGCMReceiver();
     }
 
-    /** Method for registering the {@link #mRegistrationBroadcastReceiver} with the {@link LocalBroadcastManager} */
+    /**
+     * Method for registering the {@link #mRegistrationBroadcastReceiver} with the {@link LocalBroadcastManager}
+     */
     private void registerGCMReceiver() {
         if (!isGcmReceiverRegistered) {
             LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
@@ -173,7 +180,9 @@ public class MainActivity extends MotherActivity {
         }
     }
 
-    /** Initialise facebook login callback */
+    /**
+     * Initialise facebook login callback
+     */
     protected void initFBLogin() {
 
         LoginManager.getInstance().registerCallback(fbCallbackManager,
@@ -225,11 +234,11 @@ public class MainActivity extends MotherActivity {
             @Override
             public void onClick(View v) {
                 if (!mLoginFormVisible) {
-                     if (!mDeviceReady) {
-                         // If the device isn't ready, try registering with the server again
-                         mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
-                         mSessionManager.startSession(MainActivity.this);
-                         return;
+                    if (!mDeviceReady) {
+                        // If the device isn't ready, try registering with the server again
+                        mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
+                        mSessionManager.startSession(MainActivity.this);
+                        return;
                     }
                     // Showing login form
                     showLoginForm();
@@ -258,40 +267,40 @@ public class MainActivity extends MotherActivity {
         btnReg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mRegFormVisible) {
-                    if (!mDeviceReady) {
-                        // If the device isn't ready, try registering with the server again
-                        mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
-                        mSessionManager.startSession(MainActivity.this);
-                        return;
-                    }
-                    // Showing reg form
-                    showRegForm();
-                } else {
-                    String email = etEmail.getText().toString().toLowerCase();
-                    email = email.trim();
-                    String pass = etPass.getText().toString().toLowerCase();
-                    email = email.trim();
-
-                    Bundle bundle = new Bundle();
-
-                    if (!isValidEmailAddress(email)) {
-                        bundle.putString("message", getString(R.string.email_error_msg));
-                        showDialog(1004, bundle);
-                    } else if (!isValidPassword(pass)) {
-                        bundle.putString("message", getString(R.string.password_error_msg));
-                        showDialog(1004, bundle);
-                    } else {
-                        SessionManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, "Lorem Ipsum", "Lorem Ipsum", email, pass);
-                    }
+//                if (!mRegFormVisible) {
+                if (!mDeviceReady) {
+                    // If the device isn't ready, try registering with the server again
+                    mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.conToServer_msg));
+                    mSessionManager.startSession(MainActivity.this);
+                    return;
                 }
+                // Showing reg form
+                showRegForm();
+//                } else {
+//                    String email = etEmail.getText().toString().toLowerCase();
+//                    email = email.trim();
+//                    String pass = etPass.getText().toString().toLowerCase();
+//                    email = email.trim();
+//
+//                    Bundle bundle = new Bundle();
+//
+//                    if (!isValidEmailAddress(email)) {
+//                        bundle.putString("message", getString(R.string.email_error_msg));
+//                        showDialog(1004, bundle);
+//                    } else if (!isValidPassword(pass)) {
+//                        bundle.putString("message", getString(R.string.password_error_msg));
+//                        showDialog(1004, bundle);
+//                    } else {
+//                        SessionManager.getInstance(MainActivity.this).registerWithVolley(MainActivity.this, "Lorem Ipsum", "Lorem Ipsum", email, pass);
+//                    }
+//                }
             }
         });
 
         btnFb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                 if (!mDeviceReady) {
+                if (!mDeviceReady) {
                     // If the device isn't ready, try registering with the server again
                     mSessionManager.showProgressDialog(MainActivity.this, getString(R.string.gettingIn_dialog_message));
                     mSessionManager.startSession(MainActivity.this);
@@ -309,7 +318,7 @@ public class MainActivity extends MotherActivity {
         Account[] accounts;
         try {
             accounts = AccountManager.get(this).getAccounts();
-        } catch (SecurityException e){
+        } catch (SecurityException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
             return;
         }
@@ -355,11 +364,13 @@ public class MainActivity extends MotherActivity {
     }
 
     private void showRegForm() {
-        startFadeAnimation(btnLogin, 1, 0, SHORT_ANIM_TIME);
-        startFadeAnimation(btnFb, 1, 0, SHORT_ANIM_TIME);
-        startFadeAnimation(ivLogoText, 1, 0, SHORT_ANIM_TIME);
-        startFadeAnimation(ivLogoBubbleText, 1, 0, SHORT_ANIM_TIME);
-        showRegFormAnim();
+//        startFadeAnimation(btnLogin, 1, 0, SHORT_ANIM_TIME);
+//        startFadeAnimation(btnFb, 1, 0, SHORT_ANIM_TIME);
+//        startFadeAnimation(ivLogoText, 1, 0, SHORT_ANIM_TIME);
+//        startFadeAnimation(ivLogoBubbleText, 1, 0, SHORT_ANIM_TIME);
+//        showRegFormAnim();
+        Intent i = new Intent(this, RegisterActivity.class);
+        startActivity(i);
     }
 
     // Animations

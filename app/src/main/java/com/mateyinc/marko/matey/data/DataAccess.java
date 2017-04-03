@@ -85,6 +85,12 @@ public class DataAccess {
         return mInstance;
     }
 
+    public void clearAllData(){
+        mGroupList.clear();
+        mProfilesList.clear();
+        mBulletinList.clear();
+    }
+
     public void addUserProfile(UserProfile profile) {
         int i = mProfilesList.indexOf(profile);
         if (i != -1) {

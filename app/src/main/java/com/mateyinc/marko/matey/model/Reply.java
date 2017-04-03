@@ -6,7 +6,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
 import com.mateyinc.marko.matey.internet.OperationManager;
@@ -294,6 +294,7 @@ public class Reply extends MModel {
             this._id = jsonObject.getLong(KEY_REPLY_ID);
             this.mServerStatus = ServerStatus.STATUS_SUCCESS;
         } catch (JSONException e) {
+            this.mServerStatus = ServerStatus.STATUS_RETRY_UPLOAD;
             Log.e(TAG, "Error parsing reply id and date: " + e.getLocalizedMessage(), e);
         }
     }
@@ -309,6 +310,7 @@ public class Reply extends MModel {
     public Reply parse(JSONObject object) throws JSONException {
         this.setId(object.getLong(KEY_REPLY_ID));
         this.setReplyText(object.getString(KEY_TEXT));
+        setServerStatus(ServerStatus.STATUS_SUCCESS);
 
         try {
             this.mUserProfile = new UserProfile().parse(

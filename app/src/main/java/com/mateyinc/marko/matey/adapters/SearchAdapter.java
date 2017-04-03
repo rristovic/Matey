@@ -18,6 +18,7 @@ import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
 import com.mateyinc.marko.matey.activity.view.GroupActivity;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
+import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.model.Bulletin;
 import com.mateyinc.marko.matey.model.Group;
 import com.mateyinc.marko.matey.model.MModel;
@@ -49,6 +50,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
     private final Context mContext;
     private List<MModel> mData = new ArrayList<>(0);
     private final DataAccess mDataAccess;
+    private final OperationManager mManager;
 
     private final int FRAG_TOP = 0;
     private final int FRAG_USER = 1;
@@ -62,6 +64,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
         mFragPos = fragPos;
         mContext = context;
         mDataAccess = DataAccess.getInstance(context);
+        mManager = OperationManager.getInstance(context);
         setData();
     }
 
@@ -114,9 +117,17 @@ public class SearchAdapter extends RecyclerView.Adapter {
             public void onToggleButton(int position, boolean isChecked) {
                 MModel model = mData.get(position);
                 if (model instanceof UserProfile) {
-
+                    if (isChecked) {
+                        mManager.followNewUser((UserProfile) model, mContext);
+                    } else {
+                        mManager.unfollowUser((UserProfile) model, mContext);
+                    }
                 } else {
-
+                    if (isChecked) {
+                        mManager.followGroup((Group) model, mContext);
+                    } else {
+                        mManager.unfollowGroup((Group) model, mContext);
+                    }
                 }
             }
         });
@@ -205,6 +216,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
         if (model instanceof Group) {
             Group g = (Group) model;
             String title = g.getGroupName();
+            holder.btnSail.setChecked(g.isFollowed());
             holder.tvTitle.setText(title);
             holder.tvInfo.setText(String.format(mContext.getString(R.string.groups_statistics), g.getNumOfFollowers()));
             return true;
@@ -216,6 +228,7 @@ public class SearchAdapter extends RecyclerView.Adapter {
         if (model instanceof UserProfile) {
             UserProfile u = (UserProfile) model;
             String title = u.getFullName();
+            holder.btnSail.setChecked(u.isFollowed());
             holder.tvTitle.setText(title);
             holder.tvInfo.setText(u.getLocation());
             return true;
@@ -259,12 +272,12 @@ public class SearchAdapter extends RecyclerView.Adapter {
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final OnItemClickedListener mListener;
-        private TextView tvTitle;
-        private TextView tvSectionTitle;
-        private TextView tvInfo;
-        private ImageView ivPicture;
-        private ToggleButton btnSail;
+        final OnItemClickedListener mListener;
+        TextView tvTitle;
+        TextView tvSectionTitle;
+        TextView tvInfo;
+        ImageView ivPicture;
+        ToggleButton btnSail;
 
         interface OnItemClickedListener {
             void onClick(int position);

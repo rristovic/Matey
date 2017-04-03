@@ -192,7 +192,7 @@ public class OperationManager implements OperationProvider {
             userValues.put(ProfileEntry.COLUMN_LAST_NAME, profile.getLastName());
             userValues.put(ProfileEntry.COLUMN_EMAIL, profile.getEmail());
             userValues.put(ProfileEntry.COLUMN_PROF_PIC, profile.getProfilePictureLink());
-            userValues.put(ProfileEntry.COLUMN_FOLLOWING, profile.isFriend() ? 1 : 0);
+//            userValues.put(ProfileEntry.COLUMN_FOLLOWING, profile.isFriend() ? 1 : 0);
             userValues.put(ProfileEntry.COLUMN_LAST_MSG_ID, profile.getLastMsgId());
             if (areFollowed)
                 userValues.put(ProfileEntry.COLUMN_FOLLOWING, true);
@@ -326,7 +326,7 @@ public class OperationManager implements OperationProvider {
     }
 
 
-    //// Reply methods         /////
+    ////     REPLY methods     /////
     ////////////////////////////////
 
     /**
@@ -438,9 +438,8 @@ public class OperationManager implements OperationProvider {
         });
     }
 
-    //// User profile methods ///////
+    //// USER PROFILE methods ///////
     /////////////////////////////////
-
     /**
      * Helper method for downloading user profile data from the server;
      *
@@ -455,7 +454,7 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for downloading user profile data from the server;
      *
-     * @param userId id of the user profile.
+     * @param userId      id of the user profile.
      * @param isFreshData indicates if data should be cleared first.
      */
     public void downloadUserProfileActivities(long userId, boolean isFreshData, MotherActivity context) {
@@ -469,46 +468,69 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for downloading user followers.
      *
-     * @param offset  starting position of followers;
-     * @param count   offset indicates how much will be downloaded;
-     * @param context {@link MotherActivity} context used for download/save ops;
+     * @param userId id of user profile which data should be downloaded.
+     * @param context context.
      */
-    public void downloadFollowers(int offset, int count, long id, MotherActivity context) {
+    public void downloadUserFollowers(long userId, boolean isFreshData, Context context) {
         UserProfileOp op = new UserProfileOp(context);
         op.setOperationType(OperationType.DOWNLOAD_FOLLOWERS);
-        op.setCount(count).setOffset(offset).setUserId(id)
-                .startDownloadAction();
+        op.setDownloadFreshData(isFreshData);
+        op.setUserId(userId).startDownloadAction();
+    }
+
+    /**
+     * Helper method for downloading user followers.
+     *
+     * @param userId id of user profile which data should be downloaded.
+     * @param context context.
+     */
+    public void downloadUserFollowingList(long userId, boolean isFreshData, Context context) {
+        UserProfileOp op = new UserProfileOp(context);
+        op.setOperationType(OperationType.DOWNLOAD_FOLLOWING);
+        op.setDownloadFreshData(isFreshData);
+        op.setUserId(userId).startDownloadAction();
     }
 
     /**
      * Helper method to use when new user profile has been followed.
      * Updates followed user profile database.
      *
-     * @param userId  id of the user being followed;
-     * @param context {@link MotherActivity} context used for upload/save operations;
+     * @param profile user profile;
+     * @param context context.
      */
-    public void followNewUser(long userId, MotherActivity context) {
-        UserProfileOp operation = new UserProfileOp(context);
-        operation.setOperationType(OperationType.FOLLOW_USER_PROFILE);
-        operation.setUserId(userId).startUploadAction();
+    public void followNewUser(final UserProfile profile, final Context context) {
+        profile.setFollowed(!profile.isFollowed());
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                UserProfileOp operation = new UserProfileOp(context);
+                operation.setOperationType(OperationType.FOLLOW_USER_PROFILE);
+                operation.setUserId(profile.getUserId()).startUploadAction();
+            }
+        });
     }
 
     /**
      * Helper method to use when user profile has been unfollowed.
      * Updates unfollowed user profile database.
      *
-     * @param userId  id of unfollowed user
-     * @param context {@link MotherActivity} context used for upload/save operations;
+     * @param profile user profile;
+     * @param context context;
      */
-    public void unfollowUser(long userId, MotherActivity context) {
-        UserProfileOp operation = new UserProfileOp(context);
-        operation.setOperationType(OperationType.UNFOLLOW_USER_PROFILE);
-        operation.setUserId(userId).startUploadAction();
+    public void unfollowUser(final UserProfile profile, final Context context) {
+        profile.setFollowed(!profile.isFollowed());
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                UserProfileOp operation = new UserProfileOp(context);
+                operation.setOperationType(OperationType.UNFOLLOW_USER_PROFILE);
+                operation.setUserId(profile.getUserId()).startUploadAction();
+            }
+        });
     }
 
-    //// Groups methods /////////////
+    ////      GROUP methods     /////
     /////////////////////////////////
-
     /**
      * Helper method for creating new group.
      *
@@ -532,6 +554,32 @@ public class OperationManager implements OperationProvider {
                 groupOp.startUploadAction();
             }
         });
+    }
+
+    /**
+     * Helper method for posting new bulletin with attachments.
+     * <p><u>NOTE:</u> Method is async.</p>
+     *
+     * @param subject     bulletin's subject
+     * @param message     bulletin's text
+     * @param attachments bulletin's attachment list that contains file paths.
+     */
+    public Bulletin postNewGroupBulletin(String subject, String message, @Nullable List<String> attachments, final long groupId, final Context context) {
+        final Bulletin b = new Bulletin(MotherActivity.mCurrentUserProfile, subject, message, new Date());
+        b.setAttachments(attachments);
+        b.setId(mIdGenerator.generateId());
+
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                BulletinOp bulletinOp = new BulletinOp(context, b);
+                bulletinOp.setOperationType(OperationType.POST_NEW_GROUP_BULLETIN);
+                bulletinOp.setGroupId(groupId);
+                bulletinOp.startUploadAction();
+            }
+        });
+
+        return b;
     }
 
     /**
@@ -576,36 +624,73 @@ public class OperationManager implements OperationProvider {
     /**
      * Helper method for downloading group info.
      *
-     * @param group group which info should be downloaded.
+     * @param groupId group id.
      * @param context context.
      */
-    public void downloadGroupInfo(final Group group, final Context context) {
+    public void downloadGroupInfo(final long groupId, final Context context) {
         submitRunnable(new Runnable() {
             @Override
             public void run() {
-                GroupOp groupOp = new GroupOp(context, group);
+                GroupOp groupOp = new GroupOp(context, groupId);
                 groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_INFO);
                 groupOp.startDownloadAction();
             }
         });
 
-        downloadGroupBulletins(group, true, context);
+        downloadGroupBulletins(groupId, true, context);
     }
 
     /**
      * Helper method for downloading group bulletins.
-     * @param group group which data will be downloaded.
+     *
+     * @param groupId     group which data will be downloaded.
      * @param isFreshData boolean to indicate if old data should be cleared first before downloading fresh one.
-     * @param context context
+     * @param context     context
      */
-    public void downloadGroupBulletins(final Group group, final boolean isFreshData, final Context context){
+    public void downloadGroupBulletins(final long groupId, final boolean isFreshData, final Context context) {
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                GroupOp groupOp = new GroupOp(context, groupId);
+                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST);
+                groupOp.setDownloadFreshData(isFreshData);
+                groupOp.startDownloadAction();
+            }
+        });
+    }
+
+    /**
+     * Helper method for following new group.
+     *
+     * @param group   group which is followed.
+     * @param context context.
+     */
+    public void followGroup(final Group group, final Context context) {
+        group.setFollowed(!group.isFollowed());
         submitRunnable(new Runnable() {
             @Override
             public void run() {
                 GroupOp groupOp = new GroupOp(context, group);
-                groupOp.setOperationType(OperationType.DOWNLOAD_GROUP_ACTIVITY_LIST);
-                groupOp.setDownloadFreshData(isFreshData);
-                groupOp.startDownloadAction();
+                groupOp.setOperationType(OperationType.FOLLOW_GROUP);
+                groupOp.startUploadAction();
+            }
+        });
+    }
+
+    /**
+     * Helper method for unfollowing new group.
+     *
+     * @param group   group which is unfollowed.
+     * @param context context.
+     */
+    public void unfollowGroup(final Group group, final Context context) {
+        group.setFollowed(!group.isFollowed());
+        submitRunnable(new Runnable() {
+            @Override
+            public void run() {
+                GroupOp groupOp = new GroupOp(context, group);
+                groupOp.setOperationType(OperationType.UNFOLLOW_GROUP);
+                groupOp.startUploadAction();
             }
         });
     }
@@ -669,6 +754,7 @@ public class OperationManager implements OperationProvider {
 
     ///// NOTIFICATIONS Method //////
     /////////////////////////////////
+
     /**
      * Helper method for downloading notification list.
      *

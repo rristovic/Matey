@@ -12,7 +12,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,7 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.EndlessScrollListener;
+import com.mateyinc.marko.matey.activity.utils.EndlessScrollListener;
 import com.mateyinc.marko.matey.activity.NewPostActivity;
 import com.mateyinc.marko.matey.adapters.BulletinsAdapter;
 import com.mateyinc.marko.matey.data.DataAccess;
@@ -35,21 +34,12 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 public class BulletinsFragment extends Fragment {
     private HomeActivity mContext;
     private BulletinsAdapter mAdapter;
     private BroadcastReceiver mDataDownloaded;
     private RecyclerView mRecycleView;
     private EndlessScrollListener mScrollListener;
-
-    /**
-     * The list which hold the updated bulletin positions;
-     * Used to notify adapter about update;
-     */
-    public static ArrayList<Integer> mUpdatedPositions = new ArrayList<>();
 
     private LinearLayout llNoData, rlNewPostView;
     private SwipeRefreshLayout mRefreshLayout;
@@ -109,6 +99,7 @@ public class BulletinsFragment extends Fragment {
                 mOperationManager.downloadNewsFeed(mContext);
             }
         };
+        mRecycleView.addOnScrollListener(mScrollListener);
 
         mMainFeedLayout.findViewById(R.id.fabNewPost).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,34 +112,14 @@ public class BulletinsFragment extends Fragment {
         return mMainFeedLayout;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("BulletinsFragment", "onResume is called.");
-//        mOperationManager.setDownloadListener(this);
-//        onDownloadSuccess();
 
-        // If items are updated, notify adapter
-        if (mUpdatedPositions.size() != 0) {
-            Iterator i = mUpdatedPositions.iterator();
-            while (i.hasNext()) {
-                int pos = (Integer) i.next();
-                mAdapter.notifyItemChanged(pos);
-                i.remove();
-            }
-        }
-
-        // Settings list scroll listener
-        mRecycleView.addOnScrollListener(mScrollListener);
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDownloadEvent(DownloadEvent event) {
+//        mScrollListener.onDownloadFinished();
+        mRefreshLayout.setRefreshing(false);
+        mAdapter.setData(mDataAccess.getBulletins());
     }
 
-    @Override
-    public void onPause() {
-        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mDataDownloaded);
-        mRecycleView.removeOnScrollListener(mScrollListener); // Removing scroll listener
-
-        super.onPause();
-    }
 
     @Override
     public void onStart() {
@@ -157,11 +128,13 @@ public class BulletinsFragment extends Fragment {
         mAdapter.setData(mDataAccess.getBulletins());
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onDownloadEvent(DownloadEvent event) {
-//        mScrollListener.onDownloadFinished();
-        mRefreshLayout.setRefreshing(false);
-        mAdapter.setData(mDataAccess.getBulletins());
+
+    @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mDataDownloaded);
+        mRecycleView.removeOnScrollListener(mScrollListener); // Removing scroll listener
+
+        super.onPause();
     }
 
     @Override

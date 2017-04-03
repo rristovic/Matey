@@ -13,6 +13,7 @@ import android.widget.ListView;
 
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
+import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.internet.OperationManager;
 import com.mateyinc.marko.matey.internet.SessionManager;
 
@@ -88,7 +89,8 @@ public class MenuFragment extends Fragment {
 //                        break;
 //                    }
                     case LOGOUT_ITEM_ID: {
-                        SessionManager.getInstance(MenuFragment.this.getContext()).logout((HomeActivity)MenuFragment.this.getActivity(), ((HomeActivity)MenuFragment.this.getActivity()).getSecurePreferences());
+                        DataAccess.getInstance(getContext()).clearAllData();
+                        SessionManager.getInstance(MenuFragment.this.getContext()).logout((HomeActivity) MenuFragment.this.getActivity(), ((HomeActivity) MenuFragment.this.getActivity()).getSecurePreferences());
                         break;
                     }
                     default:

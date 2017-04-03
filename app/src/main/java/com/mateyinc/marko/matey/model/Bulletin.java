@@ -5,7 +5,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.mateyinc.marko.matey.R;
-import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.data.DataContract;
 import com.mateyinc.marko.matey.data.ServerStatus;
 
@@ -19,7 +19,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import static com.mateyinc.marko.matey.activity.Util.parseDate;
+import static com.mateyinc.marko.matey.activity.utils.Util.parseDate;
 import static com.mateyinc.marko.matey.data.DataContract.BulletinEntry;
 import static com.mateyinc.marko.matey.internet.operations.Operations.KEY_DATA;
 
@@ -235,6 +235,7 @@ public class Bulletin extends MModel {
         // Parse requireed fields
         this._id = object.getLong(KEY_POST_ID);
         this.mSubject = object.getString(KEY_SUBJECT);
+        setServerStatus(ServerStatus.STATUS_SUCCESS);
 
         try {
             this.mUserProfile = new UserProfile().parse(
@@ -415,6 +416,7 @@ public class Bulletin extends MModel {
             this.mServerStatus = ServerStatus.STATUS_SUCCESS;
         } catch (JSONException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
+            this.mServerStatus = ServerStatus.STATUS_RETRY_UPLOAD;
         }
 
     }

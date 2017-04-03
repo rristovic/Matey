@@ -18,7 +18,7 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 
 import com.google.firebase.messaging.RemoteMessage;
-import com.mateyinc.marko.matey.activity.Util;
+import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.model.Notification;
 
