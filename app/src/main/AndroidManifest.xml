@@ -94,7 +94,7 @@
             android:label="@string/title_activity_profile"
             android:largeHeap="true" />
         <activity
-            android:name=".activity.view.GroupActivity"
+            android:name=".activity.group.GroupActivity"
             android:label="@string/title_activity_profile" />
         <activity
             android:name=".activity.home.FeedbackActivity"
@@ -163,7 +163,7 @@
         <activity android:name=".activity.search.SearchActivity" />
 
         <activity android:name=".activity.register.RegisterActivity"
-            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"/>
+            android:windowSoftInputMode="adjustResize|stateVisible"/>
     </application>
 
 </manifest>

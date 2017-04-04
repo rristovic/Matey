@@ -1,14 +1,12 @@
 package com.mateyinc.marko.matey.activity.register;
 
 
-import android.content.Context;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 
 import com.mateyinc.marko.matey.R;
 
@@ -31,15 +29,17 @@ public class EmailFragment extends RegistrationFragment {
         tvHeaderText.setText(getString(R.string.register_email_header));
         llInputFields.removeView(etSecondInput);
         etFirstInput.setHint(getString(R.string.register_email));
-        etFirstInput.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        etFirstInput.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS|InputType.TYPE_CLASS_TEXT);
+        // Handle focus navigation
+        handleFocusFirstField();
         return rootView;
     }
 
     @Override
     protected void onNextClicked() {
         Bundle b = new Bundle();
-        String text = etFirstInput.getText().toString();
-        if (isValidEmail(text)) {
+        String text = etFirstInput.getText().toString().trim();
+        if (isFirstInputValid(text)) {
             b.putString(EXTRA_EMAIL_STIRNG, text);
         } else {
             etFirstInput.setError(getString(R.string.register_error_email));
@@ -50,16 +50,17 @@ public class EmailFragment extends RegistrationFragment {
         mListener.onNext(b, mFragPos);
     }
 
+    @Override
     /**
      * Method for validating email address.
      */
-    private boolean isValidEmail(CharSequence target) {
-        if (TextUtils.isEmpty(target)) {
+    protected boolean isFirstInputValid(String input) {
+        if (TextUtils.isEmpty(input)) {
             return false;
         } else {
-            return android.util.Patterns.EMAIL_ADDRESS.matcher(target).matches();
-        }
-    }
+            return android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches();
+        }    }
+
 
     @Override
     public Bundle onBackButton() {

@@ -1,4 +1,4 @@
-package com.mateyinc.marko.matey.activity.view;
+package com.mateyinc.marko.matey.activity.group;
 
 import android.content.Intent;
 import android.graphics.Color;

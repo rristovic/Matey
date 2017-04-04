@@ -15,7 +15,7 @@ import android.widget.ToggleButton;
 import com.mateyinc.marko.matey.R;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.activity.view.GroupActivity;
+import com.mateyinc.marko.matey.activity.group.GroupActivity;
 import com.mateyinc.marko.matey.data.DataAccess;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 import com.mateyinc.marko.matey.internet.OperationManager;

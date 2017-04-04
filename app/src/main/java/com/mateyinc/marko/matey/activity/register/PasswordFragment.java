@@ -32,7 +32,10 @@ public class PasswordFragment extends RegistrationFragment {
         tvHeaderText.setText(getString(R.string.register_password_header));
         llInputFields.removeView(etSecondInput);
         etFirstInput.setHint(getString(R.string.register_password));
-        etFirstInput.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        etFirstInput.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD|InputType.TYPE_CLASS_TEXT);
+        // Handle focus navigation
+        handleFocusFirstField();
+
         return rootView;
     }
 
@@ -40,7 +43,7 @@ public class PasswordFragment extends RegistrationFragment {
     protected void onNextClicked() {
         Bundle b = new Bundle();
         String pass = etFirstInput.getText().toString();
-        if (isValidPass(pass)) {
+        if (isFirstInputValid(pass)) {
             b.putString(EXTRA_PASSWORD_STIRNG, pass);
         } else {
             etFirstInput.setError(getString(R.string.register_error_pass));
@@ -54,8 +57,12 @@ public class PasswordFragment extends RegistrationFragment {
         mListener.onNext(b, mFragPos);
     }
 
-    private boolean isValidPass(String pass) {
-        return pass != null && pass.length() > 0 && pass.length() > MIN_PASS_LENGTH;
+    @Override
+    /**
+     * Method for validating name.
+     */
+    protected boolean isFirstInputValid(String input) {
+        return input != null && input.length() > 0 && input.length() > MIN_PASS_LENGTH;
     }
 
     @Override

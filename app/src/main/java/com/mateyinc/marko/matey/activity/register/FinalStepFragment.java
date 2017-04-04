@@ -2,9 +2,11 @@ package com.mateyinc.marko.matey.activity.register;
 
 
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.mateyinc.marko.matey.R;
 
@@ -28,6 +30,9 @@ public class FinalStepFragment extends RegistrationFragment {
         btnNext.setText(getString(R.string.register_doneBtn_label));
         llInputFields.removeView(etSecondInput);
         llInputFields.removeView(etFirstInput);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) btnNext.getLayoutParams();
+        params.topMargin += TypedValue.applyDimension(100, TypedValue.COMPLEX_UNIT_DIP, getResources().getDisplayMetrics());
+        btnNext.setLayoutParams(params);
         return rootView;
     }
 

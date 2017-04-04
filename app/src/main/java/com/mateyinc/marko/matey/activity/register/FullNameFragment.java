@@ -1,6 +1,7 @@
 package com.mateyinc.marko.matey.activity.register;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,7 @@ import android.view.ViewGroup;
 import com.mateyinc.marko.matey.R;
 
 
-public class FullNameFragment extends RegistrationFragment {
+public class FullNameFragment extends RegistrationFragment{
 
     private static final int MIN_NAME_LENGTH = 2;
 
@@ -28,22 +29,28 @@ public class FullNameFragment extends RegistrationFragment {
                              Bundle savedInstanceState) {
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
         tvHeaderText.setText(getString(R.string.register_name_header));
+        etFirstInput.setInputType(InputType.TYPE_CLASS_TEXT);
+        etSecondInput.setInputType(InputType.TYPE_CLASS_TEXT);
+        // Handle focus navigation
+        handleFocusSecondField();
 
         return rootView;
     }
 
+
+
     @Override
     protected void onNextClicked() {
         Bundle b = new Bundle();
-        String name = etFirstInput.getText().toString();
-        if (isValidName(name)) {
+        String name = etFirstInput.getText().toString().trim();
+        if (isFirstInputValid(name)) {
             b.putString(EXTRA_NAME_STIRNG, name);
         } else {
             etFirstInput.setError(getString(R.string.register_error_name));
             return;
         }
-        String lastName = etSecondInput.getText().toString();
-        if (isValidName(lastName)) {
+        String lastName = etSecondInput.getText().toString().trim();
+        if (isFirstInputValid(lastName)) {
             b.putString(EXTRA_LASTNAME_STIRNG, lastName);
         } else {
             etSecondInput.setError(getString(R.string.register_error_name));
@@ -53,12 +60,19 @@ public class FullNameFragment extends RegistrationFragment {
         mListener.onNext(b, mFragPos);
     }
 
-    private boolean isValidName(String text) {
-        return text != null && text.length() > 0 && text.length() > MIN_NAME_LENGTH;
+    @Override
+    /**
+     * Method for validating name.
+     */
+    protected boolean isFirstInputValid(String input) {
+        return input != null && input.length() > 0 && input.length() > MIN_NAME_LENGTH;
     }
 
     @Override
     public Bundle onBackButton() {
         return null;
     }
+
+
+
 }

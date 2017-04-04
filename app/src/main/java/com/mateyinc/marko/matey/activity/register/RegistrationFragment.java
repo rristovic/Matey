@@ -3,9 +3,11 @@ package com.mateyinc.marko.matey.activity.register;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -14,7 +16,7 @@ import com.mateyinc.marko.matey.R;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 
-public abstract class RegistrationFragment extends Fragment {
+public abstract class RegistrationFragment extends Fragment implements TextView.OnEditorActionListener {
 
     // Extra string for bundle that will be send to register activity
     static final String EXTRA_EMAIL_STIRNG = "extra_email";
@@ -32,9 +34,8 @@ public abstract class RegistrationFragment extends Fragment {
     protected FragmentListener mListener;
     protected int mFragPos;
 
-    public RegistrationFragment(){
+    public RegistrationFragment() {
     }
-
 
 
     @Override
@@ -78,14 +79,54 @@ public abstract class RegistrationFragment extends Fragment {
     }
 
 
-
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }
 
+    /**
+     * Sets the second input field done action do perform {@link this#onNextClicked()}.
+     * So this field is final one.
+     */
+    protected void handleFocusSecondField() {
+        etFirstInput.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        etFirstInput.setNextFocusForwardId(R.id.etSecondInputField);
+        etFirstInput.setOnEditorActionListener(this);
+        etSecondInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        etSecondInput.setOnEditorActionListener(this);
+    }
+
+    /**
+     * Sets the first input field done action do perform {@link this#onNextClicked()}.
+     * so this field is final one.
+     */
+    protected void handleFocusFirstField() {
+        etFirstInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        etFirstInput.setOnEditorActionListener(this);
+    }
+
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == EditorInfo.IME_ACTION_DONE ||
+                actionId == EditorInfo.IME_ACTION_NEXT && !isFirstInputValid(v.getText().toString())) {
+            onNextClicked();
+            return true;
+        }
+
+        return false;
+    }
+
+    protected boolean isFirstInputValid(String input) {
+        return false;
+    }
+
+    protected boolean isSecondInputValid(String input) {
+        return false;
+    }
+
     protected abstract void onNextClicked();
+
     public abstract Bundle onBackButton();
 
 }

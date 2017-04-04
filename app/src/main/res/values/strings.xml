@@ -239,5 +239,8 @@
     <string name="register_finalStep_text">Congratulations, you have successfully registered. Continue to login page.</string>
     <string name="register_doneBtn_label">Done</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 
 </resources>

@@ -8,7 +8,7 @@ import com.mateyinc.marko.matey.activity.utils.Util;
 import com.mateyinc.marko.matey.activity.home.HomeActivity;
 import com.mateyinc.marko.matey.activity.profile.ProfileActivity;
 import com.mateyinc.marko.matey.activity.view.BulletinViewActivity;
-import com.mateyinc.marko.matey.activity.view.GroupActivity;
+import com.mateyinc.marko.matey.activity.group.GroupActivity;
 import com.mateyinc.marko.matey.inall.MotherActivity;
 
 import org.json.JSONException;
